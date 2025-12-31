@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Inbox, Calendar, PlusCircle, FileText, Settings, 
-  Menu, X, CheckCircle, LogOut 
+  Menu, X, LogOut 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Logo, LogoWordmark } from "@/components/logo";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -36,11 +37,8 @@ export default function Layout({ children }: LayoutProps) {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 flex-col border-r bg-sidebar p-4 h-screen sticky top-0">
         <div className="flex items-center gap-2 px-2 mb-8 mt-4">
-          {/* System 2 Logo Style */}
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-sm shadow-lg shadow-primary/30">
-            A
-          </div>
-          <span className="font-bold text-xl tracking-tight text-foreground">ActionMinutes</span>
+          <Logo variant="squircle" size={32} />
+          <LogoWordmark size="base" />
         </div>
 
         <nav className="space-y-1 flex-1">
@@ -50,6 +48,7 @@ export default function Layout({ children }: LayoutProps) {
               <Link 
                 key={item.href} 
                 href={item.href}
+                data-testid={`nav-${item.label.toLowerCase()}`}
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer",
                   isActive
@@ -66,11 +65,12 @@ export default function Layout({ children }: LayoutProps) {
 
         <div className="mt-auto pt-4 border-t border-border/50">
           <div className="px-4 py-2 mb-2">
-            <p className="text-sm font-bold text-foreground">{user.name}</p>
-            <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+            <p className="text-sm font-bold text-foreground" data-testid="text-user-name">{user.name}</p>
+            <p className="text-xs text-muted-foreground truncate" data-testid="text-user-email">{user.email}</p>
           </div>
           <Button 
             variant="ghost" 
+            data-testid="button-signout"
             className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-full px-4"
             onClick={() => {
               toast({ title: "Logged out (Mock)", description: "Refresh to reset state if needed." });
@@ -86,10 +86,8 @@ export default function Layout({ children }: LayoutProps) {
       {/* Mobile Header */}
       <header className="md:hidden flex items-center justify-between border-b p-4 bg-background sticky top-0 z-50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-sm shadow-md">
-            A
-          </div>
-          <span className="font-bold text-lg text-foreground">ActionMinutes</span>
+          <Logo variant="squircle" size={32} />
+          <LogoWordmark size="sm" />
         </div>
         <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

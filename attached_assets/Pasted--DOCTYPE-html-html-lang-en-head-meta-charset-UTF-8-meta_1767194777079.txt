@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActionMinutes: System 2 Brand Identity</title>
+    
+    <!-- Fonts: Outfit (System 2 Requirement) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind Config matching System 2 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        stone: {
+                            50: '#fafaf9',
+                            100: '#f5f5f4',
+                            200: '#e7e5e4',
+                            900: '#1c1917',
+                        },
+                        slate: {
+                            700: '#334155', 
+                            800: '#1e293b', 
+                            900: '#0f172a',
+                        },
+                        teal: {
+                            400: '#2dd4bf',
+                            500: '#14b8a6', 
+                            600: '#0d9488',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 40px -10px rgba(0,0,0,0.08)',
+                        'lift': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                    },
+                    borderRadius: {
+                        '3xl': '1.5rem',
+                        '4xl': '2rem',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Interactive Canvas Container */
+        .canvas-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: radial-gradient(#e7e5e4 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Smooth Transitions */
+        .brand-card {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .brand-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .code-block {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-slate-700 font-sans antialiased min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-stone-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <!-- Mini Logo Rendered via JS -->
+                <canvas id="nav-logo" width="32" height="32"></canvas>
+                <h1 class="font-bold text-slate-800 tracking-tight text-lg">ActionMinutes <span class="font-medium text-stone-400">Brand Kit</span></h1>
+            </div>
+            <div class="text-xs font-bold uppercase tracking-widest text-teal-600 bg-teal-50 px-3 py-1 rounded-full border border-teal-100">
+                System 2 Design
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-12 space-y-20">
+
+        <!-- SECTION 1: THE LOGO MARK -->
+        <section>
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <h2 class="text-3xl font-bold text-slate-800 mb-3">The "Time-Check" Mark</h2>
+                <p class="text-slate-500 text-lg leading-relaxed">
+                    A calm, geometric fusion of a clock face and a checkmark. <br>
+                    It represents the core promise: <strong>Time converted into Action.</strong>
+                </p>
+            </div>
+
+            <!-- Logo Playground -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Large Canvas Render -->
+                <div class="lg:col-span-2 bg-white rounded-4xl p-10 shadow-soft border border-stone-100 canvas-wrapper relative min-h-[400px]">
+                    <canvas id="hero-logo" width="400" height="400" class="drop-shadow-xl"></canvas>
+                    
+                    <!-- Context Label -->
+                    <div class="absolute bottom-6 left-6 bg-white/90 px-4 py-2 rounded-xl text-xs font-mono text-stone-500 border border-stone-200 shadow-sm">
+                        Dimensions: 512x512px (Scaleable)
+                    </div>
+                </div>
+
+                <!-- Usage Guidelines -->
+                <div class="space-y-6">
+                    <div class="bg-white rounded-3xl p-6 shadow-soft border border-stone-100 brand-card">
+                        <h3 class="font-bold text-slate-800 mb-2">Construction</h3>
+                        <p class="text-sm text-stone-500 mb-4">
+                            The mark is built on a "Soft Squircle" (super-ellipse) grid. The hands are rounded strokes positioned at 10 o'clock and center, forming a checkmark.
+                        </p>
+                        <div class="flex gap-2">
+                            <span class="w-3 h-3 rounded-full bg-teal-500"></span>
+                            <span class="text-xs font-mono text-slate-600">Teal-500 (#14b8a6)</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-3xl p-6 shadow-soft border border-stone-100 brand-card">
+                        <h3 class="font-bold text-slate-800 mb-4">Context Testing</h3>
+                        <div class="space-y-3">
+                            <button onclick="setContext('light')" class="w-full flex items-center justify-between p-3 rounded-xl border border-stone-200 bg-stone-50 hover:border-teal-500 transition-colors">
+                                <span class="text-sm font-medium">Light Mode</span>
+                                <div class="w-4 h-4 rounded-full bg-stone-50 border border-stone-300"></div>
+                            </button>
+                            <button onclick="setContext('dark')" class="w-full flex items-center justify-between p-3 rounded-xl border border-stone-200 bg-slate-900 text-white hover:border-teal-500 transition-colors">
+                                <span class="text-sm font-medium">Dark Mode</span>
+                                <div class="w-4 h-4 rounded-full bg-slate-800 border border-slate-700"></div>
+                            </button>
+                            <button onclick="setContext('brand')" class="w-full flex items-center justify-between p-3 rounded-xl border border-stone-200 bg-teal-500 text-white hover:border-white transition-colors">
+                                <span class="text-sm font-medium">Brand Background</span>
+                                <div class="w-4 h-4 rounded-full bg-teal-600 border border-teal-400"></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: SCENARIOS -->
+        <section>
+            <h2 class="text-2xl font-bold text-slate-800 mb-8 border-b border-stone-200 pb-4">Application Scenarios</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- Scenario 1: Web Header -->
+                <div class="bg-white rounded-3xl p-6 shadow-soft border border-stone-100 brand-card flex flex-col items-center">
+                    <span class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-6">Web Header</span>
+                    <div class="w-full h-24 bg-stone-50 rounded-2xl flex items-center justify-center border border-stone-100">
+                        <canvas id="scenario-header" width="200" height="50"></canvas>
+                    </div>
+                    <p class="text-xs text-stone-500 mt-4 text-center">Horizontal lockup. Icon left, Wordmark right. Slate-800 Text.</p>
+                </div>
+
+                <!-- Scenario 2: Mobile App Icon -->
+                <div class="bg-white rounded-3xl p-6 shadow-soft border border-stone-100 brand-card flex flex-col items-center">
+                    <span class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-6">Mobile App (iOS)</span>
+                    <div class="w-full h-32 flex items-center justify-center">
+                        <canvas id="scenario-app" width="80" height="80" class="shadow-xl rounded-[18px]"></canvas>
+                    </div>
+                    <p class="text-xs text-stone-500 mt-4 text-center">Full bleed background. No text. 18px corner radius simulation.</p>
+                </div>
+
+                <!-- Scenario 3: Social / Avatar -->
+                <div class="bg-white rounded-3xl p-6 shadow-soft border border-stone-100 brand-card flex flex-col items-center">
+                    <span class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-6">Social Avatar</span>
+                    <div class="w-full h-32 flex items-center justify-center">
+                        <canvas id="scenario-social" width="80" height="80" class="rounded-full shadow-md"></canvas>
+                    </div>
+                    <p class="text-xs text-stone-500 mt-4 text-center">Circular crop. White icon on Teal background.</p>
+                </div>
+
+                <!-- Scenario 4: Dark Mode / Footer -->
+                <div class="bg-slate-900 rounded-3xl p-6 shadow-soft border border-slate-800 brand-card flex flex-col items-center">
+                    <span class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-6">Dark / Footer</span>
+                    <div class="w-full h-24 flex items-center justify-center">
+                        <canvas id="scenario-dark" width="200" height="50"></canvas>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-4 text-center">White text. Icon retains Teal brand color or shifts to White.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: TYPOGRAPHY -->
+        <section>
+             <h2 class="text-2xl font-bold text-slate-800 mb-8 border-b border-stone-200 pb-4">Typography (Outfit)</h2>
+             <div class="bg-white rounded-3xl p-8 shadow-soft border border-stone-100 grid grid-cols-1 md:grid-cols-2 gap-12">
+                 
+                 <!-- Specimen -->
+                 <div>
+                     <h1 class="text-6xl font-extrabold text-slate-800 mb-4 tracking-tight">Aa</h1>
+                     <p class="text-stone-500 text-sm mb-8">Outfit is a geometric sans-serif that balances modernism with friendly, rounded details.</p>
+                     
+                     <div class="space-y-4">
+                         <div class="flex items-baseline justify-between border-b border-stone-100 pb-2">
+                             <span class="text-4xl font-light text-slate-800">Light</span>
+                             <span class="text-xs font-mono text-stone-400">300</span>
+                         </div>
+                         <div class="flex items-baseline justify-between border-b border-stone-100 pb-2">
+                             <span class="text-4xl font-normal text-slate-800">Regular</span>
+                             <span class="text-xs font-mono text-stone-400">400</span>
+                         </div>
+                         <div class="flex items-baseline justify-between border-b border-stone-100 pb-2">
+                             <span class="text-4xl font-semibold text-slate-800">Semibold</span>
+                             <span class="text-xs font-mono text-stone-400">600</span>
+                         </div>
+                         <div class="flex items-baseline justify-between border-b border-stone-100 pb-2">
+                             <span class="text-4xl font-bold text-slate-800">Bold</span>
+                             <span class="text-xs font-mono text-stone-400">700</span>
+                         </div>
+                     </div>
+                 </div>
+
+                 <!-- Logo Text Construction -->
+                 <div class="flex flex-col justify-center">
+                     <span class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-4">Wordmark Construction</span>
+                     <div class="bg-stone-50 p-8 rounded-2xl border border-stone-200 flex items-center justify-center mb-6">
+                         <span class="text-4xl text-slate-800 tracking-tight">
+                             <span class="font-bold">Action</span><span class="font-normal text-slate-600">Minutes</span>
+                         </span>
+                     </div>
+                     <p class="text-sm text-stone-500 leading-relaxed">
+                         The wordmark uses a dual-weight approach to separate the words without a space. "Action" is set in Bold (700) and Slate-800 for emphasis. "Minutes" is set in Regular (400) and Slate-600 for a lighter touch.
+                     </p>
+                 </div>
+             </div>
+        </section>
+
+        <!-- SECTION 4: DEVELOPER ASSETS -->
+        <section>
+            <h2 class="text-2xl font-bold text-slate-800 mb-8 border-b border-stone-200 pb-4">Implementation (HTML/Tailwind)</h2>
+            <div class="bg-stone-900 rounded-3xl p-6 shadow-soft overflow-hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-stone-400 text-xs font-bold uppercase tracking-widest">Logo Component (React/HTML)</span>
+                    <button class="text-xs text-teal-400 hover:text-teal-300 font-mono">Copy Snippet</button>
+                </div>
+<pre class="code-block text-stone-300 overflow-x-auto">
+&lt;!-- Logo Container --&gt;
+&lt;div class="flex items-center gap-2"&gt;
+  &lt;!-- Icon (CSS Shapes) --&gt;
+  &lt;div class="w-8 h-8 bg-teal-500 rounded-xl flex items-center justify-center shadow-sm relative overflow-hidden"&gt;
+    &lt;!-- The "Check" --&gt;
+    &lt;div class="w-1.5 h-3 border-r-2 border-b-2 border-white transform rotate-45 mb-1 ml-0.5"&gt;&lt;/div&gt;
+    &lt;!-- The "Time Ring" Accent --&gt;
+    &lt;div class="absolute inset-0 border-2 border-white/20 rounded-xl"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  
+  &lt;!-- Wordmark --&gt;
+  &lt;div class="flex flex-col leading-none"&gt;
+    &lt;span class="font-bold text-slate-800 text-lg tracking-tight"&gt;Action&lt;span class="font-normal text-slate-600"&gt;Minutes&lt;/span&gt;&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</pre>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-7xl mx-auto px-6 py-12 text-center border-t border-stone-200 mt-12">
+        <p class="text-sm text-stone-400">ActionMinutes Brand Kit • System 2 • Generated 2025</p>
+    </footer>
+
+    <!-- LOGO DRAWING LOGIC (CANVAS) -->
+    <script>
+        // --- Shared Drawing Function ---
+        function drawLogo(canvasId, options = {}) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            // Options
+            const bgColor = options.bgColor || '#14b8a6'; // Teal-500
+            const iconColor = options.iconColor || '#ffffff';
+            const textColor = options.textColor || '#1e293b'; // Slate-800
+            const secondaryTextColor = options.secondaryTextColor || '#475569'; // Slate-600
+            const shape = options.shape || 'squircle'; // squircle, circle, none
+            const withText = options.withText || false;
+            const scale = options.scale || 1;
+
+            // Clear
+            ctx.clearRect(0, 0, w, h);
+
+            // 1. Draw Background Shape
+            if (shape !== 'none') {
+                ctx.fillStyle = bgColor;
+                if (shape === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, w/2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (shape === 'squircle') {
+                    // Smooth rounded rect (Squircle approximation)
+                    const r = w * 0.35; // Radius
+                    ctx.beginPath();
+                    ctx.roundRect(0, 0, w, h, r);
+                    ctx.fill();
+                } else if (shape === 'rounded-header') {
+                    // Small icon for header
+                    const r = w * 0.35;
+                    ctx.beginPath();
+                    ctx.roundRect(0, 0, w, h, r);
+                    ctx.fill();
+                }
+            }
+
+            // 2. Draw The Symbol (The "Time-Check")
+            // Concept: A clock face where the hands form a check mark.
+            // Center point of the check depends on canvas size
+            
+            // If Text is present, offset the icon to the left
+            let iconX = cx;
+            let iconY = cy;
+            let iconSize = w * 0.6; // Base size relative to container
+
+            if (withText) {
+                iconSize = h * 0.8; // Icon matches height
+                iconX = iconSize / 2; // Left aligned
+                iconY = h / 2;
+                
+                // Draw Icon Container for Header
+                ctx.fillStyle = bgColor;
+                ctx.beginPath();
+                ctx.roundRect(0, 0, iconSize, iconSize, iconSize * 0.35);
+                ctx.fill();
+                
+                // Update center for drawing stroke
+                iconX = iconSize / 2;
+            }
+
+            ctx.strokeStyle = iconColor;
+            ctx.lineWidth = iconSize * 0.12; // Thick stroke
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Draw Checkmark
+            // Start (left short stroke) -> Center (bottom) -> End (right long stroke)
+            // Coordinates relative to icon center
+            const checkStart = { x: iconX - (iconSize * 0.2), y: iconY + (iconSize * 0.05) };
+            const checkPivot = { x: iconX - (iconSize * 0.05), y: iconY + (iconSize * 0.25) };
+            const checkEnd = { x: iconX + (iconSize * 0.25), y: iconY - (iconSize * 0.25) };
+
+            ctx.beginPath();
+            ctx.moveTo(checkStart.x, checkStart.y);
+            ctx.lineTo(checkPivot.x, checkPivot.y);
+            ctx.lineTo(checkEnd.x, checkEnd.y);
+            ctx.stroke();
+
+            // Draw "Clock Ring" Hint (Optional subtle detail)
+            // A small arc to suggest time
+            ctx.globalAlpha = 0.3;
+            ctx.lineWidth = iconSize * 0.05;
+            ctx.beginPath();
+            ctx.arc(iconX, iconY, iconSize * 0.35, Math.PI * 1.2, Math.PI * 2.2);
+            ctx.stroke();
+            ctx.globalAlpha = 1.0;
+
+            // 3. Draw Text (if enabled)
+            if (withText) {
+                const textSize = h * 0.6;
+                const textX = iconSize * 1.3; // Padding
+                const textY = cy + (textSize * 0.35);
+
+                ctx.font = `bold ${textSize}px Outfit`;
+                ctx.fillStyle = textColor;
+                ctx.fillText("Action", textX, textY);
+                
+                const actionWidth = ctx.measureText("Action").width;
+                ctx.font = `400 ${textSize}px Outfit`;
+                ctx.fillStyle = secondaryTextColor;
+                ctx.fillText("Minutes", textX + actionWidth, textY);
+            }
+        }
+
+        // --- Render All Scenarios ---
+        function renderAll() {
+            // 1. Navigation Logo
+            drawLogo('nav-logo', { shape: 'squircle', scale: 0.1 });
+
+            // 2. Hero Large Logo
+            drawLogo('hero-logo', { shape: 'squircle' });
+
+            // 3. Web Header
+            drawLogo('scenario-header', { 
+                shape: 'none', // Custom handling inside
+                withText: true 
+            });
+
+            // 4. Mobile App (Full Bleed)
+            drawLogo('scenario-app', { shape: 'squircle' });
+
+            // 5. Social Avatar (Circle)
+            drawLogo('scenario-social', { shape: 'circle' });
+
+            // 6. Dark Mode
+            drawLogo('scenario-dark', { 
+                shape: 'none', 
+                withText: true,
+                bgColor: '#2dd4bf', // Brighter teal for dark mode
+                textColor: '#ffffff',
+                secondaryTextColor: '#94a3b8' // Slate-400
+            });
+        }
+
+        // --- Context Switching Logic ---
+        function setContext(mode) {
+            const wrapper = document.querySelector('.canvas-wrapper');
+            const contextLabel = wrapper.querySelector('div'); // The label
+
+            if (mode === 'light') {
+                wrapper.style.backgroundColor = '#ffffff';
+                wrapper.style.backgroundImage = 'radial-gradient(#e7e5e4 1px, transparent 1px)';
+                drawLogo('hero-logo', { shape: 'squircle', bgColor: '#14b8a6', iconColor: '#fff' });
+                contextLabel.style.color = '#78716c';
+            } else if (mode === 'dark') {
+                wrapper.style.backgroundColor = '#0f172a'; // Slate-900
+                wrapper.style.backgroundImage = 'radial-gradient(#334155 1px, transparent 1px)';
+                drawLogo('hero-logo', { shape: 'squircle', bgColor: '#2dd4bf', iconColor: '#0f172a' }); // High contrast
+                contextLabel.style.color = '#94a3b8';
+            } else if (mode === 'brand') {
+                wrapper.style.backgroundColor = '#14b8a6'; // Teal-500
+                wrapper.style.backgroundImage = 'none';
+                drawLogo('hero-logo', { shape: 'squircle', bgColor: '#ffffff', iconColor: '#14b8a6' }); // Inverted
+                contextLabel.style.color = '#ccfbf1';
+            }
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+        });
+
+    </script>
+</body>
+</html>
