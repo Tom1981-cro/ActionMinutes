@@ -1,60 +1,72 @@
-import { useEffect } from "react";
 import { useRoute, useLocation } from "wouter";
-import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Loader2, ArrowLeft, CheckCircle, AlertTriangle, HelpCircle, RefreshCw, FileText, Plus } from "lucide-react";
+import { Loader2, ArrowLeft, CheckCircle, AlertTriangle, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useMeeting, useActionItemsForMeeting, useUpdateMeeting } from "@/lib/hooks";
+import { api } from "@/lib/api";
 
 export default function ExtractionPage() {
   const [, params] = useRoute("/meeting/:id");
   const [, setLocation] = useLocation();
-  const { meetings, actionItems, finalizeMeeting, generateDrafts, updateActionItem } = useStore();
   const { toast } = useToast();
   
-  const id = params?.id;
-  const meeting = meetings.find(m => m.id === id);
-  const actions = actionItems.filter(a => a.meetingId === id);
+  const id = params?.id || "";
+  const { data: meeting, isLoading: meetingLoading } = useMeeting(id);
+  const { data: actions = [], isLoading: actionsLoading } = useActionItemsForMeeting(id);
+  const updateMeeting = useUpdateMeeting();
 
-  if (!meeting) return <div>Meeting not found</div>;
+  if (meetingLoading || actionsLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
+      </div>
+    );
+  }
+
+  if (!meeting) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-stone-500">
+        Meeting not found
+      </div>
+    );
+  }
 
   if (meeting.parseState === "processing") {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        <h2 className="text-xl font-semibold">AI is analyzing your notes...</h2>
-        <p className="text-muted-foreground">Extracting decisions, actions, and risks.</p>
+        <Loader2 className="h-12 w-12 animate-spin text-teal-500" />
+        <h2 className="text-xl font-semibold text-slate-800">AI is analyzing your notes...</h2>
+        <p className="text-stone-500">Extracting decisions, actions, and risks.</p>
       </div>
     );
   }
 
   const handleFinalize = () => {
-    finalizeMeeting(meeting.id);
+    updateMeeting.mutate({ id: meeting.id, updates: { parseState: 'finalized' } });
     toast({ title: "Meeting finalized", description: "Outputs are locked." });
   };
 
-  const handleGenerateDrafts = () => {
-    generateDrafts(meeting.id);
+  const handleViewDrafts = () => {
     setLocation("/drafts");
   };
 
   return (
     <div className="space-y-8 pb-20">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 bg-background/95 backdrop-blur z-10 py-4 border-b">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 bg-stone-50/95 backdrop-blur z-10 py-4 border-b border-stone-200">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation("/meetings")}>
+          <Button variant="ghost" size="icon" onClick={() => setLocation("/meetings")} className="rounded-full" data-testid="button-back">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold truncate max-w-[300px]">{meeting.title}</h1>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <h1 className="text-xl font-bold truncate max-w-[300px] text-slate-800">{meeting.title}</h1>
+            <div className="flex items-center gap-2 text-sm text-stone-500">
               <Badge variant={
                   meeting.parseState === 'finalized' ? 'default' : 
                   meeting.parseState === 'processing' ? 'secondary' : 'outline'
-                } className="mb-2">
+                } className="rounded-full">
                 {meeting.parseState}
               </Badge>
               {meeting.date && <span>{new Date(meeting.date).toLocaleDateString()}</span>}
@@ -63,12 +75,12 @@ export default function ExtractionPage() {
         </div>
         <div className="flex gap-2">
           {meeting.parseState !== 'finalized' && (
-            <Button variant="default" onClick={handleFinalize}>
+            <Button variant="default" onClick={handleFinalize} className="rounded-full bg-teal-500 hover:bg-teal-600" data-testid="button-finalize">
               <CheckCircle className="mr-2 h-4 w-4" />
               Finalize
             </Button>
           )}
-          <Button variant="outline" onClick={handleGenerateDrafts}>
+          <Button variant="outline" onClick={handleViewDrafts} className="rounded-full border-stone-300" data-testid="button-drafts">
             <FileText className="mr-2 h-4 w-4" />
             View Drafts
           </Button>
@@ -76,100 +88,51 @@ export default function ExtractionPage() {
       </div>
 
       <div className="grid gap-6 max-w-5xl mx-auto">
-        {/* Summary */}
-        <Card>
+        <Card className="bg-white border-stone-200 rounded-3xl">
           <CardHeader>
-            <CardTitle>Summary</CardTitle>
+            <CardTitle className="text-slate-800">Summary</CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea 
-              className="border-none resize-none bg-muted/30 p-4 text-base leading-relaxed" 
-              defaultValue={meeting.summary}
-              readOnly={meeting.parseState === 'finalized'}
+              className="border-none resize-none bg-stone-50 p-4 text-base leading-relaxed rounded-2xl text-slate-700" 
+              defaultValue={meeting.summary || "No summary generated yet."}
+              readOnly
             />
           </CardContent>
         </Card>
 
-        {/* Decisions */}
-        <Card>
+        <Card className="bg-white border-stone-200 rounded-3xl">
           <CardHeader>
-            <CardTitle>Decisions</CardTitle>
+            <CardTitle className="text-slate-800">Action Items</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {meeting.decisions?.map((d) => (
-              <div key={d.id} className="flex gap-3 items-start p-3 bg-green-50/50 dark:bg-green-900/10 rounded-lg border border-green-100 dark:border-green-900/30">
-                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
-                <span className="text-sm">{d.text}</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Action Items */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Action Items</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {actions.map((item) => (
-              <div key={item.id} className="group border rounded-lg p-4 space-y-3 hover:border-primary/50 transition-colors">
-                <Input 
-                   defaultValue={item.text} 
-                   className="font-medium text-base border-none px-0 h-auto focus-visible:ring-0"
-                   readOnly={meeting.parseState === 'finalized'}
-                   onChange={(e) => updateActionItem(item.id, { text: e.target.value })}
-                />
-                <div className="flex flex-wrap gap-2">
-                  <div className="flex items-center border rounded px-2 py-1 bg-muted/20">
-                    <span className="text-xs text-muted-foreground mr-2">Owner</span>
-                    <Input 
-                      defaultValue={item.ownerName || ""} 
-                      placeholder="Unassigned"
-                      className="h-5 w-32 border-none p-0 text-sm focus-visible:ring-0 bg-transparent"
-                      readOnly={meeting.parseState === 'finalized'}
-                      onChange={(e) => updateActionItem(item.id, { ownerName: e.target.value })}
-                    />
+          <CardContent className="space-y-3">
+            {actions.length === 0 ? (
+              <p className="text-center py-8 text-stone-500">No action items extracted yet.</p>
+            ) : (
+              actions.map((item: any) => (
+                <div key={item.id} className="group border border-stone-200 rounded-2xl p-4 space-y-3 hover:border-teal-300 transition-colors bg-white" data-testid={`action-${item.id}`}>
+                  <p className="font-medium text-base text-slate-800">{item.text}</p>
+                  <div className="flex flex-wrap gap-2 text-sm">
+                    {item.ownerName && (
+                      <div className="flex items-center border border-stone-200 rounded-full px-3 py-1 bg-stone-50">
+                        <span className="text-xs text-stone-500 mr-2">Owner:</span>
+                        <span className="text-slate-700">{item.ownerName}</span>
+                      </div>
+                    )}
+                    {item.dueDate && (
+                      <div className="flex items-center border border-stone-200 rounded-full px-3 py-1 bg-stone-50">
+                        <span className="text-xs text-stone-500 mr-2">Due:</span>
+                        <span className="text-slate-700">{new Date(item.dueDate).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                    {item.confidenceOwner < 0.8 && (
+                      <Badge variant="secondary" className="text-amber-600 bg-amber-50 rounded-full border-amber-200">Low Confidence</Badge>
+                    )}
                   </div>
-                  <div className="flex items-center border rounded px-2 py-1 bg-muted/20">
-                     <span className="text-xs text-muted-foreground mr-2">Due</span>
-                     <Input 
-                       type="date"
-                       defaultValue={item.dueDate ? item.dueDate.split('T')[0] : ""} 
-                       className="h-5 w-auto border-none p-0 text-sm focus-visible:ring-0 bg-transparent"
-                       readOnly={meeting.parseState === 'finalized'}
-                       onChange={(e) => updateActionItem(item.id, { dueDate: e.target.value })}
-                     />
-                  </div>
-                  {item.confidenceOwner < 0.8 && (
-                     <Badge variant="secondary" className="text-amber-600 bg-amber-50">Low Confidence</Badge>
-                  )}
                 </div>
-              </div>
-            ))}
-            {meeting.parseState !== 'finalized' && (
-              <Button variant="ghost" className="w-full border border-dashed">
-                <Plus className="mr-2 h-4 w-4" /> Add Item
-              </Button>
+              ))
             )}
           </CardContent>
-        </Card>
-
-        {/* Risks */}
-        <Card>
-           <CardHeader>
-             <CardTitle className="flex items-center gap-2">
-               <AlertTriangle className="h-5 w-5 text-amber-500" />
-               Risks / Blockers
-             </CardTitle>
-           </CardHeader>
-           <CardContent className="space-y-2">
-             {meeting.risks?.map(r => (
-               <div key={r.id} className="p-3 bg-amber-50/50 dark:bg-amber-900/10 rounded border border-amber-100 dark:border-amber-900/30 text-sm">
-                 <span className="font-semibold uppercase text-[10px] tracking-wider text-amber-600 mr-2">{r.severity}</span>
-                 {r.text}
-               </div>
-             ))}
-           </CardContent>
         </Card>
       </div>
     </div>
