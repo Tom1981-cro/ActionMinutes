@@ -27,81 +27,85 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight text-slate-800">Settings</h1>
+    <div className="space-y-5 md:space-y-6">
+      <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-800">Settings</h1>
 
-      <Tabs defaultValue="preferences" className="space-y-6">
-        <TabsList className="bg-stone-100 rounded-2xl p-1">
-          <TabsTrigger value="preferences" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm" data-testid="tab-preferences">
-            <Settings2 className="h-4 w-4 mr-2" />
-            Preferences
-          </TabsTrigger>
-          <TabsTrigger value="integrations" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm" data-testid="tab-integrations">
-            <Plug className="h-4 w-4 mr-2" />
-            Integrations
-          </TabsTrigger>
-          <TabsTrigger value="exports" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm" data-testid="tab-exports">
-            <Calendar className="h-4 w-4 mr-2" />
-            Exports
-          </TabsTrigger>
-          <TabsTrigger value="ai-audit" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm" data-testid="tab-ai-audit">
-            <Sparkles className="h-4 w-4 mr-2" />
-            AI Audit
-          </TabsTrigger>
-          {currentWorkspaceId && (
-            <TabsTrigger value="workspace" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm" data-testid="tab-workspace">
-              <Users className="h-4 w-4 mr-2" />
-              Workspace
+      <Tabs defaultValue="preferences" className="space-y-5 md:space-y-6">
+        <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+          <TabsList className="bg-stone-100 rounded-2xl p-1 inline-flex min-w-max">
+            <TabsTrigger value="preferences" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm h-11 px-3 md:px-4" data-testid="tab-preferences">
+              <Settings2 className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Preferences</span>
             </TabsTrigger>
-          )}
-        </TabsList>
+            <TabsTrigger value="integrations" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm h-11 px-3 md:px-4" data-testid="tab-integrations">
+              <Plug className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Integrations</span>
+            </TabsTrigger>
+            <TabsTrigger value="exports" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm h-11 px-3 md:px-4" data-testid="tab-exports">
+              <Calendar className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Exports</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai-audit" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm h-11 px-3 md:px-4" data-testid="tab-ai-audit">
+              <Sparkles className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">AI Audit</span>
+            </TabsTrigger>
+            {currentWorkspaceId && (
+              <TabsTrigger value="workspace" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm h-11 px-3 md:px-4" data-testid="tab-workspace">
+                <Users className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Workspace</span>
+              </TabsTrigger>
+            )}
+          </TabsList>
+        </div>
 
-        <TabsContent value="preferences" className="space-y-6">
-          <Card className="bg-white border-stone-200 rounded-3xl">
-            <CardHeader>
-              <CardTitle className="text-slate-800">AI Preferences</CardTitle>
-              <CardDescription className="text-stone-500">Control how the AI processes your meetings.</CardDescription>
+        <TabsContent value="preferences" className="space-y-5 md:space-y-6">
+          <Card className="bg-white border-stone-200 rounded-2xl">
+            <CardHeader className="px-4 pt-4 pb-3 md:px-6 md:pt-5">
+              <CardTitle className="text-lg text-slate-800">AI Preferences</CardTitle>
+              <CardDescription className="text-stone-500 text-base">Control how the AI processes your meetings.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-               <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+            <CardContent className="space-y-5 px-4 pb-4 md:px-6 md:pb-5">
+               <div className="flex items-start justify-between gap-4 py-2">
+                  <div className="space-y-1 flex-1">
                     <Label className="text-base text-slate-700">Enable AI Extraction</Label>
                     <p className="text-sm text-stone-500">Process notes to find actions automatically.</p>
                   </div>
                   <Switch 
                     checked={user.aiEnabled} 
                     onCheckedChange={(c) => handleToggle('aiEnabled', c)}
+                    className="mt-1"
                     data-testid="switch-ai-enabled"
                   />
                </div>
-               <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
+               <div className="flex items-start justify-between gap-4 py-2">
+                  <div className="space-y-1 flex-1">
                     <Label className="text-base text-slate-700">Auto-generate Drafts</Label>
                     <p className="text-sm text-stone-500">Create follow-up emails immediately.</p>
                   </div>
                   <Switch 
                     checked={user.autoGenerateDrafts} 
                     onCheckedChange={(c) => handleToggle('autoGenerateDrafts', c)}
+                    className="mt-1"
                     data-testid="switch-auto-drafts"
                   />
                </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-stone-200 rounded-3xl">
-            <CardHeader>
-              <CardTitle className="text-slate-800">Work Style</CardTitle>
+          <Card className="bg-white border-stone-200 rounded-2xl">
+            <CardHeader className="px-4 pt-4 pb-3 md:px-6 md:pt-5">
+              <CardTitle className="text-lg text-slate-800">Work Style</CardTitle>
             </CardHeader>
-            <CardContent>
-               <div className="grid gap-2">
-                  <Label className="text-slate-700">Tone</Label>
-                  <div className="flex gap-2">
+            <CardContent className="px-4 pb-4 md:px-6 md:pb-5">
+               <div className="grid gap-3">
+                  <Label className="text-base text-slate-700">Tone</Label>
+                  <div className="flex flex-wrap gap-2">
                     {['direct', 'friendly', 'formal'].map((t) => (
                       <Button 
                         key={t}
                         variant={user.tone === t ? 'default' : 'outline'}
                         onClick={() => handleToneChange(t)}
-                        className={`capitalize rounded-2xl ${user.tone === t ? 'bg-teal-500 hover:bg-teal-600' : 'border-stone-300'}`}
+                        className={`capitalize rounded-2xl h-11 px-5 flex-1 sm:flex-none ${user.tone === t ? 'bg-teal-500 hover:bg-teal-600' : 'border-stone-300'}`}
                         data-testid={`button-tone-${t}`}
                       >
                         {t}
@@ -112,14 +116,14 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
           
-          <div className="p-4 bg-amber-50 text-amber-800 rounded-2xl text-sm border border-amber-200">
+          <div className="p-4 bg-amber-50 text-amber-800 rounded-2xl text-base border border-amber-200">
             <strong>Note:</strong> Your notes will be processed by an AI service to generate outputs. You can disable AI anytime.
           </div>
 
-          <div className="pt-4 flex justify-end">
+          <div className="pt-2 flex justify-end">
              <Link href="/blueprint">
-               <Button variant="link" className="text-stone-500">
-                 View Blueprint <ExternalLink className="ml-1 h-3 w-3" />
+               <Button variant="link" className="text-stone-500 h-11">
+                 View Blueprint <ExternalLink className="ml-1 h-4 w-4" />
                </Button>
              </Link>
           </div>

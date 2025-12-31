@@ -51,14 +51,14 @@ export default function DraftsPage() {
   const outlookConnected = integrations?.microsoft?.connected;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-800">Drafts</h1>
-        <p className="text-stone-500">Ready-to-send follow-up emails.</p>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-800">Drafts</h1>
+        <p className="text-stone-500 text-base">Ready-to-send follow-up emails.</p>
       </div>
 
       {(gmailConnected || outlookConnected) && (
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center flex-wrap">
           {gmailConnected && (
             <Badge variant="outline" className="rounded-full bg-green-50 text-green-700 border-green-200">
               <Mail className="h-3 w-3 mr-1" />
@@ -74,101 +74,97 @@ export default function DraftsPage() {
         </div>
       )}
 
-      <div className="grid gap-6">
+      <div className="grid gap-5">
         {drafts.length === 0 && (
-           <Card className="bg-stone-50/50 border-dashed border-stone-300 rounded-3xl">
+           <Card className="bg-stone-50/50 border-dashed border-stone-300 rounded-2xl">
              <CardContent className="py-12 text-center">
-               <p className="text-stone-500">No drafts yet. Open a meeting and tap "View Drafts".</p>
+               <p className="text-stone-500 text-base">No drafts yet. Open a meeting and tap "View Drafts".</p>
              </CardContent>
            </Card>
         )}
 
         {drafts.map((draft: any) => (
-          <Card key={draft.id} className="max-w-3xl bg-white border-stone-200 rounded-3xl" data-testid={`card-draft-${draft.id}`}>
-            <CardHeader className="bg-stone-50 pb-4 border-b border-stone-200">
-              <div className="space-y-3">
-                <div className="grid gap-2">
-                   <Label className="text-slate-700">Subject</Label>
-                   <Input 
-                     value={draft.subject} 
-                     onChange={(e) => updateDraft.mutate({ id: draft.id, updates: { subject: e.target.value } })}
-                     className="bg-white border-stone-200 rounded-2xl"
-                     data-testid={`input-subject-${draft.id}`}
-                   />
-                </div>
-                <div className="grid gap-2">
-                   <Label className="text-slate-700">To</Label>
-                   <Input 
-                     value={draft.recipientEmail || ""} 
-                     placeholder="Recipient..."
-                     onChange={(e) => updateDraft.mutate({ id: draft.id, updates: { recipientEmail: e.target.value } })}
-                     className="bg-white border-stone-200 rounded-2xl"
-                     data-testid={`input-recipient-${draft.id}`}
-                   />
-                </div>
+          <Card key={draft.id} className="bg-white border-stone-200 rounded-2xl overflow-hidden" data-testid={`card-draft-${draft.id}`}>
+            <CardHeader className="bg-stone-50 pb-4 border-b border-stone-200 space-y-4 px-4 pt-4 md:px-6 md:pt-5">
+              <div className="space-y-2">
+                 <Label className="text-base text-slate-700">Subject</Label>
+                 <Input 
+                   value={draft.subject} 
+                   onChange={(e) => updateDraft.mutate({ id: draft.id, updates: { subject: e.target.value } })}
+                   className="bg-white border-stone-200 rounded-2xl h-12 text-base"
+                   data-testid={`input-subject-${draft.id}`}
+                 />
+              </div>
+              <div className="space-y-2">
+                 <Label className="text-base text-slate-700">To</Label>
+                 <Input 
+                   value={draft.recipientEmail || ""} 
+                   placeholder="Recipient..."
+                   onChange={(e) => updateDraft.mutate({ id: draft.id, updates: { recipientEmail: e.target.value } })}
+                   className="bg-white border-stone-200 rounded-2xl h-12 text-base"
+                   data-testid={`input-recipient-${draft.id}`}
+                 />
               </div>
             </CardHeader>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 pb-4 px-4 md:px-6">
               <Textarea 
                 value={draft.body} 
                 onChange={(e) => updateDraft.mutate({ id: draft.id, updates: { body: e.target.value } })}
-                className="min-h-[300px] font-mono text-sm leading-relaxed border-stone-200 rounded-2xl"
+                className="min-h-[250px] md:min-h-[300px] font-mono text-base leading-relaxed border-stone-200 rounded-2xl p-4"
                 data-testid={`textarea-body-${draft.id}`}
               />
             </CardContent>
-            <CardFooter className="bg-stone-50 border-t border-stone-200 flex flex-wrap justify-end gap-2 py-3">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => handleCopy(`${draft.subject}\n\n${draft.body}`)}
-                className="rounded-full border-stone-300"
-                data-testid={`button-copy-${draft.id}`}
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                Copy
-              </Button>
-              
-              {gmailConnected && (
+            <CardFooter className="bg-stone-50 border-t border-stone-200 flex flex-col sm:flex-row gap-3 py-4 px-4 md:px-6">
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                 <Button 
                   variant="outline" 
-                  size="sm" 
-                  onClick={() => handleCreateGmailDraft(draft.id)}
-                  disabled={createGmailDraft.isPending}
-                  className="rounded-full border-red-200 text-red-600 hover:bg-red-50"
-                  data-testid={`button-gmail-${draft.id}`}
+                  onClick={() => handleCopy(`${draft.subject}\n\n${draft.body}`)}
+                  className="rounded-full border-stone-300 h-11 flex-1 sm:flex-none"
+                  data-testid={`button-copy-${draft.id}`}
                 >
-                  {createGmailDraft.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Mail className="mr-2 h-4 w-4" />
-                  )}
-                  Create Gmail Draft
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copy
                 </Button>
-              )}
+                
+                {gmailConnected && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleCreateGmailDraft(draft.id)}
+                    disabled={createGmailDraft.isPending}
+                    className="rounded-full border-red-200 text-red-600 hover:bg-red-50 h-11 flex-1 sm:flex-none"
+                    data-testid={`button-gmail-${draft.id}`}
+                  >
+                    {createGmailDraft.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Mail className="mr-2 h-4 w-4" />
+                    )}
+                    Gmail
+                  </Button>
+                )}
 
-              {outlookConnected && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => handleCreateOutlookDraft(draft.id)}
-                  disabled={createOutlookDraft.isPending}
-                  className="rounded-full border-blue-200 text-blue-600 hover:bg-blue-50"
-                  data-testid={`button-outlook-${draft.id}`}
-                >
-                  {createOutlookDraft.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Mail className="mr-2 h-4 w-4" />
-                  )}
-                  Create Outlook Draft
-                </Button>
-              )}
+                {outlookConnected && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => handleCreateOutlookDraft(draft.id)}
+                    disabled={createOutlookDraft.isPending}
+                    className="rounded-full border-blue-200 text-blue-600 hover:bg-blue-50 h-11 flex-1 sm:flex-none"
+                    data-testid={`button-outlook-${draft.id}`}
+                  >
+                    {createOutlookDraft.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Mail className="mr-2 h-4 w-4" />
+                    )}
+                    Outlook
+                  </Button>
+                )}
+              </div>
 
               <Button 
                 variant="default" 
-                size="sm" 
                 onClick={() => toast({ title: "Marked as sent" })}
-                className="rounded-full bg-teal-500 hover:bg-teal-600"
+                className="rounded-full bg-teal-500 hover:bg-teal-600 h-11 w-full sm:w-auto sm:ml-auto"
                 data-testid={`button-send-${draft.id}`}
               >
                 <Send className="mr-2 h-4 w-4" />

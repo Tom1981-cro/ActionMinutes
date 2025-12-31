@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Clock, AlertCircle, ArrowRight, Loader2 } from "lucide-react";
+import { CheckCircle, Clock, AlertCircle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { useActionItems, useUpdateActionItem } from "@/lib/hooks";
 
@@ -17,55 +17,68 @@ function ActionItemCard({ item, onConfirm, onDone, isReview }: ActionItemCardPro
 
   return (
     <Card className="hover:shadow-md transition-shadow bg-white border-stone-200 rounded-2xl">
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              {lowConfidence && isReview && (
-                <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 rounded-full">
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  Low confidence
-                </Badge>
-              )}
-              {item.dueDate && (
-                <Badge variant="secondary" className="text-xs rounded-full bg-stone-100 text-stone-600">
-                  <Clock className="h-3 w-3 mr-1" />
-                  {format(new Date(item.dueDate), "MMM d")}
-                </Badge>
-              )}
-            </div>
+      <CardContent className="p-4 md:p-5">
+        <div className="space-y-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                {lowConfidence && isReview && (
+                  <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 rounded-full">
+                    <AlertCircle className="h-3 w-3 mr-1" />
+                    Low confidence
+                  </Badge>
+                )}
+                {item.dueDate && (
+                  <Badge variant="secondary" className="text-xs rounded-full bg-stone-100 text-stone-600">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {format(new Date(item.dueDate), "MMM d")}
+                  </Badge>
+                )}
+              </div>
 
-            <p className="font-medium text-slate-800">{item.text}</p>
+              <p className="font-medium text-base leading-relaxed text-slate-800">{item.text}</p>
 
-            <div className="flex items-center gap-3 text-sm text-stone-500">
-              {item.ownerName && (
-                <span className="flex items-center gap-1">
-                  👤 {item.ownerName}
-                  {item.confidenceOwner < 0.6 && (
-                    <span className="text-xs text-amber-600">(uncertain)</span>
-                  )}
-                </span>
-              )}
-              {item.tags && item.tags.length > 0 && (
-                <span className="flex gap-1">
-                  {item.tags.map((tag: string) => (
-                    <Badge key={tag} variant="outline" className="text-xs rounded-full">
-                      {tag}
-                    </Badge>
-                  ))}
-                </span>
-              )}
+              <div className="flex items-center gap-3 text-sm text-stone-500 flex-wrap">
+                {item.ownerName && (
+                  <span className="flex items-center gap-1">
+                    <span className="text-base">👤</span> {item.ownerName}
+                    {item.confidenceOwner < 0.6 && (
+                      <span className="text-xs text-amber-600">(uncertain)</span>
+                    )}
+                  </span>
+                )}
+                {item.tags && item.tags.length > 0 && (
+                  <span className="flex gap-1 flex-wrap">
+                    {item.tags.map((tag: string) => (
+                      <Badge key={tag} variant="outline" className="text-xs rounded-full">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap gap-2 pt-1">
             {isReview && onConfirm && (
-              <Button size="sm" variant="outline" onClick={onConfirm} className="rounded-full" data-testid={`button-confirm-${item.id}`}>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={onConfirm} 
+                className="rounded-full h-11 px-4 flex-1 sm:flex-none"
+                data-testid={`button-confirm-${item.id}`}
+              >
                 Confirm
               </Button>
             )}
             {onDone && (
-              <Button size="sm" onClick={onDone} className="rounded-full bg-teal-500 hover:bg-teal-600" data-testid={`button-done-${item.id}`}>
+              <Button 
+                size="sm" 
+                onClick={onDone} 
+                className="rounded-full bg-teal-500 hover:bg-teal-600 h-11 px-4 flex-1 sm:flex-none"
+                data-testid={`button-done-${item.id}`}
+              >
                 <CheckCircle className="h-4 w-4 mr-1" />
                 Done
               </Button>
@@ -100,10 +113,10 @@ export default function InboxPage() {
   const confirmItem = (id: string) => updateActionItem.mutate({ id, updates: { status: "open", confidenceOwner: 1, confidenceDueDate: 1 } });
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-6 md:space-y-8 pb-6">
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-800">Inbox</h1>
-        <p className="text-stone-500">Manage your open loops and commitments.</p>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-800">Inbox</h1>
+        <p className="text-stone-500 text-base">Manage your open loops and commitments.</p>
       </div>
 
       <section className="space-y-4">
@@ -114,12 +127,12 @@ export default function InboxPage() {
         
         {needsReview.length === 0 ? (
           <Card className="bg-stone-50/50 border-dashed border-stone-300 rounded-2xl">
-            <CardContent className="py-8 text-center text-stone-500">
+            <CardContent className="py-8 text-center text-stone-500 text-base">
               Nothing needs review. Nice.
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-3">
+          <div className="grid gap-4">
             {needsReview.map((item: any) => (
               <ActionItemCard 
                 key={item.id} 
@@ -141,15 +154,15 @@ export default function InboxPage() {
 
         {openItems.length === 0 ? (
           <Card className="bg-stone-50/50 border-dashed border-stone-300 rounded-2xl">
-             <CardContent className="py-12 text-center space-y-2">
-               <div className="mx-auto h-12 w-12 bg-teal-100 rounded-full flex items-center justify-center">
-                 <CheckCircle className="h-6 w-6 text-teal-600" />
+             <CardContent className="py-12 text-center space-y-3">
+               <div className="mx-auto h-14 w-14 bg-teal-100 rounded-full flex items-center justify-center">
+                 <CheckCircle className="h-7 w-7 text-teal-600" />
                </div>
-               <p className="text-stone-500">No open loops. Either you're on top of it… or you haven't logged meetings.</p>
+               <p className="text-stone-500 text-base px-4">No open loops. Either you're on top of it… or you haven't logged meetings.</p>
              </CardContent>
            </Card>
         ) : (
-          <div className="grid gap-3">
+          <div className="grid gap-4">
             {openItems.map((item: any) => (
               <ActionItemCard 
                 key={item.id} 
