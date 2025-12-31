@@ -3,6 +3,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { useStore } from "@/lib/store";
+import { Link } from "wouter";
+import { ExternalLink } from "lucide-react";
 
 export default function SettingsPage() {
   const { user, updateUser } = useStore();
@@ -60,6 +62,14 @@ export default function SettingsPage() {
         
         <div className="p-4 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 rounded-lg text-sm">
           <strong>Note:</strong> Your notes will be processed by an AI service to generate outputs. You can disable AI anytime.
+        </div>
+
+        <div className="pt-4 flex justify-end">
+           <Link href="/blueprint">
+             <Button variant="link" className="text-muted-foreground">
+               View Blueprint <ExternalLink className="ml-1 h-3 w-3" />
+             </Button>
+           </Link>
         </div>
       </div>
     </div>

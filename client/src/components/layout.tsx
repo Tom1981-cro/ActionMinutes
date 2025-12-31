@@ -46,18 +46,18 @@ export default function Layout({ children }: LayoutProps) {
           {navItems.map((item) => {
             const isActive = location === item.href;
             return (
-              <Link key={item.href} href={item.href}>
-                <a
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                  )}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.label}
-                </a>
+              <Link 
+                key={item.href} 
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.label}
               </Link>
             );
           })}
@@ -101,19 +101,19 @@ export default function Layout({ children }: LayoutProps) {
         <div className="md:hidden fixed inset-0 top-16 z-40 bg-background border-t p-4 animate-in slide-in-from-top-5">
           <nav className="space-y-2">
             {navItems.map((item) => (
-              <Link key={item.href} href={item.href}>
-                <a
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-3 rounded-md text-base font-medium transition-colors",
-                    location === item.href
-                      ? "bg-secondary text-foreground"
-                      : "text-muted-foreground hover:bg-secondary/50"
-                  )}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <item.icon className="h-5 w-5" />
-                  {item.label}
-                </a>
+              <Link 
+                key={item.href} 
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-3 rounded-md text-base font-medium transition-colors cursor-pointer",
+                  location === item.href
+                    ? "bg-secondary text-foreground"
+                    : "text-muted-foreground hover:bg-secondary/50"
+                )}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <item.icon className="h-5 w-5" />
+                {item.label}
               </Link>
             ))}
           </nav>

@@ -337,7 +337,7 @@ function ArchitectureView() {
             <div className="text-teal-400 font-bold text-sm uppercase tracking-wider mb-4 border-b border-slate-600 pb-2">Meeting</div>
             <ul className="space-y-2 text-sm font-mono text-slate-300">
               <li className="flex justify-between"><span>id</span> <span className="text-slate-500">UUID</span></li>
-              <li className="flex justify-between"><span>title</span> <span class="text-slate-500">String</span></li>
+              <li className="flex justify-between"><span>title</span> <span className="text-slate-500">String</span></li>
               <li className="flex justify-between"><span>rawNotes</span> <span className="text-slate-500">Text</span></li>
               <li className="flex justify-between"><span>parseState</span> <span className="text-slate-500">Enum</span></li>
             </ul>
