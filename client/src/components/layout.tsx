@@ -1,8 +1,6 @@
-import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
-  Inbox, Calendar, PlusCircle, FileText, Settings, 
-  Menu, X, LogOut 
+  Inbox, Calendar, PlusCircle, FileText, Settings, LogOut 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
@@ -17,14 +15,13 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
-  const { user, login } = useStore();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useStore();
   const { toast } = useToast();
 
   const navItems = [
     { href: "/inbox", label: "Inbox", icon: Inbox },
     { href: "/meetings", label: "Meetings", icon: Calendar },
-    { href: "/capture", label: "Capture", icon: PlusCircle },
+    { href: "/capture", label: "Capture", icon: PlusCircle, primary: true },
     { href: "/drafts", label: "Drafts", icon: FileText },
     { href: "/settings", label: "Settings", icon: Settings },
   ];
@@ -48,7 +45,7 @@ export default function Layout({ children }: LayoutProps) {
 
         <nav className="space-y-1 flex-1">
           {navItems.map((item) => {
-            const isActive = location === item.href;
+            const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             return (
               <Link 
                 key={item.href} 
@@ -88,50 +85,78 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </aside>
 
-      {/* Mobile Header */}
-      <header className="md:hidden flex items-center justify-between border-b p-4 bg-background sticky top-0 z-50">
+      {/* Mobile Header - Minimal top bar */}
+      <header className="md:hidden flex items-center justify-between border-b px-4 py-3 bg-background sticky top-0 z-50">
         <div className="flex items-center gap-2">
-          <Logo variant="squircle" size={32} />
+          <Logo variant="squircle" size={28} />
           <LogoWordmark size="sm" />
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
+        <WorkspaceSwitcher />
       </header>
 
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 top-16 z-40 bg-background border-t p-4 animate-in slide-in-from-top-5">
-          <div className="mb-4">
-            <WorkspaceSwitcher />
-          </div>
-          <nav className="space-y-2">
-            {navItems.map((item) => (
-              <Link 
-                key={item.href} 
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-full text-base font-medium transition-colors cursor-pointer",
-                  location === item.href
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:bg-secondary/50"
-                )}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <item.icon className="h-5 w-5" />
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
-      )}
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto bg-stone-50/50">
+      {/* Main Content - with bottom padding for mobile tab bar */}
+      <main className="flex-1 overflow-auto bg-stone-50/50 pb-20 md:pb-0">
         <div className="container max-w-4xl mx-auto p-4 md:p-8 animate-in fade-in duration-500">
           {children}
         </div>
       </main>
+
+      {/* Mobile Bottom Tab Bar */}
+      <nav 
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-stone-200 shadow-lg"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
+        <div className="flex items-center justify-around h-16">
+          {navItems.map((item) => {
+            const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+            const Icon = item.icon;
+            
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                data-testid={`tab-${item.label.toLowerCase()}`}
+                className={cn(
+                  "flex flex-col items-center justify-center flex-1 h-full py-2 transition-colors relative",
+                  isActive ? "text-teal-600" : "text-stone-400"
+                )}
+              >
+                {item.primary ? (
+                  <div className="flex flex-col items-center -mt-4">
+                    <div className={cn(
+                      "flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-all",
+                      isActive 
+                        ? "bg-teal-600 text-white scale-105" 
+                        : "bg-teal-500 text-white"
+                    )}>
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <span className={cn(
+                      "text-[10px] font-medium mt-1",
+                      isActive ? "text-teal-600" : "text-stone-500"
+                    )}>
+                      {item.label}
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <Icon className={cn("h-5 w-5 mb-1", isActive && "text-teal-500")} />
+                    <span className={cn(
+                      "text-[10px] font-medium",
+                      isActive ? "text-teal-600" : "text-stone-500"
+                    )}>
+                      {item.label}
+                    </span>
+                  </>
+                )}
+                {isActive && !item.primary && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-teal-500 rounded-full" />
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
