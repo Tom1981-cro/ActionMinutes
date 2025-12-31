@@ -1,0 +1,209 @@
+Build a work-first web app called “ActionMinutes” with the tagline “Minutes → Actions → Follow-ups”.
+
+PRODUCT PROMISE
+ActionMinutes turns messy meeting notes into:
+- A concise meeting summary
+- Clear action items (with owners + due dates + confidence)
+- Ready-to-send follow-up drafts (group + individual)
+All in under 60 seconds. Work-first. Personal journaling is optional and clearly secondary.
+
+STACK
+- Web app (React + TypeScript) with a clean, fast UI.
+- Full-stack app with API/server + database.
+- Prisma ORM + Postgres (DATABASE_URL env var).
+- Auth: email + password (hashed). Session auth is fine for MVP.
+- UI: Tailwind + shadcn/ui (or equivalent). Responsive.
+
+APP NAVIGATION (bottom tabs)
+- Inbox
+- Meetings
+- Capture
+- Drafts
+- Settings
+If Personal is enabled, show it as a secondary section under Settings or as an extra tab only when enabled.
+
+MVP CORE FLOWS
+1) Auth + Onboarding
+   - Onboarding captures:
+     - tone preference: direct/friendly/formal (default direct)
+     - timezone (default Europe/Dublin)
+     - default signature (optional)
+     - reminder default: none/24h/48h/72h (default 48h)
+     - AI enabled toggle (default ON)
+     - auto-generate drafts after extraction toggle (default ON)
+     - enable Personal tab toggle (default ON but not emphasized)
+
+2) Meeting Capture
+   - Create meeting fields:
+     - title (required; default “Meeting — {Today}”)
+     - date (default today)
+     - optional start time, duration, location
+     - attendees list (name required, email optional)
+     - raw notes (required for extraction)
+   - Actions:
+     - Save draft (no AI)
+     - Extract actions (AI)
+
+3) AI Extraction + Review (the main money screen)
+   - Meeting parseState: draft → processing → parsed → finalized → error
+   - Extract returns STRICT JSON:
+     - summary (3–6 lines)
+     - decisions (list)
+     - actionItems: text, ownerName/Email nullable, dueDate nullable, status, confidenceOwner, confidenceDueDate, tags
+     - risks: text + severity
+     - clarifyingQuestions: up to 3 with options when possible
+     - qualityFlags
+   - Render an Extraction Review screen with editable sections:
+     - Summary (editable)
+     - Decisions
+     - Action items (inline editing of text/owner/due/status/tags + confidence chips)
+     - Risks
+     - Clarifications (answering updates items)
+   - Finalize locks the meeting outputs to prevent accidental overwrite; re-extract requires confirmation if finalized.
+
+4) Inbox (Open loops)
+   - Aggregate action items across meetings into:
+     - Needs review (status needs_review OR confidenceOwner/confidenceDueDate below threshold)
+     - Open (status open, sorted by due date)
+     - Waiting (blocked)
+     - Recently done
+   - Quick actions:
+     - Confirm owner / Confirm due date (moves from needs_review → open)
+     - Mark done
+     - Set reminderAt (store it; notifications optional in MVP)
+     - Generate nudge snippet (short follow-up message for one action)
+
+5) Drafts (Follow-ups)
+   - Generate follow-up drafts from a parsed meeting:
+     - 1 group draft (general_summary)
+     - 1 individual draft per distinct action owner (to_individual) when owner exists
+   - Draft editor:
+     - recipient name/email optional (copy-only allowed)
+     - subject + body editable
+     - tone switch direct/friendly/formal
+     - include toggles: summary / decisions / action checklist / risks / signature
+     - actions: copy, share, mark exported, archive
+   - Draft state: generated → edited → exported → archived
+
+6) Search
+   - Search across meetings, action items, drafts.
+   - Filters: status, owner, date range, content type.
+
+7) Personal (Bonus, minimal)
+   - If enabled:
+     - Personal entry raw text
+     - “Summarize + Top 3 + Next steps” (AI)
+   - Keep it lightweight; do not position it as therapy or the main feature.
+
+AI INTEGRATION REQUIREMENTS
+- Provider-agnostic AI service using env vars:
+  - AI_ENABLED=true/false
+  - AI_PROVIDER=openai (or placeholder)
+  - AI_API_KEY
+- If AI_API_KEY is missing, the app must still function using “Mock AI mode”:
+  - deterministic placeholder extraction JSON
+  - deterministic placeholder drafts
+This allows testing without external keys.
+- Strict server-side JSON validation. If invalid JSON:
+  - show user-friendly error
+  - allow retry
+  - NEVER lose raw notes.
+
+PROMPTS (use strict “return JSON only”)
+Work Extractor (System):
+“You are an expert executive assistant. Convert messy meeting notes into: summary, decisions, action items with owners/dates only if explicit or strongly implied, risks, and up to 3 clarifying questions if needed. Do NOT invent facts, owners, or dates. If uncertain, leave blank and set low confidence. Action items must be atomic and testable. Output MUST be valid JSON matching the schema. Return ONLY JSON.”
+
+Work Extractor (User):
+Include tone preference, timezone, meeting metadata, attendees list, and raw notes. Require strict JSON schema with summary/decisions/actionItems/risks/clarifyingQuestions/qualityFlags.
+
+Follow-up Writer (System):
+“Write crisp follow-up drafts based only on provided outputs. Do not invent commitments/deadlines/attendees. Keep short and usable. Return ONLY JSON.”
+
+Follow-up Writer (User):
+Provide meeting title/date, summary, decisions, actionItems. Request 1 group draft + 1 per distinct owner.
+
+Personal Helper (System):
+Convert personal brain-dump into summary + top3 + nextSteps. No diagnosis. Return ONLY JSON. Include safety handling if self-harm intent appears.
+
+DATABASE (Prisma + Postgres)
+Implement models:
+- User (email unique, passwordHash, timezone, aiEnabled, dataRetentionDays, defaultSignature, workStyle tone, enablePersonal)
+- Meeting (title, date, time fields optional, rawNotes, source, parseState)
+- Attendee (meetingId, name, email optional)
+- ExtractionResult (meetingId, modelVersion, summary, qualityFlags, createdAt)
+- Decision, Risk, ClarifyingQuestion linked to ExtractionResult
+- ActionItem (meetingId, text, owner fields nullable, dueDate nullable, status, confidenceOwner/confidenceDueDate, tags[], reminderAt, notes, optional followUpDraftId)
+- FollowUpDraft (meetingId, type, recipient fields nullable, subject, body, tone, state)
+- PersonalEntry (userId, date, rawText, aiSummary, top3[], nextSteps[])
+Seed:
+- create a demo user
+- create 2 sample meetings with realistic notes
+- include one parsed meeting with action items + drafts so the UI is demonstrable.
+
+UI COPY (exact strings to implement)
+Brand:
+- App name: “ActionMinutes”
+- Tagline: “Minutes → Actions → Follow-ups”
+
+Auth screen:
+- Title: “Welcome to ActionMinutes”
+- Subtitle: “Turn meeting notes into actions and follow-ups—fast.”
+- Buttons: “Sign in”, “Create account”, “Forgot password?”
+
+Onboarding:
+- Step title: “Set your work style”
+- Tone helper text:
+  - Direct: “Short, clear, no fluff.”
+  - Friendly: “Warm but efficient.”
+  - Formal: “Traditional wording.”
+- Step title: “Default behavior”
+- Toggle label: “Auto-generate follow-up drafts after extraction”
+- Step title: “Personal (optional)”
+- Helper: “Personal is a lightweight brain-dump + Top 3. Work stays the focus.”
+
+Tabs:
+- “Inbox”, “Meetings”, “Capture”, “Drafts”, “Settings”
+
+Inbox empty states:
+- Needs review empty: “Nothing needs review. Nice.”
+- Open empty: “No open loops. Either you’re on top of it… or you haven’t logged meetings.”
+
+Meeting Capture:
+- Title default: “Meeting — {Today}”
+- Notes placeholder: “Paste notes here… action items, decisions, messy bullets—everything.”
+- Primary button: “Extract actions”
+- Secondary: “Save draft”
+- Error: “Extraction failed. Retry, or save without AI.”
+
+Extraction Review:
+- Section titles: “Summary”, “Decisions”, “Action items”, “Risks / blockers”, “Quick clarifications”
+- Finalize modal:
+  - Title: “Finalize this meeting?”
+  - Body: “Finalized meetings won’t be overwritten by re-extract unless you unfinalize.”
+
+Drafts:
+- Empty: “No drafts yet. Open a meeting and tap Generate drafts.”
+- Editor buttons: “Copy”, “Share”, “Mark exported”, “Archive”
+
+Settings AI warning (first use):
+- “Your notes will be processed by an AI service to generate outputs. You can disable AI anytime.”
+
+QUALITY + UX REQUIREMENTS
+- Every screen has loading, empty, and error states.
+- Autosave edits with a “Saved.” toast.
+- Never lose raw notes.
+- Use crisp, professional, slightly blunt tone in microcopy.
+- Provide an in-app Help/README page: “How ActionMinutes works: Minutes → Actions → Follow-ups”.
+- Add a minimal test suite:
+  - JSON validation tests for AI outputs
+  - state transition tests for meetings and drafts
+  - smoke tests for core flows (create meeting → extract → generate drafts → copy)
+
+LATER PHASES (scaffold placeholders only)
+- Calendar export (.ics)
+- Gmail/Outlook draft creation via OAuth
+- Team spaces/shared action items
+- AI audit log (model version + outputs)
+- Role-based access
+
+Deliver the full MVP with working navigation and seeded demo data. Make the app feel fast and minimal.
