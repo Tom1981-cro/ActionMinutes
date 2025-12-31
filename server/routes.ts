@@ -1,16 +1,274 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { 
+  insertUserSchema, insertMeetingSchema, insertActionItemSchema, 
+  insertFollowUpDraftSchema, insertAttendeeSchema, insertDecisionSchema,
+  insertRiskSchema, insertClarifyingQuestionSchema
+} from "@shared/schema";
+import { z } from "zod";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  
+  // --- User Routes ---
+  app.get("/api/user/:id", async (req, res) => {
+    const user = await storage.getUser(req.params.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user);
+  });
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  app.post("/api/user", async (req, res) => {
+    try {
+      const validatedUser = insertUserSchema.parse(req.body);
+      const user = await storage.createUser(validatedUser);
+      res.json(user);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  app.patch("/api/user/:id", async (req, res) => {
+    const user = await storage.updateUser(req.params.id, req.body);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json(user);
+  });
+
+  // --- Meeting Routes ---
+  app.get("/api/meetings", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    const meetings = await storage.getMeetings(userId);
+    res.json(meetings);
+  });
+
+  app.get("/api/meetings/:id", async (req, res) => {
+    const meeting = await storage.getMeeting(req.params.id);
+    if (!meeting) return res.status(404).json({ error: "Meeting not found" });
+    res.json(meeting);
+  });
+
+  app.post("/api/meetings", async (req, res) => {
+    try {
+      const validatedMeeting = insertMeetingSchema.parse(req.body);
+      const meeting = await storage.createMeeting(validatedMeeting);
+      res.json(meeting);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  app.patch("/api/meetings/:id", async (req, res) => {
+    const meeting = await storage.updateMeeting(req.params.id, req.body);
+    if (!meeting) return res.status(404).json({ error: "Meeting not found" });
+    res.json(meeting);
+  });
+
+  app.delete("/api/meetings/:id", async (req, res) => {
+    await storage.deleteMeeting(req.params.id);
+    res.json({ success: true });
+  });
+
+  // --- Meeting Attendees ---
+  app.get("/api/meetings/:id/attendees", async (req, res) => {
+    const attendees = await storage.getAttendeesForMeeting(req.params.id);
+    res.json(attendees);
+  });
+
+  app.post("/api/meetings/:id/attendees", async (req, res) => {
+    try {
+      const validatedAttendee = insertAttendeeSchema.parse({ ...req.body, meetingId: req.params.id });
+      const attendee = await storage.createAttendee(validatedAttendee);
+      res.json(attendee);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  app.delete("/api/meetings/:id/attendees", async (req, res) => {
+    await storage.deleteAttendeesForMeeting(req.params.id);
+    res.json({ success: true });
+  });
+
+  // --- Meeting Decisions ---
+  app.get("/api/meetings/:id/decisions", async (req, res) => {
+    const decisions = await storage.getDecisionsForMeeting(req.params.id);
+    res.json(decisions);
+  });
+
+  app.post("/api/meetings/:id/decisions", async (req, res) => {
+    try {
+      const validatedDecision = insertDecisionSchema.parse({ ...req.body, meetingId: req.params.id });
+      const decision = await storage.createDecision(validatedDecision);
+      res.json(decision);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  // --- Meeting Risks ---
+  app.get("/api/meetings/:id/risks", async (req, res) => {
+    const risks = await storage.getRisksForMeeting(req.params.id);
+    res.json(risks);
+  });
+
+  app.post("/api/meetings/:id/risks", async (req, res) => {
+    try {
+      const validatedRisk = insertRiskSchema.parse({ ...req.body, meetingId: req.params.id });
+      const risk = await storage.createRisk(validatedRisk);
+      res.json(risk);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  // --- Meeting Clarifying Questions ---
+  app.get("/api/meetings/:id/questions", async (req, res) => {
+    const questions = await storage.getClarifyingQuestionsForMeeting(req.params.id);
+    res.json(questions);
+  });
+
+  app.post("/api/meetings/:id/questions", async (req, res) => {
+    try {
+      const validatedQuestion = insertClarifyingQuestionSchema.parse({ ...req.body, meetingId: req.params.id });
+      const question = await storage.createClarifyingQuestion(validatedQuestion);
+      res.json(question);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  // --- Action Items ---
+  app.get("/api/actions", async (req, res) => {
+    const userId = req.query.userId as string;
+    const meetingId = req.query.meetingId as string;
+    
+    if (meetingId) {
+      const actions = await storage.getActionItemsForMeeting(meetingId);
+      res.json(actions);
+    } else if (userId) {
+      const actions = await storage.getActionItems(userId);
+      res.json(actions);
+    } else {
+      res.status(400).json({ error: "userId or meetingId is required" });
+    }
+  });
+
+  app.get("/api/actions/:id", async (req, res) => {
+    const action = await storage.getActionItem(req.params.id);
+    if (!action) return res.status(404).json({ error: "Action item not found" });
+    res.json(action);
+  });
+
+  app.post("/api/actions", async (req, res) => {
+    try {
+      const validatedAction = insertActionItemSchema.parse(req.body);
+      const action = await storage.createActionItem(validatedAction);
+      res.json(action);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  app.patch("/api/actions/:id", async (req, res) => {
+    const action = await storage.updateActionItem(req.params.id, req.body);
+    if (!action) return res.status(404).json({ error: "Action item not found" });
+    res.json(action);
+  });
+
+  app.delete("/api/actions/:id", async (req, res) => {
+    await storage.deleteActionItem(req.params.id);
+    res.json({ success: true });
+  });
+
+  // --- Drafts ---
+  app.get("/api/drafts", async (req, res) => {
+    const userId = req.query.userId as string;
+    const meetingId = req.query.meetingId as string;
+    
+    if (meetingId) {
+      const drafts = await storage.getDraftsForMeeting(meetingId);
+      res.json(drafts);
+    } else if (userId) {
+      const drafts = await storage.getDrafts(userId);
+      res.json(drafts);
+    } else {
+      res.status(400).json({ error: "userId or meetingId is required" });
+    }
+  });
+
+  app.post("/api/drafts", async (req, res) => {
+    try {
+      const validatedDraft = insertFollowUpDraftSchema.parse(req.body);
+      const draft = await storage.createDraft(validatedDraft);
+      res.json(draft);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  app.patch("/api/drafts/:id", async (req, res) => {
+    const draft = await storage.updateDraft(req.params.id, req.body);
+    if (!draft) return res.status(404).json({ error: "Draft not found" });
+    res.json(draft);
+  });
+
+  app.delete("/api/drafts/:id", async (req, res) => {
+    await storage.deleteDraft(req.params.id);
+    res.json({ success: true });
+  });
+
+  // --- Personal Entries ---
+  app.get("/api/personal", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    const entries = await storage.getPersonalEntries(userId);
+    res.json(entries);
+  });
+
+  // --- Mock AI Extraction Endpoint ---
+  app.post("/api/meetings/:id/extract", async (req, res) => {
+    const meeting = await storage.getMeeting(req.params.id);
+    if (!meeting) return res.status(404).json({ error: "Meeting not found" });
+
+    await storage.updateMeeting(req.params.id, { parseState: "processing" });
+
+    setTimeout(async () => {
+      const mockSummary = "Productive discussion on project timeline and resource allocation.";
+      await storage.updateMeeting(req.params.id, { 
+        parseState: "parsed",
+        summary: mockSummary
+      });
+
+      const mockActionItems = [
+        { text: "Update slide deck", ownerName: "Bob Smith", ownerEmail: "bob@example.com", confidenceOwner: 0.9, confidenceDueDate: 0.7 },
+        { text: "Review Q4 budget", ownerName: "Alice Johnson", ownerEmail: "alice@example.com", confidenceOwner: 0.85, confidenceDueDate: 0.3 }
+      ];
+
+      for (const item of mockActionItems) {
+        await storage.createActionItem({
+          meetingId: req.params.id,
+          text: item.text,
+          ownerName: item.ownerName,
+          ownerEmail: item.ownerEmail,
+          status: item.confidenceDueDate > 0.6 ? 'open' : 'needs_review',
+          confidenceOwner: item.confidenceOwner,
+          confidenceDueDate: item.confidenceDueDate,
+          tags: [],
+          dueDate: null
+        });
+      }
+
+      await storage.createDecision({
+        meetingId: req.params.id,
+        text: "Launch date set for the 15th"
+      });
+    }, 2000);
+
+    res.json({ success: true, message: "Extraction started" });
+  });
 
   return httpServer;
 }
