@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, ArrowLeft, CheckCircle, AlertTriangle, FileText } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Loader2, ArrowLeft, CheckCircle, FileText, Calendar, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useMeeting, useActionItemsForMeeting, useUpdateMeeting } from "@/lib/hooks";
-import { api } from "@/lib/api";
+import { useMeeting, useActionItemsForMeeting, useUpdateMeeting, useExportCalendar } from "@/lib/hooks";
 
 export default function ExtractionPage() {
   const [, params] = useRoute("/meeting/:id");
@@ -17,6 +20,10 @@ export default function ExtractionPage() {
   const { data: meeting, isLoading: meetingLoading } = useMeeting(id);
   const { data: actions = [], isLoading: actionsLoading } = useActionItemsForMeeting(id);
   const updateMeeting = useUpdateMeeting();
+  const exportCalendar = useExportCalendar();
+
+  const [exportOpen, setExportOpen] = useState(false);
+  const [includeActionItems, setIncludeActionItems] = useState(false);
 
   if (meetingLoading || actionsLoading) {
     return (
@@ -53,6 +60,19 @@ export default function ExtractionPage() {
     setLocation("/drafts");
   };
 
+  const handleExport = async () => {
+    try {
+      await exportCalendar.mutateAsync({ 
+        meetingId: meeting.id, 
+        options: { includeActionItems } 
+      });
+      toast({ title: "Calendar exported", description: "Download started." });
+      setExportOpen(false);
+    } catch (error) {
+      toast({ title: "Export failed", description: "Could not generate calendar file.", variant: "destructive" });
+    }
+  };
+
   return (
     <div className="space-y-8 pb-20">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sticky top-0 bg-stone-50/95 backdrop-blur z-10 py-4 border-b border-stone-200">
@@ -73,7 +93,52 @@ export default function ExtractionPage() {
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="rounded-full border-stone-300" data-testid="button-export-calendar">
+                <Calendar className="mr-2 h-4 w-4" />
+                Export to Calendar (.ics)
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md rounded-3xl">
+              <DialogHeader>
+                <DialogTitle className="text-slate-800">Export to Calendar</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6 mt-4">
+                <p className="text-sm text-stone-600">
+                  Export this meeting as an .ics file that you can import into any calendar app.
+                </p>
+                
+                <div className="flex items-center justify-between p-4 bg-stone-50 rounded-2xl">
+                  <div>
+                    <Label className="text-base text-slate-700">Include action items as tasks</Label>
+                    <p className="text-sm text-stone-500">Action items with due dates will be added as separate calendar tasks</p>
+                  </div>
+                  <Switch 
+                    checked={includeActionItems} 
+                    onCheckedChange={setIncludeActionItems}
+                    data-testid="switch-include-actions"
+                  />
+                </div>
+
+                <Button 
+                  onClick={handleExport} 
+                  disabled={exportCalendar.isPending}
+                  className="w-full rounded-2xl bg-teal-500 hover:bg-teal-600"
+                  data-testid="button-download-ics"
+                >
+                  {exportCalendar.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="mr-2 h-4 w-4" />
+                  )}
+                  Download .ics
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           {meeting.parseState !== 'finalized' && (
             <Button variant="default" onClick={handleFinalize} className="rounded-full bg-teal-500 hover:bg-teal-600" data-testid="button-finalize">
               <CheckCircle className="mr-2 h-4 w-4" />

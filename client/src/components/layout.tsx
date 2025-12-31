@@ -9,6 +9,7 @@ import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Logo, LogoWordmark } from "@/components/logo";
+import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -36,9 +37,13 @@ export default function Layout({ children }: LayoutProps) {
     <div className="min-h-screen bg-background flex flex-col md:flex-row font-sans">
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 flex-col border-r bg-sidebar p-4 h-screen sticky top-0">
-        <div className="flex items-center gap-2 px-2 mb-8 mt-4">
+        <div className="flex items-center gap-2 px-2 mb-4 mt-4">
           <Logo variant="squircle" size={32} />
           <LogoWordmark size="base" />
+        </div>
+
+        <div className="mb-6 px-2">
+          <WorkspaceSwitcher />
         </div>
 
         <nav className="space-y-1 flex-1">
@@ -97,6 +102,9 @@ export default function Layout({ children }: LayoutProps) {
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 top-16 z-40 bg-background border-t p-4 animate-in slide-in-from-top-5">
+          <div className="mb-4">
+            <WorkspaceSwitcher />
+          </div>
           <nav className="space-y-2">
             {navItems.map((item) => (
               <Link 
