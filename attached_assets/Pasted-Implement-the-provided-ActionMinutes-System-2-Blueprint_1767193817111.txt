@@ -1,0 +1,43 @@
+Implement the provided “ActionMinutes: System 2 Blueprint” HTML template as a new route/page inside the existing ActionMinutes React+TS app, without converting the whole app to static HTML. Treat it as a marketing/demo/blueprint page and as the canonical reference for the “System 2 Calm & Focused” design preset.
+
+ROUTING
+- Add a route: /blueprint (or /demo) that recreates the template’s three views:
+  1) Manifesto (hero + bar chart)
+  2) Simulator (Capture → Extract → Cards output using Mock AI mode)
+  3) Architecture (stack cards + schema visual)
+- Keep existing app navigation intact. Add a discreet link in Settings: “View Blueprint”.
+
+DESIGN SYSTEM EXTRACTION (IMPORTANT)
+- Do NOT use CDN Tailwind config scripts inside the React app.
+- Extract the template’s tokens into the real Tailwind setup / CSS variables:
+  - Font: Outfit (global)
+  - Colors: stone/slate/teal/coral values from template
+  - Shadows: soft, lift
+  - Radius: 3xl (1.5rem), 4xl (2rem)
+  - Hover-lift transition + fade-in animation utilities
+- Implement a reusable Card component style consistent with the template.
+
+SIMULATOR FUNCTIONALITY
+- The simulator must work in Mock AI mode (deterministic JSON).
+- It should render Action Items as a responsive card grid (no tables).
+- Include the existing “Load Sample” and “Extract Actions” behavior.
+- Ensure loading/empty/results states match the template.
+
+CHART
+- Implement the “Workflow Impact” bar chart using Chart.js in React (no script tags).
+- Ensure it renders reliably after navigation.
+
+NO SVG CONSTRAINT
+- Keep the “NO SVG graphics used” constraint from the template (use text/icons/emoji/divs only).
+
+COPY
+- Preserve the template’s copy closely:
+  - “Minutes → Actions → Follow-ups”
+  - “Turn messy notes into calm, clear actions.”
+  - “Try the Simulator →”
+  - “Peaceful Waiting” empty state, etc.
+
+QUALITY
+- Page must be responsive.
+- No breaking changes to the MVP flows.
+- If Chart.js causes issues, degrade gracefully (show a simple static comparison card instead of crashing).

@@ -14,11 +14,14 @@ import DraftsPage from "@/pages/drafts";
 import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
+import BlueprintPage from "@/pages/blueprint";
+
 function Router() {
   return (
     <Switch>
       <Route path="/" component={AuthPage} />
       <Route path="/onboarding" component={OnboardingPage} />
+      <Route path="/blueprint" component={BlueprintPage} />
       
       <Route path="/inbox">
         <Layout><InboxPage /></Layout>
