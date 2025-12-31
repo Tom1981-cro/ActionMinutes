@@ -1,6 +1,8 @@
 import { 
   users, meetings, attendees, decisions, risks, clarifyingQuestions,
   actionItems, followUpDrafts, personalEntries,
+  workspaces, workspaceMembers, workspaceInvites,
+  oauthConnections, calendarExports, aiAuditLogs,
   type User, type InsertUser,
   type Meeting, type InsertMeeting,
   type Attendee, type InsertAttendee,
@@ -9,55 +11,111 @@ import {
   type ClarifyingQuestion, type InsertClarifyingQuestion,
   type ActionItem, type InsertActionItem,
   type FollowUpDraft, type InsertFollowUpDraft,
-  type PersonalEntry, type InsertPersonalEntry
+  type PersonalEntry, type InsertPersonalEntry,
+  type Workspace, type InsertWorkspace,
+  type WorkspaceMember, type InsertWorkspaceMember,
+  type WorkspaceInvite, type InsertWorkspaceInvite,
+  type OAuthConnection, type InsertOAuthConnection,
+  type CalendarExport, type InsertCalendarExport,
+  type AiAuditLog, type InsertAiAuditLog,
+  type WorkspaceRole
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, or, isNull } from "drizzle-orm";
 
 export interface IStorage {
+  // Users
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
   
-  getMeetings(userId: string): Promise<Meeting[]>;
+  // Meetings
+  getMeetings(userId: string, workspaceId?: string): Promise<Meeting[]>;
   getMeeting(id: string): Promise<Meeting | undefined>;
   createMeeting(meeting: InsertMeeting): Promise<Meeting>;
   updateMeeting(id: string, updates: Partial<Meeting>): Promise<Meeting | undefined>;
   deleteMeeting(id: string): Promise<void>;
   
+  // Attendees
   getAttendeesForMeeting(meetingId: string): Promise<Attendee[]>;
   createAttendee(attendee: InsertAttendee): Promise<Attendee>;
   deleteAttendeesForMeeting(meetingId: string): Promise<void>;
   
+  // Decisions
   getDecisionsForMeeting(meetingId: string): Promise<Decision[]>;
   createDecision(decision: InsertDecision): Promise<Decision>;
   deleteDecisionsForMeeting(meetingId: string): Promise<void>;
   
+  // Risks
   getRisksForMeeting(meetingId: string): Promise<Risk[]>;
   createRisk(risk: InsertRisk): Promise<Risk>;
   
+  // Questions
   getClarifyingQuestionsForMeeting(meetingId: string): Promise<ClarifyingQuestion[]>;
   createClarifyingQuestion(question: InsertClarifyingQuestion): Promise<ClarifyingQuestion>;
   
-  getActionItems(userId: string): Promise<ActionItem[]>;
+  // Action Items
+  getActionItems(userId: string, workspaceId?: string): Promise<ActionItem[]>;
   getActionItemsForMeeting(meetingId: string): Promise<ActionItem[]>;
   getActionItem(id: string): Promise<ActionItem | undefined>;
   createActionItem(item: InsertActionItem): Promise<ActionItem>;
   updateActionItem(id: string, updates: Partial<ActionItem>): Promise<ActionItem | undefined>;
   deleteActionItem(id: string): Promise<void>;
   
-  getDrafts(userId: string): Promise<FollowUpDraft[]>;
+  // Drafts
+  getDrafts(userId: string, workspaceId?: string): Promise<FollowUpDraft[]>;
   getDraftsForMeeting(meetingId: string): Promise<FollowUpDraft[]>;
+  getDraft(id: string): Promise<FollowUpDraft | undefined>;
   createDraft(draft: InsertFollowUpDraft): Promise<FollowUpDraft>;
   updateDraft(id: string, updates: Partial<FollowUpDraft>): Promise<FollowUpDraft | undefined>;
   deleteDraft(id: string): Promise<void>;
   
+  // Personal Entries
   getPersonalEntries(userId: string): Promise<PersonalEntry[]>;
   createPersonalEntry(entry: InsertPersonalEntry): Promise<PersonalEntry>;
+  
+  // Workspaces
+  getWorkspaces(userId: string): Promise<Workspace[]>;
+  getWorkspace(id: string): Promise<Workspace | undefined>;
+  createWorkspace(workspace: InsertWorkspace): Promise<Workspace>;
+  updateWorkspace(id: string, updates: Partial<Workspace>): Promise<Workspace | undefined>;
+  deleteWorkspace(id: string): Promise<void>;
+  
+  // Workspace Members
+  getWorkspaceMembers(workspaceId: string): Promise<(WorkspaceMember & { user: User })[]>;
+  getWorkspaceMember(workspaceId: string, userId: string): Promise<WorkspaceMember | undefined>;
+  getUserWorkspaces(userId: string): Promise<(WorkspaceMember & { workspace: Workspace })[]>;
+  createWorkspaceMember(member: InsertWorkspaceMember): Promise<WorkspaceMember>;
+  updateWorkspaceMember(id: string, updates: Partial<WorkspaceMember>): Promise<WorkspaceMember | undefined>;
+  deleteWorkspaceMember(id: string): Promise<void>;
+  
+  // Workspace Invites
+  getWorkspaceInvites(workspaceId: string): Promise<WorkspaceInvite[]>;
+  getWorkspaceInviteByToken(token: string): Promise<WorkspaceInvite | undefined>;
+  createWorkspaceInvite(invite: InsertWorkspaceInvite): Promise<WorkspaceInvite>;
+  updateWorkspaceInvite(id: string, updates: Partial<WorkspaceInvite>): Promise<WorkspaceInvite | undefined>;
+  deleteWorkspaceInvite(id: string): Promise<void>;
+  
+  // OAuth Connections
+  getOAuthConnections(userId: string): Promise<OAuthConnection[]>;
+  getOAuthConnection(userId: string, provider: string): Promise<OAuthConnection | undefined>;
+  createOAuthConnection(connection: InsertOAuthConnection): Promise<OAuthConnection>;
+  updateOAuthConnection(id: string, updates: Partial<OAuthConnection>): Promise<OAuthConnection | undefined>;
+  deleteOAuthConnection(id: string): Promise<void>;
+  
+  // Calendar Exports
+  getCalendarExports(userId: string): Promise<CalendarExport[]>;
+  createCalendarExport(exportData: InsertCalendarExport): Promise<CalendarExport>;
+  
+  // AI Audit Logs
+  getAiAuditLogs(userId: string, workspaceId?: string): Promise<AiAuditLog[]>;
+  getAiAuditLogsForMeeting(meetingId: string): Promise<AiAuditLog[]>;
+  createAiAuditLog(log: InsertAiAuditLog): Promise<AiAuditLog>;
 }
 
 export class DatabaseStorage implements IStorage {
+  // ==================== USERS ====================
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
@@ -78,8 +136,16 @@ export class DatabaseStorage implements IStorage {
     return user || undefined;
   }
 
-  async getMeetings(userId: string): Promise<Meeting[]> {
-    return await db.select().from(meetings).where(eq(meetings.userId, userId)).orderBy(desc(meetings.date));
+  // ==================== MEETINGS ====================
+  async getMeetings(userId: string, workspaceId?: string): Promise<Meeting[]> {
+    if (workspaceId) {
+      return await db.select().from(meetings)
+        .where(eq(meetings.workspaceId, workspaceId))
+        .orderBy(desc(meetings.date));
+    }
+    return await db.select().from(meetings)
+      .where(and(eq(meetings.userId, userId), isNull(meetings.workspaceId)))
+      .orderBy(desc(meetings.date));
   }
 
   async getMeeting(id: string): Promise<Meeting | undefined> {
@@ -101,6 +167,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(meetings).where(eq(meetings.id, id));
   }
 
+  // ==================== ATTENDEES ====================
   async getAttendeesForMeeting(meetingId: string): Promise<Attendee[]> {
     return await db.select().from(attendees).where(eq(attendees.meetingId, meetingId));
   }
@@ -114,6 +181,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(attendees).where(eq(attendees.meetingId, meetingId));
   }
 
+  // ==================== DECISIONS ====================
   async getDecisionsForMeeting(meetingId: string): Promise<Decision[]> {
     return await db.select().from(decisions).where(eq(decisions.meetingId, meetingId));
   }
@@ -127,6 +195,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(decisions).where(eq(decisions.meetingId, meetingId));
   }
 
+  // ==================== RISKS ====================
   async getRisksForMeeting(meetingId: string): Promise<Risk[]> {
     return await db.select().from(risks).where(eq(risks.meetingId, meetingId));
   }
@@ -136,6 +205,7 @@ export class DatabaseStorage implements IStorage {
     return newRisk;
   }
 
+  // ==================== CLARIFYING QUESTIONS ====================
   async getClarifyingQuestionsForMeeting(meetingId: string): Promise<ClarifyingQuestion[]> {
     return await db.select().from(clarifyingQuestions).where(eq(clarifyingQuestions.meetingId, meetingId));
   }
@@ -145,12 +215,18 @@ export class DatabaseStorage implements IStorage {
     return newQuestion;
   }
 
-  async getActionItems(userId: string): Promise<ActionItem[]> {
+  // ==================== ACTION ITEMS ====================
+  async getActionItems(userId: string, workspaceId?: string): Promise<ActionItem[]> {
+    if (workspaceId) {
+      return await db.select().from(actionItems)
+        .where(eq(actionItems.workspaceId, workspaceId))
+        .orderBy(desc(actionItems.createdAt));
+    }
     return await db
       .select({ actionItems })
       .from(actionItems)
       .innerJoin(meetings, eq(actionItems.meetingId, meetings.id))
-      .where(eq(meetings.userId, userId))
+      .where(and(eq(meetings.userId, userId), isNull(actionItems.workspaceId)))
       .orderBy(desc(actionItems.createdAt))
       .then(rows => rows.map(r => r.actionItems));
   }
@@ -178,12 +254,25 @@ export class DatabaseStorage implements IStorage {
     await db.delete(actionItems).where(eq(actionItems.id, id));
   }
 
-  async getDrafts(userId: string): Promise<FollowUpDraft[]> {
-    return await db.select().from(followUpDrafts).where(eq(followUpDrafts.userId, userId)).orderBy(desc(followUpDrafts.updatedAt));
+  // ==================== DRAFTS ====================
+  async getDrafts(userId: string, workspaceId?: string): Promise<FollowUpDraft[]> {
+    if (workspaceId) {
+      return await db.select().from(followUpDrafts)
+        .where(eq(followUpDrafts.workspaceId, workspaceId))
+        .orderBy(desc(followUpDrafts.updatedAt));
+    }
+    return await db.select().from(followUpDrafts)
+      .where(and(eq(followUpDrafts.userId, userId), isNull(followUpDrafts.workspaceId)))
+      .orderBy(desc(followUpDrafts.updatedAt));
   }
 
   async getDraftsForMeeting(meetingId: string): Promise<FollowUpDraft[]> {
     return await db.select().from(followUpDrafts).where(eq(followUpDrafts.meetingId, meetingId));
+  }
+
+  async getDraft(id: string): Promise<FollowUpDraft | undefined> {
+    const [draft] = await db.select().from(followUpDrafts).where(eq(followUpDrafts.id, id));
+    return draft || undefined;
   }
 
   async createDraft(draft: InsertFollowUpDraft): Promise<FollowUpDraft> {
@@ -200,6 +289,7 @@ export class DatabaseStorage implements IStorage {
     await db.delete(followUpDrafts).where(eq(followUpDrafts.id, id));
   }
 
+  // ==================== PERSONAL ENTRIES ====================
   async getPersonalEntries(userId: string): Promise<PersonalEntry[]> {
     return await db.select().from(personalEntries).where(eq(personalEntries.userId, userId)).orderBy(desc(personalEntries.date));
   }
@@ -207,6 +297,163 @@ export class DatabaseStorage implements IStorage {
   async createPersonalEntry(entry: InsertPersonalEntry): Promise<PersonalEntry> {
     const [newEntry] = await db.insert(personalEntries).values(entry).returning();
     return newEntry;
+  }
+
+  // ==================== WORKSPACES ====================
+  async getWorkspaces(userId: string): Promise<Workspace[]> {
+    const memberWorkspaces = await db
+      .select({ workspace: workspaces })
+      .from(workspaceMembers)
+      .innerJoin(workspaces, eq(workspaceMembers.workspaceId, workspaces.id))
+      .where(eq(workspaceMembers.userId, userId));
+    return memberWorkspaces.map(r => r.workspace);
+  }
+
+  async getWorkspace(id: string): Promise<Workspace | undefined> {
+    const [workspace] = await db.select().from(workspaces).where(eq(workspaces.id, id));
+    return workspace || undefined;
+  }
+
+  async createWorkspace(workspace: InsertWorkspace): Promise<Workspace> {
+    const [newWorkspace] = await db.insert(workspaces).values(workspace).returning();
+    return newWorkspace;
+  }
+
+  async updateWorkspace(id: string, updates: Partial<Workspace>): Promise<Workspace | undefined> {
+    const [workspace] = await db.update(workspaces).set(updates).where(eq(workspaces.id, id)).returning();
+    return workspace || undefined;
+  }
+
+  async deleteWorkspace(id: string): Promise<void> {
+    await db.delete(workspaces).where(eq(workspaces.id, id));
+  }
+
+  // ==================== WORKSPACE MEMBERS ====================
+  async getWorkspaceMembers(workspaceId: string): Promise<(WorkspaceMember & { user: User })[]> {
+    const rows = await db
+      .select({ member: workspaceMembers, user: users })
+      .from(workspaceMembers)
+      .innerJoin(users, eq(workspaceMembers.userId, users.id))
+      .where(eq(workspaceMembers.workspaceId, workspaceId));
+    return rows.map(r => ({ ...r.member, user: r.user }));
+  }
+
+  async getWorkspaceMember(workspaceId: string, userId: string): Promise<WorkspaceMember | undefined> {
+    const [member] = await db.select().from(workspaceMembers)
+      .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)));
+    return member || undefined;
+  }
+
+  async getUserWorkspaces(userId: string): Promise<(WorkspaceMember & { workspace: Workspace })[]> {
+    const rows = await db
+      .select({ member: workspaceMembers, workspace: workspaces })
+      .from(workspaceMembers)
+      .innerJoin(workspaces, eq(workspaceMembers.workspaceId, workspaces.id))
+      .where(eq(workspaceMembers.userId, userId));
+    return rows.map(r => ({ ...r.member, workspace: r.workspace }));
+  }
+
+  async createWorkspaceMember(member: InsertWorkspaceMember): Promise<WorkspaceMember> {
+    const [newMember] = await db.insert(workspaceMembers).values(member).returning();
+    return newMember;
+  }
+
+  async updateWorkspaceMember(id: string, updates: Partial<WorkspaceMember>): Promise<WorkspaceMember | undefined> {
+    const [member] = await db.update(workspaceMembers).set(updates).where(eq(workspaceMembers.id, id)).returning();
+    return member || undefined;
+  }
+
+  async deleteWorkspaceMember(id: string): Promise<void> {
+    await db.delete(workspaceMembers).where(eq(workspaceMembers.id, id));
+  }
+
+  // ==================== WORKSPACE INVITES ====================
+  async getWorkspaceInvites(workspaceId: string): Promise<WorkspaceInvite[]> {
+    return await db.select().from(workspaceInvites)
+      .where(eq(workspaceInvites.workspaceId, workspaceId))
+      .orderBy(desc(workspaceInvites.createdAt));
+  }
+
+  async getWorkspaceInviteByToken(token: string): Promise<WorkspaceInvite | undefined> {
+    const [invite] = await db.select().from(workspaceInvites).where(eq(workspaceInvites.token, token));
+    return invite || undefined;
+  }
+
+  async createWorkspaceInvite(invite: InsertWorkspaceInvite): Promise<WorkspaceInvite> {
+    const [newInvite] = await db.insert(workspaceInvites).values(invite).returning();
+    return newInvite;
+  }
+
+  async updateWorkspaceInvite(id: string, updates: Partial<WorkspaceInvite>): Promise<WorkspaceInvite | undefined> {
+    const [invite] = await db.update(workspaceInvites).set(updates).where(eq(workspaceInvites.id, id)).returning();
+    return invite || undefined;
+  }
+
+  async deleteWorkspaceInvite(id: string): Promise<void> {
+    await db.delete(workspaceInvites).where(eq(workspaceInvites.id, id));
+  }
+
+  // ==================== OAUTH CONNECTIONS ====================
+  async getOAuthConnections(userId: string): Promise<OAuthConnection[]> {
+    return await db.select().from(oauthConnections).where(eq(oauthConnections.userId, userId));
+  }
+
+  async getOAuthConnection(userId: string, provider: string): Promise<OAuthConnection | undefined> {
+    const [connection] = await db.select().from(oauthConnections)
+      .where(and(eq(oauthConnections.userId, userId), eq(oauthConnections.provider, provider)));
+    return connection || undefined;
+  }
+
+  async createOAuthConnection(connection: InsertOAuthConnection): Promise<OAuthConnection> {
+    const [newConnection] = await db.insert(oauthConnections).values(connection).returning();
+    return newConnection;
+  }
+
+  async updateOAuthConnection(id: string, updates: Partial<OAuthConnection>): Promise<OAuthConnection | undefined> {
+    const [connection] = await db.update(oauthConnections)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(oauthConnections.id, id))
+      .returning();
+    return connection || undefined;
+  }
+
+  async deleteOAuthConnection(id: string): Promise<void> {
+    await db.delete(oauthConnections).where(eq(oauthConnections.id, id));
+  }
+
+  // ==================== CALENDAR EXPORTS ====================
+  async getCalendarExports(userId: string): Promise<CalendarExport[]> {
+    return await db.select().from(calendarExports)
+      .where(eq(calendarExports.userId, userId))
+      .orderBy(desc(calendarExports.createdAt));
+  }
+
+  async createCalendarExport(exportData: InsertCalendarExport): Promise<CalendarExport> {
+    const [newExport] = await db.insert(calendarExports).values(exportData).returning();
+    return newExport;
+  }
+
+  // ==================== AI AUDIT LOGS ====================
+  async getAiAuditLogs(userId: string, workspaceId?: string): Promise<AiAuditLog[]> {
+    if (workspaceId) {
+      return await db.select().from(aiAuditLogs)
+        .where(eq(aiAuditLogs.workspaceId, workspaceId))
+        .orderBy(desc(aiAuditLogs.createdAt));
+    }
+    return await db.select().from(aiAuditLogs)
+      .where(and(eq(aiAuditLogs.userId, userId), isNull(aiAuditLogs.workspaceId)))
+      .orderBy(desc(aiAuditLogs.createdAt));
+  }
+
+  async getAiAuditLogsForMeeting(meetingId: string): Promise<AiAuditLog[]> {
+    return await db.select().from(aiAuditLogs)
+      .where(eq(aiAuditLogs.meetingId, meetingId))
+      .orderBy(desc(aiAuditLogs.createdAt));
+  }
+
+  async createAiAuditLog(log: InsertAiAuditLog): Promise<AiAuditLog> {
+    const [newLog] = await db.insert(aiAuditLogs).values(log).returning();
+    return newLog;
   }
 }
 

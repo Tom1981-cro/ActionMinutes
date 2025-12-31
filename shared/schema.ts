@@ -3,6 +3,7 @@ import { pgTable, text, varchar, timestamp, boolean, real, jsonb, integer } from
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// ==================== USERS ====================
 export const users = pgTable("users", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
   email: text("email").notNull().unique(),
@@ -17,9 +18,80 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ==================== WORKSPACES (Phase 2) ====================
+export const workspaces = pgTable("workspaces", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  createdByUserId: varchar("created_by_user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const workspaceMembers = pgTable("workspace_members", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  workspaceId: varchar("workspace_id", { length: 36 }).notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: text("role").notNull().default('member'), // owner, admin, member, viewer
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const workspaceInvites = pgTable("workspace_invites", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  workspaceId: varchar("workspace_id", { length: 36 }).notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
+  email: text("email").notNull(),
+  token: text("token").notNull().unique(),
+  role: text("role").notNull().default('member'),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  acceptedAt: timestamp("accepted_at"),
+});
+
+// ==================== OAUTH CONNECTIONS (Phase 2) ====================
+export const oauthConnections = pgTable("oauth_connections", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  provider: text("provider").notNull(), // google, microsoft
+  accountEmail: text("account_email").notNull(),
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token"),
+  expiresAt: timestamp("expires_at"),
+  scopes: text("scopes").array(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  lastUsedAt: timestamp("last_used_at"),
+});
+
+// ==================== CALENDAR EXPORTS (Phase 2) ====================
+export const calendarExports = pgTable("calendar_exports", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  meetingId: varchar("meeting_id", { length: 36 }).references(() => meetings.id, { onDelete: 'set null' }),
+  filename: text("filename").notNull(),
+  contentHash: text("content_hash"),
+  options: jsonb("options"), // { includeActionItems: boolean }
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ==================== AI AUDIT LOGS (Phase 2) ====================
+export const aiAuditLogs = pgTable("ai_audit_logs", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  workspaceId: varchar("workspace_id", { length: 36 }).references(() => workspaces.id, { onDelete: 'set null' }),
+  meetingId: varchar("meeting_id", { length: 36 }).references(() => meetings.id, { onDelete: 'set null' }),
+  provider: text("provider").notNull(), // openai, google, mock
+  model: text("model").notNull(),
+  promptVersion: text("prompt_version"),
+  inputHash: text("input_hash"),
+  outputJson: jsonb("output_json"),
+  validJson: boolean("valid_json").notNull().default(true),
+  errorText: text("error_text"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ==================== MEETINGS ====================
 export const meetings = pgTable("meetings", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  workspaceId: varchar("workspace_id", { length: 36 }).references(() => workspaces.id, { onDelete: 'set null' }),
   title: text("title").notNull(),
   date: timestamp("date").notNull(),
   startTime: text("start_time"),
@@ -60,9 +132,12 @@ export const clarifyingQuestions = pgTable("clarifying_questions", {
   answer: text("answer"),
 });
 
+// ==================== ACTION ITEMS ====================
 export const actionItems = pgTable("action_items", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
   meetingId: varchar("meeting_id", { length: 36 }).notNull().references(() => meetings.id, { onDelete: 'cascade' }),
+  workspaceId: varchar("workspace_id", { length: 36 }).references(() => workspaces.id, { onDelete: 'set null' }),
+  ownerUserId: varchar("owner_user_id", { length: 36 }).references(() => users.id, { onDelete: 'set null' }),
   text: text("text").notNull(),
   ownerName: text("owner_name"),
   ownerEmail: text("owner_email"),
@@ -75,10 +150,12 @@ export const actionItems = pgTable("action_items", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ==================== DRAFTS ====================
 export const followUpDrafts = pgTable("follow_up_drafts", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
   meetingId: varchar("meeting_id", { length: 36 }).notNull().references(() => meetings.id, { onDelete: 'cascade' }),
   userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  workspaceId: varchar("workspace_id", { length: 36 }).references(() => workspaces.id, { onDelete: 'set null' }),
   type: text("type").notNull(),
   recipientName: text("recipient_name"),
   recipientEmail: text("recipient_email"),
@@ -90,6 +167,7 @@ export const followUpDrafts = pgTable("follow_up_drafts", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// ==================== PERSONAL ENTRIES ====================
 export const personalEntries = pgTable("personal_entries", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
@@ -101,7 +179,41 @@ export const personalEntries = pgTable("personal_entries", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ==================== INSERT SCHEMAS ====================
 export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWorkspaceSchema = createInsertSchema(workspaces).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWorkspaceMemberSchema = createInsertSchema(workspaceMembers).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWorkspaceInviteSchema = createInsertSchema(workspaceInvites).omit({
+  id: true,
+  createdAt: true,
+  acceptedAt: true,
+});
+
+export const insertOAuthConnectionSchema = createInsertSchema(oauthConnections).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastUsedAt: true,
+});
+
+export const insertCalendarExportSchema = createInsertSchema(calendarExports).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAiAuditLogSchema = createInsertSchema(aiAuditLogs).omit({
   id: true,
   createdAt: true,
 });
@@ -144,8 +256,27 @@ export const insertPersonalEntrySchema = createInsertSchema(personalEntries).omi
   createdAt: true,
 });
 
+// ==================== TYPES ====================
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export type InsertWorkspace = z.infer<typeof insertWorkspaceSchema>;
+export type Workspace = typeof workspaces.$inferSelect;
+
+export type InsertWorkspaceMember = z.infer<typeof insertWorkspaceMemberSchema>;
+export type WorkspaceMember = typeof workspaceMembers.$inferSelect;
+
+export type InsertWorkspaceInvite = z.infer<typeof insertWorkspaceInviteSchema>;
+export type WorkspaceInvite = typeof workspaceInvites.$inferSelect;
+
+export type InsertOAuthConnection = z.infer<typeof insertOAuthConnectionSchema>;
+export type OAuthConnection = typeof oauthConnections.$inferSelect;
+
+export type InsertCalendarExport = z.infer<typeof insertCalendarExportSchema>;
+export type CalendarExport = typeof calendarExports.$inferSelect;
+
+export type InsertAiAuditLog = z.infer<typeof insertAiAuditLogSchema>;
+export type AiAuditLog = typeof aiAuditLogs.$inferSelect;
 
 export type InsertMeeting = z.infer<typeof insertMeetingSchema>;
 export type Meeting = typeof meetings.$inferSelect;
@@ -170,3 +301,7 @@ export type FollowUpDraft = typeof followUpDrafts.$inferSelect;
 
 export type InsertPersonalEntry = z.infer<typeof insertPersonalEntrySchema>;
 export type PersonalEntry = typeof personalEntries.$inferSelect;
+
+// ==================== ROLE TYPES ====================
+export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer';
+export type OAuthProvider = 'google' | 'microsoft';
