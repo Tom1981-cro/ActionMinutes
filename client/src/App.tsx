@@ -1,16 +1,44 @@
 import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import Layout from "@/components/layout";
+
+import AuthPage from "@/pages/auth";
+import OnboardingPage from "@/pages/onboarding";
+import InboxPage from "@/pages/inbox";
+import MeetingsPage from "@/pages/meetings";
+import CapturePage from "@/pages/capture";
+import ExtractionPage from "@/pages/extraction";
+import DraftsPage from "@/pages/drafts";
+import SettingsPage from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
-      {/* Add pages below */}
-      {/* <Route path="/" component={Home}/> */}
-      {/* Fallback to 404 */}
+      <Route path="/" component={AuthPage} />
+      <Route path="/onboarding" component={OnboardingPage} />
+      
+      <Route path="/inbox">
+        <Layout><InboxPage /></Layout>
+      </Route>
+      <Route path="/meetings">
+        <Layout><MeetingsPage /></Layout>
+      </Route>
+      <Route path="/capture">
+        <Layout><CapturePage /></Layout>
+      </Route>
+      <Route path="/meeting/:id">
+        <Layout><ExtractionPage /></Layout>
+      </Route>
+      <Route path="/drafts">
+        <Layout><DraftsPage /></Layout>
+      </Route>
+      <Route path="/settings">
+        <Layout><SettingsPage /></Layout>
+      </Route>
+
       <Route component={NotFound} />
     </Switch>
   );
@@ -19,10 +47,8 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <Router />
+      <Toaster />
     </QueryClientProvider>
   );
 }
