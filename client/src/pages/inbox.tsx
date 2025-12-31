@@ -10,6 +10,7 @@ import {
 import { format } from "date-fns";
 import { useActionItems, useUpdateActionItem } from "@/lib/hooks";
 import { useToast } from "@/hooks/use-toast";
+import { ActionEditSheet } from "@/components/action-edit-sheet";
 
 type FilterType = "my" | "workspace";
 
@@ -19,17 +20,22 @@ interface ActionCardProps {
   onRemind: () => void;
   onNudge: () => void;
   onEdit: () => void;
+  onTap: () => void;
   isReview?: boolean;
 }
 
-function ActionCard({ item, onDone, onRemind, onNudge, onEdit, isReview }: ActionCardProps) {
+function ActionCard({ item, onDone, onRemind, onNudge, onEdit, onTap, isReview }: ActionCardProps) {
   const lowConfidence = item.confidenceOwner < 0.6 || item.confidenceDueDate < 0.6;
   const isOverdue = item.dueDate && new Date(item.dueDate) < new Date();
 
   return (
     <Card className={`bg-white border-stone-200 rounded-2xl overflow-hidden ${isReview ? 'border-l-4 border-l-amber-400' : ''}`}>
       <CardContent className="p-0">
-        <div className="p-4 space-y-3">
+        <button 
+          className="w-full p-4 text-left space-y-3 hover:bg-stone-50/50 transition-colors"
+          onClick={onTap}
+          data-testid={`card-action-${item.id}`}
+        >
           <div className="flex items-start gap-3">
             <div className="flex-1 min-w-0">
               <p className="font-medium text-base leading-relaxed text-slate-800 mb-2">
@@ -46,6 +52,11 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, isReview }: Actio
                 {item.status === 'open' && (
                   <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200 rounded-full text-xs">
                     Open
+                  </Badge>
+                )}
+                {item.status === 'waiting' && (
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 rounded-full text-xs">
+                    Waiting
                   </Badge>
                 )}
                 {lowConfidence && (
@@ -72,14 +83,14 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, isReview }: Actio
               </span>
             )}
           </div>
-        </div>
+        </button>
 
         <div className="border-t border-stone-100 bg-stone-50/50 px-2 py-2">
           <div className="flex items-center justify-between gap-1">
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={onDone}
+              onClick={(e) => { e.stopPropagation(); onDone(); }}
               className="flex-1 h-11 rounded-xl text-teal-600 hover:bg-teal-50 hover:text-teal-700 flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-done-${item.id}`}
             >
@@ -90,7 +101,7 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, isReview }: Actio
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={onRemind}
+              onClick={(e) => { e.stopPropagation(); onRemind(); }}
               className="flex-1 h-11 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-700 flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-remind-${item.id}`}
             >
@@ -101,7 +112,7 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, isReview }: Actio
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={onNudge}
+              onClick={(e) => { e.stopPropagation(); onNudge(); }}
               className="flex-1 h-11 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-700 flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-nudge-${item.id}`}
             >
@@ -112,7 +123,7 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, isReview }: Actio
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={onEdit}
+              onClick={(e) => { e.stopPropagation(); onEdit(); }}
               className="flex-1 h-11 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-700 flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-edit-${item.id}`}
             >
@@ -131,6 +142,8 @@ export default function InboxPage() {
   const updateActionItem = useUpdateActionItem();
   const { toast } = useToast();
   const [filter, setFilter] = useState<FilterType>("my");
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editSheetOpen, setEditSheetOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -141,7 +154,7 @@ export default function InboxPage() {
   }
 
   const needsReview = actionItems.filter((i: any) => i.status === "needs_review");
-  const openItems = actionItems.filter((i: any) => i.status === "open").sort((a: any, b: any) => {
+  const openItems = actionItems.filter((i: any) => i.status === "open" || i.status === "waiting").sort((a: any, b: any) => {
     if (!a.dueDate) return 1;
     if (!b.dueDate) return -1;
     return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
@@ -160,8 +173,14 @@ export default function InboxPage() {
     toast({ title: "Nudge sent", description: "The owner has been notified." });
   };
   
-  const handleEdit = (id: string) => {
-    toast({ title: "Edit mode", description: "Editing coming soon." });
+  const handleEdit = (item: any) => {
+    setEditingItem(item);
+    setEditSheetOpen(true);
+  };
+
+  const handleTap = (item: any) => {
+    setEditingItem(item);
+    setEditSheetOpen(true);
   };
 
   const totalItems = needsReview.length + openItems.length;
@@ -222,7 +241,8 @@ export default function InboxPage() {
                 onDone={() => markDone(item.id)}
                 onRemind={() => handleRemind(item.id)}
                 onNudge={() => handleNudge(item.id)}
-                onEdit={() => handleEdit(item.id)}
+                onEdit={() => handleEdit(item)}
+                onTap={() => handleTap(item)}
                 isReview
               />
             ))}
@@ -268,12 +288,19 @@ export default function InboxPage() {
                 onDone={() => markDone(item.id)}
                 onRemind={() => handleRemind(item.id)}
                 onNudge={() => handleNudge(item.id)}
-                onEdit={() => handleEdit(item.id)}
+                onEdit={() => handleEdit(item)}
+                onTap={() => handleTap(item)}
               />
             ))}
           </div>
         )}
       </section>
+
+      <ActionEditSheet 
+        item={editingItem}
+        open={editSheetOpen}
+        onOpenChange={setEditSheetOpen}
+      />
     </div>
   );
 }
