@@ -1036,12 +1036,25 @@ Thanks!`,
   });
 
   app.patch("/api/personal/journal/:id", async (req, res) => {
-    const entry = await storage.updatePersonalEntry(req.params.id, req.body);
+    const userId = req.query.userId as string || req.body.userId;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    
+    const entry = await storage.getPersonalEntry(req.params.id);
     if (!entry) return res.status(404).json({ error: "Journal entry not found" });
-    res.json(entry);
+    if (entry.userId !== userId) return res.status(403).json({ error: "Access denied" });
+    
+    const updated = await storage.updatePersonalEntry(req.params.id, req.body);
+    res.json(updated);
   });
 
   app.delete("/api/personal/journal/:id", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    
+    const entry = await storage.getPersonalEntry(req.params.id);
+    if (!entry) return res.status(404).json({ error: "Journal entry not found" });
+    if (entry.userId !== userId) return res.status(403).json({ error: "Access denied" });
+    
     await storage.deletePersonalEntry(req.params.id);
     res.json({ success: true });
   });
@@ -1082,12 +1095,25 @@ Thanks!`,
   });
 
   app.patch("/api/personal/reminders/:id", async (req, res) => {
-    const reminder = await storage.updatePersonalReminder(req.params.id, req.body);
+    const userId = req.query.userId as string || req.body.userId;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    
+    const reminder = await storage.getPersonalReminder(req.params.id);
     if (!reminder) return res.status(404).json({ error: "Reminder not found" });
-    res.json(reminder);
+    if (reminder.userId !== userId) return res.status(403).json({ error: "Access denied" });
+    
+    const updated = await storage.updatePersonalReminder(req.params.id, req.body);
+    res.json(updated);
   });
 
   app.delete("/api/personal/reminders/:id", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    
+    const reminder = await storage.getPersonalReminder(req.params.id);
+    if (!reminder) return res.status(404).json({ error: "Reminder not found" });
+    if (reminder.userId !== userId) return res.status(403).json({ error: "Access denied" });
+    
     await storage.deletePersonalReminder(req.params.id);
     res.json({ success: true });
   });

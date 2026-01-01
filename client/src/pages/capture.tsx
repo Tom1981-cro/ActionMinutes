@@ -79,7 +79,7 @@ export default function CapturePage() {
         date: new Date(date),
         rawNotes: notes,
         parseState: 'draft',
-        workspaceId: scope === "personal" ? undefined : scope,
+        workspaceId: scope === "personal" ? null : scope,
       });
       
       await saveAttendees(meeting.id);
@@ -105,7 +105,7 @@ export default function CapturePage() {
         date: new Date(date),
         rawNotes: notes,
         parseState: 'draft',
-        workspaceId: scope === "personal" ? undefined : scope,
+        workspaceId: scope === "personal" ? null : scope,
       });
       await saveAttendees(meeting.id);
       toast({ title: "Saved draft", description: "Meeting saved without extraction." });

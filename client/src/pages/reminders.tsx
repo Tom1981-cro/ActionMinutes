@@ -70,10 +70,10 @@ export default function RemindersPage() {
   
   const toggleComplete = useMutation({
     mutationFn: async ({ id, isCompleted }: { id: string; isCompleted: boolean }) => {
-      const res = await fetch(`/api/personal/reminders/${id}`, {
+      const res = await fetch(`/api/personal/reminders/${id}?userId=${user.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isCompleted }),
+        body: JSON.stringify({ isCompleted, userId: user.id }),
       });
       if (!res.ok) throw new Error('Failed to update reminder');
       return res.json();
@@ -85,7 +85,7 @@ export default function RemindersPage() {
   
   const deleteReminder = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/personal/reminders/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/personal/reminders/${id}?userId=${user.id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete reminder');
       return res.json();
     },
