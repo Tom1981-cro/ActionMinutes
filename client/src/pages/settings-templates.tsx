@@ -18,11 +18,11 @@ type Template = {
 
 const templates: Template[] = [
   {
-    id: "calm-focused",
-    name: "Calm & Focused",
-    description: "Warm stone tones with teal accents. Outfit font, soft shadows, and generous rounded corners.",
-    labelColor: "text-teal-600",
-    iconBg: "bg-gradient-to-br from-teal-400 to-teal-600",
+    id: "vibrant",
+    name: "Vibrant Enterprise",
+    description: "Modern SaaS aesthetic (Linear/Stripe). Clean white surfaces with indigo-purple gradients.",
+    labelColor: "text-indigo-500",
+    iconBg: "bg-gradient-to-br from-indigo-500 to-purple-600",
   },
   {
     id: "cupertino",
@@ -39,11 +39,11 @@ const templates: Template[] = [
     iconBg: "bg-gradient-to-br from-zinc-300 via-zinc-100 to-zinc-400",
   },
   {
-    id: "vibrant",
-    name: "Vibrant Enterprise",
-    description: "Modern SaaS aesthetic (Linear/Stripe). Clean white surfaces with indigo-purple gradients.",
-    labelColor: "text-indigo-500",
-    iconBg: "bg-gradient-to-br from-indigo-500 to-purple-600",
+    id: "calm-focused",
+    name: "Calm & Focused",
+    description: "Warm stone tones with teal accents. Outfit font, soft shadows, and generous rounded corners.",
+    labelColor: "text-teal-600",
+    iconBg: "bg-gradient-to-br from-teal-400 to-teal-600",
   },
   {
     id: "slate",
@@ -97,14 +97,14 @@ export default function SettingsTemplatesPage() {
   const updateUser = useUpdateUser();
   const { toast } = useToast();
   
-  const currentTemplate = user.template || "calm-focused";
+  const currentTemplate = user.template || "vibrant";
 
   const handleApplyTemplate = (templateId: string) => {
     if (templateId === currentTemplate) return;
     
     updateLocalUser({ template: templateId });
     
-    document.documentElement.setAttribute("data-theme", templateId === "calm-focused" ? "" : templateId);
+    document.documentElement.setAttribute("data-theme", templateId === "vibrant" ? "" : templateId);
     
     updateUser.mutate({ template: templateId }, {
       onSuccess: () => {
@@ -115,7 +115,7 @@ export default function SettingsTemplatesPage() {
       },
       onError: () => {
         updateLocalUser({ template: currentTemplate });
-        document.documentElement.setAttribute("data-theme", currentTemplate === "calm-focused" ? "" : currentTemplate);
+        document.documentElement.setAttribute("data-theme", currentTemplate === "vibrant" ? "" : currentTemplate);
         toast({ 
           title: "Error", 
           description: "Failed to apply style", 
@@ -160,7 +160,7 @@ export default function SettingsTemplatesPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={cn("text-xs font-bold uppercase tracking-wider", template.labelColor)}>
-                          {template.id === "calm-focused" ? "Default" : "System"}
+                          {template.id === "vibrant" ? "Default" : "System"}
                         </span>
                       </div>
                       <h3 className="font-semibold mb-1">{template.name}</h3>
