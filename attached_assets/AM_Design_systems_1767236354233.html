@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActionMinutes: Corporate Design & Iconography</title>
+    
+    <!-- Fonts: Inter (Standard for "Apple-like" UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        appleBlue: '#007AFF',
+                        appleGray: '#F5F5F7',
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .system-section {
+            transition: transform 0.3s ease;
+        }
+        .prompt-block {
+            font-family: 'Menlo', 'Monaco', monospace;
+            font-size: 0.7rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        /* Icon Canvas Styling */
+        .app-icon-canvas {
+            border-radius: 22%; /* iOS-like super-ellipse approx */
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease;
+        }
+        .app-icon-canvas:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 30px -5px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="bg-[#F5F5F7] text-slate-900 font-sans antialiased min-h-screen">
+
+    <!-- Sticky Header -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-6 h-6 rounded-md bg-slate-900 flex items-center justify-center text-white text-xs font-bold">A</div>
+                <h1 class="font-semibold text-sm tracking-tight">ActionMinutes <span class="text-gray-400 font-normal">/ Enterprise Systems</span></h1>
+            </div>
+            <div class="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                5 Variations
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-12 space-y-32">
+
+        <!-- INTRO -->
+        <section class="max-w-3xl">
+            <h2 class="text-3xl font-bold mb-4">Design Systems & Iconography</h2>
+            <p class="text-gray-600 leading-relaxed">
+                This collection defines the visual language for the ActionMinutes corporate tier. 
+                Each system includes a specific <strong>UI prompt</strong> for development and a matching <strong>App Icon</strong> designed to sit natively on high-end device home screens.
+            </p>
+        </section>
+
+        <!-- SYSTEM 1: CUPERTINO GLASS -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-12 border-t border-gray-200 pt-12">
+            <div class="lg:col-span-4 space-y-8">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-blue-500 mb-2 block">System 01</span>
+                    <h3 class="text-3xl font-bold mb-2">Cupertino Glass</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Native macOS/iOS aesthetic. Uses heavy backdrop blurs (frosted glass), translucent materials, and the classic "System Blue".
+                    </p>
+                </div>
+                
+                <!-- Icon Showcase -->
+                <div class="bg-gray-100 rounded-2xl p-8 flex flex-col items-center justify-center border border-gray-200">
+                    <canvas id="icon-cupertino" width="128" height="128" class="app-icon-canvas mb-4"></canvas>
+                    <span class="text-xs font-medium text-gray-400 uppercase tracking-widest">App Icon</span>
+                    <p class="text-xs text-gray-500 mt-2 text-center max-w-[200px]">
+                        Linear gradient background (System Blue). Pure white icon with soft internal shadow.
+                    </p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                <div class="bg-gray-50 border-b border-gray-100 px-4 py-2 flex justify-between items-center">
+                    <span class="text-xs font-bold text-gray-400">UI PREVIEW & PROMPT</span>
+                    <button onclick="copyToClipboard('prompt-1')" class="text-xs text-blue-500 font-medium hover:text-blue-600">Copy Prompt</button>
+                </div>
+                
+                <!-- Split View: Mockup & Code -->
+                <div class="grid grid-cols-1 md:grid-cols-2 flex-grow">
+                    <!-- Visual Mock -->
+                    <div class="p-8 bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop')] bg-cover bg-center flex items-center justify-center">
+                        <div class="w-full bg-white/70 backdrop-blur-xl rounded-xl shadow-glass border border-white/20 p-5">
+                            <div class="h-2 w-1/3 bg-black/10 rounded mb-4"></div>
+                            <div class="space-y-2">
+                                <div class="h-8 bg-white/50 rounded-lg w-full flex items-center px-3 border border-white/30">
+                                    <div class="w-3 h-3 rounded-full border border-blue-500 mr-2"></div>
+                                    <div class="h-1.5 w-1/2 bg-black/10 rounded"></div>
+                                </div>
+                            </div>
+                            <button class="mt-4 w-full py-2 bg-[#007AFF] text-white text-xs font-medium rounded-lg">Extract</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Prompt -->
+                    <div class="p-6 bg-slate-900 overflow-y-auto max-h-[300px]">
+<div class="prompt-block text-gray-300" id="prompt-1">Design System: "Cupertino Glass"
+1. Backgrounds: Use `bg-gray-50` for canvas. Use `bg-white/70 backdrop-blur-xl border-b border-gray-200/50` for panels.
+2. Colors: Primary Action is `#007AFF` (System Blue). Text is Slate-900.
+3. Shadows: Large, diffuse shadows (`shadow-xl shadow-black/5`).
+4. Radius: `rounded-xl` consistently.
+5. Typography: Inter. Tight tracking headers.
+6. Iconography: Use filled icons (SF Symbols style).</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SYSTEM 2: TITANIUM MINIMAL -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-12 border-t border-gray-200 pt-12">
+            <div class="lg:col-span-4 space-y-8">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 block">System 02</span>
+                    <h3 class="text-3xl font-bold mb-2">Titanium Minimal</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Inspired by premium hardware. Raw metal tones (Zinc), sharp 1px borders, and zero color saturation except for status dots.
+                    </p>
+                </div>
+                
+                <div class="bg-gray-100 rounded-2xl p-8 flex flex-col items-center justify-center border border-gray-200">
+                    <canvas id="icon-titanium" width="128" height="128" class="app-icon-canvas mb-4"></canvas>
+                    <span class="text-xs font-medium text-gray-400 uppercase tracking-widest">App Icon</span>
+                    <p class="text-xs text-gray-500 mt-2 text-center max-w-[200px]">
+                        Metallic radial gradient. Engraved/inset icon effect using dark strokes.
+                    </p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                <div class="bg-gray-50 border-b border-gray-100 px-4 py-2 flex justify-between items-center">
+                    <span class="text-xs font-bold text-gray-400">UI PREVIEW & PROMPT</span>
+                    <button onclick="copyToClipboard('prompt-2')" class="text-xs text-blue-500 font-medium hover:text-blue-600">Copy Prompt</button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 flex-grow">
+                    <div class="p-8 bg-zinc-100 flex items-center justify-center">
+                        <div class="w-full bg-white rounded-md shadow-sm border border-zinc-300 p-5">
+                            <div class="flex justify-between items-center mb-4 pb-2 border-b border-zinc-100">
+                                <span class="text-xs font-bold text-zinc-900">Q4_SYNC</span>
+                                <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="h-8 bg-zinc-50 border border-zinc-200 rounded flex items-center px-3">
+                                    <div class="h-1.5 w-2/3 bg-zinc-300 rounded"></div>
+                                </div>
+                            </div>
+                            <button class="mt-4 w-full py-2 bg-zinc-900 text-white text-xs font-medium rounded hover:bg-black">CONFIRM</button>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 bg-slate-900 overflow-y-auto max-h-[300px]">
+<div class="prompt-block text-gray-300" id="prompt-2">Design System: "Titanium Minimal"
+1. Backgrounds: `bg-white` main, `bg-zinc-50` secondary.
+2. Borders: Crucial. `border border-zinc-200` on almost all containers.
+3. Colors: Monochrome. Primary buttons `bg-zinc-900 text-white`.
+4. Radius: `rounded-md` (sharp, precise).
+5. Typography: Inter. Use `tabular-nums` for data.
+6. Shadows: `shadow-sm` only. Very flat.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SYSTEM 3: VIBRANT ENTERPRISE -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-12 border-t border-gray-200 pt-12">
+            <div class="lg:col-span-4 space-y-8">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-500 mb-2 block">System 03</span>
+                    <h3 class="text-3xl font-bold mb-2">Vibrant Enterprise</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Modern SaaS aesthetic (e.g., Linear/Stripe). Clean white surfaces with high-quality gradients for key interactions.
+                    </p>
+                </div>
+                
+                <div class="bg-gray-100 rounded-2xl p-8 flex flex-col items-center justify-center border border-gray-200">
+                    <canvas id="icon-vibrant" width="128" height="128" class="app-icon-canvas mb-4"></canvas>
+                    <span class="text-xs font-medium text-gray-400 uppercase tracking-widest">App Icon</span>
+                    <p class="text-xs text-gray-500 mt-2 text-center max-w-[200px]">
+                        Rich Indigo-to-Purple gradient. Crisp white icon with no shadow for high contrast.
+                    </p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                <div class="bg-gray-50 border-b border-gray-100 px-4 py-2 flex justify-between items-center">
+                    <span class="text-xs font-bold text-gray-400">UI PREVIEW & PROMPT</span>
+                    <button onclick="copyToClipboard('prompt-3')" class="text-xs text-blue-500 font-medium hover:text-blue-600">Copy Prompt</button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 flex-grow">
+                    <div class="p-8 bg-white relative overflow-hidden flex items-center justify-center">
+                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 opacity-50"></div>
+                        <div class="w-full bg-white rounded-lg shadow-xl shadow-indigo-100/50 border border-slate-100 p-5 relative z-10">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">A</div>
+                                <div class="h-2 w-20 bg-slate-100 rounded"></div>
+                            </div>
+                            <button class="w-full py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-semibold rounded-lg shadow-md">
+                                ✨ Generate
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 bg-slate-900 overflow-y-auto max-h-[300px]">
+<div class="prompt-block text-gray-300" id="prompt-3">Design System: "Vibrant Enterprise"
+1. Backgrounds: `bg-white`.
+2. Accents: Use gradients `bg-gradient-to-r from-indigo-500 to-purple-500`.
+3. Typography: Inter. Headings dark (`slate-900`) and bold.
+4. Cards: `bg-white` with `shadow-lg shadow-indigo-500/10`.
+5. Icons: Soft colored backgrounds (`bg-indigo-50 text-indigo-600`).
+6. Radius: `rounded-lg`.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SYSTEM 4: SLATE PROFESSIONAL -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-12 border-t border-gray-200 pt-12">
+            <div class="lg:col-span-4 space-y-8">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2 block">System 04</span>
+                    <h3 class="text-3xl font-bold mb-2">Slate Professional</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Outlook/Office style. Cool grays, dense information density, and structured table layouts. Conservative and trustworthy.
+                    </p>
+                </div>
+                
+                <div class="bg-gray-100 rounded-2xl p-8 flex flex-col items-center justify-center border border-gray-200">
+                    <canvas id="icon-slate" width="128" height="128" class="app-icon-canvas mb-4"></canvas>
+                    <span class="text-xs font-medium text-gray-400 uppercase tracking-widest">App Icon</span>
+                    <p class="text-xs text-gray-500 mt-2 text-center max-w-[200px]">
+                        Flat Slate-700 background. White icon. Slightly tighter corner radius (Square-ish).
+                    </p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                <div class="bg-gray-50 border-b border-gray-100 px-4 py-2 flex justify-between items-center">
+                    <span class="text-xs font-bold text-gray-400">UI PREVIEW & PROMPT</span>
+                    <button onclick="copyToClipboard('prompt-4')" class="text-xs text-blue-500 font-medium hover:text-blue-600">Copy Prompt</button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 flex-grow">
+                    <div class="p-8 bg-slate-50 flex items-center justify-center">
+                        <div class="w-full bg-white rounded border border-slate-300 shadow-sm">
+                            <div class="bg-slate-100 px-3 py-2 border-b border-slate-200 flex justify-between">
+                                <span class="text-[10px] font-bold text-slate-700 uppercase">Items</span>
+                                <span class="text-[10px] text-slate-500">3 Total</span>
+                            </div>
+                            <div class="p-3 space-y-2">
+                                <div class="flex justify-between items-center text-xs text-slate-700">
+                                    <span>Review Budget</span>
+                                    <span class="bg-slate-100 border border-slate-200 px-1 rounded">Tom</span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs text-slate-700">
+                                    <span>Sync Calendar</span>
+                                    <span class="bg-slate-100 border border-slate-200 px-1 rounded">Sarah</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 bg-slate-900 overflow-y-auto max-h-[300px]">
+<div class="prompt-block text-gray-300" id="prompt-4">Design System: "Slate Professional"
+1. Palette: `slate-50` backgrounds, `slate-200` borders.
+2. Primary Color: `blue-600` (Classic link blue).
+3. Layout: Dense tables with `border-b` dividers.
+4. Radius: `rounded-md` or `rounded-sm`.
+5. Shadows: None or very subtle `shadow-sm`.
+6. Typography: System font stack. High legibility.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SYSTEM 5: FOCUS LIGHT -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-12 border-t border-gray-200 pt-12 border-b pb-12">
+            <div class="lg:col-span-4 space-y-8">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2 block">System 05</span>
+                    <h3 class="text-3xl font-bold mb-2">Focus Light</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Things 3 / Notion vibe. Pure white, minimal chrome, heavy reliance on whitespace. Iconography is thin line-art.
+                    </p>
+                </div>
+                
+                <div class="bg-gray-100 rounded-2xl p-8 flex flex-col items-center justify-center border border-gray-200">
+                    <canvas id="icon-focus" width="128" height="128" class="app-icon-canvas mb-4"></canvas>
+                    <span class="text-xs font-medium text-gray-400 uppercase tracking-widest">App Icon</span>
+                    <p class="text-xs text-gray-500 mt-2 text-center max-w-[200px]">
+                        White background with subtle gray border. Icon is a thin black stroke (Outline style).
+                    </p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                <div class="bg-gray-50 border-b border-gray-100 px-4 py-2 flex justify-between items-center">
+                    <span class="text-xs font-bold text-gray-400">UI PREVIEW & PROMPT</span>
+                    <button onclick="copyToClipboard('prompt-5')" class="text-xs text-blue-500 font-medium hover:text-blue-600">Copy Prompt</button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 flex-grow">
+                    <div class="p-8 bg-white flex items-center justify-center">
+                        <div class="w-full">
+                            <h4 class="text-lg font-bold text-black mb-4">Today</h4>
+                            <div class="group flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
+                                <div class="w-4 h-4 rounded border border-gray-300 group-hover:border-blue-500"></div>
+                                <span class="text-sm text-gray-500 group-hover:text-black">Submit Report</span>
+                            </div>
+                            <div class="group flex items-center gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
+                                <div class="w-4 h-4 rounded border border-gray-300 group-hover:border-blue-500"></div>
+                                <span class="text-sm text-gray-500 group-hover:text-black">Call Vendor</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 bg-slate-900 overflow-y-auto max-h-[300px]">
+<div class="prompt-block text-gray-300" id="prompt-5">Design System: "Focus Light"
+1. Backgrounds: Pure `bg-white`.
+2. Borders: Minimal/Transparent.
+3. Colors: `stone-500` icons, `black` text.
+4. Radius: `rounded-lg`.
+5. Interactions: Reveal on hover.
+6. Iconography: Outline / Stroke style.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="max-w-7xl mx-auto px-6 py-12 text-center border-t border-gray-200 mt-12">
+        <p class="text-sm text-gray-400">ActionMinutes Enterprise Systems • Generated 2025</p>
+    </footer>
+
+    <!-- ICON DRAWING LOGIC -->
+    <script>
+        function drawIcon(canvasId, style) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+            const cx = w / 2;
+            const cy = h / 2;
+
+            // Clear
+            ctx.clearRect(0, 0, w, h);
+
+            // 1. Background
+            if (style.bgGradient) {
+                const grad = ctx.createLinearGradient(0, 0, 0, h);
+                grad.addColorStop(0, style.bgGradient[0]);
+                grad.addColorStop(1, style.bgGradient[1]);
+                ctx.fillStyle = grad;
+            } else {
+                ctx.fillStyle = style.bgColor;
+            }
+
+            // Shape (Squircle approximation)
+            ctx.beginPath();
+            if (style.radius === 'square') {
+                ctx.roundRect(0, 0, w, h, w * 0.15); // Tighter radius for Slate
+            } else {
+                ctx.roundRect(0, 0, w, h, w * 0.22); // Standard iOS-ish radius
+            }
+            ctx.fill();
+
+            // Border (for Focus Light)
+            if (style.border) {
+                ctx.strokeStyle = style.borderColor;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // 2. Icon (Time-Check Symbol)
+            const iconSize = w * 0.6;
+            const iconX = cx;
+            const iconY = cy;
+
+            // Setup Style
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = style.iconColor;
+            ctx.lineWidth = style.strokeWidth || (iconSize * 0.12);
+
+            if (style.effect === 'emboss') {
+                // Dark stroke for metallic look
+                ctx.strokeStyle = '#3f3f46'; // zinc-700
+            }
+
+            // Draw Checkmark
+            const checkStart = { x: iconX - (iconSize * 0.2), y: iconY + (iconSize * 0.05) };
+            const checkPivot = { x: iconX - (iconSize * 0.05), y: iconY + (iconSize * 0.25) };
+            const checkEnd = { x: iconX + (iconSize * 0.25), y: iconY - (iconSize * 0.25) };
+
+            ctx.beginPath();
+            ctx.moveTo(checkStart.x, checkStart.y);
+            ctx.lineTo(checkPivot.x, checkPivot.y);
+            ctx.lineTo(checkEnd.x, checkEnd.y);
+            ctx.stroke();
+
+            // Draw Ring Hint
+            ctx.globalAlpha = style.ringOpacity || 0.3;
+            ctx.lineWidth = (style.strokeWidth || (iconSize * 0.12)) * 0.6; 
+            
+            ctx.beginPath();
+            ctx.arc(iconX, iconY, iconSize * 0.35, Math.PI * 1.2, Math.PI * 2.2);
+            ctx.stroke();
+            ctx.globalAlpha = 1.0;
+
+            // 3. Inner Shadow (for Cupertino)
+            if (style.effect === 'innerShadow') {
+                // Not easily done in pure 2D canvas without complex masking, 
+                // simulating with a gradient overlay or just keeping it flat/clean as per modern iOS trends.
+                // We'll skip complex compositing for simplicity and cleanliness.
+            }
+        }
+
+        function renderIcons() {
+            // System 1: Cupertino (Blue Gradient, White Icon)
+            drawIcon('icon-cupertino', {
+                bgGradient: ['#007AFF', '#0055BB'],
+                iconColor: '#ffffff',
+                ringOpacity: 0.4
+            });
+
+            // System 2: Titanium (Zinc Gradient, Dark Icon)
+            drawIcon('icon-titanium', {
+                bgGradient: ['#f4f4f5', '#d4d4d8'], // Metallic
+                iconColor: '#3f3f46',
+                effect: 'emboss',
+                ringOpacity: 0.2
+            });
+
+            // System 3: Vibrant (Indigo/Purple Gradient, White Icon)
+            drawIcon('icon-vibrant', {
+                bgGradient: ['#6366f1', '#a855f7'], 
+                iconColor: '#ffffff',
+                ringOpacity: 0.5
+            });
+
+            // System 4: Slate (Solid Slate-700, White Icon, Tighter Radius)
+            drawIcon('icon-slate', {
+                bgColor: '#334155',
+                iconColor: '#ffffff',
+                radius: 'square',
+                ringOpacity: 0.3
+            });
+
+            // System 5: Focus (White, Black Stroke, Thin)
+            drawIcon('icon-focus', {
+                bgColor: '#ffffff',
+                iconColor: '#000000',
+                border: true,
+                borderColor: '#e5e7eb',
+                strokeWidth: 4, // Thinner stroke
+                ringOpacity: 0.2
+            });
+        }
+
+        function copyToClipboard(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text);
+            alert("System Prompt copied to clipboard.");
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            renderIcons();
+        });
+    </script>
+</body>
+</html>

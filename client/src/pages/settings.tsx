@@ -7,17 +7,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStore } from "@/lib/store";
 import { useUpdateUser } from "@/lib/hooks";
 import { Link } from "wouter";
-import { ExternalLink, Settings2, Plug, Calendar, Sparkles, Users, MessageSquare, Shield } from "lucide-react";
+import { ExternalLink, Settings2, Plug, Calendar, Sparkles, Users, MessageSquare, Shield, Palette } from "lucide-react";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
 import SettingsAuditPage from "./settings-audit";
 import WorkspaceSettingsPage from "./workspace-settings";
 import { FeedbackModal } from "@/components/feedback-modal";
+import { TemplatesModal } from "@/components/templates-modal";
 
 export default function SettingsPage() {
   const { user, updateUser: updateLocalUser, currentWorkspaceId } = useStore();
   const updateUser = useUpdateUser();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
 
   const handleToggle = (field: string, value: boolean) => {
     updateLocalUser({ [field]: value });
@@ -125,6 +127,23 @@ export default function SettingsPage() {
 
           <Card className="bg-white border-stone-200 rounded-2xl">
             <CardHeader className="px-4 pt-4 pb-3 md:px-6 md:pt-5">
+              <CardTitle className="text-lg text-slate-800">Appearance</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 md:px-6 md:pb-5">
+              <Button
+                variant="outline"
+                onClick={() => setTemplatesOpen(true)}
+                className="w-full justify-start h-12 rounded-xl border-stone-200 text-slate-700"
+                data-testid="button-templates"
+              >
+                <Palette className="h-4 w-4 mr-3 text-indigo-500" />
+                Design Templates
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border-stone-200 rounded-2xl">
+            <CardHeader className="px-4 pt-4 pb-3 md:px-6 md:pt-5">
               <CardTitle className="text-lg text-slate-800">Support</CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4 md:px-6 md:pb-5 space-y-3">
@@ -159,6 +178,7 @@ export default function SettingsPage() {
           </div>
 
           <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+          <TemplatesModal open={templatesOpen} onOpenChange={setTemplatesOpen} />
         </TabsContent>
 
         <TabsContent value="integrations">
