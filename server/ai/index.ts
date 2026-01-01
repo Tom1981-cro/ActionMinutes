@@ -17,9 +17,9 @@ export const extractionOutputSchema = z.object({
   })),
   actionItems: z.array(z.object({
     text: z.string(),
-    ownerName: z.string().optional(),
-    ownerEmail: z.string().optional(),
-    dueDate: z.string().optional(),
+    ownerName: z.string().nullable().optional(),
+    ownerEmail: z.string().nullable().optional(),
+    dueDate: z.string().nullable().optional(),
     confidenceOwner: z.number().min(0).max(1),
     confidenceDueDate: z.number().min(0).max(1),
   })),
@@ -29,7 +29,7 @@ export const extractionOutputSchema = z.object({
   })),
   clarifyingQuestions: z.array(z.object({
     text: z.string(),
-    options: z.array(z.string()).optional(),
+    options: z.array(z.string()).nullable().optional(),
   })).max(3),
   qualityFlags: z.array(z.string()),
 });
@@ -39,8 +39,8 @@ export type ExtractionOutput = z.infer<typeof extractionOutputSchema>;
 export const draftOutputSchema = z.object({
   drafts: z.array(z.object({
     type: z.enum(["group", "individual"]),
-    recipientName: z.string().optional(),
-    recipientEmail: z.string().optional(),
+    recipientName: z.string().nullable().optional(),
+    recipientEmail: z.string().nullable().optional(),
     subject: z.string(),
     body: z.string(),
   })),
