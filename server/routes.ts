@@ -350,6 +350,175 @@ Alex`,
     }
   });
 
+  // Seed data for any user (by userId)
+  app.post("/api/seed/:userId", async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Check if seed data already exists
+      const existingMeetings = await storage.getMeetings(userId);
+      if (existingMeetings.length > 0) {
+        return res.json({ message: "Seed data already exists", user });
+      }
+
+      // Create sample meetings
+      const meeting1 = await storage.createMeeting({
+        userId,
+        title: "Q1 Planning Sprint Kickoff",
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        rawNotes: "Discussed Q1 goals and priorities. Need to finalize roadmap by Friday. Sarah will lead the design review. Mike to set up new CI/CD pipeline.",
+        summary: "Sprint kickoff focusing on Q1 deliverables. Key initiatives: mobile app v2.0, API performance improvements, and new analytics dashboard.",
+        parseState: "finalized",
+        workspaceId: null,
+      });
+
+      const meeting2 = await storage.createMeeting({
+        userId,
+        title: "Product Design Review",
+        date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        rawNotes: "Reviewed new onboarding flow mockups. Team liked the simplified 3-step approach. Need to A/B test with existing flow.",
+        summary: "Design review for new user onboarding. Approved simplified 3-step flow pending A/B test results.",
+        parseState: "parsed",
+        workspaceId: null,
+      });
+
+      const meeting3 = await storage.createMeeting({
+        userId,
+        title: "Weekly Team Standup",
+        date: new Date(),
+        rawNotes: "Quick sync on blockers. Database migration still pending review. Frontend team finished the dashboard components.",
+        summary: "Team standup - database migration is the main blocker, dashboard UI complete.",
+        parseState: "draft",
+        workspaceId: null,
+      });
+
+      // Create action items
+      await storage.createActionItem({
+        meetingId: meeting1.id,
+        text: "Finalize Q1 roadmap document and share with stakeholders",
+        ownerName: user.name || "You",
+        ownerEmail: user.email,
+        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        status: "open",
+        confidenceOwner: 0.95,
+        confidenceDueDate: 0.9,
+      });
+
+      await storage.createActionItem({
+        meetingId: meeting1.id,
+        text: "Set up new CI/CD pipeline for staging environment",
+        ownerName: "Mike Chen",
+        ownerEmail: "mike@example.com",
+        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+        status: "open",
+        confidenceOwner: 0.85,
+        confidenceDueDate: 0.8,
+      });
+
+      await storage.createActionItem({
+        meetingId: meeting1.id,
+        text: "Schedule design review session with UX team",
+        ownerName: "Sarah Lee",
+        ownerEmail: "sarah@example.com",
+        dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+        status: "needs_review",
+        confidenceOwner: 0.5,
+        confidenceDueDate: 0.6,
+      });
+
+      await storage.createActionItem({
+        meetingId: meeting2.id,
+        text: "Create A/B test plan for new onboarding flow",
+        ownerName: user.name || "You",
+        ownerEmail: user.email,
+        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        status: "open",
+        confidenceOwner: 0.9,
+        confidenceDueDate: 0.85,
+      });
+
+      await storage.createActionItem({
+        meetingId: meeting2.id,
+        text: "Review competitor onboarding experiences",
+        ownerName: null,
+        ownerEmail: null,
+        dueDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        status: "needs_review",
+        confidenceOwner: 0.3,
+        confidenceDueDate: 0.4,
+      });
+
+      await storage.createActionItem({
+        meetingId: meeting3.id,
+        text: "Complete database migration review",
+        ownerName: "Database Team",
+        ownerEmail: null,
+        dueDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+        status: "waiting",
+        confidenceOwner: 0.7,
+        confidenceDueDate: 0.9,
+      });
+
+      // Create follow-up drafts
+      await storage.createDraft({
+        userId,
+        meetingId: meeting1.id,
+        type: "follow_up",
+        tone: "friendly",
+        subject: "Follow-up: Q1 Planning Sprint Kickoff",
+        recipientName: "Team",
+        recipientEmail: "team@example.com",
+        body: `Hi Team,
+
+Thanks for joining the Q1 planning kickoff. Here's a quick recap:
+
+Key Decisions:
+- Q1 focus: Mobile app v2.0, API performance, Analytics dashboard
+- Design review scheduled for next week
+- CI/CD pipeline upgrade in progress
+
+Action Items:
+- Finalize roadmap by Friday
+- Set up CI/CD pipeline
+- Lead design review
+
+Let me know if I missed anything!
+
+Best`,
+      });
+
+      await storage.createDraft({
+        userId,
+        meetingId: meeting2.id,
+        type: "follow_up",
+        tone: "friendly",
+        subject: "Design Review Notes - New Onboarding Flow",
+        recipientName: "Design Team",
+        recipientEmail: "design@example.com",
+        body: `Hi Design Team,
+
+Great session today! The new 3-step onboarding looks promising.
+
+Next steps:
+1. Set up A/B test framework
+2. Define success metrics
+3. Plan rollout timeline
+
+Thanks!`,
+      });
+
+      res.json({ message: "Seed data created successfully", user });
+    } catch (error) {
+      console.error("Seed error:", error);
+      res.status(500).json({ error: error instanceof Error ? error.message : "Seed failed" });
+    }
+  });
+
   // ==================== WORKSPACE ROUTES ====================
   app.get("/api/workspaces", async (req, res) => {
     const userId = req.query.userId as string;
