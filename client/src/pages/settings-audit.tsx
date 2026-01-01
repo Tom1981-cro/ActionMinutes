@@ -1,14 +1,29 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, Sparkles, CheckCircle, XCircle, ChevronRight } from "lucide-react";
-import { useAiAuditLogs } from "@/lib/hooks";
+import { Loader2, Sparkles, CheckCircle, XCircle, ChevronRight, AlertTriangle } from "lucide-react";
+import { useAiAuditLogs, useAppConfig } from "@/lib/hooks";
 import { format } from "date-fns";
 import { useState } from "react";
 
 export default function SettingsAuditPage() {
   const { data: logs = [], isLoading } = useAiAuditLogs();
+  const { data: config } = useAppConfig();
   const [selectedLog, setSelectedLog] = useState<any>(null);
+
+  if (config && !config.features.aiEnabled) {
+    return (
+      <Card className="bg-amber-50 border-amber-200 rounded-3xl">
+        <CardContent className="py-8 text-center">
+          <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-4" />
+          <h3 className="font-semibold text-amber-800 mb-2">AI Features Disabled</h3>
+          <p className="text-amber-700 text-sm">
+            AI audit logging is unavailable because AI features are disabled. Set AI_FEATURE_ENABLED=true to enable.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading) {
     return (

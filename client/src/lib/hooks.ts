@@ -359,3 +359,37 @@ export function useAiAuditLogsForMeeting(meetingId: string | undefined) {
     enabled: !!meetingId,
   });
 }
+
+// ==================== APP CONFIG ====================
+export type FeatureFlags = {
+  aiEnabled: boolean;
+  integrationsEnabled: boolean;
+  personalEnabled: boolean;
+  teamEnabled: boolean;
+  remindersEnabled: boolean;
+};
+
+export type ConfigStatus = {
+  aiConfigured: boolean;
+  gmailConfigured: boolean;
+  outlookConfigured: boolean;
+  databaseConnected: boolean;
+  mobileBuildEnabled: boolean;
+};
+
+export type AppConfig = {
+  features: FeatureFlags;
+  status: ConfigStatus;
+};
+
+export function useAppConfig() {
+  return useQuery<AppConfig>({
+    queryKey: ['app-config'],
+    queryFn: async () => {
+      const response = await fetch('/api/config/status');
+      if (!response.ok) throw new Error('Failed to fetch config');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}

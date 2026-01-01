@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { StatusBadge, SeverityBadge } from "@/components/ui/status-badge";
 import { Loader2, ArrowLeft, CheckCircle, FileText, Calendar, Download, AlertTriangle, HelpCircle, Pencil, User, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useMeeting, useActionItemsForMeeting, useDecisionsForMeeting, useRisksForMeeting, useQuestionsForMeeting, useUpdateMeeting, useExportCalendar } from "@/lib/hooks";
+import { useMeeting, useActionItemsForMeeting, useDecisionsForMeeting, useRisksForMeeting, useQuestionsForMeeting, useUpdateMeeting, useExportCalendar, useAppConfig } from "@/lib/hooks";
 import { ActionEditSheet } from "@/components/action-edit-sheet";
 import type { ActionItem } from "@shared/schema";
 
@@ -19,6 +19,7 @@ export default function ExtractionPage() {
   const [, params] = useRoute("/meeting/:id");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { data: config } = useAppConfig();
   
   const id = params?.id || "";
   const { data: meeting, isLoading: meetingLoading } = useMeeting(id);
@@ -28,6 +29,8 @@ export default function ExtractionPage() {
   const { data: questions = [] } = useQuestionsForMeeting(id);
   const updateMeeting = useUpdateMeeting();
   const exportCalendar = useExportCalendar();
+
+  const aiEnabled = config?.features?.aiEnabled !== false;
 
   const [exportOpen, setExportOpen] = useState(false);
   const [includeActionItems, setIncludeActionItems] = useState(false);
@@ -52,6 +55,21 @@ export default function ExtractionPage() {
   }
 
   if (meeting.parseState === "processing") {
+    if (!aiEnabled) {
+      return (
+        <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 px-4">
+          <AlertTriangle className="h-12 w-12 text-amber-500" />
+          <h2 className="text-xl font-semibold text-slate-800 text-center">AI Extraction Unavailable</h2>
+          <p className="text-stone-500 text-base text-center max-w-md">
+            AI features are currently disabled. This meeting cannot be processed until AI is re-enabled.
+          </p>
+          <Button variant="outline" onClick={() => setLocation("/meetings")} className="rounded-xl">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Meetings
+          </Button>
+        </div>
+      );
+    }
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 px-4">
         <Loader2 className="h-12 w-12 animate-spin text-teal-500" />

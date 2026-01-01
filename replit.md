@@ -63,6 +63,17 @@ Admin endpoints (`/api/admin/*`) are protected by a `requireAdminAccess` middlew
 - **Diagnostics**: Captures route, viewport size, user agent
 - **Admin page**: `/admin/feedback` with search, status filtering, detail view
 
+### Production Hardening
+- **Configuration Module** (`server/config.ts`): Centralized environment validation and feature flags
+- **Feature Flags**: AI_FEATURE_ENABLED, INTEGRATIONS_FEATURE_ENABLED, PERSONAL_FEATURE_ENABLED, TEAM_FEATURE_ENABLED, REMINDERS_FEATURE_ENABLED
+- **Release Readiness Panel**: Settings > Release tab shows status of AI, Gmail, Outlook, Database, and Mobile build
+- **Graceful Degradation**: 
+  - Capture page disables extraction when AI is off
+  - Extraction page shows unavailable message when AI disabled
+  - Settings pages show feature disabled messages
+- **Error Handling**: Global async error handler with stack traces only in development
+- **Environment Template**: `.env.example` documents all configuration options
+
 ## External Dependencies
 
 ### Database

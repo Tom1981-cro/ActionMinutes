@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Save, ArrowLeft, ChevronDown, ChevronUp, Users, Clock, MapPin } from "lucide-react";
+import { Sparkles, Save, ArrowLeft, ChevronDown, ChevronUp, Users, Clock, MapPin, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { useCreateMeeting, useExtractMeeting } from "@/lib/hooks";
+import { useCreateMeeting, useExtractMeeting, useAppConfig } from "@/lib/hooks";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export default function CapturePage() {
@@ -17,6 +17,9 @@ export default function CapturePage() {
   const { toast } = useToast();
   const createMeeting = useCreateMeeting();
   const extractMeeting = useExtractMeeting();
+  const { data: config } = useAppConfig();
+
+  const aiEnabled = config?.features?.aiEnabled !== false;
 
   const [title, setTitle] = useState(`Meeting — ${format(new Date(), "MMM d")}`);
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -210,12 +213,19 @@ Just dump everything—AI will sort it out."
             />
           </div>
 
+          {!aiEnabled && (
+            <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              <span>AI extraction is currently disabled. You can still save meetings as drafts.</span>
+            </div>
+          )}
+
           <div className="hidden md:flex items-center gap-3 pt-2">
             <Button 
               size="lg" 
-              className="flex-1 text-base h-14 rounded-2xl bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 transition-all" 
+              className="flex-1 text-base h-14 rounded-2xl bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
               onClick={handleExtract}
-              disabled={isSubmitting}
+              disabled={isSubmitting || !aiEnabled}
               data-testid="button-extract-desktop"
             >
               {isSubmitting ? (
@@ -223,7 +233,7 @@ Just dump everything—AI will sort it out."
               ) : (
                 <>
                   <Sparkles className="mr-2 h-5 w-5" />
-                  Extract Actions
+                  {aiEnabled ? "Extract Actions" : "AI Disabled"}
                 </>
               )}
             </Button>
@@ -253,13 +263,15 @@ Just dump everything—AI will sort it out."
           </Button>
           <Button 
             size="lg" 
-            className="flex-1 text-base h-12 rounded-xl bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20" 
+            className="flex-1 text-base h-12 rounded-xl bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20 disabled:opacity-50" 
             onClick={handleExtract}
-            disabled={isSubmitting || !notes.trim()}
+            disabled={isSubmitting || !notes.trim() || !aiEnabled}
             data-testid="button-extract"
           >
             {isSubmitting ? (
               "Processing..."
+            ) : !aiEnabled ? (
+              "AI Disabled"
             ) : (
               <>
                 <Sparkles className="mr-2 h-5 w-5" />

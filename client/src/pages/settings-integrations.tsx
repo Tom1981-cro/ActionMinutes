@@ -1,14 +1,29 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Mail, ExternalLink, CheckCircle, XCircle } from "lucide-react";
-import { useIntegrations, useDisconnectIntegration } from "@/lib/hooks";
+import { Loader2, Mail, ExternalLink, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+import { useIntegrations, useDisconnectIntegration, useAppConfig } from "@/lib/hooks";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SettingsIntegrationsPage() {
   const { data: integrations, isLoading } = useIntegrations();
+  const { data: config } = useAppConfig();
   const disconnectIntegration = useDisconnectIntegration();
   const { toast } = useToast();
+
+  if (config && !config.features.integrationsEnabled) {
+    return (
+      <Card className="bg-amber-50 border-amber-200 rounded-3xl">
+        <CardContent className="py-8 text-center">
+          <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-4" />
+          <h3 className="font-semibold text-amber-800 mb-2">Integrations Disabled</h3>
+          <p className="text-amber-700 text-sm">
+            Email integrations are currently disabled. Set INTEGRATIONS_FEATURE_ENABLED=true to enable this feature.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const handleConnect = async (provider: 'google' | 'microsoft') => {
     toast({ title: "OAuth Integration", description: "OAuth setup requires environment variables. See Settings > Help for details." });

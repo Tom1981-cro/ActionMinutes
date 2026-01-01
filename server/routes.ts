@@ -11,6 +11,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import crypto from "crypto";
+import { getAppConfig, getAppConfigAsync } from "./config";
 
 // ==================== RBAC HELPERS ====================
 type Permission = 'read' | 'write' | 'manage' | 'delete';
@@ -113,6 +114,33 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
+  // ==================== GLOBAL ERROR HANDLER ====================
+  const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => 
+    (req: Request, res: Response, next: NextFunction) => {
+      Promise.resolve(fn(req, res, next)).catch(next);
+    };
+
+  const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+    console.error('[API Error]', err.message);
+    if (process.env.NODE_ENV === 'development') {
+      console.error(err.stack);
+    }
+    res.status(500).json({ 
+      error: 'An unexpected error occurred',
+      message: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  };
+
+  // ==================== CONFIG & STATUS ROUTES ====================
+  app.get("/api/config/status", async (req, res) => {
+    try {
+      const config = await getAppConfigAsync();
+      res.json(config);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to retrieve configuration" });
+    }
+  });
+
   // ==================== USER ROUTES ====================
   app.get("/api/user/email/:email", async (req, res) => {
     const user = await storage.getUserByEmail(req.params.email);
@@ -336,9 +364,46 @@ Thanks!
 Alex`,
       });
 
+      // Create demo workspace with team members
+      const demoWorkspace = await storage.createWorkspace({
+        name: "Product Team",
+        createdByUserId: user.id,
+      });
+
+      // Add owner as a workspace member
+      await storage.createWorkspaceMember({
+        workspaceId: demoWorkspace.id,
+        userId: user.id,
+        role: "owner",
+      });
+
+      // Create a workspace meeting
+      const workspaceMeeting = await storage.createMeeting({
+        userId: user.id,
+        title: "Team Sync - Product Roadmap",
+        date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        rawNotes: "Reviewed product roadmap for Q2. Prioritized customer feedback on mobile experience. Assigned tasks for sprint planning.",
+        summary: "Quarterly roadmap review with focus on mobile improvements and customer-driven features.",
+        parseState: "finalized",
+        workspaceId: demoWorkspace.id,
+      });
+
+      // Add workspace meeting action items
+      await storage.createActionItem({
+        meetingId: workspaceMeeting.id,
+        text: "Draft Q2 feature prioritization document",
+        ownerName: user.name || "Alex",
+        ownerEmail: user.email,
+        dueDate: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+        status: "open",
+        confidenceOwner: 0.95,
+        confidenceDueDate: 0.9,
+      });
+
       res.json({ 
         message: "Seed data created successfully", 
         user,
+        workspace: demoWorkspace,
         credentials: {
           email: "test@actionminutes.com",
           password: "testpass123"
@@ -1054,6 +1119,15 @@ Thanks!`,
     const meeting = await storage.getMeeting(req.params.id);
     if (!meeting) return res.status(404).json({ error: "Meeting not found" });
 
+    // Check if AI features are enabled
+    const config = getAppConfig();
+    if (!config.features.aiEnabled) {
+      return res.status(503).json({ 
+        error: "AI features disabled",
+        message: "AI extraction is currently disabled. Enable AI_FEATURE_ENABLED to use this feature."
+      });
+    }
+
     await storage.updateMeeting(req.params.id, { parseState: "processing" });
 
     setTimeout(async () => {
@@ -1163,6 +1237,9 @@ Thanks!`,
       res.status(400).json({ error: error instanceof Error ? error.message : "Invalid status value" });
     }
   });
+
+  // Apply global error handler last
+  app.use(errorHandler);
 
   return httpServer;
 }
