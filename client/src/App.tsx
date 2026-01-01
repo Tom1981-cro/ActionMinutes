@@ -13,6 +13,8 @@ import ExtractionPage from "@/pages/extraction";
 import DraftsPage from "@/pages/drafts";
 import SettingsPage from "@/pages/settings";
 import AdminFeedbackPage from "@/pages/admin-feedback";
+import JournalPage from "@/pages/journal";
+import RemindersPage from "@/pages/reminders";
 import NotFound from "@/pages/not-found";
 
 import BlueprintPage from "@/pages/blueprint";
@@ -41,6 +43,12 @@ function Router() {
       </Route>
       <Route path="/settings">
         <Layout><SettingsPage /></Layout>
+      </Route>
+      <Route path="/journal">
+        <Layout><JournalPage /></Layout>
+      </Route>
+      <Route path="/reminders">
+        <Layout><RemindersPage /></Layout>
       </Route>
       <Route path="/admin/feedback" component={AdminFeedbackPage} />
 
