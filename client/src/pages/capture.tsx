@@ -87,6 +87,7 @@ export default function CapturePage() {
               onClick={() => setLocation("/meetings")} 
               className="rounded-full h-11 w-11 shrink-0" 
               data-testid="button-back"
+              aria-label="Go back to meetings"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>

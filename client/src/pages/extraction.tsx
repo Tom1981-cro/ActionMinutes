@@ -101,7 +101,7 @@ export default function ExtractionPage() {
       <div className="flex-1 overflow-y-auto pb-24 md:pb-6">
         <div className="sticky top-0 bg-stone-50/95 backdrop-blur z-10 -mx-4 px-4 md:-mx-8 md:px-8 border-b border-stone-200">
           <div className="flex items-center gap-3 py-3">
-            <Button variant="ghost" size="icon" onClick={() => setLocation("/meetings")} className="rounded-full h-11 w-11 shrink-0" data-testid="button-back">
+            <Button variant="ghost" size="icon" onClick={() => setLocation("/meetings")} className="rounded-full h-11 w-11 shrink-0" data-testid="button-back" aria-label="Go back to meetings">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="min-w-0 flex-1">

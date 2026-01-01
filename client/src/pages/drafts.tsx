@@ -114,6 +114,7 @@ export default function DraftsPage() {
                   disabled={activeDraftIndex === 0}
                   className="h-10 w-10 rounded-full"
                   data-testid="button-prev-draft"
+                  aria-label="Previous draft"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </Button>
@@ -127,6 +128,7 @@ export default function DraftsPage() {
                   disabled={activeDraftIndex === drafts.length - 1}
                   className="h-10 w-10 rounded-full"
                   data-testid="button-next-draft"
+                  aria-label="Next draft"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </Button>

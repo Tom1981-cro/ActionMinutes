@@ -106,6 +106,7 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
                 size="icon" 
                 onClick={() => onOpenChange(false)}
                 className="h-10 w-10 rounded-full"
+                aria-label="Close editor"
               >
                 <X className="h-5 w-5" />
               </Button>
