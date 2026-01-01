@@ -5,21 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Save, ArrowLeft, ChevronDown, ChevronUp, Users, Clock, MapPin, AlertTriangle, Camera, Upload, RefreshCw, Copy, X, Check, FileText } from "lucide-react";
+import { Sparkles, Save, ArrowLeft, ChevronDown, ChevronUp, Users, Clock, MapPin, AlertTriangle, Camera, Upload, RefreshCw, Copy, X, Check, FileText, User, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { useCreateMeeting, useExtractMeeting, useAppConfig } from "@/lib/hooks";
+import { useCreateMeeting, useExtractMeeting, useAppConfig, useWorkspaces } from "@/lib/hooks";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function CapturePage() {
   const [, setLocation] = useLocation();
-  const { user } = useStore();
+  const { user, currentWorkspaceId } = useStore();
   const { toast } = useToast();
   const createMeeting = useCreateMeeting();
   const extractMeeting = useExtractMeeting();
   const { data: config } = useAppConfig();
+  const { data: workspaces = [] } = useWorkspaces();
 
   const aiEnabled = config?.features?.aiEnabled !== false;
 
@@ -31,6 +33,7 @@ export default function CapturePage() {
   const [location, setLocationValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [scope, setScope] = useState<string>(currentWorkspaceId || "personal");
 
   // OCR state
   const [ocrLoading, setOcrLoading] = useState(false);
@@ -76,6 +79,7 @@ export default function CapturePage() {
         date: new Date(date),
         rawNotes: notes,
         parseState: 'draft',
+        workspaceId: scope === "personal" ? undefined : scope,
       });
       
       await saveAttendees(meeting.id);
@@ -101,6 +105,7 @@ export default function CapturePage() {
         date: new Date(date),
         rawNotes: notes,
         parseState: 'draft',
+        workspaceId: scope === "personal" ? undefined : scope,
       });
       await saveAttendees(meeting.id);
       toast({ title: "Saved draft", description: "Meeting saved without extraction." });
@@ -262,6 +267,44 @@ export default function CapturePage() {
                 className="bg-gray-50 border-gray-200 rounded-xl h-12 text-base px-4 focus:bg-white"
                 data-testid="input-date"
               />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-slate-600">Save to</Label>
+              <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
+                <Button
+                  type="button"
+                  variant={scope === "personal" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setScope("personal")}
+                  className={`flex-1 h-10 rounded-xl ${scope === "personal" ? 'bg-white shadow-sm text-slate-800' : 'text-gray-500'}`}
+                  data-testid="scope-personal"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Personal
+                </Button>
+                {workspaces.length > 0 && (
+                  <Select value={scope !== "personal" ? scope : ""} onValueChange={(val) => setScope(val)}>
+                    <SelectTrigger 
+                      className={`flex-1 h-10 rounded-xl border-0 ${scope !== "personal" ? 'bg-white shadow-sm text-slate-800' : 'bg-transparent text-gray-500'}`}
+                      data-testid="scope-workspace"
+                    >
+                      <Building2 className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Workspace" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {workspaces.map((ws: any) => (
+                        <SelectItem key={ws.id} value={ws.id}>
+                          {ws.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+              <p className="text-xs text-gray-400">
+                {scope === "personal" ? "Only you can see this meeting" : "Visible to workspace members"}
+              </p>
             </div>
 
             <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
