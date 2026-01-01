@@ -126,6 +126,126 @@
     --sidebar-ring: var(--color-teal-500);
   }
 
+  /* Theme: Cupertino Glass */
+  [data-theme="cupertino-glass"] {
+    --background: #f9fafb;
+    --foreground: #0f172a;
+    --card: rgba(255, 255, 255, 0.7);
+    --card-foreground: #0f172a;
+    --popover: rgba(255, 255, 255, 0.9);
+    --popover-foreground: #0f172a;
+    --primary: #007AFF;
+    --primary-foreground: #ffffff;
+    --secondary: #f3f4f6;
+    --secondary-foreground: #374151;
+    --muted: #f3f4f6;
+    --muted-foreground: #6b7280;
+    --accent: #eff6ff;
+    --accent-foreground: #1d4ed8;
+    --border: rgba(229, 231, 235, 0.5);
+    --input: #e5e7eb;
+    --ring: #bfdbfe;
+    --radius: 0.75rem;
+    --sidebar: rgba(249, 250, 251, 0.8);
+    --sidebar-primary: #007AFF;
+  }
+
+  /* Theme: Titanium Minimal */
+  [data-theme="titanium-minimal"] {
+    --background: #ffffff;
+    --foreground: #18181b;
+    --card: #ffffff;
+    --card-foreground: #18181b;
+    --popover: #ffffff;
+    --popover-foreground: #18181b;
+    --primary: #18181b;
+    --primary-foreground: #ffffff;
+    --secondary: #fafafa;
+    --secondary-foreground: #3f3f46;
+    --muted: #fafafa;
+    --muted-foreground: #71717a;
+    --accent: #f4f4f5;
+    --accent-foreground: #18181b;
+    --border: #e4e4e7;
+    --input: #e4e4e7;
+    --ring: #a1a1aa;
+    --radius: 0.375rem;
+    --sidebar: #fafafa;
+    --sidebar-primary: #18181b;
+  }
+
+  /* Theme: Vibrant Enterprise */
+  [data-theme="vibrant-enterprise"] {
+    --background: #ffffff;
+    --foreground: #0f172a;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --popover: #ffffff;
+    --popover-foreground: #0f172a;
+    --primary: #6366f1;
+    --primary-foreground: #ffffff;
+    --secondary: #eef2ff;
+    --secondary-foreground: #4338ca;
+    --muted: #f5f3ff;
+    --muted-foreground: #6b7280;
+    --accent: #eef2ff;
+    --accent-foreground: #4f46e5;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #c7d2fe;
+    --radius: 0.5rem;
+    --sidebar: #faf5ff;
+    --sidebar-primary: #6366f1;
+  }
+
+  /* Theme: Slate Professional */
+  [data-theme="slate-professional"] {
+    --background: #f8fafc;
+    --foreground: #334155;
+    --card: #ffffff;
+    --card-foreground: #334155;
+    --popover: #ffffff;
+    --popover-foreground: #334155;
+    --primary: #2563eb;
+    --primary-foreground: #ffffff;
+    --secondary: #f1f5f9;
+    --secondary-foreground: #475569;
+    --muted: #f1f5f9;
+    --muted-foreground: #64748b;
+    --accent: #eff6ff;
+    --accent-foreground: #1d4ed8;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #93c5fd;
+    --radius: 0.375rem;
+    --sidebar: #f1f5f9;
+    --sidebar-primary: #2563eb;
+  }
+
+  /* Theme: Focus Light */
+  [data-theme="focus-light"] {
+    --background: #ffffff;
+    --foreground: #000000;
+    --card: #ffffff;
+    --card-foreground: #000000;
+    --popover: #ffffff;
+    --popover-foreground: #000000;
+    --primary: #000000;
+    --primary-foreground: #ffffff;
+    --secondary: #fafafa;
+    --secondary-foreground: #525252;
+    --muted: #fafafa;
+    --muted-foreground: #737373;
+    --accent: #f5f5f5;
+    --accent-foreground: #171717;
+    --border: #f3f4f6;
+    --input: #e5e7eb;
+    --ring: #d4d4d4;
+    --radius: 0.5rem;
+    --sidebar: #ffffff;
+    --sidebar-primary: #000000;
+  }
+
   .dark {
     /* Dark Mode adaptation of System 2 */
     --background: var(--color-stone-900);
