@@ -25,35 +25,35 @@ const templates: Template[] = [
     iconBg: "bg-gradient-to-br from-teal-400 to-teal-600",
   },
   {
-    id: "cupertino-glass",
+    id: "cupertino",
     name: "Cupertino Glass",
     description: "Native macOS/iOS aesthetic. Frosted glass panels, backdrop blurs, and System Blue accents.",
     labelColor: "text-blue-500",
     iconBg: "bg-gradient-to-b from-[#007AFF] to-[#0055CC]",
   },
   {
-    id: "titanium-minimal",
+    id: "titanium",
     name: "Titanium Minimal",
     description: "Inspired by premium hardware. Raw metal tones, sharp 1px borders, zero color saturation.",
     labelColor: "text-zinc-500",
     iconBg: "bg-gradient-to-br from-zinc-300 via-zinc-100 to-zinc-400",
   },
   {
-    id: "vibrant-enterprise",
+    id: "vibrant",
     name: "Vibrant Enterprise",
     description: "Modern SaaS aesthetic (Linear/Stripe). Clean white surfaces with indigo-purple gradients.",
     labelColor: "text-indigo-500",
     iconBg: "bg-gradient-to-br from-indigo-500 to-purple-600",
   },
   {
-    id: "slate-professional",
+    id: "slate",
     name: "Slate Professional",
     description: "Outlook/Office style. Cool grays, dense information layouts. Conservative and trustworthy.",
     labelColor: "text-slate-600",
     iconBg: "bg-slate-700",
   },
   {
-    id: "focus-light",
+    id: "focus",
     name: "Focus Light",
     description: "Things 3 / Notion vibe. Pure white, minimal chrome, heavy reliance on whitespace.",
     labelColor: "text-gray-500",
@@ -78,8 +78,8 @@ function AppIcon({ template }: { template: Template }) {
         viewBox="0 0 32 32"
         fill="none"
         className={cn(
-          template.id === "titanium-minimal" ? "stroke-zinc-700" : 
-          template.id === "focus-light" ? "stroke-black" : "stroke-white"
+          template.id === "titanium" ? "stroke-zinc-700" : 
+          template.id === "focus" ? "stroke-black" : "stroke-white"
         )}
         strokeWidth="3"
         strokeLinecap="round"
@@ -103,6 +103,9 @@ export default function SettingsTemplatesPage() {
     if (templateId === currentTemplate) return;
     
     updateLocalUser({ template: templateId });
+    
+    document.documentElement.setAttribute("data-theme", templateId === "calm-focused" ? "" : templateId);
+    
     updateUser.mutate({ template: templateId }, {
       onSuccess: () => {
         toast({ 
@@ -112,6 +115,7 @@ export default function SettingsTemplatesPage() {
       },
       onError: () => {
         updateLocalUser({ template: currentTemplate });
+        document.documentElement.setAttribute("data-theme", currentTemplate === "calm-focused" ? "" : currentTemplate);
         toast({ 
           title: "Error", 
           description: "Failed to apply style", 

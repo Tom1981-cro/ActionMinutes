@@ -6,9 +6,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const template = user.template || "calm-focused";
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.setAttribute("data-theme", template);
-    document.body.setAttribute("data-theme", template);
+    const themeValue = template === "calm-focused" ? "" : template;
+    document.documentElement.setAttribute("data-theme", themeValue);
   }, [template]);
 
   return <>{children}</>;
