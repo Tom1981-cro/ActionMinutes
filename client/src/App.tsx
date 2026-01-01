@@ -18,6 +18,7 @@ import RemindersPage from "@/pages/reminders";
 import MobileBuildGuidePage from "@/pages/mobile-build-guide";
 import StoreScreensPage from "@/pages/store-screens";
 import MarketingPage from "@/pages/marketing";
+import TestingGuidePage from "@/pages/testing-guide";
 import NotFound from "@/pages/not-found";
 
 import BlueprintPage from "@/pages/blueprint";
@@ -59,6 +60,7 @@ function Router() {
       <Route path="/mobile-build-guide">
         <Layout><MobileBuildGuidePage /></Layout>
       </Route>
+      <Route path="/help/testing" component={TestingGuidePage} />
 
       <Route component={NotFound} />
     </Switch>
