@@ -38,6 +38,7 @@ The schema (`shared/schema.ts`) defines these core entities:
 - **actionItems**: Extracted tasks with owner, due date, status, and confidence scores
 - **followUpDrafts**: Generated email drafts with recipient and content
 - **personalEntries**: Optional personal journal entries (secondary feature)
+- **feedback**: User-submitted feedback with type, message, optional email, diagnostics (route, viewport, userAgent), and status
 
 ### Key Application Flows
 1. **Authentication**: Demo-mode auth with email/password, session-based
@@ -47,6 +48,20 @@ The schema (`shared/schema.ts`) defines these core entities:
 
 ### Navigation Structure
 Bottom tab navigation with: Inbox, Meetings, Capture, Drafts, Settings. A Blueprint demo page exists at `/blueprint` for showcasing the product.
+
+### Admin Access Control (Demo-Only)
+Admin endpoints (`/api/admin/*`) are protected by a `requireAdminAccess` middleware that:
+1. Requires `userId` query parameter
+2. Verifies user exists in database
+3. Checks email against allow-list: emails containing "admin", or exactly "test@actionminutes.com" or "demo@actionminutes.com"
+
+**Note**: This is demo-grade security. Production should use proper role-based access control.
+
+### Feedback System
+- **Settings**: "Send feedback" button opens modal
+- **Modal**: Type (Bug/Feature/UX/Other), Message (required), Email (optional), Diagnostics toggle (default ON)
+- **Diagnostics**: Captures route, viewport size, user agent
+- **Admin page**: `/admin/feedback` with search, status filtering, detail view
 
 ## External Dependencies
 
