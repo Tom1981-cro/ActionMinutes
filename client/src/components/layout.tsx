@@ -54,11 +54,11 @@ export default function Layout({ children }: LayoutProps) {
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer",
                   isActive
-                    ? "bg-card text-primary shadow-sm font-semibold translate-x-1"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground hover:translate-x-1"
+                    ? "bg-white text-teal-600 shadow-sm font-semibold translate-x-1"
+                    : "text-muted-foreground hover:bg-stone-200/50 hover:text-foreground hover:translate-x-1"
                 )}
               >
-                <item.icon className={cn("h-4 w-4", isActive ? "text-primary" : "text-muted-foreground")} />
+                <item.icon className={cn("h-4 w-4", isActive ? "text-teal-500" : "text-stone-400")} />
                 {item.label}
               </Link>
             );
@@ -95,7 +95,7 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       {/* Main Content - with bottom padding for mobile tab bar */}
-      <main className="flex-1 overflow-auto bg-background pb-20 md:pb-0">
+      <main className="flex-1 overflow-auto bg-stone-50/50 pb-20 md:pb-0">
         <div className="container max-w-4xl mx-auto p-4 md:p-8 animate-in fade-in duration-500">
           {children}
         </div>
@@ -103,7 +103,7 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Mobile Bottom Tab Bar */}
       <nav 
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-lg"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-stone-200 shadow-lg"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex items-center justify-around h-16">
@@ -118,37 +118,39 @@ export default function Layout({ children }: LayoutProps) {
                 data-testid={`tab-${item.label.toLowerCase()}`}
                 className={cn(
                   "flex flex-col items-center justify-center flex-1 h-full py-2 transition-colors relative",
-                  isActive ? "text-primary" : "text-muted-foreground"
+                  isActive ? "text-teal-600" : "text-stone-400"
                 )}
               >
                 {item.primary ? (
                   <div className="flex flex-col items-center -mt-4">
                     <div className={cn(
-                      "flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-all bg-primary text-primary-foreground",
-                      isActive && "scale-105"
+                      "flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-all",
+                      isActive 
+                        ? "bg-teal-600 text-white scale-105" 
+                        : "bg-teal-500 text-white"
                     )}>
                       <Icon className="h-6 w-6" />
                     </div>
                     <span className={cn(
                       "text-[10px] font-medium mt-1",
-                      isActive ? "text-primary" : "text-muted-foreground"
+                      isActive ? "text-teal-600" : "text-stone-500"
                     )}>
                       {item.label}
                     </span>
                   </div>
                 ) : (
                   <>
-                    <Icon className={cn("h-5 w-5 mb-1", isActive && "text-primary")} />
+                    <Icon className={cn("h-5 w-5 mb-1", isActive && "text-teal-500")} />
                     <span className={cn(
                       "text-[10px] font-medium",
-                      isActive ? "text-primary" : "text-muted-foreground"
+                      isActive ? "text-teal-600" : "text-stone-500"
                     )}>
                       {item.label}
                     </span>
                   </>
                 )}
                 {isActive && !item.primary && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-full" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-teal-500 rounded-full" />
                 )}
               </Link>
             );

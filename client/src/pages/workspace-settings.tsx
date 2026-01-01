@@ -21,8 +21,8 @@ const roleIcons: Record<string, any> = {
 const roleColors: Record<string, string> = {
   owner: "bg-amber-50 text-amber-700 border-amber-200",
   admin: "bg-purple-50 text-purple-700 border-purple-200",
-  member: "bg-primary/10 text-primary border-primary/20",
-  viewer: "bg-muted text-muted-foreground border-border",
+  member: "bg-teal-50 text-teal-700 border-teal-200",
+  viewer: "bg-stone-50 text-stone-600 border-stone-200",
 };
 
 export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: string }) {
@@ -75,7 +75,7 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
   if (workspaceLoading || membersLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
       </div>
     );
   }
@@ -84,19 +84,19 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
     <div className="space-y-6">
       <div className="space-y-1">
         <h2 className="text-xl font-semibold text-slate-800">{workspace?.name}</h2>
-        <p className="text-muted-foreground">Manage workspace members and permissions.</p>
+        <p className="text-stone-500">Manage workspace members and permissions.</p>
       </div>
 
-      <Card className="bg-card border-border rounded-3xl">
+      <Card className="bg-white border-stone-200 rounded-3xl">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-lg text-slate-800">Members</CardTitle>
-            <CardDescription className="text-muted-foreground">{members.length} members</CardDescription>
+            <CardDescription className="text-stone-500">{members.length} members</CardDescription>
           </div>
           {canManageMembers && (
             <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
               <DialogTrigger asChild>
-                <Button className="rounded-full bg-primary hover:bg-primary/90" data-testid="button-invite-member">
+                <Button className="rounded-full bg-teal-500 hover:bg-teal-600" data-testid="button-invite-member">
                   <UserPlus className="h-4 w-4 mr-2" />
                   Invite member
                 </Button>
@@ -113,14 +113,14 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
                       placeholder="colleague@company.com"
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
-                      className="rounded-2xl border-border"
+                      className="rounded-2xl border-stone-200"
                       data-testid="input-invite-email"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-slate-700">Role</Label>
                     <Select value={inviteRole} onValueChange={setInviteRole}>
-                      <SelectTrigger className="rounded-2xl border-border" data-testid="select-invite-role">
+                      <SelectTrigger className="rounded-2xl border-stone-200" data-testid="select-invite-role">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -133,7 +133,7 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
                   <Button 
                     onClick={handleInvite} 
                     disabled={!inviteEmail.trim() || inviteMember.isPending}
-                    className="w-full rounded-2xl bg-primary hover:bg-primary/90"
+                    className="w-full rounded-2xl bg-teal-500 hover:bg-teal-600"
                     data-testid="button-send-invite"
                   >
                     {inviteMember.isPending ? "Sending..." : "Send Invite"}
@@ -152,19 +152,19 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
             return (
               <div 
                 key={member.id} 
-                className="flex items-center justify-between p-3 rounded-2xl bg-muted border border-border"
+                className="flex items-center justify-between p-3 rounded-2xl bg-stone-50 border border-stone-100"
                 data-testid={`member-${member.id}`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground font-medium">
+                  <div className="h-10 w-10 rounded-full bg-stone-200 flex items-center justify-center text-stone-600 font-medium">
                     {member.user?.name?.charAt(0) || '?'}
                   </div>
                   <div>
                     <p className="font-medium text-slate-800">
                       {member.user?.name || member.user?.email}
-                      {isCurrentUser && <span className="text-muted-foreground text-sm ml-2">(you)</span>}
+                      {isCurrentUser && <span className="text-stone-500 text-sm ml-2">(you)</span>}
                     </p>
-                    <p className="text-sm text-muted-foreground">{member.user?.email}</p>
+                    <p className="text-sm text-stone-500">{member.user?.email}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -190,7 +190,7 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="text-muted-foreground hover:text-red-500"
+                      className="text-stone-400 hover:text-red-500"
                       onClick={() => handleRemove(member.id)}
                       data-testid={`button-remove-${member.id}`}
                     >
@@ -205,7 +205,7 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
       </Card>
 
       {invites.filter((i: any) => !i.acceptedAt).length > 0 && (
-        <Card className="bg-card border-border rounded-3xl">
+        <Card className="bg-white border-stone-200 rounded-3xl">
           <CardHeader>
             <CardTitle className="text-lg text-slate-800">Pending Invites</CardTitle>
           </CardHeader>
@@ -220,7 +220,7 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
                   <Mail className="h-5 w-5 text-amber-500" />
                   <div>
                     <p className="font-medium text-slate-800">{invite.email}</p>
-                    <p className="text-sm text-muted-foreground">Invited as {invite.role}</p>
+                    <p className="text-sm text-stone-500">Invited as {invite.role}</p>
                   </div>
                 </div>
                 <Badge variant="outline" className="rounded-full bg-amber-50 text-amber-700 border-amber-200">
@@ -232,10 +232,10 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
         </Card>
       )}
 
-      <Card className="bg-muted border-border rounded-3xl">
+      <Card className="bg-stone-50 border-stone-200 rounded-3xl">
         <CardContent className="py-4">
           <h3 className="font-medium text-slate-800 mb-2">Role Permissions</h3>
-          <div className="text-sm text-muted-foreground space-y-1">
+          <div className="text-sm text-stone-600 space-y-1">
             <p><strong>Owner:</strong> Full control, delete workspace</p>
             <p><strong>Admin:</strong> Manage members, edit all content</p>
             <p><strong>Member:</strong> Create and edit own content</p>
