@@ -6,8 +6,73 @@ import {
 } from '../../server/ai/index';
 import { TEST_MEETING } from '../test-utils';
 
-describe('Extraction API - Mock Mode', () => {
-  describe('Mock Extraction', () => {
+describe('Extraction - Schema Validation (from server/ai/index.ts)', () => {
+  describe('extractionOutputSchema', () => {
+    it('should validate complete extraction output', () => {
+      const validOutput = {
+        summary: "Team discussed Q4 roadmap",
+        decisions: [{ text: "Delay mobile launch by 2 weeks" }],
+        actionItems: [
+          { text: "Fix auth bug", ownerName: "Mike", dueDate: "Thursday", confidenceOwner: 0.95, confidenceDueDate: 0.90 }
+        ],
+        risks: [{ text: "API integration blocked", severity: "high" }],
+        clarifyingQuestions: [],
+        qualityFlags: [],
+      };
+      
+      const result = extractionOutputSchema.safeParse(validOutput);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid severity values', () => {
+      const invalidOutput = {
+        summary: "Test",
+        decisions: [],
+        actionItems: [],
+        risks: [{ text: "Risk", severity: "critical" }],
+        clarifyingQuestions: [],
+        qualityFlags: [],
+      };
+      
+      const result = extractionOutputSchema.safeParse(invalidOutput);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept all valid severity values', () => {
+      const validOutput = {
+        summary: "Test",
+        decisions: [],
+        actionItems: [],
+        risks: [
+          { text: "Low risk", severity: "low" },
+          { text: "Medium risk", severity: "medium" },
+          { text: "High risk", severity: "high" },
+        ],
+        clarifyingQuestions: [],
+        qualityFlags: [],
+      };
+      
+      const result = extractionOutputSchema.safeParse(validOutput);
+      expect(result.success).toBe(true);
+    });
+
+    it('should require summary field', () => {
+      const noSummary = {
+        decisions: [],
+        actionItems: [],
+        risks: [],
+        clarifyingQuestions: [],
+        qualityFlags: [],
+      };
+      
+      const result = extractionOutputSchema.safeParse(noSummary);
+      expect(result.success).toBe(false);
+    });
+  });
+});
+
+describe('Extraction - Mock Generation (from server/ai/index.ts)', () => {
+  describe('generateMockExtraction', () => {
     it('should generate valid extraction output from notes', () => {
       const result = generateMockExtraction(TEST_MEETING.rawNotes);
       
@@ -50,10 +115,15 @@ describe('Extraction API - Mock Mode', () => {
       }
     });
   });
+});
 
-  describe('Confidence to Status Mapping', () => {
-    it('should map low confidence to needs_review', () => {
+describe('Extraction - Confidence Mapping (from server/ai/index.ts)', () => {
+  describe('mapConfidenceToStatus', () => {
+    it('should map low owner confidence to needs_review', () => {
       expect(mapConfidenceToStatus(0.4, 0.8)).toBe('needs_review');
+    });
+
+    it('should map low due date confidence to needs_review', () => {
       expect(mapConfidenceToStatus(0.8, 0.4)).toBe('needs_review');
     });
 
@@ -62,43 +132,9 @@ describe('Extraction API - Mock Mode', () => {
       expect(mapConfidenceToStatus(0.9, 0.9)).toBe('pending');
     });
 
-    it('should use 0.65 as threshold', () => {
+    it('should use 0.65 as threshold boundary', () => {
       expect(mapConfidenceToStatus(0.64, 0.65)).toBe('needs_review');
       expect(mapConfidenceToStatus(0.65, 0.65)).toBe('pending');
-    });
-  });
-
-  describe('Schema Validation', () => {
-    it('should reject invalid severity values', () => {
-      const invalid = {
-        summary: "Test",
-        decisions: [],
-        actionItems: [],
-        risks: [{ text: "Risk", severity: "critical" }],
-        clarifyingQuestions: [],
-        qualityFlags: [],
-      };
-      
-      const result = extractionOutputSchema.safeParse(invalid);
-      expect(result.success).toBe(false);
-    });
-
-    it('should accept valid severity values', () => {
-      const valid = {
-        summary: "Test",
-        decisions: [],
-        actionItems: [],
-        risks: [
-          { text: "Risk 1", severity: "low" },
-          { text: "Risk 2", severity: "medium" },
-          { text: "Risk 3", severity: "high" },
-        ],
-        clarifyingQuestions: [],
-        qualityFlags: [],
-      };
-      
-      const result = extractionOutputSchema.safeParse(valid);
-      expect(result.success).toBe(true);
     });
   });
 });
