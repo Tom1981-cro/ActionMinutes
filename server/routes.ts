@@ -13,6 +13,8 @@ import { z } from "zod";
 import crypto from "crypto";
 import { getAppConfig, getAppConfigAsync } from "./config";
 import { extractMeetingNotes, generateFollowUpDrafts, mapConfidenceToStatus, PROMPT_VERSION } from "./ai";
+import multer from "multer";
+import { extractTextFromImage, validateImageFile, MAX_FILE_SIZE } from "./ocr";
 
 // ==================== RBAC HELPERS ====================
 type Permission = 'read' | 'write' | 'manage' | 'delete';
@@ -1105,6 +1107,65 @@ Thanks!`,
       message: "Draft creation scaffolded - implement Graph API integration",
       draftId: null 
     });
+  });
+
+  // ==================== OCR (Handwritten Notes) ====================
+  const ocrRateLimits = new Map<string, { count: number; resetTime: number }>();
+  const OCR_RATE_LIMIT = 10; // max requests per minute
+  const OCR_RATE_WINDOW = 60000; // 1 minute
+
+  const checkOcrRateLimit = (userId: string): boolean => {
+    const now = Date.now();
+    const userLimit = ocrRateLimits.get(userId);
+    
+    if (!userLimit || now > userLimit.resetTime) {
+      ocrRateLimits.set(userId, { count: 1, resetTime: now + OCR_RATE_WINDOW });
+      return true;
+    }
+    
+    if (userLimit.count >= OCR_RATE_LIMIT) {
+      return false;
+    }
+    
+    userLimit.count++;
+    return true;
+  };
+
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: MAX_FILE_SIZE },
+  });
+
+  app.post("/api/ocr", upload.single("image"), async (req, res) => {
+    const userId = req.query.userId as string;
+    
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    if (!checkOcrRateLimit(userId)) {
+      return res.status(429).json({ error: "Too many requests. Please wait a moment." });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No image file provided" });
+    }
+
+    const validation = validateImageFile({ mimetype: req.file.mimetype, size: req.file.size });
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.error });
+    }
+
+    try {
+      const result = await extractTextFromImage(req.file.buffer);
+      res.json(result);
+    } catch (error) {
+      console.error("[OCR Error]", error);
+      res.status(500).json({ 
+        error: "OCR failed. Try again or type notes manually.",
+        text: "",
+      });
+    }
   });
 
   // ==================== AI AUDIT LOGS ====================

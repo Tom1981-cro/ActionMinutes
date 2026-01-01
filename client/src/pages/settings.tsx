@@ -130,6 +130,31 @@ export default function SettingsPage() {
 
           <Card className="bg-white border-stone-200 rounded-2xl">
             <CardHeader className="px-4 pt-4 pb-3 md:px-6 md:pt-5">
+              <CardTitle className="text-lg text-slate-800 flex items-center gap-2">
+                <Shield className="h-5 w-5 text-teal-500" />
+                Privacy
+              </CardTitle>
+              <CardDescription className="text-stone-500 text-base">Control how your data is handled.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5 px-4 pb-4 md:px-6 md:pb-5">
+              <div className="flex items-start justify-between gap-4 py-2">
+                <div className="space-y-1 flex-1">
+                  <Label className="text-base text-slate-700">Allow storing uploaded images</Label>
+                  <p className="text-sm text-stone-500">When off, uploaded photos of handwritten notes are processed and immediately deleted.</p>
+                  <p className="text-xs text-amber-600">Images can contain sensitive information.</p>
+                </div>
+                <Switch 
+                  checked={user.allowImageStorage ?? false} 
+                  onCheckedChange={(c) => handleToggle('allowImageStorage', c)}
+                  className="mt-1"
+                  data-testid="switch-allow-image-storage"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border-stone-200 rounded-2xl">
+            <CardHeader className="px-4 pt-4 pb-3 md:px-6 md:pt-5">
               <CardTitle className="text-lg text-slate-800">Support</CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4 md:px-6 md:pb-5 space-y-3">

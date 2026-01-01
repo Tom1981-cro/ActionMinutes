@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Save, ArrowLeft, ChevronDown, ChevronUp, Users, Clock, MapPin, AlertTriangle } from "lucide-react";
+import { Sparkles, Save, ArrowLeft, ChevronDown, ChevronUp, Users, Clock, MapPin, AlertTriangle, Camera, Upload, RefreshCw, Copy, X, Check, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateMeeting, useExtractMeeting, useAppConfig } from "@/lib/hooks";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
 
 export default function CapturePage() {
   const [, setLocation] = useLocation();
@@ -29,6 +31,19 @@ export default function CapturePage() {
   const [location, setLocationValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+
+  // OCR state
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState(0);
+  const [ocrResult, setOcrResult] = useState<{ text: string; confidence?: number; warnings?: string[] } | null>(null);
+  const [ocrError, setOcrError] = useState<string | null>(null);
+  const [showOcrPreview, setShowOcrPreview] = useState(false);
+  const [insertMode, setInsertMode] = useState<"replace" | "append">("append");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // TODO: Capacitor camera - enable when Capacitor is added
+  // import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+  const isCapacitorAvailable = false; // Set to true when Capacitor is integrated
 
   const saveAttendees = async (meetingId: string) => {
     if (!attendees.trim()) return;
@@ -96,6 +111,115 @@ export default function CapturePage() {
   };
 
   const hasDetails = attendees || time || location;
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate on client side first
+    const validTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      setOcrError("Unsupported format. Use JPG or PNG.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setOcrError("Image too large. Please use a smaller photo (max 10MB).");
+      return;
+    }
+
+    await runOcr(file);
+  };
+
+  const runOcr = async (file: File) => {
+    setOcrLoading(true);
+    setOcrError(null);
+    setOcrResult(null);
+    setOcrProgress(0);
+
+    // Simulate progress for UX
+    const progressInterval = setInterval(() => {
+      setOcrProgress(prev => Math.min(prev + 10, 90));
+    }, 500);
+
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch(`/api/ocr?userId=${user.id}`, {
+        method: "POST",
+        body: formData,
+      });
+
+      setOcrProgress(100);
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "OCR failed");
+      }
+
+      const result = await response.json();
+      setOcrResult(result);
+      setShowOcrPreview(true);
+    } catch (error) {
+      setOcrError(error instanceof Error ? error.message : "OCR failed. Try again or type notes manually.");
+    } finally {
+      clearInterval(progressInterval);
+      setOcrProgress(0);
+      setOcrLoading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const handleInsertOcrText = () => {
+    if (!ocrResult?.text) return;
+    
+    if (insertMode === "replace") {
+      setNotes(ocrResult.text);
+    } else {
+      setNotes(prev => prev ? `${prev}\n\n${ocrResult.text}` : ocrResult.text);
+    }
+    
+    setShowOcrPreview(false);
+    setOcrResult(null);
+    toast({ title: "Text inserted", description: "Handwritten notes added to meeting notes." });
+  };
+
+  const handleCopyOcrText = async () => {
+    if (!ocrResult?.text) return;
+    await navigator.clipboard.writeText(ocrResult.text);
+    toast({ title: "Copied", description: "Text copied to clipboard." });
+  };
+
+  const handleRetryOcr = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleDiscardOcr = () => {
+    setShowOcrPreview(false);
+    setOcrResult(null);
+    setOcrError(null);
+  };
+
+  // TODO: Capacitor camera integration - uncomment when Capacitor is added
+  // const handleTakePhoto = async () => {
+  //   try {
+  //     const photo = await Camera.getPhoto({
+  //       quality: 90,
+  //       resultType: CameraResultType.Base64,
+  //       source: CameraSource.Camera,
+  //     });
+  //     // Convert base64 to file and run OCR
+  //     const base64Response = await fetch(`data:image/jpeg;base64,${photo.base64String}`);
+  //     const blob = await base64Response.blob();
+  //     const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
+  //     await runOcr(file);
+  //   } catch (error) {
+  //     console.error('Camera error:', error);
+  //     toast({ title: "Camera error", description: "Failed to take photo", variant: "destructive" });
+  //   }
+  // };
 
   return (
     <div className="flex flex-col h-full pb-safe">
@@ -210,6 +334,74 @@ export default function CapturePage() {
             </Collapsible>
           </div>
 
+          {/* Handwritten Notes Import Section */}
+          <div className="bg-gradient-to-r from-teal-50 to-stone-50 rounded-2xl border border-teal-100 p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="h-10 w-10 rounded-xl bg-teal-500/10 flex items-center justify-center">
+                <FileText className="h-5 w-5 text-teal-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-800">Import handwritten notes</h3>
+                <p className="text-xs text-stone-500">Upload a photo of your notes</p>
+              </div>
+            </div>
+            
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleFileSelect}
+              className="hidden"
+              data-testid="input-ocr-file"
+            />
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={ocrLoading}
+                className="flex-1 h-11 rounded-xl border-teal-200 bg-white hover:bg-teal-50 text-teal-700"
+                data-testid="button-upload-photo"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Upload photo
+              </Button>
+              
+              {isCapacitorAvailable && (
+                <Button
+                  variant="outline"
+                  onClick={() => {/* TODO: handleTakePhoto() */}}
+                  disabled={ocrLoading}
+                  className="flex-1 h-11 rounded-xl border-teal-200 bg-white hover:bg-teal-50 text-teal-700"
+                  data-testid="button-take-photo"
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Take photo
+                </Button>
+              )}
+            </div>
+
+            {ocrLoading && (
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm text-teal-600">
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <span>Reading handwriting...</span>
+                </div>
+                <Progress value={ocrProgress} className="h-1.5" />
+              </div>
+            )}
+
+            {ocrError && (
+              <div className="mt-3 p-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-700 flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <div>
+                  <p>{ocrError}</p>
+                  <p className="text-xs mt-1 text-red-600">Tip: Try brighter light, closer crop, or clearer handwriting.</p>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <div className="flex items-center justify-between px-1">
               <Label htmlFor="notes" className="text-base font-semibold text-slate-800">Meeting Notes</Label>
@@ -300,6 +492,126 @@ Just dump everything—AI will sort it out."
           </Button>
         </div>
       </div>
+
+      {/* OCR Preview Dialog */}
+      <Dialog open={showOcrPreview} onOpenChange={setShowOcrPreview}>
+        <DialogContent className="max-w-lg mx-4">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-teal-600" />
+              Extracted Text
+            </DialogTitle>
+            <DialogDescription>
+              Review the text extracted from your handwritten notes
+            </DialogDescription>
+          </DialogHeader>
+          
+          {ocrResult && (
+            <div className="space-y-4">
+              {/* Confidence indicator */}
+              {ocrResult.confidence !== undefined && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-stone-500">Confidence:</span>
+                  <div className="flex-1 h-2 bg-stone-100 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full ${
+                        ocrResult.confidence >= 70 ? 'bg-green-500' : 
+                        ocrResult.confidence >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${ocrResult.confidence}%` }}
+                    />
+                  </div>
+                  <span className={`text-sm font-medium ${
+                    ocrResult.confidence >= 70 ? 'text-green-600' : 
+                    ocrResult.confidence >= 50 ? 'text-amber-600' : 'text-red-600'
+                  }`}>
+                    {ocrResult.confidence}%
+                  </span>
+                </div>
+              )}
+
+              {/* Warnings */}
+              {ocrResult.warnings && ocrResult.warnings.length > 0 && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+                  {ocrResult.warnings.map((w, i) => (
+                    <p key={i}>{w}</p>
+                  ))}
+                </div>
+              )}
+
+              {/* Text preview */}
+              <div className="max-h-64 overflow-y-auto p-3 bg-stone-50 border border-stone-200 rounded-lg">
+                <pre className="whitespace-pre-wrap text-sm text-slate-700 font-mono">
+                  {ocrResult.text || "No text detected"}
+                </pre>
+              </div>
+
+              {/* Insert mode toggle */}
+              {notes.trim() && ocrResult.text && (
+                <div className="flex items-center gap-2 p-3 bg-stone-50 rounded-lg">
+                  <span className="text-sm text-stone-600">Insert mode:</span>
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant={insertMode === "append" ? "default" : "outline"}
+                      onClick={() => setInsertMode("append")}
+                      className="h-8 text-xs"
+                      data-testid="button-insert-append"
+                    >
+                      Append
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={insertMode === "replace" ? "default" : "outline"}
+                      onClick={() => setInsertMode("replace")}
+                      className="h-8 text-xs"
+                      data-testid="button-insert-replace"
+                    >
+                      Replace
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={handleInsertOcrText}
+                  disabled={!ocrResult.text}
+                  className="flex-1 bg-teal-500 hover:bg-teal-600"
+                  data-testid="button-insert-ocr"
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  Insert into notes
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleCopyOcrText}
+                  disabled={!ocrResult.text}
+                  data-testid="button-copy-ocr"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleRetryOcr}
+                  data-testid="button-retry-ocr"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={handleDiscardOcr}
+                  className="text-stone-500"
+                  data-testid="button-discard-ocr"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

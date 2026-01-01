@@ -1,0 +1,75 @@
+Add “Handwritten Notes Import” to ActionMinutes: user takes a photo of handwritten notes (mobile) or uploads an image (web), the app extracts text via OCR, pre-fills the Capture screen raw notes field, then allows running AI extraction to produce action items and follow-up drafts.
+
+GOALS
+- Make handwritten notes usable: Photo → Text → ActionItems → Follow-ups
+- Work on web now (upload), and be ready for mobile camera once Capacitor is added.
+- Privacy-safe: do not store images unless user explicitly chooses to attach them to the meeting.
+
+UI CHANGES (Capture screen)
+- Add a section above raw notes input:
+  - Button: “Import handwritten notes”
+  - Options:
+    1) “Upload photo” (web + mobile)
+    2) “Take photo” (only if running in Capacitor/native environment; otherwise hidden)
+- After OCR:
+  - Show extracted text in a preview panel with:
+    - “Insert into notes” (replaces or appends – user chooses)
+    - “Copy”
+    - “Retry OCR”
+    - “Discard”
+  - Show OCR confidence indicator if available, otherwise simple “Looks good?” prompt.
+- If OCR result is empty or low quality:
+  - show friendly message: “Couldn’t read that. Try brighter light, closer crop.”
+
+OCR IMPLEMENTATION
+- Implement an OCR service layer with env vars:
+  - OCR_PROVIDER = "tesseract" (default) OR "cloud" (scaffold)
+- For MVP:
+  - Use local OCR with Tesseract (Node + worker) OR a browser-based OCR library (Tesseract.js). Choose the approach that works reliably in Replit.
+  - Must support English by default; allow language option later (scaffold only).
+- IMPORTANT:
+  - Do not use repeated OCR calls on every change; OCR should run only when user clicks Import/Retry.
+  - Provide cropping/rotation basic controls if feasible; otherwise provide guidance tips.
+
+DATA HANDLING + PRIVACY
+- By default, do NOT store the image in the database.
+- Store only the extracted text inside Meeting.rawNotes when user confirms insertion.
+- Offer optional toggle “Attach image to meeting” (OFF by default). If enabled:
+  - store image in object storage OR as file blob; if storage is not available, store as file locally for demo but mark as not production-safe.
+- Add Settings > Privacy:
+  - Toggle: “Allow storing uploaded images” (default OFF)
+  - Text: “Images can contain sensitive information.”
+
+BACKEND/API
+- Add endpoint:
+  - POST /api/ocr
+  - accepts: image file
+  - returns: { text: string, confidence?: number, warnings?: string[] }
+- Validate file type (jpg/png/heic if possible) and max size (e.g. 8–10MB).
+- Add rate limit basic protection per user/session.
+
+INTEGRATION WITH AI FLOW
+- After inserting extracted text into Capture notes:
+  - user clicks “Extract actions” (existing AI extraction)
+- Ensure this works in both Mock AI and real AI mode.
+
+MOBILE CAMERA (SCAFFOLD NOW, ENABLE LATER)
+- Add a capability check:
+  - If Capacitor is present, enable “Take photo” using Capacitor Camera plugin (scaffold)
+  - Otherwise, hide and only allow upload.
+- Add placeholder implementation with a TODO and clear instructions for enabling once Prompt 7 (Capacitor) is complete.
+
+ERROR STATES
+- If OCR fails: “OCR failed. Try again or type notes manually.”
+- If file too large: “Image too large. Please use a smaller photo.”
+- If unsupported format: “Unsupported format. Use JPG or PNG.”
+
+TESTS
+- Unit test: OCR endpoint validates file type/size.
+- Smoke test: upload sample handwritten image → OCR returns text → insert → extract → see action items.
+
+DOCUMENTATION
+- Add Help section: “How to scan handwritten notes”
+  - lighting tips
+  - crop tips
+  - write legibly tips

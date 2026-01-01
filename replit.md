@@ -90,6 +90,17 @@ Admin endpoints (`/api/admin/*`) are protected by a `requireAdminAccess` middlew
 - **AI Audit Logging** (`aiAuditLogs` table): Tracks provider, model, promptVersion, inputHash, outputJson, validJson, errorText per AI call
 - **Unit Tests**: 19 tests in `server/ai/ai.test.ts` for schema validation, confidence mapping, hash consistency
 
+### OCR (Handwritten Notes Import)
+- **OCR Module** (`server/ocr/index.ts`): Text extraction from images using Tesseract.js
+  - **Provider**: Local Tesseract.js (configurable via OCR_PROVIDER env var, "cloud" scaffold available)
+  - **File Validation**: Accepts JPG, PNG, WebP; max 10MB file size
+  - **Rate Limiting**: 10 requests/minute per user (in-memory counter)
+  - **Confidence Scoring**: Returns confidence percentage for extracted text
+- **Capture Page Integration**: Upload photo button with progress indicator, preview dialog, insert/append modes
+- **Privacy Setting**: `allowImageStorage` user preference (default false) - images are not stored by default
+- **Mobile Camera Scaffold**: Capacitor camera integration placeholder ready for future mobile build
+- **Unit Tests**: 10 tests in `server/ocr/ocr.test.ts` for file validation
+
 ### Frontend Libraries
 - **Chart.js**: Data visualization for the Blueprint demo page
 - **react-chartjs-2**: React wrapper for Chart.js
