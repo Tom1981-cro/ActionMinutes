@@ -18,7 +18,7 @@ Preferred communication style: Simple, everyday language.
 - **State Management**: Zustand with persistence middleware for local storage
 - **Data Fetching**: TanStack React Query for server state management
 - **UI Components**: shadcn/ui component library built on Radix UI primitives
-- **Styling**: Tailwind CSS with custom design tokens (Outfit font, teal/stone/slate color palette)
+- **Styling**: Tailwind CSS with Vibrant Enterprise design system (Inter font, Indigo/Purple gradient palette)
 - **Build Tool**: Vite with custom plugins for Replit integration
 
 ### Backend Architecture
