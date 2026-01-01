@@ -106,6 +106,30 @@ export function useActionItemsForMeeting(meetingId: string | undefined) {
   });
 }
 
+export function useDecisionsForMeeting(meetingId: string | undefined) {
+  return useQuery({
+    queryKey: ['decisions', 'meeting', meetingId],
+    queryFn: () => api.meetings.getDecisions(meetingId!),
+    enabled: !!meetingId,
+  });
+}
+
+export function useRisksForMeeting(meetingId: string | undefined) {
+  return useQuery({
+    queryKey: ['risks', 'meeting', meetingId],
+    queryFn: () => api.meetings.getRisks(meetingId!),
+    enabled: !!meetingId,
+  });
+}
+
+export function useQuestionsForMeeting(meetingId: string | undefined) {
+  return useQuery({
+    queryKey: ['questions', 'meeting', meetingId],
+    queryFn: () => api.meetings.getQuestions(meetingId!),
+    enabled: !!meetingId,
+  });
+}
+
 export function useUpdateActionItem() {
   const queryClient = useQueryClient();
   
