@@ -47,7 +47,14 @@ The schema (`shared/schema.ts`) defines these core entities:
 4. **Draft Generation**: Auto-generate follow-up emails based on extracted content
 
 ### Navigation Structure
-Bottom tab navigation with: Inbox, Meetings, Capture, Drafts, Settings. A Blueprint demo page exists at `/blueprint` for showcasing the product.
+Mode-based navigation controlled by workspace selection:
+- **Personal Mode** (no workspace selected): Inbox, Reminders (primary), Journal
+  - Settings accessible via sidebar footer (desktop) or header icon (mobile)
+  - Inbox automatically filters to show only tasks assigned to the logged-in user
+- **Team/Work Mode** (workspace selected): Inbox, Meetings, Capture (primary), Drafts, Settings
+  - Inbox shows filter toggle for Mine vs Workspace views
+
+A Blueprint demo page exists at `/blueprint` for showcasing the product.
 
 ### Admin Access Control (Demo-Only)
 Admin endpoints (`/api/admin/*`) are protected by a `requireAdminAccess` middleware that:
