@@ -2,7 +2,7 @@ import {
   users, meetings, attendees, decisions, risks, clarifyingQuestions,
   actionItems, followUpDrafts, personalEntries,
   workspaces, workspaceMembers, workspaceInvites,
-  oauthConnections, calendarExports, aiAuditLogs,
+  oauthConnections, calendarExports, aiAuditLogs, feedback,
   type User, type InsertUser,
   type Meeting, type InsertMeeting,
   type Attendee, type InsertAttendee,
@@ -18,10 +18,11 @@ import {
   type OAuthConnection, type InsertOAuthConnection,
   type CalendarExport, type InsertCalendarExport,
   type AiAuditLog, type InsertAiAuditLog,
+  type Feedback, type InsertFeedback,
   type WorkspaceRole
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, or, isNull } from "drizzle-orm";
+import { eq, and, desc, or, isNull, ilike } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -112,6 +113,12 @@ export interface IStorage {
   getAiAuditLogs(userId: string, workspaceId?: string): Promise<AiAuditLog[]>;
   getAiAuditLogsForMeeting(meetingId: string): Promise<AiAuditLog[]>;
   createAiAuditLog(log: InsertAiAuditLog): Promise<AiAuditLog>;
+  
+  // Feedback
+  getAllFeedback(search?: string, status?: string): Promise<Feedback[]>;
+  getFeedback(id: string): Promise<Feedback | undefined>;
+  createFeedback(fb: InsertFeedback): Promise<Feedback>;
+  updateFeedback(id: string, updates: Partial<Feedback>): Promise<Feedback | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -454,6 +461,49 @@ export class DatabaseStorage implements IStorage {
   async createAiAuditLog(log: InsertAiAuditLog): Promise<AiAuditLog> {
     const [newLog] = await db.insert(aiAuditLogs).values(log).returning();
     return newLog;
+  }
+
+  // ==================== FEEDBACK ====================
+  async getAllFeedback(search?: string, status?: string): Promise<Feedback[]> {
+    let query = db.select().from(feedback);
+    const conditions = [];
+    
+    if (status && status !== 'all') {
+      conditions.push(eq(feedback.status, status));
+    }
+    
+    if (search) {
+      conditions.push(
+        or(
+          ilike(feedback.message, `%${search}%`),
+          ilike(feedback.email, `%${search}%`),
+          ilike(feedback.type, `%${search}%`)
+        )
+      );
+    }
+    
+    if (conditions.length > 0) {
+      return await db.select().from(feedback)
+        .where(and(...conditions))
+        .orderBy(desc(feedback.createdAt));
+    }
+    
+    return await db.select().from(feedback).orderBy(desc(feedback.createdAt));
+  }
+
+  async getFeedback(id: string): Promise<Feedback | undefined> {
+    const [fb] = await db.select().from(feedback).where(eq(feedback.id, id));
+    return fb || undefined;
+  }
+
+  async createFeedback(fb: InsertFeedback): Promise<Feedback> {
+    const [newFeedback] = await db.insert(feedback).values(fb).returning();
+    return newFeedback;
+  }
+
+  async updateFeedback(id: string, updates: Partial<Feedback>): Promise<Feedback | undefined> {
+    const [fb] = await db.update(feedback).set(updates).where(eq(feedback.id, id)).returning();
+    return fb || undefined;
   }
 }
 

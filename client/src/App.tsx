@@ -12,6 +12,7 @@ import CapturePage from "@/pages/capture";
 import ExtractionPage from "@/pages/extraction";
 import DraftsPage from "@/pages/drafts";
 import SettingsPage from "@/pages/settings";
+import AdminFeedbackPage from "@/pages/admin-feedback";
 import NotFound from "@/pages/not-found";
 
 import BlueprintPage from "@/pages/blueprint";
@@ -41,6 +42,7 @@ function Router() {
       <Route path="/settings">
         <Layout><SettingsPage /></Layout>
       </Route>
+      <Route path="/admin/feedback" component={AdminFeedbackPage} />
 
       <Route component={NotFound} />
     </Switch>

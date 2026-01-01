@@ -6,7 +6,7 @@ import {
   insertFollowUpDraftSchema, insertAttendeeSchema, insertDecisionSchema,
   insertRiskSchema, insertClarifyingQuestionSchema,
   insertWorkspaceSchema, insertWorkspaceMemberSchema, insertWorkspaceInviteSchema,
-  insertCalendarExportSchema, insertAiAuditLogSchema,
+  insertCalendarExportSchema, insertAiAuditLogSchema, insertFeedbackSchema,
   type WorkspaceRole
 } from "@shared/schema";
 import { z } from "zod";
@@ -1105,6 +1105,63 @@ Thanks!`,
     }, 2000);
 
     res.json({ success: true, message: "Extraction started" });
+  });
+
+  // ==================== FEEDBACK ROUTES ====================
+  const feedbackUpdateSchema = z.object({
+    status: z.enum(['new', 'in_progress', 'done']),
+  });
+
+  const requireAdminAccess = async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required" });
+    }
+    const user = await storage.getUser(userId);
+    if (!user) {
+      return res.status(401).json({ error: "User not found" });
+    }
+    const isAdmin = user.email.includes("admin") || 
+                    user.email === "test@actionminutes.com" ||
+                    user.email === "demo@actionminutes.com";
+    if (!isAdmin) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+    next();
+  };
+
+  app.post("/api/feedback", async (req, res) => {
+    try {
+      const validatedFeedback = insertFeedbackSchema.parse(req.body);
+      const fb = await storage.createFeedback(validatedFeedback);
+      res.json(fb);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  app.get("/api/admin/feedback", requireAdminAccess, async (req, res) => {
+    const search = req.query.search as string | undefined;
+    const status = req.query.status as string | undefined;
+    const feedbackList = await storage.getAllFeedback(search, status);
+    res.json(feedbackList);
+  });
+
+  app.get("/api/admin/feedback/:id", requireAdminAccess, async (req, res) => {
+    const fb = await storage.getFeedback(req.params.id);
+    if (!fb) return res.status(404).json({ error: "Feedback not found" });
+    res.json(fb);
+  });
+
+  app.patch("/api/admin/feedback/:id", requireAdminAccess, async (req, res) => {
+    try {
+      const validatedUpdate = feedbackUpdateSchema.parse(req.body);
+      const fb = await storage.updateFeedback(req.params.id, validatedUpdate);
+      if (!fb) return res.status(404).json({ error: "Feedback not found" });
+      res.json(fb);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Invalid status value" });
+    }
   });
 
   return httpServer;

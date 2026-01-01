@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -6,15 +7,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStore } from "@/lib/store";
 import { useUpdateUser } from "@/lib/hooks";
 import { Link } from "wouter";
-import { ExternalLink, Settings2, Plug, Calendar, Sparkles, Users } from "lucide-react";
+import { ExternalLink, Settings2, Plug, Calendar, Sparkles, Users, MessageSquare, Shield } from "lucide-react";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
 import SettingsAuditPage from "./settings-audit";
 import WorkspaceSettingsPage from "./workspace-settings";
+import { FeedbackModal } from "@/components/feedback-modal";
 
 export default function SettingsPage() {
   const { user, updateUser: updateLocalUser, currentWorkspaceId } = useStore();
   const updateUser = useUpdateUser();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const handleToggle = (field: string, value: boolean) => {
     updateLocalUser({ [field]: value });
@@ -120,6 +123,33 @@ export default function SettingsPage() {
             <strong>Note:</strong> Your notes will be processed by an AI service to generate outputs. You can disable AI anytime.
           </div>
 
+          <Card className="bg-white border-stone-200 rounded-2xl">
+            <CardHeader className="px-4 pt-4 pb-3 md:px-6 md:pt-5">
+              <CardTitle className="text-lg text-slate-800">Support</CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 md:px-6 md:pb-5 space-y-3">
+              <Button
+                variant="outline"
+                onClick={() => setFeedbackOpen(true)}
+                className="w-full justify-start h-12 rounded-xl border-stone-200 text-slate-700"
+                data-testid="button-send-feedback"
+              >
+                <MessageSquare className="h-4 w-4 mr-3 text-teal-500" />
+                Send Feedback
+              </Button>
+              <Link href="/admin/feedback">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start h-12 rounded-xl border-stone-200 text-slate-700"
+                  data-testid="button-admin-feedback"
+                >
+                  <Shield className="h-4 w-4 mr-3 text-purple-500" />
+                  Admin: View Feedback
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
           <div className="pt-2 flex justify-end">
              <Link href="/blueprint">
                <Button variant="link" className="text-stone-500 h-11">
@@ -127,6 +157,8 @@ export default function SettingsPage() {
                </Button>
              </Link>
           </div>
+
+          <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
         </TabsContent>
 
         <TabsContent value="integrations">

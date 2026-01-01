@@ -179,6 +179,20 @@ export const personalEntries = pgTable("personal_entries", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ==================== FEEDBACK ====================
+export const feedback = pgTable("feedback", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).references(() => users.id, { onDelete: 'set null' }),
+  type: text("type").notNull(), // bug, feature, ux, other
+  message: text("message").notNull(),
+  email: text("email"),
+  route: text("route"),
+  viewport: text("viewport"),
+  userAgent: text("user_agent"),
+  status: text("status").notNull().default('new'), // new, in_progress, done
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // ==================== INSERT SCHEMAS ====================
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -256,6 +270,11 @@ export const insertPersonalEntrySchema = createInsertSchema(personalEntries).omi
   createdAt: true,
 });
 
+export const insertFeedbackSchema = createInsertSchema(feedback).omit({
+  id: true,
+  createdAt: true,
+});
+
 // ==================== TYPES ====================
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -301,6 +320,9 @@ export type FollowUpDraft = typeof followUpDrafts.$inferSelect;
 
 export type InsertPersonalEntry = z.infer<typeof insertPersonalEntrySchema>;
 export type PersonalEntry = typeof personalEntries.$inferSelect;
+
+export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
+export type Feedback = typeof feedback.$inferSelect;
 
 // ==================== ROLE TYPES ====================
 export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer';
