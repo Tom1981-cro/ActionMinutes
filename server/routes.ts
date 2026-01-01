@@ -901,7 +901,11 @@ Thanks!`,
   });
 
   app.patch("/api/actions/:id", async (req, res) => {
-    const action = await storage.updateActionItem(req.params.id, req.body);
+    const updates = { ...req.body };
+    if (updates.dueDate && typeof updates.dueDate === 'string') {
+      updates.dueDate = new Date(updates.dueDate);
+    }
+    const action = await storage.updateActionItem(req.params.id, updates);
     if (!action) return res.status(404).json({ error: "Action item not found" });
     res.json(action);
   });
