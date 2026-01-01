@@ -16,6 +16,8 @@ import AdminFeedbackPage from "@/pages/admin-feedback";
 import JournalPage from "@/pages/journal";
 import RemindersPage from "@/pages/reminders";
 import MobileBuildGuidePage from "@/pages/mobile-build-guide";
+import StoreScreensPage from "@/pages/store-screens";
+import MarketingPage from "@/pages/marketing";
 import NotFound from "@/pages/not-found";
 
 import BlueprintPage from "@/pages/blueprint";
@@ -26,6 +28,8 @@ function Router() {
       <Route path="/" component={AuthPage} />
       <Route path="/onboarding" component={OnboardingPage} />
       <Route path="/blueprint" component={BlueprintPage} />
+      <Route path="/store-screens" component={StoreScreensPage} />
+      <Route path="/marketing" component={MarketingPage} />
       
       <Route path="/inbox">
         <Layout><InboxPage /></Layout>
