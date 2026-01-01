@@ -82,8 +82,13 @@ Admin endpoints (`/api/admin/*`) are protected by a `requireAdminAccess` middlew
 - **drizzle-kit**: Database migration tooling (`npm run db:push`)
 
 ### AI/ML Services
-- **OpenAI**: For meeting note extraction and draft generation (optional, controlled by user settings)
-- **Google Generative AI**: Alternative AI provider support
+- **AI Module** (`server/ai/index.ts`): Provider-agnostic service with strict JSON validation
+  - **OpenAI**: Primary provider via Replit AI Integrations (credits-based, no API key required)
+  - **Mock Fallback**: Deterministic mock extraction when AI is disabled or unavailable
+  - **Prompt Versioning**: PROMPT_VERSION constant (v1.0.0) tracked in audit logs
+  - **Confidence Mapping**: Action items with confidence <0.65 get status "needs_review"
+- **AI Audit Logging** (`aiAuditLogs` table): Tracks provider, model, promptVersion, inputHash, outputJson, validJson, errorText per AI call
+- **Unit Tests**: 19 tests in `server/ai/ai.test.ts` for schema validation, confidence mapping, hash consistency
 
 ### Frontend Libraries
 - **Chart.js**: Data visualization for the Blueprint demo page
