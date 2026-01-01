@@ -88,6 +88,20 @@ export function useExportCalendar() {
   });
 }
 
+export function useGenerateDrafts() {
+  const queryClient = useQueryClient();
+  const { user } = useStore();
+  
+  return useMutation({
+    mutationFn: (meetingId: string) => api.meetings.generateDrafts(meetingId, user.id),
+    onSuccess: (_, meetingId) => {
+      queryClient.invalidateQueries({ queryKey: ['drafts'] });
+      queryClient.invalidateQueries({ queryKey: ['drafts', 'meeting', meetingId] });
+      queryClient.invalidateQueries({ queryKey: ['ai-audit-logs'] });
+    },
+  });
+}
+
 // ==================== ACTION ITEMS ====================
 export function useActionItems() {
   const { user, currentWorkspaceId } = useStore();

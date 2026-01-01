@@ -87,6 +87,9 @@ export const api = {
     extract: (id: string, userId: string) => fetchJSON(`${API_BASE}/api/meetings/${id}/extract?userId=${userId}`, {
       method: 'POST',
     }),
+    generateDrafts: (id: string, userId: string) => fetchJSON(`${API_BASE}/api/meetings/${id}/generate-drafts?userId=${userId}`, {
+      method: 'POST',
+    }),
     exportCalendar: async (id: string, userId: string, options?: { includeActionItems?: boolean }) => {
       const response = await fetch(`${API_BASE}/api/meetings/${id}/export-calendar?userId=${userId}`, {
         method: 'POST',

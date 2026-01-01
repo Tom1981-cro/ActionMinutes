@@ -327,3 +327,33 @@ export type Feedback = typeof feedback.$inferSelect;
 // ==================== ROLE TYPES ====================
 export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer';
 export type OAuthProvider = 'google' | 'microsoft';
+
+// ==================== CHAT (AI Integration) ====================
+export const conversations = pgTable("conversations", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  title: text("title").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const messages = pgTable("messages", {
+  id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+  conversationId: integer("conversation_id").notNull().references(() => conversations.id, { onDelete: 'cascade' }),
+  role: text("role").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertConversationSchema = createInsertSchema(conversations).pick({
+  title: true,
+});
+
+export const insertMessageSchema = createInsertSchema(messages).pick({
+  conversationId: true,
+  role: true,
+  content: true,
+});
+
+export type InsertConversation = z.infer<typeof insertConversationSchema>;
+export type Conversation = typeof conversations.$inferSelect;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type Message = typeof messages.$inferSelect;

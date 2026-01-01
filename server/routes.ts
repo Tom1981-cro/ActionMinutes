@@ -12,6 +12,7 @@ import {
 import { z } from "zod";
 import crypto from "crypto";
 import { getAppConfig, getAppConfigAsync } from "./config";
+import { extractMeetingNotes, generateFollowUpDrafts, mapConfidenceToStatus, PROMPT_VERSION } from "./ai";
 
 // ==================== RBAC HELPERS ====================
 type Permission = 'read' | 'write' | 'manage' | 'delete';
@@ -1113,72 +1114,221 @@ Thanks!`,
     }
   });
 
-  // ==================== MOCK AI EXTRACTION ====================
+  // ==================== AI EXTRACTION ====================
   app.post("/api/meetings/:id/extract", async (req, res) => {
     const userId = req.query.userId as string;
-    const meeting = await storage.getMeeting(req.params.id);
-    if (!meeting) return res.status(404).json({ error: "Meeting not found" });
+    const meetingId = req.params.id;
+    
+    try {
+      const meeting = await storage.getMeeting(meetingId);
+      if (!meeting) return res.status(404).json({ error: "Meeting not found" });
 
-    // Check if AI features are enabled
-    const config = getAppConfig();
-    if (!config.features.aiEnabled) {
-      return res.status(503).json({ 
-        error: "AI features disabled",
-        message: "AI extraction is currently disabled. Enable AI_FEATURE_ENABLED to use this feature."
-      });
-    }
-
-    await storage.updateMeeting(req.params.id, { parseState: "processing" });
-
-    setTimeout(async () => {
-      const mockSummary = "Productive discussion on project timeline and resource allocation.";
-      await storage.updateMeeting(req.params.id, { 
-        parseState: "parsed",
-        summary: mockSummary
-      });
-
-      const mockActionItems = [
-        { text: "Update slide deck", ownerName: "Bob Smith", ownerEmail: "bob@example.com", confidenceOwner: 0.9, confidenceDueDate: 0.7 },
-        { text: "Review Q4 budget", ownerName: "Alice Johnson", ownerEmail: "alice@example.com", confidenceOwner: 0.85, confidenceDueDate: 0.3 }
-      ];
-
-      for (const item of mockActionItems) {
-        await storage.createActionItem({
-          meetingId: req.params.id,
-          workspaceId: meeting.workspaceId,
-          text: item.text,
-          ownerName: item.ownerName,
-          ownerEmail: item.ownerEmail,
-          status: item.confidenceDueDate > 0.6 ? 'open' : 'needs_review',
-          confidenceOwner: item.confidenceOwner,
-          confidenceDueDate: item.confidenceDueDate,
-          tags: [],
-          dueDate: null
+      const config = getAppConfig();
+      if (!config.features.aiEnabled) {
+        return res.status(503).json({ 
+          error: "AI features disabled",
+          message: "AI extraction is currently disabled. Enable AI_FEATURE_ENABLED to use this feature."
         });
       }
 
-      await storage.createDecision({
-        meetingId: req.params.id,
-        text: "Launch date set for the 15th"
+      await storage.updateMeeting(meetingId, { parseState: "processing" });
+
+      const attendees = await storage.getAttendeesForMeeting(meetingId);
+      const attendeeNames = attendees.map(a => a.name);
+
+      const result = await extractMeetingNotes(meeting.title, attendeeNames, meeting.rawNotes);
+
+      if (!result.validJson && result.errorText) {
+        if (userId) {
+          await storage.createAiAuditLog({
+            userId,
+            workspaceId: meeting.workspaceId,
+            meetingId: meeting.id,
+            provider: result.provider,
+            model: result.model,
+            promptVersion: PROMPT_VERSION,
+            inputHash: result.inputHash,
+            outputJson: null,
+            validJson: false,
+            errorText: result.errorText,
+          });
+        }
+        await storage.updateMeeting(meetingId, { parseState: "error" });
+        return res.status(500).json({ 
+          error: "Extraction failed",
+          message: "AI returned invalid JSON. Your notes are safe - please try again.",
+          retryable: true
+        });
+      }
+
+      const { output } = result;
+
+      await storage.updateMeeting(meetingId, { 
+        parseState: "parsed",
+        summary: output.summary
       });
 
-      // Log AI audit entry
+      for (const item of output.actionItems) {
+        const status = mapConfidenceToStatus(item.confidenceOwner, item.confidenceDueDate);
+        await storage.createActionItem({
+          meetingId,
+          workspaceId: meeting.workspaceId,
+          text: item.text,
+          ownerName: item.ownerName || null,
+          ownerEmail: item.ownerEmail || null,
+          status,
+          confidenceOwner: item.confidenceOwner,
+          confidenceDueDate: item.confidenceDueDate,
+          tags: [],
+          dueDate: item.dueDate ? new Date(item.dueDate) : null
+        });
+      }
+
+      for (const decision of output.decisions) {
+        await storage.createDecision({ meetingId, text: decision.text });
+      }
+
+      for (const risk of output.risks) {
+        await storage.createRisk({ meetingId, text: risk.text, severity: risk.severity });
+      }
+
+      for (const question of output.clarifyingQuestions) {
+        await storage.createClarifyingQuestion({ 
+          meetingId, 
+          text: question.text, 
+          options: question.options || null 
+        });
+      }
+
       if (userId) {
         await storage.createAiAuditLog({
           userId,
           workspaceId: meeting.workspaceId,
           meetingId: meeting.id,
-          provider: 'mock',
-          model: 'mock-v1',
-          promptVersion: '1.0.0',
-          inputHash: crypto.createHash('md5').update(meeting.rawNotes).digest('hex'),
-          outputJson: { summary: mockSummary, actionItems: mockActionItems },
+          provider: result.provider,
+          model: result.model,
+          promptVersion: PROMPT_VERSION,
+          inputHash: result.inputHash,
+          outputJson: output,
           validJson: true,
         });
       }
-    }, 2000);
 
-    res.json({ success: true, message: "Extraction started" });
+      res.json({ 
+        success: true, 
+        provider: result.provider,
+        summary: output.summary,
+        actionItemsCount: output.actionItems.length,
+        decisionsCount: output.decisions.length,
+        risksCount: output.risks.length,
+        qualityFlags: output.qualityFlags
+      });
+    } catch (error) {
+      console.error("[Extract Error]", error);
+      await storage.updateMeeting(meetingId, { parseState: "error" });
+      res.status(500).json({ 
+        error: "Extraction failed",
+        message: error instanceof Error ? error.message : "Unknown error",
+        retryable: true
+      });
+    }
+  });
+
+  // ==================== DRAFT GENERATION ====================
+  app.post("/api/meetings/:id/generate-drafts", async (req, res) => {
+    const userId = req.query.userId as string;
+    const meetingId = req.params.id;
+
+    try {
+      const meeting = await storage.getMeeting(meetingId);
+      if (!meeting) return res.status(404).json({ error: "Meeting not found" });
+      if (!userId) return res.status(400).json({ error: "userId is required" });
+
+      const user = await storage.getUser(userId);
+      if (!user) return res.status(404).json({ error: "User not found" });
+
+      const config = getAppConfig();
+      if (!config.features.aiEnabled) {
+        return res.status(503).json({ 
+          error: "AI features disabled",
+          message: "Draft generation is currently disabled."
+        });
+      }
+
+      const actionItems = await storage.getActionItemsForMeeting(meetingId);
+      const decisions = await storage.getDecisionsForMeeting(meetingId);
+
+      const result = await generateFollowUpDrafts(
+        meeting.title,
+        meeting.summary || "",
+        actionItems.map(a => ({ text: a.text, ownerName: a.ownerName || undefined })),
+        decisions.map(d => ({ text: d.text })),
+        user.tone
+      );
+
+      if (!result.validJson && result.errorText) {
+        await storage.createAiAuditLog({
+          userId,
+          workspaceId: meeting.workspaceId,
+          meetingId: meeting.id,
+          provider: result.provider,
+          model: result.model,
+          promptVersion: PROMPT_VERSION,
+          inputHash: result.inputHash,
+          outputJson: null,
+          validJson: false,
+          errorText: result.errorText,
+        });
+        return res.status(500).json({ 
+          error: "Draft generation failed",
+          message: "AI returned invalid JSON. Please try again.",
+          retryable: true
+        });
+      }
+
+      const createdDrafts = [];
+      for (const draft of result.output.drafts) {
+        const created = await storage.createDraft({
+          meetingId,
+          userId,
+          workspaceId: meeting.workspaceId,
+          type: draft.type,
+          recipientName: draft.recipientName || null,
+          recipientEmail: draft.recipientEmail || null,
+          subject: draft.subject,
+          body: draft.body,
+          tone: user.tone,
+          state: 'generated'
+        });
+        createdDrafts.push(created);
+      }
+
+      await storage.createAiAuditLog({
+        userId,
+        workspaceId: meeting.workspaceId,
+        meetingId: meeting.id,
+        provider: result.provider,
+        model: result.model,
+        promptVersion: PROMPT_VERSION,
+        inputHash: result.inputHash,
+        outputJson: result.output,
+        validJson: true,
+      });
+
+      res.json({ 
+        success: true,
+        provider: result.provider,
+        draftsCount: createdDrafts.length,
+        drafts: createdDrafts
+      });
+    } catch (error) {
+      console.error("[Draft Generation Error]", error);
+      res.status(500).json({ 
+        error: "Draft generation failed",
+        message: error instanceof Error ? error.message : "Unknown error",
+        retryable: true
+      });
+    }
   });
 
   // ==================== FEEDBACK ROUTES ====================
