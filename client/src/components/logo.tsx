@@ -22,7 +22,7 @@ export function Logo({ variant = 'squircle', size = 32, className = '', theme = 
     const cx = w / 2;
     const cy = h / 2;
 
-    const bgColor = theme === 'dark' ? '#2dd4bf' : '#14b8a6';
+    const bgColor = theme === 'dark' ? '#818cf8' : '#6366f1';
     const iconColor = theme === 'dark' ? '#0f172a' : '#ffffff';
 
     ctx.clearRect(0, 0, w, h);
@@ -66,9 +66,9 @@ export function Logo({ variant = 'squircle', size = 32, className = '', theme = 
 
   if (variant === 'simple') {
     return (
-      <div className={`bg-teal-500 rounded-xl flex items-center justify-center shadow-sm relative overflow-hidden ${className}`} style={{ width: size, height: size }}>
+      <div className={`bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-sm relative overflow-hidden ${className}`} style={{ width: size, height: size }}>
         <div className="w-1.5 h-3 border-r-2 border-b-2 border-white transform rotate-45 mb-1 ml-0.5"></div>
-        <div className="absolute inset-0 border-2 border-white/20 rounded-xl"></div>
+        <div className="absolute inset-0 border-2 border-white/20 rounded-lg"></div>
       </div>
     );
   }

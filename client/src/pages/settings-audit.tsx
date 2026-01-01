@@ -13,7 +13,7 @@ export default function SettingsAuditPage() {
 
   if (config && !config.features.aiEnabled) {
     return (
-      <Card className="bg-amber-50 border-amber-200 rounded-3xl">
+      <Card className="bg-amber-50 border-amber-200 rounded-xl">
         <CardContent className="py-8 text-center">
           <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-4" />
           <h3 className="font-semibold text-amber-800 mb-2">AI Features Disabled</h3>
@@ -28,7 +28,7 @@ export default function SettingsAuditPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
       </div>
     );
   }
@@ -37,14 +37,14 @@ export default function SettingsAuditPage() {
     <div className="space-y-6">
       <div className="space-y-1">
         <h2 className="text-xl font-semibold text-slate-800">AI Audit Log</h2>
-        <p className="text-stone-500">Track AI model runs, prompts, and outputs.</p>
+        <p className="text-gray-500">Track AI model runs, prompts, and outputs.</p>
       </div>
 
       {logs.length === 0 ? (
-        <Card className="bg-stone-50/50 border-dashed border-stone-300 rounded-3xl">
+        <Card className="bg-gray-50/50 border-dashed border-gray-300 rounded-xl">
           <CardContent className="py-12 text-center">
-            <Sparkles className="h-12 w-12 text-stone-300 mx-auto mb-4" />
-            <p className="text-stone-500">No AI runs recorded yet. Extract a meeting to see audit logs.</p>
+            <Sparkles className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500">No AI runs recorded yet. Extract a meeting to see audit logs.</p>
           </CardContent>
         </Card>
       ) : (
@@ -53,7 +53,7 @@ export default function SettingsAuditPage() {
             <Dialog key={log.id}>
               <DialogTrigger asChild>
                 <Card 
-                  className="bg-white border-stone-200 rounded-2xl cursor-pointer hover:border-teal-300 transition-colors" 
+                  className="bg-white border-gray-200 rounded-xl cursor-pointer hover:border-indigo-300 transition-colors" 
                   data-testid={`audit-log-${log.id}`}
                   onClick={() => setSelectedLog(log)}
                 >
@@ -69,40 +69,40 @@ export default function SettingsAuditPage() {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-slate-800">{log.provider}</p>
-                          <Badge variant="outline" className="rounded-full text-xs bg-stone-50 text-stone-600 border-stone-200">
+                          <Badge variant="outline" className="rounded-full text-xs bg-gray-50 text-gray-600 border-gray-200">
                             {log.model}
                           </Badge>
                         </div>
-                        <p className="text-sm text-stone-500">
+                        <p className="text-sm text-gray-500">
                           {format(new Date(log.createdAt), "MMM d, yyyy 'at' h:mm a")}
                           {log.promptVersion && ` • v${log.promptVersion}`}
                         </p>
                       </div>
                     </div>
-                    <ChevronRight className="h-5 w-5 text-stone-400" />
+                    <ChevronRight className="h-5 w-5 text-gray-400" />
                   </CardContent>
                 </Card>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-2xl rounded-3xl max-h-[80vh] overflow-y-auto">
+              <DialogContent className="sm:max-w-2xl rounded-xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="text-slate-800">AI Run Details</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <p className="text-xs text-stone-500 uppercase tracking-wider">Provider</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider">Provider</p>
                       <p className="font-medium text-slate-800">{log.provider}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-stone-500 uppercase tracking-wider">Model</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider">Model</p>
                       <p className="font-medium text-slate-800">{log.model}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-stone-500 uppercase tracking-wider">Prompt Version</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider">Prompt Version</p>
                       <p className="font-medium text-slate-800">{log.promptVersion || 'N/A'}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-stone-500 uppercase tracking-wider">Status</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider">Status</p>
                       <Badge variant={log.validJson ? "default" : "destructive"} className="rounded-full">
                         {log.validJson ? "Valid" : "Error"}
                       </Badge>
@@ -111,22 +111,22 @@ export default function SettingsAuditPage() {
                   
                   {log.inputHash && (
                     <div>
-                      <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">Input Hash</p>
-                      <code className="text-xs bg-stone-100 px-2 py-1 rounded">{log.inputHash}</code>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Input Hash</p>
+                      <code className="text-xs bg-gray-100 px-2 py-1 rounded">{log.inputHash}</code>
                     </div>
                   )}
 
                   {log.errorText && (
                     <div>
-                      <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">Error</p>
-                      <p className="text-sm text-red-600 bg-red-50 p-3 rounded-2xl">{log.errorText}</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Error</p>
+                      <p className="text-sm text-red-600 bg-red-50 p-3 rounded-xl">{log.errorText}</p>
                     </div>
                   )}
 
                   {log.outputJson && (
                     <div>
-                      <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">Output</p>
-                      <pre className="text-xs bg-stone-100 p-3 rounded-2xl overflow-x-auto max-h-60">
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Output</p>
+                      <pre className="text-xs bg-gray-100 p-3 rounded-xl overflow-x-auto max-h-60">
                         {JSON.stringify(log.outputJson, null, 2)}
                       </pre>
                     </div>

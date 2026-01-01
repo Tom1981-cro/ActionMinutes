@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Logo, LogoWordmark } from "@/components/logo";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 
 interface LayoutProps {
@@ -31,12 +30,12 @@ export default function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col md:flex-row font-sans">
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row font-sans">
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col border-r bg-sidebar p-4 h-screen sticky top-0">
+      <aside className="hidden md:flex w-64 flex-col border-r border-gray-100 bg-white p-4 h-screen sticky top-0">
         <div className="flex items-center gap-2 px-2 mb-4 mt-4">
-          <Logo variant="squircle" size={32} />
-          <LogoWordmark size="base" />
+          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-lg">A</div>
+          <span className="font-bold text-xl tracking-tight text-slate-900">ActionMinutes</span>
         </div>
 
         <div className="mb-6 px-2">
@@ -52,28 +51,28 @@ export default function Layout({ children }: LayoutProps) {
                 href={item.href}
                 data-testid={`nav-${item.label.toLowerCase()}`}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer",
+                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer",
                   isActive
-                    ? "bg-white text-teal-600 shadow-sm font-semibold translate-x-1"
-                    : "text-muted-foreground hover:bg-stone-200/50 hover:text-foreground hover:translate-x-1"
+                    ? "bg-indigo-50 text-indigo-600 font-semibold"
+                    : "text-slate-600 hover:bg-gray-50 hover:text-indigo-600"
                 )}
               >
-                <item.icon className={cn("h-4 w-4", isActive ? "text-teal-500" : "text-stone-400")} />
+                <item.icon className={cn("h-4 w-4", isActive ? "text-indigo-500" : "text-slate-400")} />
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="mt-auto pt-4 border-t border-border/50">
+        <div className="mt-auto pt-4 border-t border-gray-100">
           <div className="px-4 py-2 mb-2">
-            <p className="text-sm font-bold text-foreground" data-testid="text-user-name">{user.name}</p>
-            <p className="text-xs text-muted-foreground truncate" data-testid="text-user-email">{user.email}</p>
+            <p className="text-sm font-bold text-slate-900" data-testid="text-user-name">{user.name}</p>
+            <p className="text-xs text-slate-500 truncate" data-testid="text-user-email">{user.email}</p>
           </div>
           <Button 
             variant="ghost" 
             data-testid="button-signout"
-            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-full px-4"
+            className="w-full justify-start text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg px-4"
             onClick={() => {
               toast({ title: "Logged out (Mock)", description: "Refresh to reset state if needed." });
               window.location.reload();
@@ -85,17 +84,17 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </aside>
 
-      {/* Mobile Header - Minimal top bar */}
-      <header className="md:hidden flex items-center justify-between border-b px-4 py-3 bg-background sticky top-0 z-50">
+      {/* Mobile Header */}
+      <header className="md:hidden flex items-center justify-between border-b border-gray-100 px-4 py-3 bg-white sticky top-0 z-50">
         <div className="flex items-center gap-2">
-          <Logo variant="squircle" size={28} />
-          <LogoWordmark size="sm" />
+          <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-sm">A</div>
+          <span className="font-bold text-lg tracking-tight text-slate-900">ActionMinutes</span>
         </div>
         <WorkspaceSwitcher />
       </header>
 
-      {/* Main Content - with bottom padding for mobile tab bar */}
-      <main className="flex-1 overflow-auto bg-stone-50/50 pb-20 md:pb-0">
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto bg-gray-50 pb-20 md:pb-0">
         <div className="container max-w-4xl mx-auto p-4 md:p-8 animate-in fade-in duration-500">
           {children}
         </div>
@@ -103,7 +102,7 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Mobile Bottom Tab Bar */}
       <nav 
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-stone-200 shadow-lg"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex items-center justify-around h-16">
@@ -118,39 +117,37 @@ export default function Layout({ children }: LayoutProps) {
                 data-testid={`tab-${item.label.toLowerCase()}`}
                 className={cn(
                   "flex flex-col items-center justify-center flex-1 h-full py-2 transition-colors relative",
-                  isActive ? "text-teal-600" : "text-stone-400"
+                  isActive ? "text-indigo-600" : "text-slate-400"
                 )}
               >
                 {item.primary ? (
                   <div className="flex flex-col items-center -mt-4">
                     <div className={cn(
-                      "flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-all",
-                      isActive 
-                        ? "bg-teal-600 text-white scale-105" 
-                        : "bg-teal-500 text-white"
+                      "flex items-center justify-center w-12 h-12 rounded-full shadow-lg shadow-indigo-500/30 transition-all btn-gradient",
+                      isActive && "scale-105"
                     )}>
-                      <Icon className="h-6 w-6" />
+                      <Icon className="h-6 w-6 text-white" />
                     </div>
                     <span className={cn(
                       "text-[10px] font-medium mt-1",
-                      isActive ? "text-teal-600" : "text-stone-500"
+                      isActive ? "text-indigo-600" : "text-slate-500"
                     )}>
                       {item.label}
                     </span>
                   </div>
                 ) : (
                   <>
-                    <Icon className={cn("h-5 w-5 mb-1", isActive && "text-teal-500")} />
+                    <Icon className={cn("h-5 w-5 mb-1", isActive && "text-indigo-500")} />
                     <span className={cn(
                       "text-[10px] font-medium",
-                      isActive ? "text-teal-600" : "text-stone-500"
+                      isActive ? "text-indigo-600" : "text-slate-500"
                     )}>
                       {item.label}
                     </span>
                   </>
                 )}
                 {isActive && !item.primary && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-teal-500 rounded-full" />
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-indigo-500 rounded-full" />
                 )}
               </Link>
             );

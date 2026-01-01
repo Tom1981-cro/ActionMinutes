@@ -239,14 +239,14 @@ export default function CapturePage() {
             <h1 className="text-xl md:text-2xl font-bold text-slate-800">New Meeting</h1>
           </div>
 
-          <div className="bg-white rounded-2xl border border-stone-200 p-4 space-y-4">
+          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="title" className="text-sm font-medium text-slate-600">Title</Label>
               <Input 
                 id="title" 
                 value={title} 
                 onChange={(e) => setTitle(e.target.value)} 
-                className="bg-stone-50 border-stone-200 rounded-xl h-12 text-base px-4 focus:bg-white"
+                className="bg-gray-50 border-gray-200 rounded-xl h-12 text-base px-4 focus:bg-white"
                 placeholder="What's this meeting about?"
                 data-testid="input-title"
               />
@@ -259,7 +259,7 @@ export default function CapturePage() {
                 type="date" 
                 value={date} 
                 onChange={(e) => setDate(e.target.value)} 
-                className="bg-stone-50 border-stone-200 rounded-xl h-12 text-base px-4 focus:bg-white"
+                className="bg-gray-50 border-gray-200 rounded-xl h-12 text-base px-4 focus:bg-white"
                 data-testid="input-date"
               />
             </div>
@@ -267,12 +267,12 @@ export default function CapturePage() {
             <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
               <CollapsibleTrigger asChild>
                 <button 
-                  className="flex items-center justify-between w-full py-2 text-sm text-stone-500 hover:text-slate-700 transition-colors"
+                  className="flex items-center justify-between w-full py-2 text-sm text-gray-500 hover:text-slate-700 transition-colors"
                   data-testid="button-toggle-details"
                 >
                   <span className="flex items-center gap-2">
                     {hasDetails ? (
-                      <span className="text-teal-600 font-medium">Details added</span>
+                      <span className="text-indigo-600 font-medium">Details added</span>
                     ) : (
                       <>Add details (optional)</>
                     )}
@@ -287,23 +287,23 @@ export default function CapturePage() {
               <CollapsibleContent className="space-y-4 pt-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="attendees" className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                    <Users className="h-4 w-4 text-stone-400" />
+                    <Users className="h-4 w-4 text-gray-400" />
                     Attendees
                   </Label>
-                  <p className="text-xs text-stone-400">Separate attendees by comma</p>
+                  <p className="text-xs text-gray-400">Separate attendees by comma</p>
                   <Input 
                     id="attendees" 
                     placeholder="Alice, Bob, Charlie..." 
                     value={attendees}
                     onChange={(e) => setAttendees(e.target.value)}
-                    className="bg-stone-50 border-stone-200 rounded-xl h-12 text-base px-4 focus:bg-white"
+                    className="bg-gray-50 border-gray-200 rounded-xl h-12 text-base px-4 focus:bg-white"
                     data-testid="input-attendees"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="time" className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-stone-400" />
+                      <Clock className="h-4 w-4 text-gray-400" />
                       Time
                     </Label>
                     <Input 
@@ -311,13 +311,13 @@ export default function CapturePage() {
                       type="time"
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
-                      className="bg-stone-50 border-stone-200 rounded-xl h-12 text-base px-4 focus:bg-white"
+                      className="bg-gray-50 border-gray-200 rounded-xl h-12 text-base px-4 focus:bg-white"
                       data-testid="input-time"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="location" className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-stone-400" />
+                      <MapPin className="h-4 w-4 text-gray-400" />
                       Location
                     </Label>
                     <Input 
@@ -325,7 +325,7 @@ export default function CapturePage() {
                       placeholder="Room / Link"
                       value={location}
                       onChange={(e) => setLocationValue(e.target.value)}
-                      className="bg-stone-50 border-stone-200 rounded-xl h-12 text-base px-4 focus:bg-white"
+                      className="bg-gray-50 border-gray-200 rounded-xl h-12 text-base px-4 focus:bg-white"
                       data-testid="input-location"
                     />
                   </div>
@@ -335,14 +335,14 @@ export default function CapturePage() {
           </div>
 
           {/* Handwritten Notes Import Section */}
-          <div className="bg-gradient-to-r from-teal-50 to-stone-50 rounded-2xl border border-teal-100 p-4">
+          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 p-4">
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-xl bg-teal-500/10 flex items-center justify-center">
-                <FileText className="h-5 w-5 text-teal-600" />
+              <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
+                <FileText className="h-5 w-5 text-indigo-600" />
               </div>
               <div>
                 <h3 className="font-semibold text-slate-800">Import handwritten notes</h3>
-                <p className="text-xs text-stone-500">Upload a photo of your notes</p>
+                <p className="text-xs text-gray-500">Upload a photo of your notes</p>
               </div>
             </div>
             
@@ -360,7 +360,7 @@ export default function CapturePage() {
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={ocrLoading}
-                className="flex-1 h-11 rounded-xl border-teal-200 bg-white hover:bg-teal-50 text-teal-700"
+                className="flex-1 h-11 rounded-xl border-indigo-200 bg-white hover:bg-indigo-50 text-indigo-700"
                 data-testid="button-upload-photo"
               >
                 <Upload className="h-4 w-4 mr-2" />
@@ -372,7 +372,7 @@ export default function CapturePage() {
                   variant="outline"
                   onClick={() => {/* TODO: handleTakePhoto() */}}
                   disabled={ocrLoading}
-                  className="flex-1 h-11 rounded-xl border-teal-200 bg-white hover:bg-teal-50 text-teal-700"
+                  className="flex-1 h-11 rounded-xl border-indigo-200 bg-white hover:bg-indigo-50 text-indigo-700"
                   data-testid="button-take-photo"
                 >
                   <Camera className="h-4 w-4 mr-2" />
@@ -383,7 +383,7 @@ export default function CapturePage() {
 
             {ocrLoading && (
               <div className="mt-3 space-y-2">
-                <div className="flex items-center gap-2 text-sm text-teal-600">
+                <div className="flex items-center gap-2 text-sm text-indigo-600">
                   <RefreshCw className="h-4 w-4 animate-spin" />
                   <span>Reading handwriting...</span>
                 </div>
@@ -405,7 +405,7 @@ export default function CapturePage() {
           <div className="space-y-2">
             <div className="flex items-center justify-between px-1">
               <Label htmlFor="notes" className="text-base font-semibold text-slate-800">Meeting Notes</Label>
-              <span className="text-xs text-stone-400">Paste or type everything</span>
+              <span className="text-xs text-gray-400">Paste or type everything</span>
             </div>
             <Textarea 
               id="notes" 
@@ -417,7 +417,7 @@ export default function CapturePage() {
 • Follow-ups needed
 
 Just dump everything—AI will sort it out." 
-              className="min-h-[320px] md:min-h-[360px] font-mono text-base leading-relaxed bg-white p-4 resize-y border-stone-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+              className="min-h-[320px] md:min-h-[360px] font-mono text-base leading-relaxed bg-white p-4 resize-y border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               data-testid="textarea-notes"
@@ -434,7 +434,7 @@ Just dump everything—AI will sort it out."
           <div className="hidden md:flex items-center gap-3 pt-2">
             <Button 
               size="lg" 
-              className="flex-1 text-base h-14 rounded-2xl bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+              className="flex-1 text-base h-14 rounded-xl btn-gradient text-white font-semibold shadow-lg shadow-indigo-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
               onClick={handleExtract}
               disabled={isSubmitting || !aiEnabled}
               data-testid="button-extract-desktop"
@@ -452,7 +452,7 @@ Just dump everything—AI will sort it out."
               size="lg" 
               variant="outline" 
               onClick={handleSaveDraft}
-              className="h-14 rounded-2xl border-stone-300"
+              className="h-14 rounded-xl border-indigo-200 hover:bg-indigo-50 text-indigo-700"
               data-testid="button-save-draft-desktop"
             >
               <Save className="mr-2 h-4 w-4" />
@@ -462,19 +462,19 @@ Just dump everything—AI will sort it out."
         </div>
       </div>
 
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-stone-200 p-4 pb-safe z-50">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 p-4 pb-safe z-50">
         <div className="flex items-center gap-3 max-w-3xl mx-auto">
           <Button 
             variant="outline" 
             onClick={handleSaveDraft}
-            className="h-12 px-4 rounded-xl border-stone-300 shrink-0"
+            className="h-12 px-4 rounded-xl border-indigo-200 hover:bg-indigo-50 text-indigo-700 shrink-0"
             data-testid="button-save-draft"
           >
             <Save className="h-5 w-5" />
           </Button>
           <Button 
             size="lg" 
-            className="flex-1 text-base h-12 rounded-xl bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20 disabled:opacity-50" 
+            className="flex-1 text-base h-12 rounded-xl btn-gradient text-white font-semibold shadow-lg shadow-indigo-500/30 disabled:opacity-50" 
             onClick={handleExtract}
             disabled={isSubmitting || !notes.trim() || !aiEnabled}
             data-testid="button-extract"
@@ -498,7 +498,7 @@ Just dump everything—AI will sort it out."
         <DialogContent className="max-w-lg mx-4">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-teal-600" />
+              <FileText className="h-5 w-5 text-indigo-600" />
               Extracted Text
             </DialogTitle>
             <DialogDescription>
@@ -511,8 +511,8 @@ Just dump everything—AI will sort it out."
               {/* Confidence indicator */}
               {ocrResult.confidence !== undefined && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-stone-500">Confidence:</span>
-                  <div className="flex-1 h-2 bg-stone-100 rounded-full overflow-hidden">
+                  <span className="text-sm text-gray-500">Confidence:</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div 
                       className={`h-full rounded-full ${
                         ocrResult.confidence >= 70 ? 'bg-green-500' : 
@@ -540,7 +540,7 @@ Just dump everything—AI will sort it out."
               )}
 
               {/* Text preview */}
-              <div className="max-h-64 overflow-y-auto p-3 bg-stone-50 border border-stone-200 rounded-lg">
+              <div className="max-h-64 overflow-y-auto p-3 bg-gray-50 border border-gray-200 rounded-lg">
                 <pre className="whitespace-pre-wrap text-sm text-slate-700 font-mono">
                   {ocrResult.text || "No text detected"}
                 </pre>
@@ -548,8 +548,8 @@ Just dump everything—AI will sort it out."
 
               {/* Insert mode toggle */}
               {notes.trim() && ocrResult.text && (
-                <div className="flex items-center gap-2 p-3 bg-stone-50 rounded-lg">
-                  <span className="text-sm text-stone-600">Insert mode:</span>
+                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-600">Insert mode:</span>
                   <div className="flex gap-1">
                     <Button
                       size="sm"
@@ -578,7 +578,7 @@ Just dump everything—AI will sort it out."
                 <Button
                   onClick={handleInsertOcrText}
                   disabled={!ocrResult.text}
-                  className="flex-1 bg-teal-500 hover:bg-teal-600"
+                  className="flex-1 btn-gradient text-white font-semibold shadow-lg shadow-indigo-500/30"
                   data-testid="button-insert-ocr"
                 >
                   <Check className="h-4 w-4 mr-2" />
@@ -602,7 +602,7 @@ Just dump everything—AI will sort it out."
                 <Button
                   variant="ghost"
                   onClick={handleDiscardOcr}
-                  className="text-stone-500"
+                  className="text-gray-500"
                   data-testid="button-discard-ocr"
                 >
                   <X className="h-4 w-4" />

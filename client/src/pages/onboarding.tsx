@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WorkStyleTone } from "@/lib/types";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, Sparkles, Zap, Shield } from "lucide-react";
 
 export default function OnboardingPage() {
   const { updateUser } = useStore();
@@ -26,23 +26,23 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-muted/30">
-      <Card className="w-full max-w-lg border-none shadow-xl shadow-black/5">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+      <Card className="w-full max-w-lg border-gray-200 shadow-glow bg-white rounded-2xl">
         <CardHeader>
-          <div className="flex justify-between items-center mb-2">
-             <div className="flex space-x-1">
-               <div className={`h-1 w-8 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
-               <div className={`h-1 w-8 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
-               <div className={`h-1 w-8 rounded-full ${step >= 3 ? 'bg-primary' : 'bg-muted'}`} />
-             </div>
-             <span className="text-sm text-muted-foreground">Step {step} of 3</span>
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex space-x-1.5">
+              <div className={`h-1.5 w-10 rounded-full transition-colors ${step >= 1 ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : 'bg-gray-200'}`} />
+              <div className={`h-1.5 w-10 rounded-full transition-colors ${step >= 2 ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : 'bg-gray-200'}`} />
+              <div className={`h-1.5 w-10 rounded-full transition-colors ${step >= 3 ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : 'bg-gray-200'}`} />
+            </div>
+            <span className="text-sm text-slate-500 font-medium">Step {step} of 3</span>
           </div>
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-2xl text-slate-900">
             {step === 1 && "Set your work style"}
             {step === 2 && "Default behavior"}
             {step === 3 && "Personal (optional)"}
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-slate-500">
             {step === 1 && "How should your AI assistant write drafts?"}
             {step === 2 && "Configure automation settings"}
             {step === 3 && "Separate work from personal brain-dumps"}
@@ -52,80 +52,93 @@ export default function OnboardingPage() {
         <CardContent className="space-y-6 pt-4">
           {step === 1 && (
             <RadioGroup value={tone} onValueChange={(v) => setTone(v as WorkStyleTone)} className="space-y-3">
-              <div className={`flex items-start space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${tone === 'direct' ? 'border-primary bg-primary/5' : 'border-transparent bg-secondary'}`} onClick={() => setTone('direct')}>
+              <div className={`flex items-start space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${tone === 'direct' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-100 bg-gray-50 hover:border-gray-200'}`} onClick={() => setTone('direct')}>
                 <RadioGroupItem value="direct" id="direct" className="mt-1" />
-                <div>
-                  <Label htmlFor="direct" className="font-semibold text-base cursor-pointer">Direct</Label>
-                  <p className="text-sm text-muted-foreground mt-1">Short, clear, no fluff. Gets straight to the point.</p>
+                <div className="flex-1">
+                  <Label htmlFor="direct" className="font-semibold text-base cursor-pointer text-slate-900">Direct</Label>
+                  <p className="text-sm text-slate-500 mt-1">Short, clear, no fluff. Gets straight to the point.</p>
                 </div>
+                <Zap className={`h-5 w-5 ${tone === 'direct' ? 'text-indigo-500' : 'text-slate-300'}`} />
               </div>
-              <div className={`flex items-start space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${tone === 'friendly' ? 'border-primary bg-primary/5' : 'border-transparent bg-secondary'}`} onClick={() => setTone('friendly')}>
+              <div className={`flex items-start space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${tone === 'friendly' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-100 bg-gray-50 hover:border-gray-200'}`} onClick={() => setTone('friendly')}>
                 <RadioGroupItem value="friendly" id="friendly" className="mt-1" />
-                <div>
-                  <Label htmlFor="friendly" className="font-semibold text-base cursor-pointer">Friendly</Label>
-                  <p className="text-sm text-muted-foreground mt-1">Warm but efficient. Good for client emails.</p>
+                <div className="flex-1">
+                  <Label htmlFor="friendly" className="font-semibold text-base cursor-pointer text-slate-900">Friendly</Label>
+                  <p className="text-sm text-slate-500 mt-1">Warm but efficient. Good for client emails.</p>
                 </div>
+                <Sparkles className={`h-5 w-5 ${tone === 'friendly' ? 'text-indigo-500' : 'text-slate-300'}`} />
               </div>
-              <div className={`flex items-start space-x-3 p-4 rounded-lg border-2 cursor-pointer transition-all ${tone === 'formal' ? 'border-primary bg-primary/5' : 'border-transparent bg-secondary'}`} onClick={() => setTone('formal')}>
+              <div className={`flex items-start space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${tone === 'formal' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-100 bg-gray-50 hover:border-gray-200'}`} onClick={() => setTone('formal')}>
                 <RadioGroupItem value="formal" id="formal" className="mt-1" />
-                <div>
-                  <Label htmlFor="formal" className="font-semibold text-base cursor-pointer">Formal</Label>
-                  <p className="text-sm text-muted-foreground mt-1">Traditional wording. Professional and polite.</p>
+                <div className="flex-1">
+                  <Label htmlFor="formal" className="font-semibold text-base cursor-pointer text-slate-900">Formal</Label>
+                  <p className="text-sm text-slate-500 mt-1">Traditional wording. Professional and polite.</p>
                 </div>
+                <Shield className={`h-5 w-5 ${tone === 'formal' ? 'text-indigo-500' : 'text-slate-300'}`} />
               </div>
             </RadioGroup>
           )}
 
           {step === 2 && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between space-x-4">
+              <div className="flex items-center justify-between space-x-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
                 <div className="space-y-1">
-                  <Label className="text-base">Auto-generate drafts</Label>
-                  <p className="text-sm text-muted-foreground">Create follow-up emails immediately after extraction</p>
+                  <Label className="text-base font-medium text-slate-900">Auto-generate drafts</Label>
+                  <p className="text-sm text-slate-500">Create follow-up emails immediately after extraction</p>
                 </div>
                 <Switch checked={autoDraft} onCheckedChange={setAutoDraft} />
               </div>
               
               <div className="space-y-2">
-                 <Label>Default Timezone</Label>
-                 <Select defaultValue="dublin">
-                   <SelectTrigger>
-                     <SelectValue placeholder="Select timezone" />
-                   </SelectTrigger>
-                   <SelectContent>
-                     <SelectItem value="dublin">Europe/Dublin (GMT+0)</SelectItem>
-                     <SelectItem value="ny">America/New_York (EST)</SelectItem>
-                     <SelectItem value="sf">America/Los_Angeles (PST)</SelectItem>
-                   </SelectContent>
-                 </Select>
+                <Label className="text-slate-700 font-medium">Default Timezone</Label>
+                <Select defaultValue="dublin">
+                  <SelectTrigger className="h-12 rounded-lg border-gray-200 bg-gray-50">
+                    <SelectValue placeholder="Select timezone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dublin">Europe/Dublin (GMT+0)</SelectItem>
+                    <SelectItem value="ny">America/New_York (EST)</SelectItem>
+                    <SelectItem value="sf">America/Los_Angeles (PST)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           )}
 
           {step === 3 && (
             <div className="space-y-4">
-              <div className="bg-secondary/50 p-6 rounded-lg text-center space-y-4">
-                <div className="mx-auto h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center">
-                   <span className="text-xl">🧠</span>
+              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl text-center space-y-4 border border-indigo-100">
+                <div className="mx-auto h-14 w-14 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+                  <span className="text-2xl">🧠</span>
                 </div>
                 <div className="space-y-2">
-                  <h3 className="font-medium">Personal Mode</h3>
-                  <p className="text-muted-foreground text-sm">
+                  <h3 className="font-semibold text-slate-900">Personal Mode</h3>
+                  <p className="text-slate-600 text-sm">
                     Personal is a lightweight brain-dump + Top 3 priorities. 
                     Work stays the focus, but sometimes you need to clear your head.
                   </p>
                 </div>
-                <Button variant="outline" className="w-full">Enable Personal Tab</Button>
+                <Button variant="outline" className="w-full h-11 rounded-lg border-indigo-200 text-indigo-700 hover:bg-indigo-50">
+                  Enable Personal Tab
+                </Button>
               </div>
             </div>
           )}
         </CardContent>
 
-        <CardFooter className="flex justify-between">
-          <Button variant="ghost" onClick={() => setStep(s => Math.max(1, s - 1))} disabled={step === 1}>
+        <CardFooter className="flex justify-between pt-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => setStep(s => Math.max(1, s - 1))} 
+            disabled={step === 1}
+            className="text-slate-600"
+          >
             Back
           </Button>
-          <Button onClick={() => step < 3 ? setStep(s => s + 1) : handleFinish()} className="w-32">
+          <Button 
+            onClick={() => step < 3 ? setStep(s => s + 1) : handleFinish()} 
+            className="w-36 h-11 rounded-lg btn-gradient text-white font-semibold"
+          >
             {step < 3 ? (
               <>Next <ArrowRight className="ml-2 h-4 w-4" /></>
             ) : (

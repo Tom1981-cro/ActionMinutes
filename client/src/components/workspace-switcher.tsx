@@ -34,10 +34,10 @@ export function WorkspaceSwitcher() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-2 text-left h-auto py-2 px-3 rounded-2xl hover:bg-stone-100" data-testid="button-workspace-switcher">
+        <Button variant="ghost" className="flex items-center gap-2 text-left h-auto py-2 px-3 rounded-xl hover:bg-gray-100" data-testid="button-workspace-switcher">
           <div className="flex items-center gap-2">
             {currentWorkspaceId ? (
-              <Users className="h-4 w-4 text-teal-500" />
+              <Users className="h-4 w-4 text-indigo-500" />
             ) : (
               <User className="h-4 w-4 text-slate-500" />
             )}
@@ -45,7 +45,7 @@ export function WorkspaceSwitcher() {
               {currentWorkspace?.name || "Personal"}
             </span>
           </div>
-          <ChevronDown className="h-4 w-4 text-stone-400" />
+          <ChevronDown className="h-4 w-4 text-gray-400" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md rounded-3xl">
@@ -55,8 +55,8 @@ export function WorkspaceSwitcher() {
         <div className="space-y-2 mt-4">
           <button
             onClick={() => handleSelect(null)}
-            className={`w-full flex items-center justify-between p-3 rounded-2xl transition-colors ${
-              !currentWorkspaceId ? 'bg-teal-50 border-2 border-teal-200' : 'hover:bg-stone-50 border-2 border-transparent'
+            className={`w-full flex items-center justify-between p-3 rounded-xl transition-colors ${
+              !currentWorkspaceId ? 'bg-indigo-50 border-2 border-indigo-200' : 'hover:bg-gray-50 border-2 border-transparent'
             }`}
             data-testid="button-workspace-personal"
           >
@@ -64,35 +64,35 @@ export function WorkspaceSwitcher() {
               <User className="h-5 w-5 text-slate-500" />
               <div className="text-left">
                 <p className="font-medium text-slate-700">Personal</p>
-                <p className="text-xs text-stone-500">Your private meetings</p>
+                <p className="text-xs text-gray-500">Your private meetings</p>
               </div>
             </div>
-            {!currentWorkspaceId && <Check className="h-5 w-5 text-teal-500" />}
+            {!currentWorkspaceId && <Check className="h-5 w-5 text-indigo-500" />}
           </button>
 
           {workspaces.map((workspace: any) => (
             <button
               key={workspace.id}
               onClick={() => handleSelect(workspace.id)}
-              className={`w-full flex items-center justify-between p-3 rounded-2xl transition-colors ${
-                currentWorkspaceId === workspace.id ? 'bg-teal-50 border-2 border-teal-200' : 'hover:bg-stone-50 border-2 border-transparent'
+              className={`w-full flex items-center justify-between p-3 rounded-xl transition-colors ${
+                currentWorkspaceId === workspace.id ? 'bg-indigo-50 border-2 border-indigo-200' : 'hover:bg-gray-50 border-2 border-transparent'
               }`}
               data-testid={`button-workspace-${workspace.id}`}
             >
               <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-teal-500" />
+                <Users className="h-5 w-5 text-indigo-500" />
                 <div className="text-left">
                   <p className="font-medium text-slate-700">{workspace.name}</p>
-                  <p className="text-xs text-stone-500">Team workspace</p>
+                  <p className="text-xs text-gray-500">Team workspace</p>
                 </div>
               </div>
-              {currentWorkspaceId === workspace.id && <Check className="h-5 w-5 text-teal-500" />}
+              {currentWorkspaceId === workspace.id && <Check className="h-5 w-5 text-indigo-500" />}
             </button>
           ))}
 
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
-              <button className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-stone-50 border-2 border-dashed border-stone-200 text-stone-500" data-testid="button-create-workspace">
+              <button className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 border-2 border-dashed border-gray-200 text-gray-500" data-testid="button-create-workspace">
                 <Plus className="h-5 w-5" />
                 <span className="font-medium">Create workspace</span>
               </button>
@@ -108,14 +108,14 @@ export function WorkspaceSwitcher() {
                     placeholder="e.g., Engineering Team"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="rounded-2xl border-stone-200"
+                    className="rounded-xl border-gray-200"
                     data-testid="input-workspace-name"
                   />
                 </div>
                 <Button 
                   onClick={handleCreate} 
                   disabled={!newName.trim() || createWorkspace.isPending}
-                  className="w-full rounded-2xl bg-teal-500 hover:bg-teal-600"
+                  className="w-full rounded-xl bg-indigo-500 hover:bg-indigo-600"
                   data-testid="button-confirm-create-workspace"
                 >
                   {createWorkspace.isPending ? "Creating..." : "Create Workspace"}

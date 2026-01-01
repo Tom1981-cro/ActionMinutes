@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ActionMinutes: Vibrant Enterprise Blueprint</title>
+    
+    <!-- Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Tailwind Config: Vibrant Enterprise -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        indigo: {
+                            50: '#eef2ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                        },
+                        purple: {
+                            50: '#faf5ff',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                        },
+                        slate: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    },
+                    boxShadow: {
+                        'glow': '0 20px 25px -5px rgba(99, 102, 241, 0.15), 0 8px 10px -6px rgba(99, 102, 241, 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Custom Gradients & Animations */
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(to right, #4f46e5, #9333ea);
+        }
+        .btn-gradient {
+            background-image: linear-gradient(to right, #4f46e5, #9333ea);
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .btn-gradient:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Chosen Palette: System 3 "Vibrant Enterprise" (White, Indigo/Purple Gradients, Colored Shadows) -->
+    
+    <!-- Application Structure Plan:
+         1. Header: Clean white bar with gradient logo text.
+         2. Manifesto: Hero section using the gradient text and a "Glow" chart style.
+         3. Simulator: A "Card-based" layout. 
+            - Input: Clean card with soft border.
+            - Output: Cards with 'shadow-glow' to emphasize the "Magic" of AI extraction.
+            - Primary Button: Full gradient fill.
+         4. Architecture: Visualized as a connected ecosystem using gradient icons.
+    -->
+
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-lg">A</div>
+                <span class="font-bold text-xl tracking-tight text-slate-900">ActionMinutes</span>
+            </div>
+            <nav class="flex gap-1 bg-gray-50 p-1 rounded-lg">
+                <button onclick="navTo('manifesto')" id="nav-manifesto" class="px-4 py-1.5 text-sm font-medium rounded-md text-slate-600 hover:text-indigo-600 transition-colors">Vision</button>
+                <button onclick="navTo('simulator')" id="nav-simulator" class="px-4 py-1.5 text-sm font-medium rounded-md text-slate-600 hover:text-indigo-600 transition-colors">Simulator</button>
+                <button onclick="navTo('architecture')" id="nav-architecture" class="px-4 py-1.5 text-sm font-medium rounded-md text-slate-600 hover:text-indigo-600 transition-colors">Stack</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto w-full px-6 py-12">
+
+        <!-- VIEW 1: MANIFESTO -->
+        <section id="view-manifesto" class="space-y-16">
+            <div class="text-center max-w-3xl mx-auto space-y-6">
+                <div class="inline-block px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wide">
+                    Enterprise Grade Efficiency
+                </div>
+                <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900">
+                    Turn Minutes into <br> <span class="text-gradient">Actionable Velocity.</span>
+                </h1>
+                <p class="text-lg text-slate-500 leading-relaxed">
+                    Stop wasting time formatting notes. Our AI engine extracts structured data, assigns owners, and drafts follow-ups in seconds.
+                </p>
+                <button onclick="navTo('simulator')" class="btn-gradient text-white px-8 py-4 rounded-lg font-semibold shadow-lg shadow-indigo-500/30">
+                    Launch Interactive Demo
+                </button>
+            </div>
+
+            <!-- Visualization -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="bg-white p-8 rounded-2xl shadow-glow border border-gray-100">
+                    <h3 class="font-bold text-slate-900 mb-2">Workflow Acceleration</h3>
+                    <p class="text-sm text-slate-500 mb-6">Processing time reduction per meeting.</p>
+                    <div class="chart-container">
+                        <canvas id="vibrantChart"></canvas>
+                    </div>
+                </div>
+                <div class="space-y-6">
+                    <div class="flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl">⚡️</div>
+                        <div>
+                            <h4 class="font-bold text-slate-900">Instant Extraction</h4>
+                            <p class="text-slate-500 text-sm mt-1">From raw text to JSON in under 60 seconds.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4 items-start">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl">🔒</div>
+                        <div>
+                            <h4 class="font-bold text-slate-900">Enterprise Security</h4>
+                            <p class="text-slate-500 text-sm mt-1">Mock AI modes ensure zero data leakage during dev.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 2: SIMULATOR -->
+        <section id="view-simulator" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[600px]">
+                
+                <!-- Input Card -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col h-full">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-slate-900 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Input Stream
+                        </h3>
+                        <button onclick="loadSample()" class="text-sm font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1 rounded-md">Load Sample</button>
+                    </div>
+                    
+                    <div class="space-y-4 flex-grow">
+                        <input type="text" id="sim-title" value="Q4 Planning Sync" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm font-semibold text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+                        <textarea id="sim-notes" class="w-full h-full bg-gray-50 border border-gray-200 rounded-lg p-4 text-sm text-slate-600 font-mono resize-none outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all" placeholder="Enter raw meeting notes..."></textarea>
+                    </div>
+
+                    <div class="mt-6">
+                        <button onclick="runSim()" id="btn-extract" class="w-full btn-gradient text-white py-3 rounded-lg font-semibold shadow-md flex justify-center items-center gap-2">
+                            <span>✨ Generate Structured Output</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Output Card -->
+                <div class="bg-white rounded-2xl shadow-glow border border-indigo-50 p-6 flex flex-col h-full relative overflow-hidden">
+                    <!-- Background Decoration -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-bl-full opacity-50 -z-10"></div>
+
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-slate-900">Intelligence Layer</h3>
+                        <span id="status-badge" class="hidden bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-bold uppercase">Processed</span>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="sim-empty" class="flex-grow flex flex-col items-center justify-center text-center">
+                        <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center text-3xl mb-4">🚀</div>
+                        <h4 class="font-bold text-slate-900">Ready to Launch</h4>
+                        <p class="text-sm text-slate-500 mt-2">Run the extraction to visualize the data model.</p>
+                    </div>
+
+                    <!-- Content -->
+                    <div id="sim-content" class="hidden flex-grow overflow-y-auto space-y-6 pr-2">
+                        <div class="bg-gradient-to-r from-indigo-50 to-white p-4 rounded-xl border border-indigo-100">
+                            <span class="text-xs font-bold text-indigo-600 uppercase tracking-wide mb-1 block">Summary</span>
+                            <p id="res-summary" class="text-sm text-slate-700 leading-relaxed"></p>
+                        </div>
+
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3 block px-1">Action Items</span>
+                            <div id="res-actions" class="space-y-3"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Loading -->
+                    <div id="sim-loading" class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-20">
+                         <div class="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: ARCHITECTURE -->
+        <section id="view-architecture" class="hidden">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-900">Full-Stack Power</h2>
+                <p class="text-slate-500 mt-2">Built on a modern React + Prisma + Postgres foundation.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <!-- Stack Cards -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-glow transition-shadow">
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg mb-4">R</div>
+                    <h3 class="font-bold text-slate-900">React</h3>
+                    <p class="text-xs text-slate-500 mt-1">Frontend UI</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-glow transition-shadow">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg mb-4">N</div>
+                    <h3 class="font-bold text-slate-900">Node API</h3>
+                    <p class="text-xs text-slate-500 mt-1">Backend Logic</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-glow transition-shadow">
+                    <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg mb-4">P</div>
+                    <h3 class="font-bold text-slate-900">Prisma</h3>
+                    <p class="text-xs text-slate-500 mt-1">ORM Layer</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-glow transition-shadow">
+                    <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-lg mb-4">AI</div>
+                    <h3 class="font-bold text-slate-900">Mock AI</h3>
+                    <p class="text-xs text-slate-500 mt-1">Extraction Engine</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-8 border-t border-gray-200 mt-12">
+        <p class="text-xs text-slate-400">ActionMinutes Vibrant Blueprint • System 3</p>
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        // Nav Logic
+        function navTo(view) {
+            ['manifesto', 'simulator', 'architecture'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+                document.getElementById(`nav-${v}`).classList.remove('bg-white', 'shadow-sm', 'text-indigo-600');
+            });
+            document.getElementById(`view-${view}`).classList.remove('hidden');
+            document.getElementById(`nav-${view}`).classList.add('bg-white', 'shadow-sm', 'text-indigo-600');
+
+            if(view === 'manifesto') renderChart();
+        }
+
+        // Simulator Logic
+        const sampleData = {
+            title: "Q4 Planning Sync",
+            notes: "Sarah needs to finalize the deck by Friday.\nTom is blocked on the API integration.\nDecision: Delay mobile launch by 1 week.\nMike to update Jira."
+        };
+
+        function loadSample() {
+            document.getElementById('sim-title').value = sampleData.title;
+            document.getElementById('sim-notes').value = sampleData.notes;
+        }
+
+        function runSim() {
+            const loading = document.getElementById('sim-loading');
+            const empty = document.getElementById('sim-empty');
+            const content = document.getElementById('sim-content');
+            const badge = document.getElementById('status-badge');
+
+            loading.classList.remove('hidden');
+
+            setTimeout(() => {
+                const result = {
+                    summary: "Q4 Planning discussed API blockers. Decision made to delay launch. Deck finalization assigned to Sarah.",
+                    actions: [
+                        { text: "Finalize Deck", owner: "Sarah", due: "Friday" },
+                        { text: "Update Jira", owner: "Mike", due: "ASAP" },
+                        { text: "Resolve API Block", owner: "Tom", due: "TBD" }
+                    ]
+                };
+
+                document.getElementById('res-summary').innerText = result.summary;
+                
+                const actionsDiv = document.getElementById('res-actions');
+                actionsDiv.innerHTML = '';
+                result.actions.forEach(a => {
+                    actionsDiv.innerHTML += `
+                        <div class="bg-white p-3 rounded-lg border border-gray-100 shadow-sm flex justify-between items-center hover:shadow-md transition-shadow">
+                            <span class="text-sm font-medium text-slate-800">${a.text}</span>
+                            <div class="flex gap-2">
+                                <span class="bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded font-bold">${a.owner}</span>
+                                <span class="bg-gray-100 text-gray-500 text-xs px-2 py-1 rounded">${a.due}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                loading.classList.add('hidden');
+                empty.classList.add('hidden');
+                content.classList.remove('hidden');
+                badge.classList.remove('hidden');
+            }, 1500);
+        }
+
+        // Chart Logic (Vibrant)
+        let chart;
+        function renderChart() {
+            if(chart) return;
+            const ctx = document.getElementById('vibrantChart').getContext('2d');
+            
+            // Create Gradient
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.5)'); // Indigo
+            gradient.addColorStop(1, 'rgba(168, 85, 247, 0.0)'); // Purple transparent
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    datasets: [{
+                        label: 'Tasks Automated',
+                        data: [12, 19, 33, 55, 85],
+                        borderColor: '#6366f1',
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderColor: '#9333ea',
+                        pointRadius: 6,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => navTo('manifesto'));
+    </script>
+    
+    <!-- Visualization & Content Choices:
+         1. Layout: System 3 (Vibrant) uses cards with specific colored shadows (`shadow-glow`) to create depth.
+         2. Components: Gradients are used on primary buttons (`btn-gradient`) and text (`text-gradient`) to match the "SaaS" aesthetic.
+         3. Charts: Line chart with a gradient fill matches the vibrant theme.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</body>
+</html>
