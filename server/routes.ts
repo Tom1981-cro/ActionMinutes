@@ -737,6 +737,26 @@ Thanks!`,
     }
   });
 
+  app.get("/api/invites/:token", async (req, res) => {
+    const invite = await storage.getWorkspaceInviteByToken(req.params.token);
+    if (!invite) return res.status(404).json({ error: "Invite not found" });
+    
+    const workspace = await storage.getWorkspace(invite.workspaceId);
+    if (!workspace) return res.status(404).json({ error: "Workspace not found" });
+    
+    const isExpired = new Date() > invite.expiresAt;
+    const isAccepted = !!invite.acceptedAt;
+    
+    res.json({
+      workspaceName: workspace.name,
+      role: invite.role || 'member',
+      email: invite.email,
+      expiresAt: invite.expiresAt,
+      isExpired,
+      isAccepted,
+    });
+  });
+
   app.post("/api/invites/:token/accept", async (req, res) => {
     const userId = req.body.userId as string;
     if (!userId) return res.status(400).json({ error: "userId is required" });
@@ -752,17 +772,21 @@ Thanks!`,
       return res.status(400).json({ error: "Invite has expired" });
     }
     
-    // Add user to workspace
+    const existingMember = await storage.getWorkspaceMember(invite.workspaceId, userId);
+    if (existingMember) {
+      await storage.updateWorkspaceInvite(invite.id, { acceptedAt: new Date() });
+      return res.json({ success: true, alreadyMember: true, workspaceId: invite.workspaceId });
+    }
+    
     await storage.createWorkspaceMember({
       workspaceId: invite.workspaceId,
       userId,
       role: invite.role || 'member',
     });
     
-    // Mark invite as accepted
     await storage.updateWorkspaceInvite(invite.id, { acceptedAt: new Date() });
     
-    res.json({ success: true });
+    res.json({ success: true, workspaceId: invite.workspaceId });
   });
 
   app.delete("/api/workspaces/:workspaceId/invites/:inviteId", async (req, res) => {
@@ -979,7 +1003,116 @@ Thanks!`,
     res.json({ success: true });
   });
 
-  // ==================== PERSONAL ENTRIES ====================
+  // ==================== PERSONAL ENTRIES (JOURNAL) ====================
+  app.get("/api/personal/journal", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    const entries = await storage.getPersonalEntries(userId);
+    res.json(entries);
+  });
+
+  app.get("/api/personal/journal/:id", async (req, res) => {
+    const entry = await storage.getPersonalEntry(req.params.id);
+    if (!entry) return res.status(404).json({ error: "Journal entry not found" });
+    res.json(entry);
+  });
+
+  app.post("/api/personal/journal", async (req, res) => {
+    const userId = req.body.userId as string;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    
+    try {
+      const entry = await storage.createPersonalEntry({
+        userId,
+        date: new Date(req.body.date || new Date()),
+        rawText: req.body.rawText,
+        mood: req.body.mood,
+        promptUsed: req.body.promptUsed,
+      });
+      res.json(entry);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  app.patch("/api/personal/journal/:id", async (req, res) => {
+    const entry = await storage.updatePersonalEntry(req.params.id, req.body);
+    if (!entry) return res.status(404).json({ error: "Journal entry not found" });
+    res.json(entry);
+  });
+
+  app.delete("/api/personal/journal/:id", async (req, res) => {
+    await storage.deletePersonalEntry(req.params.id);
+    res.json({ success: true });
+  });
+
+  // ==================== PERSONAL REMINDERS ====================
+  app.get("/api/personal/reminders", async (req, res) => {
+    const userId = req.query.userId as string;
+    const bucket = req.query.bucket as string;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    const reminders = await storage.getPersonalReminders(userId, bucket || undefined);
+    res.json(reminders);
+  });
+
+  app.get("/api/personal/reminders/:id", async (req, res) => {
+    const reminder = await storage.getPersonalReminder(req.params.id);
+    if (!reminder) return res.status(404).json({ error: "Reminder not found" });
+    res.json(reminder);
+  });
+
+  app.post("/api/personal/reminders", async (req, res) => {
+    const userId = req.body.userId as string;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    
+    try {
+      const reminder = await storage.createPersonalReminder({
+        userId,
+        text: req.body.text,
+        bucket: req.body.bucket || 'sometime',
+        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined,
+        priority: req.body.priority || 'normal',
+        notes: req.body.notes,
+        isCompleted: false,
+      });
+      res.json(reminder);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  app.patch("/api/personal/reminders/:id", async (req, res) => {
+    const reminder = await storage.updatePersonalReminder(req.params.id, req.body);
+    if (!reminder) return res.status(404).json({ error: "Reminder not found" });
+    res.json(reminder);
+  });
+
+  app.delete("/api/personal/reminders/:id", async (req, res) => {
+    await storage.deletePersonalReminder(req.params.id);
+    res.json({ success: true });
+  });
+
+  // ==================== JOURNAL PROMPTS ====================
+  app.get("/api/prompts", async (req, res) => {
+    const category = req.query.category as string;
+    const prompts = await storage.getJournalPrompts(category || undefined);
+    res.json(prompts);
+  });
+
+  app.post("/api/prompts", async (req, res) => {
+    try {
+      const prompt = await storage.createJournalPrompt({
+        category: req.body.category,
+        text: req.body.text,
+        isActive: req.body.isActive ?? true,
+      });
+      res.json(prompt);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  // Legacy endpoint for compatibility
   app.get("/api/personal", async (req, res) => {
     const userId = req.query.userId as string;
     if (!userId) return res.status(400).json({ error: "userId is required" });
