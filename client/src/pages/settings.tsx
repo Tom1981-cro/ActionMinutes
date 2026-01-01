@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStore } from "@/lib/store";
 import { useUpdateUser, useAppConfig } from "@/lib/hooks";
 import { Link } from "wouter";
-import { ExternalLink, Settings2, Plug, Calendar, Sparkles, Users, MessageSquare, Shield, Rocket } from "lucide-react";
+import { ExternalLink, Settings2, Plug, Calendar, Sparkles, Users, MessageSquare, Shield, Rocket, User, BookOpen, Clock } from "lucide-react";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
 import SettingsAuditPage from "./settings-audit";
@@ -40,6 +40,10 @@ export default function SettingsPage() {
             <TabsTrigger value="preferences" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm h-11 px-3 md:px-4" data-testid="tab-preferences">
               <Settings2 className="h-4 w-4 md:mr-2" />
               <span className="hidden md:inline">Preferences</span>
+            </TabsTrigger>
+            <TabsTrigger value="personal" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm h-11 px-3 md:px-4" data-testid="tab-personal">
+              <User className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Personal</span>
             </TabsTrigger>
             <TabsTrigger value="integrations" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm h-11 px-3 md:px-4" data-testid="tab-integrations">
               <Plug className="h-4 w-4 md:mr-2" />
@@ -189,6 +193,53 @@ export default function SettingsPage() {
           </div>
 
           <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+        </TabsContent>
+
+        <TabsContent value="personal" className="space-y-5 md:space-y-6">
+          <div className="p-4 bg-indigo-50 rounded-xl text-base border border-indigo-200">
+            <h3 className="font-semibold text-indigo-800 mb-1">Your Personal Space</h3>
+            <p className="text-indigo-700 text-sm">These features are private to you. No one else can see your personal meetings, journal entries, or reminders.</p>
+          </div>
+
+          <Card className="bg-white border-gray-200 rounded-xl">
+            <CardHeader className="px-4 pt-4 pb-3 md:px-6 md:pt-5">
+              <CardTitle className="text-lg text-slate-800 flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-purple-500" />
+                Personal Journal
+              </CardTitle>
+              <CardDescription className="text-gray-500 text-base">Capture private reflections, ideas, and thoughts.</CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 md:px-6 md:pb-5">
+              <Link href="/journal">
+                <Button variant="outline" className="w-full justify-start h-12 rounded-xl border-gray-200" data-testid="link-journal">
+                  <BookOpen className="h-4 w-4 mr-3 text-purple-500" />
+                  Open Journal
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border-gray-200 rounded-xl">
+            <CardHeader className="px-4 pt-4 pb-3 md:px-6 md:pt-5">
+              <CardTitle className="text-lg text-slate-800 flex items-center gap-2">
+                <Clock className="h-5 w-5 text-indigo-500" />
+                Personal Reminders
+              </CardTitle>
+              <CardDescription className="text-gray-500 text-base">Quick personal to-dos organized by when you need to do them.</CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 pb-4 md:px-6 md:pb-5">
+              <Link href="/reminders">
+                <Button variant="outline" className="w-full justify-start h-12 rounded-xl border-gray-200" data-testid="link-reminders">
+                  <Clock className="h-4 w-4 mr-3 text-indigo-500" />
+                  Open Reminders
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <div className="p-4 bg-gray-50 rounded-xl text-sm text-gray-600 border border-gray-200">
+            <strong>Personal vs Team:</strong> Personal meetings are only visible to you. When you join or create a workspace, you can save meetings to that workspace for team visibility.
+          </div>
         </TabsContent>
 
         <TabsContent value="integrations">
