@@ -15,6 +15,7 @@ import SettingsPage from "@/pages/settings";
 import AdminFeedbackPage from "@/pages/admin-feedback";
 import JournalPage from "@/pages/journal";
 import RemindersPage from "@/pages/reminders";
+import MobileBuildGuidePage from "@/pages/mobile-build-guide";
 import NotFound from "@/pages/not-found";
 
 import BlueprintPage from "@/pages/blueprint";
@@ -51,6 +52,9 @@ function Router() {
         <Layout><RemindersPage /></Layout>
       </Route>
       <Route path="/admin/feedback" component={AdminFeedbackPage} />
+      <Route path="/mobile-build-guide">
+        <Layout><MobileBuildGuidePage /></Layout>
+      </Route>
 
       <Route component={NotFound} />
     </Switch>
