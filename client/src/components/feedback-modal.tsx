@@ -27,7 +27,7 @@ const feedbackTypes = [
   { value: "bug", label: "Bug", icon: Bug, color: "text-red-500" },
   { value: "feature", label: "Feature", icon: Lightbulb, color: "text-amber-500" },
   { value: "ux", label: "UX Issue", icon: Palette, color: "text-purple-500" },
-  { value: "other", label: "Other", icon: HelpCircle, color: "text-stone-500" },
+  { value: "other", label: "Other", icon: HelpCircle, color: "text-muted-foreground" },
 ];
 
 export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
@@ -96,7 +96,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
       <DialogContent className="sm:max-w-md rounded-3xl">
         <DialogHeader>
           <DialogTitle className="text-xl text-slate-800">Send Feedback</DialogTitle>
-          <DialogDescription className="text-stone-500">
+          <DialogDescription className="text-muted-foreground">
             Help us improve ActionMinutes
           </DialogDescription>
         </DialogHeader>
@@ -116,15 +116,15 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                     className={cn(
                       "flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all",
                       isSelected
-                        ? "border-teal-500 bg-teal-50"
-                        : "border-stone-200 hover:border-stone-300"
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-muted-foreground"
                     )}
                     data-testid={`button-feedback-type-${t.value}`}
                   >
-                    <Icon className={cn("h-5 w-5", isSelected ? "text-teal-600" : t.color)} />
+                    <Icon className={cn("h-5 w-5", isSelected ? "text-primary" : t.color)} />
                     <span className={cn(
                       "text-xs font-medium",
-                      isSelected ? "text-teal-700" : "text-stone-600"
+                      isSelected ? "text-primary" : "text-muted-foreground"
                     )}>
                       {t.label}
                     </span>
@@ -140,7 +140,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Describe your feedback..."
-              className="min-h-[120px] rounded-2xl border-stone-200 text-base"
+              className="min-h-[120px] rounded-2xl border-border text-base"
               data-testid="input-feedback-message"
             />
           </div>
@@ -152,16 +152,16 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="h-12 rounded-xl border-stone-200"
+              className="h-12 rounded-xl border-border"
               data-testid="input-feedback-email"
             />
-            <p className="text-xs text-stone-400">For follow-up if needed</p>
+            <p className="text-xs text-muted-foreground">For follow-up if needed</p>
           </div>
 
           <div className="flex items-center justify-between py-2 px-1">
             <div className="space-y-0.5">
               <Label className="text-base text-slate-700">Include diagnostics</Label>
-              <p className="text-xs text-stone-400">Route, viewport size, browser</p>
+              <p className="text-xs text-muted-foreground">Route, viewport size, browser</p>
             </div>
             <Switch
               checked={includeDiagnostics}
@@ -171,7 +171,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
           </div>
 
           {includeDiagnostics && (
-            <div className="text-xs text-stone-400 bg-stone-50 p-3 rounded-xl space-y-1">
+            <div className="text-xs text-muted-foreground bg-muted p-3 rounded-xl space-y-1">
               <div>Route: {location}</div>
               <div>Viewport: {typeof window !== "undefined" ? `${window.innerWidth}x${window.innerHeight}` : "N/A"}</div>
               <div className="truncate">Browser: {typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 60) + "..." : "N/A"}</div>
@@ -183,7 +183,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="flex-1 h-12 rounded-2xl border-stone-200"
+            className="flex-1 h-12 rounded-2xl border-border"
             data-testid="button-feedback-cancel"
           >
             Cancel
@@ -191,7 +191,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
           <Button
             onClick={handleSubmit}
             disabled={submitFeedback.isPending || !message.trim()}
-            className="flex-1 h-12 rounded-2xl bg-teal-500 hover:bg-teal-600"
+            className="flex-1 h-12 rounded-2xl bg-primary hover:bg-primary/90"
             data-testid="button-feedback-submit"
           >
             {submitFeedback.isPending ? "Sending..." : "Send Feedback"}

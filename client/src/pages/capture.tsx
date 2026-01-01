@@ -94,14 +94,14 @@ export default function CapturePage() {
             <h1 className="text-xl md:text-2xl font-bold text-slate-800">New Meeting</h1>
           </div>
 
-          <div className="bg-white rounded-2xl border border-stone-200 p-4 space-y-4">
+          <div className="bg-card rounded-2xl border border-border p-4 space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="title" className="text-sm font-medium text-slate-600">Title</Label>
               <Input 
                 id="title" 
                 value={title} 
                 onChange={(e) => setTitle(e.target.value)} 
-                className="bg-stone-50 border-stone-200 rounded-xl h-12 text-base px-4 focus:bg-white"
+                className="bg-muted border-border rounded-xl h-12 text-base px-4 focus:bg-card"
                 placeholder="What's this meeting about?"
                 data-testid="input-title"
               />
@@ -114,7 +114,7 @@ export default function CapturePage() {
                 type="date" 
                 value={date} 
                 onChange={(e) => setDate(e.target.value)} 
-                className="bg-stone-50 border-stone-200 rounded-xl h-12 text-base px-4 focus:bg-white"
+                className="bg-muted border-border rounded-xl h-12 text-base px-4 focus:bg-card"
                 data-testid="input-date"
               />
             </div>
@@ -122,12 +122,12 @@ export default function CapturePage() {
             <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
               <CollapsibleTrigger asChild>
                 <button 
-                  className="flex items-center justify-between w-full py-2 text-sm text-stone-500 hover:text-slate-700 transition-colors"
+                  className="flex items-center justify-between w-full py-2 text-sm text-muted-foreground hover:text-slate-700 transition-colors"
                   data-testid="button-toggle-details"
                 >
                   <span className="flex items-center gap-2">
                     {hasDetails ? (
-                      <span className="text-teal-600 font-medium">Details added</span>
+                      <span className="text-primary font-medium">Details added</span>
                     ) : (
                       <>Add details (optional)</>
                     )}
@@ -142,7 +142,7 @@ export default function CapturePage() {
               <CollapsibleContent className="space-y-4 pt-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="attendees" className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                    <Users className="h-4 w-4 text-stone-400" />
+                    <Users className="h-4 w-4 text-muted-foreground" />
                     Attendees
                   </Label>
                   <Input 
@@ -150,14 +150,14 @@ export default function CapturePage() {
                     placeholder="Alice, Bob, Charlie..." 
                     value={attendees}
                     onChange={(e) => setAttendees(e.target.value)}
-                    className="bg-stone-50 border-stone-200 rounded-xl h-12 text-base px-4 focus:bg-white"
+                    className="bg-muted border-border rounded-xl h-12 text-base px-4 focus:bg-card"
                     data-testid="input-attendees"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="time" className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-stone-400" />
+                      <Clock className="h-4 w-4 text-muted-foreground" />
                       Time
                     </Label>
                     <Input 
@@ -165,13 +165,13 @@ export default function CapturePage() {
                       type="time"
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
-                      className="bg-stone-50 border-stone-200 rounded-xl h-12 text-base px-4 focus:bg-white"
+                      className="bg-muted border-border rounded-xl h-12 text-base px-4 focus:bg-card"
                       data-testid="input-time"
                     />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="location" className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-stone-400" />
+                      <MapPin className="h-4 w-4 text-muted-foreground" />
                       Location
                     </Label>
                     <Input 
@@ -179,7 +179,7 @@ export default function CapturePage() {
                       placeholder="Room / Link"
                       value={location}
                       onChange={(e) => setLocationValue(e.target.value)}
-                      className="bg-stone-50 border-stone-200 rounded-xl h-12 text-base px-4 focus:bg-white"
+                      className="bg-muted border-border rounded-xl h-12 text-base px-4 focus:bg-card"
                       data-testid="input-location"
                     />
                   </div>
@@ -191,7 +191,7 @@ export default function CapturePage() {
           <div className="space-y-2">
             <div className="flex items-center justify-between px-1">
               <Label htmlFor="notes" className="text-base font-semibold text-slate-800">Meeting Notes</Label>
-              <span className="text-xs text-stone-400">Paste or type everything</span>
+              <span className="text-xs text-muted-foreground">Paste or type everything</span>
             </div>
             <Textarea 
               id="notes" 
@@ -203,7 +203,7 @@ export default function CapturePage() {
 • Follow-ups needed
 
 Just dump everything—AI will sort it out." 
-              className="min-h-[320px] md:min-h-[360px] font-mono text-base leading-relaxed bg-white p-4 resize-y border-stone-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+              className="min-h-[320px] md:min-h-[360px] font-mono text-base leading-relaxed bg-card p-4 resize-y border-border rounded-2xl focus:ring-2 focus:ring-ring/20 focus:border-primary"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               data-testid="textarea-notes"
@@ -213,7 +213,7 @@ Just dump everything—AI will sort it out."
           <div className="hidden md:flex items-center gap-3 pt-2">
             <Button 
               size="lg" 
-              className="flex-1 text-base h-14 rounded-2xl bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 transition-all" 
+              className="flex-1 text-base h-14 rounded-2xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all" 
               onClick={handleExtract}
               disabled={isSubmitting}
               data-testid="button-extract-desktop"
@@ -231,7 +231,7 @@ Just dump everything—AI will sort it out."
               size="lg" 
               variant="outline" 
               onClick={handleSaveDraft}
-              className="h-14 rounded-2xl border-stone-300"
+              className="h-14 rounded-2xl border-border"
               data-testid="button-save-draft-desktop"
             >
               <Save className="mr-2 h-4 w-4" />
@@ -241,19 +241,19 @@ Just dump everything—AI will sort it out."
         </div>
       </div>
 
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-stone-200 p-4 pb-safe z-50">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border p-4 pb-safe z-50">
         <div className="flex items-center gap-3 max-w-3xl mx-auto">
           <Button 
             variant="outline" 
             onClick={handleSaveDraft}
-            className="h-12 px-4 rounded-xl border-stone-300 shrink-0"
+            className="h-12 px-4 rounded-xl border-border shrink-0"
             data-testid="button-save-draft"
           >
             <Save className="h-5 w-5" />
           </Button>
           <Button 
             size="lg" 
-            className="flex-1 text-base h-12 rounded-xl bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20" 
+            className="flex-1 text-base h-12 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20" 
             onClick={handleExtract}
             disabled={isSubmitting || !notes.trim()}
             data-testid="button-extract"

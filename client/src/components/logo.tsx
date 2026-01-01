@@ -66,7 +66,7 @@ export function Logo({ variant = 'squircle', size = 32, className = '', theme = 
 
   if (variant === 'simple') {
     return (
-      <div className={`bg-teal-500 rounded-xl flex items-center justify-center shadow-sm relative overflow-hidden ${className}`} style={{ width: size, height: size }}>
+      <div className={`bg-primary rounded-xl flex items-center justify-center shadow-sm relative overflow-hidden ${className}`} style={{ width: size, height: size }}>
         <div className="w-1.5 h-3 border-r-2 border-b-2 border-white transform rotate-45 mb-1 ml-0.5"></div>
         <div className="absolute inset-0 border-2 border-white/20 rounded-xl"></div>
       </div>

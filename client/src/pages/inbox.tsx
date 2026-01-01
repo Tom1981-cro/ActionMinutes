@@ -30,7 +30,7 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, onTap, isReview }
   const isOverdue = item.dueDate && new Date(item.dueDate) < new Date();
 
   return (
-    <Card className={`bg-white border-stone-200 rounded-2xl overflow-hidden card-interactive ${isReview ? 'border-l-4 border-l-amber-400' : ''}`}>
+    <Card className={`bg-card border-border rounded-2xl overflow-hidden card-interactive ${isReview ? 'border-l-4 border-l-amber-400' : ''}`}>
       <CardContent className="p-0">
         <button 
           className="w-full p-4 text-left space-y-3 tap-highlight"
@@ -55,10 +55,10 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, onTap, isReview }
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-stone-600">
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
             {item.ownerName && (
               <span className="flex items-center gap-1.5">
-                <User className="h-4 w-4 text-stone-400" />
+                <User className="h-4 w-4 text-muted-foreground" />
                 <span>{item.ownerName}</span>
               </span>
             )}
@@ -72,13 +72,13 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, onTap, isReview }
           </div>
         </button>
 
-        <div className="border-t border-stone-100 bg-stone-50/50 px-2 py-2">
+        <div className="border-t border-border bg-muted/50 px-2 py-2">
           <div className="flex items-center justify-between gap-1">
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={(e) => { e.stopPropagation(); onDone(); }}
-              className="flex-1 h-11 rounded-xl text-teal-600 hover:bg-teal-50 hover:text-teal-700 flex flex-col items-center gap-0.5 px-2"
+              className="flex-1 h-11 rounded-xl text-primary hover:bg-primary/10 hover:text-primary flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-done-${item.id}`}
             >
               <CheckCircle className="h-5 w-5" />
@@ -89,7 +89,7 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, onTap, isReview }
               variant="ghost" 
               size="sm" 
               onClick={(e) => { e.stopPropagation(); onRemind(); }}
-              className="flex-1 h-11 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-700 flex flex-col items-center gap-0.5 px-2"
+              className="flex-1 h-11 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-remind-${item.id}`}
             >
               <Bell className="h-5 w-5" />
@@ -100,7 +100,7 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, onTap, isReview }
               variant="ghost" 
               size="sm" 
               onClick={(e) => { e.stopPropagation(); onNudge(); }}
-              className="flex-1 h-11 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-700 flex flex-col items-center gap-0.5 px-2"
+              className="flex-1 h-11 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-nudge-${item.id}`}
             >
               <MessageCircle className="h-5 w-5" />
@@ -111,7 +111,7 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, onTap, isReview }
               variant="ghost" 
               size="sm" 
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
-              className="flex-1 h-11 rounded-xl text-stone-500 hover:bg-stone-100 hover:text-stone-700 flex flex-col items-center gap-0.5 px-2"
+              className="flex-1 h-11 rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-edit-${item.id}`}
             >
               <Pencil className="h-5 w-5" />
@@ -135,7 +135,7 @@ export default function InboxPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -178,18 +178,18 @@ export default function InboxPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-800">Inbox</h1>
-            <p className="text-stone-500 text-base mt-1">
+            <p className="text-muted-foreground text-base mt-1">
               {totalItems === 0 ? "All clear" : `${totalItems} open ${totalItems === 1 ? 'item' : 'items'}`}
             </p>
           </div>
         </div>
 
-        <div className="flex gap-2 p-1 bg-stone-100 rounded-2xl">
+        <div className="flex gap-2 p-1 bg-muted rounded-2xl">
           <Button
             variant={filter === "my" ? "default" : "ghost"}
             size="sm"
             onClick={() => setFilter("my")}
-            className={`flex-1 h-10 rounded-xl ${filter === "my" ? 'bg-white shadow-sm text-slate-800' : 'text-stone-500'}`}
+            className={`flex-1 h-10 rounded-xl ${filter === "my" ? 'bg-card shadow-sm text-slate-800' : 'text-muted-foreground'}`}
             data-testid="filter-my-items"
           >
             <User className="h-4 w-4 mr-2" />
@@ -199,7 +199,7 @@ export default function InboxPage() {
             variant={filter === "workspace" ? "default" : "ghost"}
             size="sm"
             onClick={() => setFilter("workspace")}
-            className={`flex-1 h-10 rounded-xl ${filter === "workspace" ? 'bg-white shadow-sm text-slate-800' : 'text-stone-500'}`}
+            className={`flex-1 h-10 rounded-xl ${filter === "workspace" ? 'bg-card shadow-sm text-slate-800' : 'text-muted-foreground'}`}
             data-testid="filter-workspace-items"
           >
             <Filter className="h-4 w-4 mr-2" />
@@ -239,30 +239,30 @@ export default function InboxPage() {
 
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <div className="h-6 w-1 bg-teal-500 rounded-full" />
+          <div className="h-6 w-1 bg-primary rounded-full" />
           <h2 className="text-base font-semibold text-slate-700">
             Open Items
           </h2>
-          <Badge variant="secondary" className="bg-stone-200 text-stone-700 rounded-full ml-auto">
+          <Badge variant="secondary" className="bg-muted text-muted-foreground rounded-full ml-auto">
             {openItems.length}
           </Badge>
         </div>
 
         {openItems.length === 0 && needsReview.length === 0 ? (
-          <Card className="bg-stone-50/50 border-dashed border-stone-300 rounded-2xl">
+          <Card className="bg-muted/50 border-dashed border-border rounded-2xl">
              <CardContent className="py-12 text-center space-y-3">
-               <div className="mx-auto h-16 w-16 bg-teal-100 rounded-full flex items-center justify-center">
-                 <CheckCircle className="h-8 w-8 text-teal-600" />
+               <div className="mx-auto h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center">
+                 <CheckCircle className="h-8 w-8 text-primary" />
                </div>
                <div>
                  <p className="text-lg font-medium text-slate-700">Inbox zero!</p>
-                 <p className="text-stone-500 text-base mt-1">No open items. You're all caught up.</p>
+                 <p className="text-muted-foreground text-base mt-1">No open items. You're all caught up.</p>
                </div>
              </CardContent>
            </Card>
         ) : openItems.length === 0 ? (
-          <Card className="bg-stone-50/50 border-dashed border-stone-300 rounded-2xl">
-            <CardContent className="py-8 text-center text-stone-500 text-base">
+          <Card className="bg-muted/50 border-dashed border-border rounded-2xl">
+            <CardContent className="py-8 text-center text-muted-foreground text-base">
               No open items. Review the items above to move forward.
             </CardContent>
           </Card>

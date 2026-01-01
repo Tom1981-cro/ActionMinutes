@@ -17,7 +17,7 @@ const statusConfig: Record<string, {
   open: {
     label: 'Open',
     icon: CircleDot,
-    className: 'bg-stone-100 text-stone-700 border-stone-200',
+    className: 'bg-muted text-muted-foreground border-border',
   },
   done: {
     label: 'Done',
@@ -37,7 +37,7 @@ const statusConfig: Record<string, {
   draft: {
     label: 'Draft',
     icon: CircleDot,
-    className: 'bg-stone-100 text-stone-600 border-stone-200',
+    className: 'bg-muted text-muted-foreground border-border',
   },
   processing: {
     label: 'Processing',
@@ -47,7 +47,7 @@ const statusConfig: Record<string, {
   parsed: {
     label: 'Parsed',
     icon: Check,
-    className: 'bg-teal-50 text-teal-700 border-teal-200',
+    className: 'bg-primary/10 text-primary border-primary/20',
   },
   finalized: {
     label: 'Finalized',
@@ -84,7 +84,7 @@ export function SeverityBadge({ severity, className }: { severity: string; class
   const config: Record<string, { label: string; className: string }> = {
     high: { label: 'High', className: 'bg-rose-50 text-rose-700 border-rose-200' },
     medium: { label: 'Medium', className: 'bg-amber-50 text-amber-700 border-amber-200' },
-    low: { label: 'Low', className: 'bg-stone-100 text-stone-600 border-stone-200' },
+    low: { label: 'Low', className: 'bg-muted text-muted-foreground border-border' },
   };
   
   const cfg = config[severity] || config.low;
