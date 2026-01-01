@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { 
-  Inbox, Calendar, PlusCircle, FileText, Settings, LogOut 
+  Inbox, Calendar, PlusCircle, FileText, Settings, LogOut, Bell, BookOpen 
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
@@ -15,16 +15,26 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
-  const { user } = useStore();
+  const { user, currentWorkspaceId } = useStore();
   const { toast } = useToast();
 
-  const navItems = [
+  const isPersonalMode = currentWorkspaceId === null;
+
+  const personalNavItems = [
+    { href: "/inbox", label: "Inbox", icon: Inbox },
+    { href: "/reminders", label: "Reminders", icon: Bell, primary: true },
+    { href: "/journal", label: "Journal", icon: BookOpen },
+  ];
+
+  const teamNavItems = [
     { href: "/inbox", label: "Inbox", icon: Inbox },
     { href: "/meetings", label: "Meetings", icon: Calendar },
     { href: "/capture", label: "Capture", icon: PlusCircle, primary: true },
     { href: "/drafts", label: "Drafts", icon: FileText },
     { href: "/settings", label: "Settings", icon: Settings },
   ];
+
+  const navItems = isPersonalMode ? personalNavItems : teamNavItems;
 
   if (!user.isAuthenticated) {
     return <div className="min-h-screen bg-background">{children}</div>;
@@ -72,6 +82,21 @@ export default function Layout({ children }: LayoutProps) {
             <p className="text-sm font-bold text-slate-900" data-testid="text-user-name">{user.name}</p>
             <p className="text-xs text-slate-500 truncate" data-testid="text-user-email">{user.email}</p>
           </div>
+          {isPersonalMode && (
+            <Link 
+              href="/settings"
+              data-testid="nav-settings-personal"
+              className={cn(
+                "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 cursor-pointer mb-1",
+                location === "/settings"
+                  ? "bg-indigo-50 text-indigo-600"
+                  : "text-slate-500 hover:bg-gray-50 hover:text-indigo-600"
+              )}
+            >
+              <Settings className="h-4 w-4" />
+              Settings
+            </Link>
+          )}
           <Button 
             variant="ghost" 
             data-testid="button-signout"
@@ -95,7 +120,23 @@ export default function Layout({ children }: LayoutProps) {
             <span className="font-bold">Action</span><span className="font-normal">Minutes</span>
           </span>
         </div>
-        <WorkspaceSwitcher />
+        <div className="flex items-center gap-2">
+          <WorkspaceSwitcher />
+          {isPersonalMode && (
+            <Link 
+              href="/settings"
+              data-testid="mobile-settings-personal"
+              className={cn(
+                "p-2 rounded-lg transition-colors",
+                location === "/settings"
+                  ? "bg-indigo-50 text-indigo-600"
+                  : "text-slate-400 hover:bg-gray-50 hover:text-indigo-600"
+              )}
+            >
+              <Settings className="h-5 w-5" />
+            </Link>
+          )}
+        </div>
       </header>
 
       {/* Main Content */}

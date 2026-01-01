@@ -134,6 +134,8 @@ export default function InboxPage() {
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const { user, currentWorkspaceId } = useStore();
 
+  const isPersonalMode = currentWorkspaceId === null;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -143,7 +145,7 @@ export default function InboxPage() {
   }
 
   const filteredItems = actionItems.filter((item: any) => {
-    if (filter === "mine") {
+    if (isPersonalMode || filter === "mine") {
       return item.ownerName?.toLowerCase() === user.name?.toLowerCase() || 
              item.ownerId === user.id ||
              (!item.ownerName && !item.ownerId);
@@ -195,28 +197,30 @@ export default function InboxPage() {
           </div>
         </div>
 
-        <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
-          <Button
-            variant={filter === "mine" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setFilter("mine")}
-            className={`flex-1 h-10 rounded-xl ${filter === "mine" ? 'bg-white shadow-sm text-slate-800' : 'text-gray-500'}`}
-            data-testid="filter-mine"
-          >
-            <User className="h-4 w-4 mr-2" />
-            Mine
-          </Button>
-          <Button
-            variant={filter === "workspace" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setFilter("workspace")}
-            className={`flex-1 h-10 rounded-xl ${filter === "workspace" ? 'bg-white shadow-sm text-slate-800' : 'text-gray-500'}`}
-            data-testid="filter-workspace"
-          >
-            <Users className="h-4 w-4 mr-2" />
-            {currentWorkspaceId ? "Workspace" : "All"}
-          </Button>
-        </div>
+        {!isPersonalMode && (
+          <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
+            <Button
+              variant={filter === "mine" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setFilter("mine")}
+              className={`flex-1 h-10 rounded-xl ${filter === "mine" ? 'bg-white shadow-sm text-slate-800' : 'text-gray-500'}`}
+              data-testid="filter-mine"
+            >
+              <User className="h-4 w-4 mr-2" />
+              Mine
+            </Button>
+            <Button
+              variant={filter === "workspace" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setFilter("workspace")}
+              className={`flex-1 h-10 rounded-xl ${filter === "workspace" ? 'bg-white shadow-sm text-slate-800' : 'text-gray-500'}`}
+              data-testid="filter-workspace"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Workspace
+            </Button>
+          </div>
+        )}
       </div>
 
       {needsReview.length > 0 && (
