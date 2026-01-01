@@ -6,14 +6,15 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { 
   CheckCircle, Clock, AlertTriangle, Loader2, 
   Bell, MessageCircle, Pencil, User, Calendar,
-  Filter
+  Users
 } from "lucide-react";
 import { format } from "date-fns";
 import { useActionItems, useUpdateActionItem } from "@/lib/hooks";
 import { useToast } from "@/hooks/use-toast";
 import { ActionEditSheet } from "@/components/action-edit-sheet";
+import { useStore } from "@/lib/store";
 
-type FilterType = "my" | "workspace";
+type FilterType = "mine" | "workspace";
 
 interface ActionCardProps {
   item: any;
@@ -128,9 +129,10 @@ export default function InboxPage() {
   const { data: actionItems = [], isLoading } = useActionItems();
   const updateActionItem = useUpdateActionItem();
   const { toast } = useToast();
-  const [filter, setFilter] = useState<FilterType>("my");
+  const [filter, setFilter] = useState<FilterType>("mine");
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
+  const { user, currentWorkspaceId } = useStore();
 
   if (isLoading) {
     return (
@@ -140,8 +142,17 @@ export default function InboxPage() {
     );
   }
 
-  const needsReview = actionItems.filter((i: any) => i.status === "needs_review");
-  const openItems = actionItems.filter((i: any) => i.status === "open" || i.status === "waiting").sort((a: any, b: any) => {
+  const filteredItems = actionItems.filter((item: any) => {
+    if (filter === "mine") {
+      return item.ownerName?.toLowerCase() === user.name?.toLowerCase() || 
+             item.ownerId === user.id ||
+             (!item.ownerName && !item.ownerId);
+    }
+    return true;
+  });
+
+  const needsReview = filteredItems.filter((i: any) => i.status === "needs_review");
+  const openItems = filteredItems.filter((i: any) => i.status === "open" || i.status === "waiting").sort((a: any, b: any) => {
     if (!a.dueDate) return 1;
     if (!b.dueDate) return -1;
     return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
@@ -186,24 +197,24 @@ export default function InboxPage() {
 
         <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
           <Button
-            variant={filter === "my" ? "default" : "ghost"}
+            variant={filter === "mine" ? "default" : "ghost"}
             size="sm"
-            onClick={() => setFilter("my")}
-            className={`flex-1 h-10 rounded-xl ${filter === "my" ? 'bg-white shadow-sm text-slate-800' : 'text-gray-500'}`}
-            data-testid="filter-my-items"
+            onClick={() => setFilter("mine")}
+            className={`flex-1 h-10 rounded-xl ${filter === "mine" ? 'bg-white shadow-sm text-slate-800' : 'text-gray-500'}`}
+            data-testid="filter-mine"
           >
             <User className="h-4 w-4 mr-2" />
-            My Items
+            Mine
           </Button>
           <Button
             variant={filter === "workspace" ? "default" : "ghost"}
             size="sm"
             onClick={() => setFilter("workspace")}
             className={`flex-1 h-10 rounded-xl ${filter === "workspace" ? 'bg-white shadow-sm text-slate-800' : 'text-gray-500'}`}
-            data-testid="filter-workspace-items"
+            data-testid="filter-workspace"
           >
-            <Filter className="h-4 w-4 mr-2" />
-            Workspace
+            <Users className="h-4 w-4 mr-2" />
+            {currentWorkspaceId ? "Workspace" : "All"}
           </Button>
         </div>
       </div>
