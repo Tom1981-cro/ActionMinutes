@@ -1,6 +1,6 @@
 import { 
   users, meetings, attendees, decisions, risks, clarifyingQuestions,
-  actionItems, followUpDrafts, personalEntries, personalReminders, journalPrompts,
+  actionItems, followUpDrafts, personalEntries, personalReminders, journalPrompts, journalPromptShown,
   workspaces, workspaceMembers, workspaceInvites,
   oauthConnections, calendarExports, aiAuditLogs, feedback,
   type User, type InsertUser,
@@ -89,8 +89,13 @@ export interface IStorage {
   deletePersonalReminder(id: string): Promise<void>;
   
   // Journal Prompts
-  getJournalPrompts(category?: string): Promise<JournalPrompt[]>;
+  getJournalPrompts(category?: string, intent?: string): Promise<JournalPrompt[]>;
   createJournalPrompt(prompt: InsertJournalPrompt): Promise<JournalPrompt>;
+  
+  // Journal Prompt Tracking
+  getShownPromptsForUser(userId: string): Promise<string[]>;
+  trackPromptShown(userId: string, promptId: string, entryId?: string): Promise<void>;
+  trackPromptResponse(userId: string, promptId: string, entryId: string): Promise<void>;
   
   // Workspaces
   getWorkspaces(userId: string): Promise<Workspace[]>;
@@ -372,17 +377,42 @@ export class DatabaseStorage implements IStorage {
   }
 
   // ==================== JOURNAL PROMPTS ====================
-  async getJournalPrompts(category?: string): Promise<JournalPrompt[]> {
-    if (category) {
-      return await db.select().from(journalPrompts)
-        .where(and(eq(journalPrompts.category, category), eq(journalPrompts.isActive, true)));
-    }
-    return await db.select().from(journalPrompts).where(eq(journalPrompts.isActive, true));
+  async getJournalPrompts(category?: string, intent?: string): Promise<JournalPrompt[]> {
+    const conditions = [eq(journalPrompts.isActive, true)];
+    if (category) conditions.push(eq(journalPrompts.category, category));
+    if (intent) conditions.push(eq(journalPrompts.intent, intent));
+    return await db.select().from(journalPrompts).where(and(...conditions));
   }
 
   async createJournalPrompt(prompt: InsertJournalPrompt): Promise<JournalPrompt> {
     const [newPrompt] = await db.insert(journalPrompts).values(prompt).returning();
     return newPrompt;
+  }
+
+  async getShownPromptsForUser(userId: string): Promise<string[]> {
+    const results = await db.select({ promptId: journalPromptShown.promptId })
+      .from(journalPromptShown)
+      .where(eq(journalPromptShown.userId, userId));
+    return results.map(r => r.promptId);
+  }
+
+  async trackPromptShown(userId: string, promptId: string, entryId?: string): Promise<void> {
+    await db.insert(journalPromptShown).values({
+      userId,
+      promptId,
+      entryId: entryId || null,
+      shown: true,
+      responded: false,
+    });
+  }
+
+  async trackPromptResponse(userId: string, promptId: string, entryId: string): Promise<void> {
+    await db.update(journalPromptShown)
+      .set({ responded: true, entryId })
+      .where(and(
+        eq(journalPromptShown.userId, userId),
+        eq(journalPromptShown.promptId, promptId)
+      ));
   }
 
   // ==================== WORKSPACES ====================

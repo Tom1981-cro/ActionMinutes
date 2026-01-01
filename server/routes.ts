@@ -1022,16 +1022,100 @@ Thanks!`,
     if (!userId) return res.status(400).json({ error: "userId is required" });
     
     try {
+      const { analyzeJournalEntry, detectSafetyRisk } = await import("./journal-ai");
+      
+      const rawText = req.body.rawText || '';
+      const analysis = await analyzeJournalEntry(rawText);
+      const safetyRisk = detectSafetyRisk(rawText);
+      
       const entry = await storage.createPersonalEntry({
         userId,
         date: new Date(req.body.date || new Date()),
-        rawText: req.body.rawText,
+        rawText,
         mood: req.body.mood,
         promptUsed: req.body.promptUsed,
+        detectedSignals: analysis.signals,
+        aiProcessed: false,
       });
-      res.json(entry);
+      
+      res.json({ 
+        ...entry, 
+        suggestedPrompts: analysis.prompts,
+        safetyRisk,
+      });
     } catch (error) {
       res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  app.post("/api/personal/journal/:id/analyze", async (req, res) => {
+    const userId = req.query.userId as string || req.body.userId;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    
+    const entry = await storage.getPersonalEntry(req.params.id);
+    if (!entry) return res.status(404).json({ error: "Journal entry not found" });
+    if (entry.userId !== userId) return res.status(403).json({ error: "Access denied" });
+    
+    try {
+      const user = await storage.getUser(userId);
+      const personalAiEnabled = user?.personalAiEnabled !== false;
+      
+      const { analyzeJournalEntry, summarizeJournalEntry, getMockSummary, detectSafetyRisk } = await import("./journal-ai");
+      
+      const analysis = await analyzeJournalEntry(entry.rawText);
+      const safetyRisk = detectSafetyRisk(entry.rawText);
+      
+      let summary = null;
+      if (personalAiEnabled && entry.rawText.length >= 20) {
+        summary = await summarizeJournalEntry(entry.rawText, true);
+      }
+      if (!summary && entry.rawText.length >= 20) {
+        summary = getMockSummary(entry.rawText);
+      }
+      
+      if (summary) {
+        await storage.updatePersonalEntry(entry.id, {
+          summary: summary.summary,
+          top3: summary.top3,
+          nextSteps: summary.nextSteps,
+          detectedSignals: analysis.signals,
+          aiProcessed: true,
+        });
+      }
+      
+      res.json({
+        signals: analysis.signals,
+        prompts: analysis.prompts,
+        safetyRisk,
+        summary,
+        aiEnabled: personalAiEnabled,
+      });
+    } catch (error) {
+      console.error('[JournalAI] Analysis error:', error);
+      res.status(500).json({ error: "Failed to analyze entry" });
+    }
+  });
+
+  app.get("/api/personal/journal/prompts", async (req, res) => {
+    const userId = req.query.userId as string;
+    const text = req.query.text as string;
+    
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    
+    try {
+      const { analyzeJournalEntry, detectSafetyRisk } = await import("./journal-ai");
+      
+      const shownPromptIds = await storage.getShownPromptsForUser(userId);
+      const analysis = await analyzeJournalEntry(text || '', shownPromptIds);
+      const safetyRisk = detectSafetyRisk(text || '');
+      
+      res.json({
+        prompts: analysis.prompts,
+        signals: analysis.signals,
+        safetyRisk,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get prompts" });
     }
   });
 
