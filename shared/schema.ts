@@ -164,6 +164,8 @@ export const followUpDrafts = pgTable("follow_up_drafts", {
   body: text("body").notNull(),
   tone: text("tone").notNull(),
   state: text("state").notNull().default('generated'),
+  providerDraftId: text("provider_draft_id"),
+  providerMetadata: jsonb("provider_metadata"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
