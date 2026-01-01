@@ -170,7 +170,7 @@ export const followUpDrafts = pgTable("follow_up_drafts", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-// ==================== PERSONAL ENTRIES ====================
+// ==================== PERSONAL ENTRIES (Journal) ====================
 export const personalEntries = pgTable("personal_entries", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
@@ -179,7 +179,32 @@ export const personalEntries = pgTable("personal_entries", {
   summary: text("summary"),
   top3: text("top3").array(),
   nextSteps: text("next_steps").array(),
+  mood: text("mood"), // good, okay, tough
+  promptUsed: text("prompt_used"), // which smart prompt was used
   createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ==================== PERSONAL REMINDERS ====================
+export const personalReminders = pgTable("personal_reminders", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  text: text("text").notNull(),
+  bucket: text("bucket").notNull().default('sometime'), // today, tomorrow, next_week, next_month, sometime
+  dueDate: timestamp("due_date"),
+  isCompleted: boolean("is_completed").notNull().default(false),
+  completedAt: timestamp("completed_at"),
+  priority: text("priority").notNull().default('normal'), // low, normal, high
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ==================== JOURNAL PROMPTS ====================
+export const journalPrompts = pgTable("journal_prompts", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  category: text("category").notNull(), // reflection, goals, gratitude, challenges
+  text: text("text").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
 });
 
 // ==================== FEEDBACK ====================
@@ -275,6 +300,17 @@ export const insertPersonalEntrySchema = createInsertSchema(personalEntries).omi
   createdAt: true,
 });
 
+export const insertPersonalReminderSchema = createInsertSchema(personalReminders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  completedAt: true,
+});
+
+export const insertJournalPromptSchema = createInsertSchema(journalPrompts).omit({
+  id: true,
+});
+
 export const insertFeedbackSchema = createInsertSchema(feedback).omit({
   id: true,
   createdAt: true,
@@ -326,8 +362,20 @@ export type FollowUpDraft = typeof followUpDrafts.$inferSelect;
 export type InsertPersonalEntry = z.infer<typeof insertPersonalEntrySchema>;
 export type PersonalEntry = typeof personalEntries.$inferSelect;
 
+export type InsertPersonalReminder = z.infer<typeof insertPersonalReminderSchema>;
+export type PersonalReminder = typeof personalReminders.$inferSelect;
+
+export type InsertJournalPrompt = z.infer<typeof insertJournalPromptSchema>;
+export type JournalPrompt = typeof journalPrompts.$inferSelect;
+
 export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
 export type Feedback = typeof feedback.$inferSelect;
+
+// ==================== ADDITIONAL TYPES ====================
+export type ReminderBucket = 'today' | 'tomorrow' | 'next_week' | 'next_month' | 'sometime';
+export type ReminderPriority = 'low' | 'normal' | 'high';
+export type JournalMood = 'good' | 'okay' | 'tough';
+export type PromptCategory = 'reflection' | 'goals' | 'gratitude' | 'challenges';
 
 // ==================== ROLE TYPES ====================
 export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer';

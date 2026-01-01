@@ -1,6 +1,6 @@
 import { 
   users, meetings, attendees, decisions, risks, clarifyingQuestions,
-  actionItems, followUpDrafts, personalEntries,
+  actionItems, followUpDrafts, personalEntries, personalReminders, journalPrompts,
   workspaces, workspaceMembers, workspaceInvites,
   oauthConnections, calendarExports, aiAuditLogs, feedback,
   type User, type InsertUser,
@@ -12,6 +12,8 @@ import {
   type ActionItem, type InsertActionItem,
   type FollowUpDraft, type InsertFollowUpDraft,
   type PersonalEntry, type InsertPersonalEntry,
+  type PersonalReminder, type InsertPersonalReminder,
+  type JournalPrompt, type InsertJournalPrompt,
   type Workspace, type InsertWorkspace,
   type WorkspaceMember, type InsertWorkspaceMember,
   type WorkspaceInvite, type InsertWorkspaceInvite,
@@ -72,9 +74,23 @@ export interface IStorage {
   updateDraft(id: string, updates: Partial<FollowUpDraft>): Promise<FollowUpDraft | undefined>;
   deleteDraft(id: string): Promise<void>;
   
-  // Personal Entries
+  // Personal Entries (Journal)
   getPersonalEntries(userId: string): Promise<PersonalEntry[]>;
+  getPersonalEntry(id: string): Promise<PersonalEntry | undefined>;
   createPersonalEntry(entry: InsertPersonalEntry): Promise<PersonalEntry>;
+  updatePersonalEntry(id: string, updates: Partial<PersonalEntry>): Promise<PersonalEntry | undefined>;
+  deletePersonalEntry(id: string): Promise<void>;
+  
+  // Personal Reminders
+  getPersonalReminders(userId: string, bucket?: string): Promise<PersonalReminder[]>;
+  getPersonalReminder(id: string): Promise<PersonalReminder | undefined>;
+  createPersonalReminder(reminder: InsertPersonalReminder): Promise<PersonalReminder>;
+  updatePersonalReminder(id: string, updates: Partial<PersonalReminder>): Promise<PersonalReminder | undefined>;
+  deletePersonalReminder(id: string): Promise<void>;
+  
+  // Journal Prompts
+  getJournalPrompts(category?: string): Promise<JournalPrompt[]>;
+  createJournalPrompt(prompt: InsertJournalPrompt): Promise<JournalPrompt>;
   
   // Workspaces
   getWorkspaces(userId: string): Promise<Workspace[]>;
@@ -301,9 +317,72 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(personalEntries).where(eq(personalEntries.userId, userId)).orderBy(desc(personalEntries.date));
   }
 
+  async getPersonalEntry(id: string): Promise<PersonalEntry | undefined> {
+    const [entry] = await db.select().from(personalEntries).where(eq(personalEntries.id, id));
+    return entry || undefined;
+  }
+
   async createPersonalEntry(entry: InsertPersonalEntry): Promise<PersonalEntry> {
     const [newEntry] = await db.insert(personalEntries).values(entry).returning();
     return newEntry;
+  }
+
+  async updatePersonalEntry(id: string, updates: Partial<PersonalEntry>): Promise<PersonalEntry | undefined> {
+    const [entry] = await db.update(personalEntries).set(updates).where(eq(personalEntries.id, id)).returning();
+    return entry || undefined;
+  }
+
+  async deletePersonalEntry(id: string): Promise<void> {
+    await db.delete(personalEntries).where(eq(personalEntries.id, id));
+  }
+
+  // ==================== PERSONAL REMINDERS ====================
+  async getPersonalReminders(userId: string, bucket?: string): Promise<PersonalReminder[]> {
+    if (bucket) {
+      return await db.select().from(personalReminders)
+        .where(and(eq(personalReminders.userId, userId), eq(personalReminders.bucket, bucket)))
+        .orderBy(desc(personalReminders.createdAt));
+    }
+    return await db.select().from(personalReminders)
+      .where(eq(personalReminders.userId, userId))
+      .orderBy(desc(personalReminders.createdAt));
+  }
+
+  async getPersonalReminder(id: string): Promise<PersonalReminder | undefined> {
+    const [reminder] = await db.select().from(personalReminders).where(eq(personalReminders.id, id));
+    return reminder || undefined;
+  }
+
+  async createPersonalReminder(reminder: InsertPersonalReminder): Promise<PersonalReminder> {
+    const [newReminder] = await db.insert(personalReminders).values(reminder).returning();
+    return newReminder;
+  }
+
+  async updatePersonalReminder(id: string, updates: Partial<PersonalReminder>): Promise<PersonalReminder | undefined> {
+    const updateData = { ...updates, updatedAt: new Date() };
+    if (updates.isCompleted === true && !updates.completedAt) {
+      updateData.completedAt = new Date();
+    }
+    const [reminder] = await db.update(personalReminders).set(updateData).where(eq(personalReminders.id, id)).returning();
+    return reminder || undefined;
+  }
+
+  async deletePersonalReminder(id: string): Promise<void> {
+    await db.delete(personalReminders).where(eq(personalReminders.id, id));
+  }
+
+  // ==================== JOURNAL PROMPTS ====================
+  async getJournalPrompts(category?: string): Promise<JournalPrompt[]> {
+    if (category) {
+      return await db.select().from(journalPrompts)
+        .where(and(eq(journalPrompts.category, category), eq(journalPrompts.isActive, true)));
+    }
+    return await db.select().from(journalPrompts).where(eq(journalPrompts.isActive, true));
+  }
+
+  async createJournalPrompt(prompt: InsertJournalPrompt): Promise<JournalPrompt> {
+    const [newPrompt] = await db.insert(journalPrompts).values(prompt).returning();
+    return newPrompt;
   }
 
   // ==================== WORKSPACES ====================
