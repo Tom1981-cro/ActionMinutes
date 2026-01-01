@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { StatusBadge, SeverityBadge } from "@/components/ui/status-badge";
 import { Loader2, ArrowLeft, CheckCircle, FileText, Calendar, Download, AlertTriangle, HelpCircle, Pencil, User, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useMeeting, useActionItemsForMeeting, useDecisionsForMeeting, useRisksForMeeting, useQuestionsForMeeting, useUpdateMeeting, useExportCalendar, useAppConfig } from "@/lib/hooks";
+import { useMeeting, useActionItemsForMeeting, useDecisionsForMeeting, useRisksForMeeting, useQuestionsForMeeting, useUpdateMeeting, useExportCalendar, useAppConfig, useGenerateDrafts, useDraftsForMeeting } from "@/lib/hooks";
 import { ActionEditSheet } from "@/components/action-edit-sheet";
 import type { ActionItem } from "@shared/schema";
 
@@ -29,8 +29,11 @@ export default function ExtractionPage() {
   const { data: questions = [] } = useQuestionsForMeeting(id);
   const updateMeeting = useUpdateMeeting();
   const exportCalendar = useExportCalendar();
+  const generateDrafts = useGenerateDrafts();
+  const { data: existingDrafts = [] } = useDraftsForMeeting(id);
 
   const aiEnabled = config?.features?.aiEnabled !== false;
+  const hasDrafts = existingDrafts.length > 0;
 
   const [exportOpen, setExportOpen] = useState(false);
   const [includeActionItems, setIncludeActionItems] = useState(false);
@@ -86,6 +89,20 @@ export default function ExtractionPage() {
 
   const handleViewDrafts = () => {
     setLocation("/drafts");
+  };
+
+  const handleGenerateDrafts = async () => {
+    try {
+      await generateDrafts.mutateAsync(meeting.id);
+      toast({ title: "Drafts generated", description: "Follow-up emails are ready in Drafts." });
+      setLocation("/drafts");
+    } catch (error: any) {
+      toast({ 
+        title: "Generation failed", 
+        description: error?.message || "Could not generate drafts. Please try again.", 
+        variant: "destructive" 
+      });
+    }
   };
 
   const handleExport = async () => {
@@ -382,10 +399,27 @@ export default function ExtractionPage() {
                 Finalize
               </Button>
             )}
-            <Button variant="outline" onClick={handleViewDrafts} className="rounded-full border-stone-300 h-11" data-testid="button-drafts">
-              <FileText className="mr-2 h-4 w-4" />
-              View Drafts
-            </Button>
+            {hasDrafts ? (
+              <Button variant="outline" onClick={handleViewDrafts} className="rounded-full border-stone-300 h-11" data-testid="button-view-drafts">
+                <FileText className="mr-2 h-4 w-4" />
+                View Drafts
+              </Button>
+            ) : (
+              <Button 
+                variant="default" 
+                onClick={handleGenerateDrafts} 
+                disabled={generateDrafts.isPending || !aiEnabled}
+                className="rounded-full bg-teal-500 hover:bg-teal-600 h-11" 
+                data-testid="button-generate-drafts"
+              >
+                {generateDrafts.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <FileText className="mr-2 h-4 w-4" />
+                )}
+                Generate Drafts
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -434,15 +468,32 @@ export default function ExtractionPage() {
             </DialogContent>
           </Dialog>
 
-          <Button 
-            size="lg" 
-            className="flex-1 text-base h-12 rounded-xl bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20" 
-            onClick={handleViewDrafts}
-            data-testid="button-generate-drafts-mobile"
-          >
-            <FileText className="mr-2 h-5 w-5" />
-            Generate Drafts
-          </Button>
+          {hasDrafts ? (
+            <Button 
+              size="lg" 
+              className="flex-1 text-base h-12 rounded-xl bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20" 
+              onClick={handleViewDrafts}
+              data-testid="button-view-drafts-mobile"
+            >
+              <FileText className="mr-2 h-5 w-5" />
+              View Drafts
+            </Button>
+          ) : (
+            <Button 
+              size="lg" 
+              className="flex-1 text-base h-12 rounded-xl bg-teal-500 hover:bg-teal-600 shadow-lg shadow-teal-500/20" 
+              onClick={handleGenerateDrafts}
+              disabled={generateDrafts.isPending || !aiEnabled}
+              data-testid="button-generate-drafts-mobile"
+            >
+              {generateDrafts.isPending ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <FileText className="mr-2 h-5 w-5" />
+              )}
+              Generate Drafts
+            </Button>
+          )}
         </div>
       </div>
 
