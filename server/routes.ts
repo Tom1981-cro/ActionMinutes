@@ -15,6 +15,18 @@ import { getAppConfig, getAppConfigAsync } from "./config";
 import { extractMeetingNotes, generateFollowUpDrafts, mapConfidenceToStatus, PROMPT_VERSION } from "./ai";
 import multer from "multer";
 import { extractTextFromImage, validateImageFile, MAX_FILE_SIZE } from "./ocr";
+import {
+  exchangeGoogleCode,
+  exchangeMicrosoftCode,
+  refreshGoogleToken,
+  refreshMicrosoftToken,
+  getGoogleUserInfo,
+  getMicrosoftUserInfo,
+  createGmailDraft,
+  createOutlookDraft,
+  prepareTokenForStorage,
+  prepareTokenForUse,
+} from "./email-providers";
 
 // ==================== RBAC HELPERS ====================
 type Permission = 'read' | 'write' | 'manage' | 'delete';
@@ -1045,29 +1057,158 @@ Thanks!`,
     res.json({ success: true });
   });
 
-  // Placeholder OAuth routes (scaffold for future implementation)
+  // ==================== OAUTH ROUTES ====================
   app.get("/api/oauth/google/start", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
       return res.status(503).json({ error: "Google OAuth not configured" });
     }
-    // Return OAuth URL for frontend to redirect
+    
     const redirectUri = process.env.GOOGLE_REDIRECT_URL || `${req.protocol}://${req.get('host')}/api/oauth/google/callback`;
-    const scope = 'https://www.googleapis.com/auth/gmail.compose';
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline`;
+    const scope = 'https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/userinfo.email';
+    const state = Buffer.from(JSON.stringify({ userId })).toString('base64');
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&access_type=offline&prompt=consent&state=${state}`;
     res.json({ authUrl });
+  });
+
+  app.get("/api/oauth/google/callback", async (req, res) => {
+    try {
+      const { code, state } = req.query;
+      if (!code || !state) {
+        return res.redirect('/settings?error=missing_params');
+      }
+      
+      const stateData = JSON.parse(Buffer.from(state as string, 'base64').toString());
+      const userId = stateData.userId;
+      if (!userId) {
+        return res.redirect('/settings?error=invalid_state');
+      }
+      
+      const redirectUri = process.env.GOOGLE_REDIRECT_URL || `${req.protocol}://${req.get('host')}/api/oauth/google/callback`;
+      const tokens = await exchangeGoogleCode(code as string, redirectUri);
+      const userInfo = await getGoogleUserInfo(tokens.access_token);
+      
+      const existingConnection = await storage.getOAuthConnection(userId, 'google');
+      if (existingConnection) {
+        await storage.deleteOAuthConnection(existingConnection.id);
+      }
+      
+      const expiresAt = tokens.expires_in 
+        ? new Date(Date.now() + tokens.expires_in * 1000)
+        : undefined;
+      
+      await storage.createOAuthConnection({
+        userId,
+        provider: 'google',
+        accountEmail: userInfo.email,
+        accessToken: prepareTokenForStorage(tokens.access_token),
+        refreshToken: tokens.refresh_token ? prepareTokenForStorage(tokens.refresh_token) : undefined,
+        expiresAt,
+        scopes: ['gmail.compose', 'userinfo.email'],
+      });
+      
+      res.redirect('/settings?tab=integrations&success=google');
+    } catch (error) {
+      console.error('[Google OAuth] Callback error:', error);
+      res.redirect('/settings?tab=integrations&error=google_auth_failed');
+    }
   });
 
   app.get("/api/oauth/microsoft/start", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    
     if (!process.env.MICROSOFT_CLIENT_ID || !process.env.MICROSOFT_CLIENT_SECRET) {
       return res.status(503).json({ error: "Microsoft OAuth not configured" });
     }
+    
     const redirectUri = process.env.MICROSOFT_REDIRECT_URL || `${req.protocol}://${req.get('host')}/api/oauth/microsoft/callback`;
-    const scope = 'Mail.ReadWrite';
-    const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${process.env.MICROSOFT_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}`;
+    const scope = 'Mail.ReadWrite offline_access User.Read';
+    const state = Buffer.from(JSON.stringify({ userId })).toString('base64');
+    const authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${process.env.MICROSOFT_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&state=${state}`;
     res.json({ authUrl });
   });
 
-  // Draft creation via email providers (scaffold)
+  app.get("/api/oauth/microsoft/callback", async (req, res) => {
+    try {
+      const { code, state } = req.query;
+      if (!code || !state) {
+        return res.redirect('/settings?error=missing_params');
+      }
+      
+      const stateData = JSON.parse(Buffer.from(state as string, 'base64').toString());
+      const userId = stateData.userId;
+      if (!userId) {
+        return res.redirect('/settings?error=invalid_state');
+      }
+      
+      const redirectUri = process.env.MICROSOFT_REDIRECT_URL || `${req.protocol}://${req.get('host')}/api/oauth/microsoft/callback`;
+      const tokens = await exchangeMicrosoftCode(code as string, redirectUri);
+      const userInfo = await getMicrosoftUserInfo(tokens.access_token);
+      
+      const existingConnection = await storage.getOAuthConnection(userId, 'microsoft');
+      if (existingConnection) {
+        await storage.deleteOAuthConnection(existingConnection.id);
+      }
+      
+      const expiresAt = tokens.expires_in 
+        ? new Date(Date.now() + tokens.expires_in * 1000)
+        : undefined;
+      
+      await storage.createOAuthConnection({
+        userId,
+        provider: 'microsoft',
+        accountEmail: userInfo.email,
+        accessToken: prepareTokenForStorage(tokens.access_token),
+        refreshToken: tokens.refresh_token ? prepareTokenForStorage(tokens.refresh_token) : undefined,
+        expiresAt,
+        scopes: ['Mail.ReadWrite', 'User.Read'],
+      });
+      
+      res.redirect('/settings?tab=integrations&success=microsoft');
+    } catch (error) {
+      console.error('[Microsoft OAuth] Callback error:', error);
+      res.redirect('/settings?tab=integrations&error=microsoft_auth_failed');
+    }
+  });
+
+  // ==================== DRAFT CREATION ====================
+  async function getValidAccessToken(connection: any, provider: 'google' | 'microsoft'): Promise<string | null> {
+    let accessToken = prepareTokenForUse(connection.accessToken);
+    
+    if (connection.expiresAt && new Date(connection.expiresAt) < new Date()) {
+      if (!connection.refreshToken) {
+        return null;
+      }
+      
+      try {
+        const refreshToken = prepareTokenForUse(connection.refreshToken);
+        const tokens = provider === 'google' 
+          ? await refreshGoogleToken(refreshToken)
+          : await refreshMicrosoftToken(refreshToken);
+        
+        accessToken = tokens.access_token;
+        
+        const expiresAt = tokens.expires_in 
+          ? new Date(Date.now() + tokens.expires_in * 1000)
+          : undefined;
+        
+        await storage.updateOAuthConnection(connection.id, {
+          accessToken: prepareTokenForStorage(tokens.access_token),
+          ...(tokens.refresh_token && { refreshToken: prepareTokenForStorage(tokens.refresh_token) }),
+          expiresAt,
+        });
+      } catch (error) {
+        console.error(`[${provider}] Token refresh failed:`, error);
+        return null;
+      }
+    }
+    
+    return accessToken;
+  }
+
   app.post("/api/drafts/:id/create-gmail-draft", async (req, res) => {
     const userId = req.query.userId as string;
     if (!userId) return res.status(400).json({ error: "userId is required" });
@@ -1080,12 +1221,33 @@ Thanks!`,
     const draft = await storage.getDraft(req.params.id);
     if (!draft) return res.status(404).json({ error: "Draft not found" });
     
-    // TODO: Implement actual Gmail API call to create draft
-    // For now, return success with placeholder
+    const accessToken = await getValidAccessToken(connection, 'google');
+    if (!accessToken) {
+      return res.status(401).json({ error: "Gmail authentication expired. Please reconnect." });
+    }
+    
+    const result = await createGmailDraft(
+      accessToken,
+      draft.recipientEmail || '',
+      draft.subject,
+      draft.body
+    );
+    
+    if (!result.success) {
+      return res.status(500).json({ error: result.error });
+    }
+    
+    await storage.updateDraft(draft.id, {
+      providerDraftId: result.draftId,
+      providerMetadata: { provider: 'gmail', webLink: result.webLink, createdAt: new Date().toISOString() },
+    });
+    
+    await storage.updateOAuthConnection(connection.id, { lastUsedAt: new Date() });
+    
     res.json({ 
       success: true, 
-      message: "Draft creation scaffolded - implement Gmail API integration",
-      draftId: null 
+      draftId: result.draftId,
+      webLink: result.webLink,
     });
   });
 
@@ -1101,11 +1263,33 @@ Thanks!`,
     const draft = await storage.getDraft(req.params.id);
     if (!draft) return res.status(404).json({ error: "Draft not found" });
     
-    // TODO: Implement actual Graph API call to create draft
+    const accessToken = await getValidAccessToken(connection, 'microsoft');
+    if (!accessToken) {
+      return res.status(401).json({ error: "Outlook authentication expired. Please reconnect." });
+    }
+    
+    const result = await createOutlookDraft(
+      accessToken,
+      draft.recipientEmail || '',
+      draft.subject,
+      draft.body
+    );
+    
+    if (!result.success) {
+      return res.status(500).json({ error: result.error });
+    }
+    
+    await storage.updateDraft(draft.id, {
+      providerDraftId: result.draftId,
+      providerMetadata: { provider: 'outlook', webLink: result.webLink, createdAt: new Date().toISOString() },
+    });
+    
+    await storage.updateOAuthConnection(connection.id, { lastUsedAt: new Date() });
+    
     res.json({ 
       success: true, 
-      message: "Draft creation scaffolded - implement Graph API integration",
-      draftId: null 
+      draftId: result.draftId,
+      webLink: result.webLink,
     });
   });
 

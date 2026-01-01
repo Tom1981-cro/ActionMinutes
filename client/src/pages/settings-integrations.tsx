@@ -1,15 +1,41 @@
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Mail, ExternalLink, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
+import { Loader2, Mail, ExternalLink, CheckCircle, XCircle, AlertTriangle, Clock } from "lucide-react";
 import { useIntegrations, useDisconnectIntegration, useAppConfig } from "@/lib/hooks";
+import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
+import { api } from "@/lib/api";
+import { useLocation } from "wouter";
+import { format } from "date-fns";
 
 export default function SettingsIntegrationsPage() {
-  const { data: integrations, isLoading } = useIntegrations();
+  const { data: integrations, isLoading, refetch } = useIntegrations();
   const { data: config } = useAppConfig();
   const disconnectIntegration = useDisconnectIntegration();
+  const { user } = useStore();
   const { toast } = useToast();
+  const [location] = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get('success');
+    const error = params.get('error');
+    
+    if (success === 'google') {
+      toast({ title: "Gmail Connected", description: "You can now create drafts directly in Gmail." });
+      refetch();
+      window.history.replaceState({}, '', '/settings?tab=integrations');
+    } else if (success === 'microsoft') {
+      toast({ title: "Outlook Connected", description: "You can now create drafts directly in Outlook." });
+      refetch();
+      window.history.replaceState({}, '', '/settings?tab=integrations');
+    } else if (error) {
+      toast({ title: "Connection Failed", description: "Could not connect to your email account. Please try again.", variant: "destructive" });
+      window.history.replaceState({}, '', '/settings?tab=integrations');
+    }
+  }, [location]);
 
   if (config && !config.features.integrationsEnabled) {
     return (
@@ -26,7 +52,22 @@ export default function SettingsIntegrationsPage() {
   }
 
   const handleConnect = async (provider: 'google' | 'microsoft') => {
-    toast({ title: "OAuth Integration", description: "OAuth setup requires environment variables. See Settings > Help for details." });
+    try {
+      const endpoint = provider === 'google' 
+        ? `/api/oauth/google/start?userId=${user.id}`
+        : `/api/oauth/microsoft/start?userId=${user.id}`;
+      
+      const response = await fetch(endpoint);
+      const data = await response.json();
+      
+      if (data.authUrl) {
+        window.location.href = data.authUrl;
+      } else if (data.error) {
+        toast({ title: "Error", description: data.error, variant: "destructive" });
+      }
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to start connection process.", variant: "destructive" });
+    }
   };
 
   const handleDisconnect = async (provider: string) => {
@@ -75,19 +116,29 @@ export default function SettingsIntegrationsPage() {
           </CardHeader>
           <CardContent className="pt-4">
             {integrations?.google?.connected ? (
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-600">
-                  Connected as <span className="font-medium">{integrations.google.connected.accountEmail}</span>
-                </p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => handleDisconnect('google')}
-                  className="rounded-full border-gray-300"
-                  data-testid="button-disconnect-gmail"
-                >
-                  Disconnect
-                </Button>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      Connected as <span className="font-medium">{integrations.google.connected.accountEmail}</span>
+                    </p>
+                    {integrations.google.connected.lastUsedAt && (
+                      <p className="text-xs text-gray-400 flex items-center mt-1">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Last used {format(new Date(integrations.google.connected.lastUsedAt), 'MMM d, yyyy')}
+                      </p>
+                    )}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleDisconnect('google')}
+                    className="rounded-full border-gray-300"
+                    data-testid="button-disconnect-gmail"
+                  >
+                    Disconnect
+                  </Button>
+                </div>
               </div>
             ) : integrations?.google?.configured ? (
               <Button 
@@ -130,19 +181,29 @@ export default function SettingsIntegrationsPage() {
           </CardHeader>
           <CardContent className="pt-4">
             {integrations?.microsoft?.connected ? (
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-600">
-                  Connected as <span className="font-medium">{integrations.microsoft.connected.accountEmail}</span>
-                </p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => handleDisconnect('microsoft')}
-                  className="rounded-full border-gray-300"
-                  data-testid="button-disconnect-outlook"
-                >
-                  Disconnect
-                </Button>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      Connected as <span className="font-medium">{integrations.microsoft.connected.accountEmail}</span>
+                    </p>
+                    {integrations.microsoft.connected.lastUsedAt && (
+                      <p className="text-xs text-gray-400 flex items-center mt-1">
+                        <Clock className="h-3 w-3 mr-1" />
+                        Last used {format(new Date(integrations.microsoft.connected.lastUsedAt), 'MMM d, yyyy')}
+                      </p>
+                    )}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleDisconnect('microsoft')}
+                    className="rounded-full border-gray-300"
+                    data-testid="button-disconnect-outlook"
+                  >
+                    Disconnect
+                  </Button>
+                </div>
               </div>
             ) : integrations?.microsoft?.configured ? (
               <Button 
