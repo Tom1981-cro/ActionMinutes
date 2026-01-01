@@ -101,6 +101,20 @@ Admin endpoints (`/api/admin/*`) are protected by a `requireAdminAccess` middlew
 - **Journal Page UI**: Card-based layout showing detected signals, AI summaries, and suggested prompts
 - **Unit Tests**: 45 tests in `server/journal-ai/journal-ai.test.ts` for prompt selection, signal detection, schema validation
 
+### Personal Reminders
+- **Reminders Page** (`client/src/pages/reminders.tsx`): Kanban-style reminder board
+  - **5 Bucket Columns**: Today, Tomorrow, Next Week, Next Month, Sometime
+  - **Quick Add**: Text input with bucket selector at top
+  - **Drag/Drop**: HTML5 drag-and-drop between buckets with automatic due date updates
+  - **Snooze Actions**: Move reminders to Tomorrow, Next Week, or Sometime
+  - **Rebucket**: Recomputes bucket based on current due date
+  - **Recently Done**: Section showing completed reminders
+  - **ICS Export**: Calendar export for reminders with due dates (all-day events)
+- **Bucket Logic**: daysDiff calculation ensures bucket consistency
+  - Today: ≤0 days, Tomorrow: 1 day, Next Week: 2-7 days, Next Month: 8-30 days, Sometime: >30 days
+  - Due date generation places items in middle of bucket range (3 days for next_week, 14 days for next_month)
+- **Unit Tests**: 26 tests in `server/reminders/reminders.test.ts` for bucket logic, ICS export, and rebucket consistency
+
 ### OCR (Handwritten Notes Import)
 - **OCR Module** (`server/ocr/index.ts`): Text extraction from images using Tesseract.js
   - **Provider**: Local Tesseract.js (configurable via OCR_PROVIDER env var, "cloud" scaffold available)
