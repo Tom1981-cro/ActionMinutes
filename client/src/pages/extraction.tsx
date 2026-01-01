@@ -3,10 +3,10 @@ import { useRoute, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { StatusBadge, SeverityBadge } from "@/components/ui/status-badge";
 import { Loader2, ArrowLeft, CheckCircle, FileText, Calendar, Download, AlertTriangle, HelpCircle, Pencil, User, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMeeting, useActionItemsForMeeting, useDecisionsForMeeting, useRisksForMeeting, useQuestionsForMeeting, useUpdateMeeting, useExportCalendar } from "@/lib/hooks";
@@ -96,23 +96,6 @@ export default function ExtractionPage() {
     { id: 'clarify', label: 'Clarify', count: questions.length },
   ];
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'done': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'waiting': return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'needs_review': return 'bg-rose-100 text-rose-700 border-rose-200';
-      default: return 'bg-stone-100 text-stone-700 border-stone-200';
-    }
-  };
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'high': return 'bg-rose-100 text-rose-700 border-rose-200';
-      case 'medium': return 'bg-amber-100 text-amber-700 border-amber-200';
-      default: return 'bg-stone-100 text-stone-700 border-stone-200';
-    }
-  };
-
   return (
     <div className="flex flex-col h-full pb-safe">
       <div className="flex-1 overflow-y-auto pb-24 md:pb-6">
@@ -124,12 +107,7 @@ export default function ExtractionPage() {
             <div className="min-w-0 flex-1">
               <h1 className="text-lg font-bold truncate text-slate-800">{meeting.title}</h1>
               <div className="flex items-center gap-2 text-sm text-stone-500">
-                <Badge variant={
-                    meeting.parseState === 'finalized' ? 'default' : 
-                    meeting.parseState === 'processing' ? 'secondary' : 'outline'
-                  } className="rounded-full text-xs">
-                  {meeting.parseState}
-                </Badge>
+                <StatusBadge status={meeting.parseState} size="sm" />
                 {meeting.date && <span>{new Date(meeting.date).toLocaleDateString()}</span>}
               </div>
             </div>
@@ -192,7 +170,7 @@ export default function ExtractionPage() {
                     <button
                       key={item.id}
                       onClick={() => handleActionTap(item)}
-                      className="w-full text-left border border-stone-200 rounded-xl p-4 space-y-3 hover:border-teal-300 active:bg-stone-50 transition-colors bg-white"
+                      className="w-full text-left card-interactive p-4 space-y-3 tap-highlight"
                       data-testid={`action-card-${item.id}`}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -212,16 +190,12 @@ export default function ExtractionPage() {
                             <span>{new Date(item.dueDate).toLocaleDateString()}</span>
                           </div>
                         )}
-                        <Badge 
-                          variant="outline" 
-                          className={`rounded-full text-xs capitalize ${getStatusColor(item.status)}`}
-                        >
-                          {item.status?.replace('_', ' ')}
-                        </Badge>
+                        <StatusBadge status={item.status} size="sm" />
                         {(item.confidenceOwner ?? 1) < 0.7 && (
-                          <Badge variant="outline" className="text-amber-600 bg-amber-50 rounded-full border-amber-200 text-xs">
-                            Needs review
-                          </Badge>
+                          <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-orange-50 text-orange-600 border-orange-200">
+                            <AlertTriangle className="h-3 w-3" />
+                            Low confidence
+                          </span>
                         )}
                       </div>
                     </button>
@@ -278,7 +252,7 @@ export default function ExtractionPage() {
                   risks.map((risk: any) => (
                     <div 
                       key={risk.id} 
-                      className={`border rounded-xl p-4 ${
+                      className={`border rounded-xl p-4 transition-colors ${
                         risk.severity === 'high' ? 'bg-rose-50/50 border-rose-200' :
                         risk.severity === 'medium' ? 'bg-amber-50/50 border-amber-200' :
                         'bg-stone-50 border-stone-200'
@@ -287,12 +261,7 @@ export default function ExtractionPage() {
                     >
                       <div className="flex items-start justify-between gap-2">
                         <p className="text-base text-slate-800 flex-1">{risk.text}</p>
-                        <Badge 
-                          variant="outline" 
-                          className={`rounded-full text-xs capitalize shrink-0 ${getSeverityColor(risk.severity)}`}
-                        >
-                          {risk.severity}
-                        </Badge>
+                        <SeverityBadge severity={risk.severity} />
                       </div>
                     </div>
                   ))

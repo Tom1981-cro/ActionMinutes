@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { 
   CheckCircle, Clock, AlertTriangle, Loader2, 
   Bell, MessageCircle, Pencil, User, Calendar,
@@ -29,10 +30,10 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, onTap, isReview }
   const isOverdue = item.dueDate && new Date(item.dueDate) < new Date();
 
   return (
-    <Card className={`bg-white border-stone-200 rounded-2xl overflow-hidden ${isReview ? 'border-l-4 border-l-amber-400' : ''}`}>
+    <Card className={`bg-white border-stone-200 rounded-2xl overflow-hidden card-interactive ${isReview ? 'border-l-4 border-l-amber-400' : ''}`}>
       <CardContent className="p-0">
         <button 
-          className="w-full p-4 text-left space-y-3 hover:bg-stone-50/50 transition-colors"
+          className="w-full p-4 text-left space-y-3 tap-highlight"
           onClick={onTap}
           data-testid={`card-action-${item.id}`}
         >
@@ -43,26 +44,12 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, onTap, isReview }
               </p>
               
               <div className="flex flex-wrap gap-2">
-                {item.status === 'needs_review' && (
-                  <Badge className="bg-amber-100 text-amber-700 border-amber-200 rounded-full text-xs">
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    Needs Review
-                  </Badge>
-                )}
-                {item.status === 'open' && (
-                  <Badge variant="outline" className="bg-teal-50 text-teal-700 border-teal-200 rounded-full text-xs">
-                    Open
-                  </Badge>
-                )}
-                {item.status === 'waiting' && (
-                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 rounded-full text-xs">
-                    Waiting
-                  </Badge>
-                )}
+                <StatusBadge status={item.status} size="sm" />
                 {lowConfidence && (
-                  <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200 rounded-full text-xs">
+                  <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-orange-50 text-orange-600 border-orange-200">
+                    <AlertTriangle className="h-3 w-3" />
                     Low confidence
-                  </Badge>
+                  </span>
                 )}
               </div>
             </div>

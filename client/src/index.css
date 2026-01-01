@@ -216,7 +216,44 @@
   }
   
   .shadow-soft {
-    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 20px -4px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  }
+  
+  .shadow-lift {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
+  }
+  
+  /* Tap feedback for mobile */
+  .tap-highlight {
+    @apply transition-all duration-150 ease-out;
+  }
+  .tap-highlight:active {
+    @apply scale-[0.98] opacity-90;
+  }
+  
+  /* Interactive card styling */
+  .card-interactive {
+    @apply rounded-2xl border border-stone-200 bg-white shadow-soft;
+    @apply transition-all duration-200 ease-out;
+  }
+  .card-interactive:hover {
+    @apply md:shadow-lift md:-translate-y-0.5 md:border-teal-200;
+  }
+  .card-interactive:active {
+    @apply scale-[0.99] shadow-sm;
+  }
+  
+  /* Button tap feedback */
+  .btn-tap {
+    @apply transition-transform duration-100 ease-out;
+  }
+  .btn-tap:active {
+    @apply scale-95;
+  }
+  
+  /* Smooth focus rings */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2;
   }
   
   /* Mobile-first utilities */
