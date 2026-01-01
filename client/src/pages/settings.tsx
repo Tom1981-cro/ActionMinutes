@@ -101,6 +101,18 @@ export default function SettingsPage() {
                     data-testid="switch-auto-drafts"
                   />
                </div>
+               <div className="flex items-start justify-between gap-4 py-2">
+                  <div className="space-y-1 flex-1">
+                    <Label className="text-base text-slate-700">Personal AI</Label>
+                    <p className="text-sm text-gray-500">Enable AI suggestions and summaries in your private journal.</p>
+                  </div>
+                  <Switch 
+                    checked={user.personalAiEnabled !== false} 
+                    onCheckedChange={(c) => handleToggle('personalAiEnabled', c)}
+                    className="mt-1"
+                    data-testid="switch-personal-ai-enabled"
+                  />
+               </div>
             </CardContent>
           </Card>
 
