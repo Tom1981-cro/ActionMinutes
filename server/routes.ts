@@ -1029,17 +1029,29 @@ Thanks!`,
     
     const connections = await storage.getOAuthConnections(userId);
     
-    // Check which providers are configured
-    const googleConfigured = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
-    const microsoftConfigured = !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET);
+    // Check which providers are configured (Replit connector or manual credentials)
+    const googleConfigured = !!(
+      process.env.GOOGLE_MAIL_CONNECTION_ID || 
+      (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
+    );
+    const microsoftConfigured = !!(
+      process.env.OUTLOOK_CONNECTION_ID || 
+      (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET)
+    );
+    
+    // Check if using Replit-managed connectors
+    const useReplitGmail = !!process.env.GOOGLE_MAIL_CONNECTION_ID;
+    const useReplitOutlook = !!process.env.OUTLOOK_CONNECTION_ID;
     
     res.json({
       google: {
         configured: googleConfigured,
+        replitManaged: useReplitGmail,
         connected: connections.find(c => c.provider === 'google') || null,
       },
       microsoft: {
         configured: microsoftConfigured,
+        replitManaged: useReplitOutlook,
         connected: connections.find(c => c.provider === 'microsoft') || null,
       },
     });

@@ -150,7 +150,7 @@ export default function SettingsIntegrationsPage() {
               </Button>
             ) : (
               <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-xl">
-                Gmail integration requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables.
+                Gmail integration needs to be set up. Use Replit's Gmail connector or add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET manually.
               </p>
             )}
           </CardContent>
@@ -215,7 +215,7 @@ export default function SettingsIntegrationsPage() {
               </Button>
             ) : (
               <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-xl">
-                Outlook integration requires MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET environment variables.
+                Outlook integration needs to be set up. Use Replit's Outlook connector or add MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET manually.
               </p>
             )}
           </CardContent>
@@ -224,11 +224,13 @@ export default function SettingsIntegrationsPage() {
 
       <Card className="bg-gray-50 border-gray-200 rounded-xl">
         <CardContent className="py-4">
-          <h3 className="font-medium text-slate-800 mb-2">Environment Variables Required</h3>
+          <h3 className="font-medium text-slate-800 mb-2">Setup Options</h3>
+          <p className="text-sm text-gray-600 mb-3">
+            Use Replit's built-in connectors (recommended) or configure manually with OAuth credentials.
+          </p>
           <ul className="text-sm text-gray-600 space-y-1">
-            <li><code className="bg-white px-1 rounded">GOOGLE_CLIENT_ID</code> / <code className="bg-white px-1 rounded">GOOGLE_CLIENT_SECRET</code></li>
-            <li><code className="bg-white px-1 rounded">MICROSOFT_CLIENT_ID</code> / <code className="bg-white px-1 rounded">MICROSOFT_CLIENT_SECRET</code></li>
-            <li><code className="bg-white px-1 rounded">TOKEN_ENCRYPTION_KEY</code> (for secure token storage)</li>
+            <li><strong>Replit Connectors:</strong> Set up Gmail or Outlook from the Integrations panel</li>
+            <li><strong>Manual:</strong> Add <code className="bg-white px-1 rounded">GOOGLE_CLIENT_ID</code> / <code className="bg-white px-1 rounded">GOOGLE_CLIENT_SECRET</code> or <code className="bg-white px-1 rounded">MICROSOFT_CLIENT_ID</code> / <code className="bg-white px-1 rounded">MICROSOFT_CLIENT_SECRET</code></li>
           </ul>
         </CardContent>
       </Card>

@@ -63,22 +63,30 @@ function parseFeatureFlags(): FeatureFlags {
 }
 
 function checkConfigStatus(): ConfigStatus {
-  const aiProvider = process.env.AI_PROVIDER;
-  const aiApiKey = process.env.AI_API_KEY || process.env.OPENAI_API_KEY;
+  // Check for AI - Replit integration uses AI_INTEGRATIONS_OPENAI_API_KEY
+  const replitAiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+  const legacyAiKey = process.env.AI_API_KEY || process.env.OPENAI_API_KEY;
+  const aiConfigured = !!(replitAiKey || legacyAiKey);
 
+  // Check for Gmail - Replit connector or manual credentials
+  const replitGmailConnector = process.env.GOOGLE_MAIL_CONNECTION_ID;
   const googleClientId = process.env.GOOGLE_CLIENT_ID;
   const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const gmailConfigured = !!(replitGmailConnector || (googleClientId && googleClientSecret));
 
+  // Check for Outlook - Replit connector or manual credentials
+  const replitOutlookConnector = process.env.OUTLOOK_CONNECTION_ID;
   const microsoftClientId = process.env.MICROSOFT_CLIENT_ID;
   const microsoftClientSecret = process.env.MICROSOFT_CLIENT_SECRET;
+  const outlookConfigured = !!(replitOutlookConnector || (microsoftClientId && microsoftClientSecret));
 
   const databaseUrl = process.env.DATABASE_URL;
   const capacitorEnabled = process.env.CAPACITOR_ENABLED;
 
   return {
-    aiConfigured: !!(aiProvider && aiApiKey) || !!aiApiKey,
-    gmailConfigured: !!(googleClientId && googleClientSecret),
-    outlookConfigured: !!(microsoftClientId && microsoftClientSecret),
+    aiConfigured,
+    gmailConfigured,
+    outlookConfigured,
     databaseConnected: !!databaseUrl && cachedDbStatus.connected,
     mobileBuildEnabled: capacitorEnabled === 'true',
   };
