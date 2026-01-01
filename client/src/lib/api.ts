@@ -102,6 +102,11 @@ export const api = {
       return { blob, filename };
     },
     getAttendees: (id: string) => fetchJSON(`${API_BASE}/api/meetings/${id}/attendees`),
+    addAttendee: (meetingId: string, attendee: { name: string; email?: string }) => 
+      fetchJSON(`${API_BASE}/api/meetings/${meetingId}/attendees`, {
+        method: 'POST',
+        body: JSON.stringify(attendee),
+      }),
     getDecisions: (id: string) => fetchJSON(`${API_BASE}/api/meetings/${id}/decisions`),
     getRisks: (id: string) => fetchJSON(`${API_BASE}/api/meetings/${id}/risks`),
     getQuestions: (id: string) => fetchJSON(`${API_BASE}/api/meetings/${id}/questions`),

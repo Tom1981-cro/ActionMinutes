@@ -30,6 +30,22 @@ export default function CapturePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
+  const saveAttendees = async (meetingId: string) => {
+    if (!attendees.trim()) return;
+    const names = attendees.split(',').map(n => n.trim()).filter(n => n.length > 0);
+    for (const name of names) {
+      try {
+        await fetch(`/api/meetings/${meetingId}/attendees`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name }),
+        });
+      } catch (e) {
+        console.error('Failed to add attendee:', name);
+      }
+    }
+  };
+
   const handleExtract = async () => {
     if (!notes.trim()) {
       toast({ title: "No notes", description: "Please add some notes first.", variant: "destructive" });
@@ -47,6 +63,7 @@ export default function CapturePage() {
         parseState: 'draft',
       });
       
+      await saveAttendees(meeting.id);
       await extractMeeting.mutateAsync(meeting.id);
       
       toast({ title: "Processing...", description: "AI is extracting actions." });
@@ -63,13 +80,14 @@ export default function CapturePage() {
 
   const handleSaveDraft = async () => {
     try {
-      await createMeeting.mutateAsync({
+      const meeting = await createMeeting.mutateAsync({
         userId: user.id,
         title,
         date: new Date(date),
         rawNotes: notes,
         parseState: 'draft',
       });
+      await saveAttendees(meeting.id);
       toast({ title: "Saved draft", description: "Meeting saved without extraction." });
       setLocation("/meetings");
     } catch (error) {
@@ -148,6 +166,7 @@ export default function CapturePage() {
                     <Users className="h-4 w-4 text-stone-400" />
                     Attendees
                   </Label>
+                  <p className="text-xs text-stone-400">Separate attendees by comma</p>
                   <Input 
                     id="attendees" 
                     placeholder="Alice, Bob, Charlie..." 

@@ -69,7 +69,7 @@ export default function MeetingsPage() {
                 </p>
               </CardContent>
               <CardFooter className="pt-0 px-4 pb-4 md:px-6 md:pb-5 text-sm text-stone-500 flex justify-between items-center">
-                <span>{meeting.attendees?.length || 0} attendees</span>
+                <span>{meeting.attendeeCount || 0} attendees</span>
                 <ArrowRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity -translate-x-2 group-hover:translate-x-0 text-teal-500" />
               </CardFooter>
             </Card>

@@ -768,7 +768,13 @@ Thanks!`,
     const workspaceId = req.query.workspaceId as string;
     if (!userId) return res.status(400).json({ error: "userId is required" });
     const meetings = await storage.getMeetings(userId, workspaceId || undefined);
-    res.json(meetings);
+    const meetingsWithCounts = await Promise.all(
+      meetings.map(async (meeting) => {
+        const attendees = await storage.getAttendeesForMeeting(meeting.id);
+        return { ...meeting, attendeeCount: attendees.length };
+      })
+    );
+    res.json(meetingsWithCounts);
   });
 
   app.get("/api/meetings/:id", async (req, res) => {
