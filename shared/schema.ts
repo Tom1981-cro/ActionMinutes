@@ -236,6 +236,8 @@ export const insertMeetingSchema = createInsertSchema(meetings).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  date: z.coerce.date(),
 });
 
 export const insertAttendeeSchema = createInsertSchema(attendees).omit({
