@@ -127,7 +127,7 @@
   }
 
   /* Theme: Cupertino Glass */
-  [data-theme="cupertino-glass"] {
+  :root[data-theme="cupertino-glass"] {
     --background: #f9fafb;
     --foreground: #0f172a;
     --card: rgba(255, 255, 255, 0.7);
@@ -151,7 +151,7 @@
   }
 
   /* Theme: Titanium Minimal */
-  [data-theme="titanium-minimal"] {
+  :root[data-theme="titanium-minimal"] {
     --background: #ffffff;
     --foreground: #18181b;
     --card: #ffffff;
@@ -175,7 +175,7 @@
   }
 
   /* Theme: Vibrant Enterprise */
-  [data-theme="vibrant-enterprise"] {
+  :root[data-theme="vibrant-enterprise"] {
     --background: #ffffff;
     --foreground: #0f172a;
     --card: #ffffff;
@@ -199,7 +199,7 @@
   }
 
   /* Theme: Slate Professional */
-  [data-theme="slate-professional"] {
+  :root[data-theme="slate-professional"] {
     --background: #f8fafc;
     --foreground: #334155;
     --card: #ffffff;
@@ -223,7 +223,7 @@
   }
 
   /* Theme: Focus Light */
-  [data-theme="focus-light"] {
+  :root[data-theme="focus-light"] {
     --background: #ffffff;
     --foreground: #000000;
     --card: #ffffff;
