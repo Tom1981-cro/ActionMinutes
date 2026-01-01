@@ -90,6 +90,17 @@ Admin endpoints (`/api/admin/*`) are protected by a `requireAdminAccess` middlew
 - **AI Audit Logging** (`aiAuditLogs` table): Tracks provider, model, promptVersion, inputHash, outputJson, validJson, errorText per AI call
 - **Unit Tests**: 19 tests in `server/ai/ai.test.ts` for schema validation, confidence mapping, hash consistency
 
+### Journal AI (Personal Mode)
+- **Journal AI Module** (`server/journal-ai/index.ts`): AI-powered personal journal features
+  - **Smart Prompts**: 25 prompts tagged by intent (clarify, prioritize, unblock, reflect, plan)
+  - **Signal Detection**: Detects overwhelm, deadlines, conflict, decision, avoidance patterns in entries
+  - **AI Summarization**: Generates summary, top 3 points, and next steps using gpt-4o-mini
+  - **Safety Detection**: Flags entries with self-harm keywords, displays supportive message with crisis resources
+  - **Prompt Tracking**: `journalPromptShown` table tracks shown prompts and user responses
+- **Personal AI Toggle**: Separate `personalAiEnabled` user setting independent from work AI (`aiEnabled`)
+- **Journal Page UI**: Card-based layout showing detected signals, AI summaries, and suggested prompts
+- **Unit Tests**: 45 tests in `server/journal-ai/journal-ai.test.ts` for prompt selection, signal detection, schema validation
+
 ### OCR (Handwritten Notes Import)
 - **OCR Module** (`server/ocr/index.ts`): Text extraction from images using Tesseract.js
   - **Provider**: Local Tesseract.js (configurable via OCR_PROVIDER env var, "cloud" scaffold available)
