@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Logo, LogoWordmark } from "@/components/logo";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import logoIcon from "@assets/am_logo_1767300370565.png";
 
 export default function AuthPage() {
   const { setUser } = useStore();
@@ -39,22 +39,15 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
       <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-4">
-          <div className="flex justify-center items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center">
-              <span className="text-indigo-600 font-bold text-xl">A</span>
-            </div>
-            <span className="font-bold text-2xl tracking-tight text-slate-900">ActionMinutes</span>
+        <div className="text-center space-y-3">
+          <div className="flex justify-center items-center gap-3 mb-4">
+            <img src={logoIcon} alt="ActionMinutes" className="w-12 h-12 rounded-xl" />
+            <span className="text-2xl tracking-tight text-slate-900">
+              <span className="font-bold">Action</span><span className="font-normal">Minutes</span>
+            </span>
           </div>
-          <div className="inline-block px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wide">
-            Enterprise Grade Efficiency
-          </div>
-          <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
-            Turn Minutes into <br />
-            <span className="text-gradient">Actionable Velocity.</span>
-          </h1>
-          <p className="text-slate-500 text-base">
-            Stop wasting time formatting notes. AI extracts actions in seconds.
+          <p className="text-lg text-slate-600">
+            Turn Minutes into <span className="text-purple-600 font-medium">Velocity</span>
           </p>
         </div>
 

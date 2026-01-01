@@ -7,6 +7,7 @@ import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
+import logoIcon from "@assets/am_logo_1767300370565.png";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -34,8 +35,10 @@ export default function Layout({ children }: LayoutProps) {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 flex-col border-r border-gray-100 bg-white p-4 h-screen sticky top-0">
         <div className="flex items-center gap-2 px-2 mb-4 mt-4">
-          <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-lg">A</div>
-          <span className="font-bold text-xl tracking-tight text-slate-900">ActionMinutes</span>
+          <img src={logoIcon} alt="ActionMinutes" className="w-8 h-8 rounded-lg" />
+          <span className="text-xl tracking-tight text-slate-900">
+            <span className="font-bold">Action</span><span className="font-normal">Minutes</span>
+          </span>
         </div>
 
         <div className="mb-6 px-2">
@@ -87,8 +90,10 @@ export default function Layout({ children }: LayoutProps) {
       {/* Mobile Header */}
       <header className="md:hidden flex items-center justify-between border-b border-gray-100 px-4 py-3 bg-white sticky top-0 z-50">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-sm">A</div>
-          <span className="font-bold text-lg tracking-tight text-slate-900">ActionMinutes</span>
+          <img src={logoIcon} alt="ActionMinutes" className="w-7 h-7 rounded-lg" />
+          <span className="text-lg tracking-tight text-slate-900">
+            <span className="font-bold">Action</span><span className="font-normal">Minutes</span>
+          </span>
         </div>
         <WorkspaceSwitcher />
       </header>
