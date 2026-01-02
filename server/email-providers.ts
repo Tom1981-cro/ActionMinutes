@@ -1,4 +1,6 @@
 import { encryptToken, decryptToken, isEncryptionConfigured } from './crypto';
+import { google } from 'googleapis';
+import { Client } from '@microsoft/microsoft-graph-client';
 
 export interface TokenResponse {
   access_token: string;
@@ -19,6 +21,115 @@ export interface UserInfo {
   email: string;
   name?: string;
 }
+
+// ==================== REPLIT CONNECTOR INTEGRATION ====================
+// Gmail connector - uses Replit's managed OAuth
+let gmailConnectionSettings: any;
+
+async function getGmailAccessToken(): Promise<string> {
+  if (gmailConnectionSettings && gmailConnectionSettings.settings.expires_at && 
+      new Date(gmailConnectionSettings.settings.expires_at).getTime() > Date.now()) {
+    return gmailConnectionSettings.settings.access_token;
+  }
+  
+  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+  const xReplitToken = process.env.REPL_IDENTITY 
+    ? 'repl ' + process.env.REPL_IDENTITY 
+    : process.env.WEB_REPL_RENEWAL 
+    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
+    : null;
+
+  if (!xReplitToken || !hostname) {
+    throw new Error('Gmail connector not available');
+  }
+
+  gmailConnectionSettings = await fetch(
+    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=google-mail',
+    {
+      headers: {
+        'Accept': 'application/json',
+        'X_REPLIT_TOKEN': xReplitToken
+      }
+    }
+  ).then(res => res.json()).then(data => data.items?.[0]);
+
+  const accessToken = gmailConnectionSettings?.settings?.access_token || 
+                      gmailConnectionSettings?.settings?.oauth?.credentials?.access_token;
+
+  if (!gmailConnectionSettings || !accessToken) {
+    throw new Error('Gmail not connected');
+  }
+  return accessToken;
+}
+
+export async function getUncachableGmailClient() {
+  const accessToken = await getGmailAccessToken();
+  const oauth2Client = new google.auth.OAuth2();
+  oauth2Client.setCredentials({ access_token: accessToken });
+  return google.gmail({ version: 'v1', auth: oauth2Client });
+}
+
+// Outlook connector - uses Replit's managed OAuth
+let outlookConnectionSettings: any;
+
+async function getOutlookAccessToken(): Promise<string> {
+  if (outlookConnectionSettings && outlookConnectionSettings.settings.expires_at && 
+      new Date(outlookConnectionSettings.settings.expires_at).getTime() > Date.now()) {
+    return outlookConnectionSettings.settings.access_token;
+  }
+  
+  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+  const xReplitToken = process.env.REPL_IDENTITY 
+    ? 'repl ' + process.env.REPL_IDENTITY 
+    : process.env.WEB_REPL_RENEWAL 
+    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
+    : null;
+
+  if (!xReplitToken || !hostname) {
+    throw new Error('Outlook connector not available');
+  }
+
+  outlookConnectionSettings = await fetch(
+    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=outlook',
+    {
+      headers: {
+        'Accept': 'application/json',
+        'X_REPLIT_TOKEN': xReplitToken
+      }
+    }
+  ).then(res => res.json()).then(data => data.items?.[0]);
+
+  const accessToken = outlookConnectionSettings?.settings?.access_token || 
+                      outlookConnectionSettings?.settings?.oauth?.credentials?.access_token;
+
+  if (!outlookConnectionSettings || !accessToken) {
+    throw new Error('Outlook not connected');
+  }
+  return accessToken;
+}
+
+export async function getUncachableOutlookClient() {
+  const accessToken = await getOutlookAccessToken();
+  return Client.initWithMiddleware({
+    authProvider: {
+      getAccessToken: async () => accessToken
+    }
+  });
+}
+
+// Check if Replit connectors are available
+export function isGmailConnectorAvailable(): boolean {
+  return !!(process.env.REPLIT_CONNECTORS_HOSTNAME && 
+           (process.env.REPL_IDENTITY || process.env.WEB_REPL_RENEWAL));
+}
+
+export function isOutlookConnectorAvailable(): boolean {
+  return !!(process.env.REPLIT_CONNECTORS_HOSTNAME && 
+           (process.env.REPL_IDENTITY || process.env.WEB_REPL_RENEWAL));
+}
+
+// ==================== LEGACY OAUTH FUNCTIONS ====================
+// These are kept for backwards compatibility but prefer connectors
 
 export async function exchangeGoogleCode(code: string, redirectUri: string): Promise<TokenResponse> {
   const response = await fetch('https://oauth2.googleapis.com/token', {
@@ -228,4 +339,115 @@ export function prepareTokenForStorage(token: string): string {
 
 export function prepareTokenForUse(storedToken: string): string {
   return decryptToken(storedToken);
+}
+
+// ==================== CONNECTOR-BASED DRAFT CREATION ====================
+// These functions use Replit connectors for OAuth instead of manual tokens
+
+export async function createGmailDraftViaConnector(
+  to: string,
+  subject: string,
+  body: string
+): Promise<DraftResult> {
+  try {
+    const gmail = await getUncachableGmailClient();
+    const rawEmail = createRawEmail(to, subject, body);
+    
+    const response = await gmail.users.drafts.create({
+      userId: 'me',
+      requestBody: {
+        message: {
+          raw: rawEmail,
+        },
+      },
+    });
+
+    return {
+      success: true,
+      draftId: response.data.id || null,
+      webLink: `https://mail.google.com/mail/u/0/#drafts/${response.data.message?.id}`,
+    };
+  } catch (error: any) {
+    console.error('[Gmail Connector] Create draft failed:', error.message);
+    return { 
+      success: false, 
+      draftId: null, 
+      error: error.message || 'Failed to create Gmail draft via connector' 
+    };
+  }
+}
+
+export async function createOutlookDraftViaConnector(
+  to: string,
+  subject: string,
+  body: string
+): Promise<DraftResult> {
+  try {
+    const client = await getUncachableOutlookClient();
+    
+    const draft = {
+      subject,
+      body: {
+        contentType: 'Text',
+        content: body,
+      },
+      toRecipients: to ? [
+        {
+          emailAddress: {
+            address: to,
+          },
+        },
+      ] : [],
+    };
+
+    const response = await client.api('/me/messages').post(draft);
+
+    return {
+      success: true,
+      draftId: response.id,
+      webLink: response.webLink,
+    };
+  } catch (error: any) {
+    console.error('[Outlook Connector] Create draft failed:', error.message);
+    return { 
+      success: false, 
+      draftId: null, 
+      error: error.message || 'Failed to create Outlook draft via connector' 
+    };
+  }
+}
+
+// Smart draft creation - tries connector first, falls back to token-based
+export async function createDraftSmart(
+  provider: 'gmail' | 'outlook',
+  accessToken: string | null,
+  to: string,
+  subject: string,
+  body: string
+): Promise<DraftResult> {
+  if (provider === 'gmail') {
+    if (isGmailConnectorAvailable()) {
+      try {
+        return await createGmailDraftViaConnector(to, subject, body);
+      } catch (e) {
+        console.log('[Gmail] Connector failed, falling back to token');
+      }
+    }
+    if (accessToken) {
+      return createGmailDraft(accessToken, to, subject, body);
+    }
+    return { success: false, draftId: null, error: 'Gmail not configured' };
+  } else {
+    if (isOutlookConnectorAvailable()) {
+      try {
+        return await createOutlookDraftViaConnector(to, subject, body);
+      } catch (e) {
+        console.log('[Outlook] Connector failed, falling back to token');
+      }
+    }
+    if (accessToken) {
+      return createOutlookDraft(accessToken, to, subject, body);
+    }
+    return { success: false, draftId: null, error: 'Outlook not configured' };
+  }
 }
