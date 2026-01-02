@@ -158,14 +158,15 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
             <p className="text-xs text-gray-400">For follow-up if needed</p>
           </div>
 
-          <div className="flex items-center justify-between py-2 px-1">
-            <div className="space-y-0.5">
+          <div className="flex items-center justify-between gap-4 py-2">
+            <div className="space-y-0.5 min-w-0 flex-1">
               <Label className="text-base text-slate-700">Include diagnostics</Label>
               <p className="text-xs text-gray-400">Route, viewport size, browser</p>
             </div>
             <Switch
               checked={includeDiagnostics}
               onCheckedChange={setIncludeDiagnostics}
+              className="shrink-0"
               data-testid="switch-diagnostics"
             />
           </div>
