@@ -53,22 +53,24 @@ export function WorkspaceSwitcher() {
           <DialogTitle className="text-slate-800">Switch Workspace</DialogTitle>
         </DialogHeader>
         <div className="space-y-2 mt-4">
-          <button
-            onClick={() => handleSelect(null)}
-            className={`w-full flex items-center justify-between p-3 rounded-xl transition-colors ${
-              !currentWorkspaceId ? 'bg-indigo-50 border-2 border-indigo-200' : 'hover:bg-gray-50 border-2 border-transparent'
-            }`}
-            data-testid="button-workspace-personal"
-          >
-            <div className="flex items-center gap-3">
-              <User className="h-5 w-5 text-slate-500" />
-              <div className="text-left">
-                <p className="font-medium text-slate-700">Personal</p>
-                <p className="text-xs text-gray-500">Your private meetings</p>
+          {user.enablePersonal && (
+            <button
+              onClick={() => handleSelect(null)}
+              className={`w-full flex items-center justify-between p-3 rounded-xl transition-colors ${
+                !currentWorkspaceId ? 'bg-indigo-50 border-2 border-indigo-200' : 'hover:bg-gray-50 border-2 border-transparent'
+              }`}
+              data-testid="button-workspace-personal"
+            >
+              <div className="flex items-center gap-3">
+                <User className="h-5 w-5 text-slate-500" />
+                <div className="text-left">
+                  <p className="font-medium text-slate-700">Personal</p>
+                  <p className="text-xs text-gray-500">Your private meetings</p>
+                </div>
               </div>
-            </div>
-            {!currentWorkspaceId && <Check className="h-5 w-5 text-indigo-500" />}
-          </button>
+              {!currentWorkspaceId && <Check className="h-5 w-5 text-indigo-500" />}
+            </button>
+          )}
 
           {workspaces.map((workspace: any) => (
             <button

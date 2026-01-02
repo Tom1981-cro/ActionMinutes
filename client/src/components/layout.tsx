@@ -18,7 +18,7 @@ export default function Layout({ children }: LayoutProps) {
   const { user, currentWorkspaceId } = useStore();
   const { toast } = useToast();
 
-  const isPersonalMode = currentWorkspaceId === null;
+  const isPersonalMode = currentWorkspaceId === null && user.enablePersonal;
 
   const personalNavItems = [
     { href: "/inbox", label: "Inbox", icon: Inbox },
@@ -35,6 +35,7 @@ export default function Layout({ children }: LayoutProps) {
   ];
 
   const navItems = isPersonalMode ? personalNavItems : teamNavItems;
+  const showPersonalSettingsLink = isPersonalMode || (currentWorkspaceId === null && !user.enablePersonal);
 
   if (!user.isAuthenticated) {
     return <div className="min-h-screen bg-background">{children}</div>;
@@ -82,7 +83,7 @@ export default function Layout({ children }: LayoutProps) {
             <p className="text-sm font-bold text-slate-900" data-testid="text-user-name">{user.name}</p>
             <p className="text-xs text-slate-500 truncate" data-testid="text-user-email">{user.email}</p>
           </div>
-          {isPersonalMode && (
+          {showPersonalSettingsLink && (
             <Link 
               href="/settings"
               data-testid="nav-settings-personal"
@@ -122,7 +123,7 @@ export default function Layout({ children }: LayoutProps) {
         </div>
         <div className="flex items-center gap-2">
           <WorkspaceSwitcher />
-          {isPersonalMode && (
+          {showPersonalSettingsLink && (
             <Link 
               href="/settings"
               data-testid="mobile-settings-personal"

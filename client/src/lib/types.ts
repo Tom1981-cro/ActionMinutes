@@ -22,6 +22,7 @@ export interface User {
   enablePersonal: boolean;
   personalAiEnabled: boolean;
   allowImageStorage: boolean;
+  hasCompletedOnboarding: boolean;
   isAuthenticated: boolean; // Mock auth state
 }
 

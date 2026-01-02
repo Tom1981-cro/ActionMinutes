@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import logoIcon from "@assets/am_logo_1767300370565.png";
 
 export default function AuthPage() {
-  const { isLoading, isAuthenticated, login, register } = useAuth();
+  const { isLoading, isAuthenticated, user, login, register } = useAuth();
   const [, setLocation] = useLocation();
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [email, setEmail] = useState("");
@@ -20,23 +20,33 @@ export default function AuthPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      setLocation("/onboarding");
+    if (!isLoading && isAuthenticated && user) {
+      if (user.hasCompletedOnboarding) {
+        setLocation("/inbox");
+      } else {
+        setLocation("/onboarding");
+      }
     }
-  }, [isLoading, isAuthenticated, setLocation]);
+  }, [isLoading, isAuthenticated, user, setLocation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
+      let loggedInUser;
       if (isRegisterMode) {
-        await register(email, password, name);
+        loggedInUser = await register(email, password, name);
         toast({ title: "Account created!", description: "Welcome to ActionMinutes" });
+        setLocation("/onboarding");
       } else {
-        await login(email, password);
+        loggedInUser = await login(email, password);
+        if (loggedInUser?.hasCompletedOnboarding) {
+          setLocation("/inbox");
+        } else {
+          setLocation("/onboarding");
+        }
       }
-      setLocation("/onboarding");
     } catch (error: any) {
       toast({
         title: isRegisterMode ? "Registration failed" : "Login failed",
