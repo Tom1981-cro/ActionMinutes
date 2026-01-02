@@ -116,7 +116,6 @@ export default function MarketingPage() {
           <div className="hidden md:flex items-center gap-6 text-sm">
             <a href="#features" className="text-slate-600 hover:text-teal-600 transition-colors">Features</a>
             <a href="#pricing" className="text-slate-600 hover:text-teal-600 transition-colors">Pricing</a>
-            <Link href="/blueprint" className="text-slate-600 hover:text-teal-600 transition-colors">Demo</Link>
           </div>
 
           <div className="hidden md:flex items-center gap-3 ml-4">
@@ -151,11 +150,6 @@ export default function MarketingPage() {
               <Link href="/login">
                 <Button size="lg" className="btn-gradient text-white rounded-full px-8 shadow-lg shadow-indigo-500/30">
                   Start Free <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-              <Link href="/blueprint">
-                <Button size="lg" variant="outline" className="rounded-full px-8">
-                  See Demo
                 </Button>
               </Link>
             </div>

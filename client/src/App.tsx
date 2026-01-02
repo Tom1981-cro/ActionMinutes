@@ -21,14 +21,11 @@ import MarketingPage from "@/pages/marketing";
 import TestingGuidePage from "@/pages/testing-guide";
 import NotFound from "@/pages/not-found";
 
-import BlueprintPage from "@/pages/blueprint";
-
 function Router() {
   return (
     <Switch>
       <Route path="/" component={AuthPage} />
       <Route path="/onboarding" component={OnboardingPage} />
-      <Route path="/blueprint" component={BlueprintPage} />
       <Route path="/store-screens" component={StoreScreensPage} />
       <Route path="/marketing" component={MarketingPage} />
       

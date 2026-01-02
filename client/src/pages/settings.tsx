@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStore } from "@/lib/store";
 import { useUpdateUser, useAppConfig } from "@/lib/hooks";
 import { Link } from "wouter";
-import { ExternalLink, Settings2, Plug, Calendar, Sparkles, Users, MessageSquare, Shield, Rocket, User, BookOpen, Clock } from "lucide-react";
+import { Settings2, Plug, Calendar, Sparkles, Users, MessageSquare, Shield, Rocket, User, BookOpen, Clock } from "lucide-react";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
 import SettingsAuditPage from "./settings-audit";
@@ -195,14 +195,6 @@ export default function SettingsPage() {
               </Link>
             </CardContent>
           </Card>
-
-          <div className="pt-2 flex justify-end">
-             <Link href="/blueprint">
-               <Button variant="link" className="text-gray-500 h-11">
-                 View Blueprint <ExternalLink className="ml-1 h-4 w-4" />
-               </Button>
-             </Link>
-          </div>
 
           <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
         </TabsContent>

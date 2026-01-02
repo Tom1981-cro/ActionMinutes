@@ -45,11 +45,6 @@ test.describe('Marketing Pages', () => {
     await expect(page.getByText(/Turn messy notes/i)).toBeVisible({ timeout: 10000 });
   });
 
-  test('should load blueprint demo page', async ({ page }) => {
-    await page.goto('/blueprint');
-    
-    await expect(page.locator('h1, h2').first()).toBeVisible({ timeout: 10000 });
-  });
 
   test('should load store screens page', async ({ page }) => {
     await page.goto('/store-screens');
