@@ -4,8 +4,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import logoIcon from "@assets/am_logo_1767300370565.png";
 
@@ -14,9 +14,9 @@ interface LayoutProps {
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user, currentWorkspaceId } = useStore();
-  const { toast } = useToast();
+  const { logout } = useAuth();
 
   const isPersonalMode = currentWorkspaceId === null && user.enablePersonal;
 
@@ -102,9 +102,9 @@ export default function Layout({ children }: LayoutProps) {
             variant="ghost" 
             data-testid="button-signout"
             className="w-full justify-start text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg px-4"
-            onClick={() => {
-              toast({ title: "Logged out (Mock)", description: "Refresh to reset state if needed." });
-              window.location.reload();
+            onClick={async () => {
+              await logout();
+              setLocation("/auth");
             }}
           >
             <LogOut className="h-4 w-4 mr-2" />
