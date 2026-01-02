@@ -1143,6 +1143,31 @@ Thanks!`,
     res.json(entries);
   });
 
+  // Important: prompts route must come BEFORE :id route
+  app.get("/api/personal/journal/prompts", async (req, res) => {
+    const userId = req.query.userId as string;
+    const text = req.query.text as string;
+    
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    
+    try {
+      const { analyzeJournalEntry, detectSafetyRisk } = await import("./journal-ai");
+      
+      const shownPromptIds = await storage.getShownPromptsForUser(userId);
+      const analysis = await analyzeJournalEntry(text || '', shownPromptIds);
+      const safetyRisk = detectSafetyRisk(text || '');
+      
+      res.json({
+        prompts: analysis.prompts,
+        signals: analysis.signals,
+        safetyRisk,
+      });
+    } catch (error) {
+      console.error('[JournalAI] Prompts error:', error);
+      res.status(500).json({ error: "Failed to get prompts" });
+    }
+  });
+
   app.get("/api/personal/journal/:id", async (req, res) => {
     const entry = await storage.getPersonalEntry(req.params.id);
     if (!entry) return res.status(404).json({ error: "Journal entry not found" });
@@ -1157,8 +1182,15 @@ Thanks!`,
       const { analyzeJournalEntry, detectSafetyRisk } = await import("./journal-ai");
       
       const rawText = req.body.rawText || '';
-      const analysis = await analyzeJournalEntry(rawText);
-      const safetyRisk = detectSafetyRisk(rawText);
+      
+      let analysis = { signals: [] as string[], prompts: [] };
+      let safetyRisk = false;
+      try {
+        analysis = await analyzeJournalEntry(rawText);
+        safetyRisk = detectSafetyRisk(rawText);
+      } catch (aiError) {
+        console.error('[JournalAI] Analysis error (continuing without AI):', aiError);
+      }
       
       const entry = await storage.createPersonalEntry({
         userId,
@@ -1176,7 +1208,8 @@ Thanks!`,
         safetyRisk,
       });
     } catch (error) {
-      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+      console.error('[Journal] Create error:', error);
+      res.status(400).json({ error: error instanceof Error ? error.message : "Failed to save entry" });
     }
   });
 
@@ -1225,29 +1258,6 @@ Thanks!`,
     } catch (error) {
       console.error('[JournalAI] Analysis error:', error);
       res.status(500).json({ error: "Failed to analyze entry" });
-    }
-  });
-
-  app.get("/api/personal/journal/prompts", async (req, res) => {
-    const userId = req.query.userId as string;
-    const text = req.query.text as string;
-    
-    if (!userId) return res.status(400).json({ error: "userId is required" });
-    
-    try {
-      const { analyzeJournalEntry, detectSafetyRisk } = await import("./journal-ai");
-      
-      const shownPromptIds = await storage.getShownPromptsForUser(userId);
-      const analysis = await analyzeJournalEntry(text || '', shownPromptIds);
-      const safetyRisk = detectSafetyRisk(text || '');
-      
-      res.json({
-        prompts: analysis.prompts,
-        signals: analysis.signals,
-        safetyRisk,
-      });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to get prompts" });
     }
   });
 

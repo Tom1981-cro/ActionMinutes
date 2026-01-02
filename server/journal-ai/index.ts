@@ -3,7 +3,19 @@ import { z } from "zod";
 import { detectSignals, detectSafetyRisk, selectPromptsForSignals, type SmartPrompt } from "./prompts";
 import type { EntrySignal } from "../../shared/schema";
 
-const openai = new OpenAI();
+let openaiClient: OpenAI | null = null;
+
+function getOpenAI(): OpenAI | null {
+  if (!openaiClient) {
+    try {
+      openaiClient = new OpenAI();
+    } catch (error) {
+      console.error('[JournalAI] Failed to initialize OpenAI client:', error);
+      return null;
+    }
+  }
+  return openaiClient;
+}
 
 export const JOURNAL_PROMPT_VERSION = "v1.0.0";
 
@@ -70,6 +82,12 @@ export async function summarizeJournalEntry(
   }
   
   try {
+    const openai = getOpenAI();
+    if (!openai) {
+      console.error('[JournalAI] OpenAI client not available');
+      return null;
+    }
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
