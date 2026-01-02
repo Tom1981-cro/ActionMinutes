@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Save, ArrowLeft, ChevronDown, ChevronUp, Users, Clock, MapPin, AlertTriangle, Camera, Upload, RefreshCw, Copy, X, Check, FileText, User, Building2 } from "lucide-react";
+import { Sparkles, Save, ArrowLeft, ChevronDown, ChevronUp, Users, Clock, MapPin, AlertTriangle, Camera, Upload, RefreshCw, Copy, X, Check, FileText, User, Building2, Mic } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateMeeting, useExtractMeeting, useAppConfig, useWorkspaces } from "@/lib/hooks";
@@ -43,6 +43,15 @@ export default function CapturePage() {
   const [showOcrPreview, setShowOcrPreview] = useState(false);
   const [insertMode, setInsertMode] = useState<"replace" | "append">("append");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Audio transcription state
+  const [transcriptionLoading, setTranscriptionLoading] = useState(false);
+  const [transcriptionProgress, setTranscriptionProgress] = useState(0);
+  const [transcriptionResult, setTranscriptionResult] = useState<{ text: string; confidence?: number } | null>(null);
+  const [transcriptionError, setTranscriptionError] = useState<string | null>(null);
+  const [showTranscriptionPreview, setShowTranscriptionPreview] = useState(false);
+  const [transcriptionInsertMode, setTranscriptionInsertMode] = useState<"replace" | "append">("append");
+  const audioInputRef = useRef<HTMLInputElement>(null);
 
   const isCapacitorAvailable = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
 
@@ -228,6 +237,100 @@ export default function CapturePage() {
       }
       toast({ title: "Camera error", description: "Failed to take photo. Please try uploading instead.", variant: "destructive" });
     }
+  };
+
+  // Audio transcription handlers
+  const runTranscription = async (file: File) => {
+    setTranscriptionLoading(true);
+    setTranscriptionError(null);
+    setTranscriptionProgress(0);
+
+    const progressInterval = setInterval(() => {
+      setTranscriptionProgress(prev => Math.min(prev + 8, 90));
+    }, 500);
+
+    try {
+      const formData = new FormData();
+      formData.append('audio', file);
+
+      const response = await fetch(`/api/transcribe?userId=${user.id}`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Transcription failed');
+      }
+
+      const result = await response.json();
+      setTranscriptionProgress(100);
+      
+      if (result.text && result.text !== '[No speech detected]') {
+        setTranscriptionResult(result);
+        setShowTranscriptionPreview(true);
+      } else {
+        setTranscriptionError('No speech detected in the audio. Try a clearer recording.');
+      }
+    } catch (error) {
+      setTranscriptionError(error instanceof Error ? error.message : 'Transcription failed. Try again.');
+    } finally {
+      clearInterval(progressInterval);
+      setTranscriptionProgress(0);
+      setTranscriptionLoading(false);
+      if (audioInputRef.current) {
+        audioInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleAudioFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/webm', 'audio/ogg', 'audio/m4a', 'audio/mp4', 'audio/x-m4a'];
+    if (!validTypes.includes(file.type) && !file.type.startsWith('audio/')) {
+      setTranscriptionError('Unsupported format. Use MP3, WAV, M4A, or WebM.');
+      return;
+    }
+
+    const maxSize = 25 * 1024 * 1024; // 25MB
+    if (file.size > maxSize) {
+      setTranscriptionError('File too large. Maximum size is 25MB.');
+      return;
+    }
+
+    await runTranscription(file);
+  };
+
+  const handleInsertTranscription = () => {
+    if (!transcriptionResult?.text) return;
+    
+    if (transcriptionInsertMode === 'replace') {
+      setNotes(transcriptionResult.text);
+    } else {
+      setNotes(prev => prev ? `${prev}\n\n${transcriptionResult.text}` : transcriptionResult.text);
+    }
+    
+    setShowTranscriptionPreview(false);
+    setTranscriptionResult(null);
+    toast({ title: 'Transcription inserted', description: 'Audio transcription added to meeting notes.' });
+  };
+
+  const handleCopyTranscription = async () => {
+    if (!transcriptionResult?.text) return;
+    await navigator.clipboard.writeText(transcriptionResult.text);
+    toast({ title: 'Copied', description: 'Transcription copied to clipboard.' });
+  };
+
+  const handleRetryTranscription = () => {
+    audioInputRef.current?.click();
+  };
+
+  const handleDiscardTranscription = () => {
+    setShowTranscriptionPreview(false);
+    setTranscriptionResult(null);
+    setTranscriptionError(null);
   };
 
   return (
@@ -449,6 +552,59 @@ export default function CapturePage() {
             )}
           </div>
 
+          {/* Voice Transcription Section */}
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                <Mic className="h-5 w-5 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-slate-800">Transcribe audio recording</h3>
+                <p className="text-xs text-gray-500">Upload a voice memo or meeting recording</p>
+              </div>
+            </div>
+            
+            <input
+              ref={audioInputRef}
+              type="file"
+              accept="audio/*"
+              onChange={handleAudioFileSelect}
+              className="hidden"
+              data-testid="input-audio-file"
+            />
+
+            <Button
+              variant="outline"
+              onClick={() => audioInputRef.current?.click()}
+              disabled={transcriptionLoading}
+              className="w-full h-11 rounded-xl border-purple-200 bg-white hover:bg-purple-50 text-purple-700"
+              data-testid="button-upload-audio"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Upload audio file
+            </Button>
+
+            {transcriptionLoading && (
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm text-purple-600">
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <span>Transcribing audio...</span>
+                </div>
+                <Progress value={transcriptionProgress} className="h-1.5" />
+              </div>
+            )}
+
+            {transcriptionError && (
+              <div className="mt-3 p-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-700 flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <div>
+                  <p>{transcriptionError}</p>
+                  <p className="text-xs mt-1 text-red-600">Tip: Try a clearer recording with less background noise.</p>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="space-y-2">
             <div className="flex items-center justify-between px-1">
               <Label htmlFor="notes" className="text-base font-semibold text-slate-800">Meeting Notes</Label>
@@ -651,6 +807,117 @@ Just dump everything—AI will sort it out."
                   onClick={handleDiscardOcr}
                   className="text-gray-500"
                   data-testid="button-discard-ocr"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Transcription Preview Dialog */}
+      <Dialog open={showTranscriptionPreview} onOpenChange={setShowTranscriptionPreview}>
+        <DialogContent className="max-w-lg mx-4">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mic className="h-5 w-5 text-purple-600" />
+              Transcribed Audio
+            </DialogTitle>
+            <DialogDescription>
+              Review the text transcribed from your audio recording
+            </DialogDescription>
+          </DialogHeader>
+          
+          {transcriptionResult && (
+            <div className="space-y-4">
+              {/* Confidence indicator */}
+              {transcriptionResult.confidence !== undefined && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">Confidence:</span>
+                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full ${
+                        transcriptionResult.confidence >= 0.7 ? 'bg-green-500' : 
+                        transcriptionResult.confidence >= 0.5 ? 'bg-amber-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${transcriptionResult.confidence * 100}%` }}
+                    />
+                  </div>
+                  <span className={`text-sm font-medium ${
+                    transcriptionResult.confidence >= 0.7 ? 'text-green-600' : 
+                    transcriptionResult.confidence >= 0.5 ? 'text-amber-600' : 'text-red-600'
+                  }`}>
+                    {Math.round(transcriptionResult.confidence * 100)}%
+                  </span>
+                </div>
+              )}
+
+              {/* Text preview */}
+              <div className="max-h-64 overflow-y-auto p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <pre className="whitespace-pre-wrap text-sm text-slate-700 font-mono">
+                  {transcriptionResult.text || "No speech detected"}
+                </pre>
+              </div>
+
+              {/* Insert mode toggle */}
+              {notes.trim() && transcriptionResult.text && (
+                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-600">Insert mode:</span>
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant={transcriptionInsertMode === "append" ? "default" : "outline"}
+                      onClick={() => setTranscriptionInsertMode("append")}
+                      className="h-8 text-xs"
+                      data-testid="button-transcription-append"
+                    >
+                      Append
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={transcriptionInsertMode === "replace" ? "default" : "outline"}
+                      onClick={() => setTranscriptionInsertMode("replace")}
+                      className="h-8 text-xs"
+                      data-testid="button-transcription-replace"
+                    >
+                      Replace
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={handleInsertTranscription}
+                  disabled={!transcriptionResult.text}
+                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold shadow-lg shadow-purple-500/30"
+                  data-testid="button-insert-transcription"
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  Insert into notes
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleCopyTranscription}
+                  disabled={!transcriptionResult.text}
+                  data-testid="button-copy-transcription"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleRetryTranscription}
+                  data-testid="button-retry-transcription"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={handleDiscardTranscription}
+                  className="text-gray-500"
+                  data-testid="button-discard-transcription"
                 >
                   <X className="h-4 w-4" />
                 </Button>

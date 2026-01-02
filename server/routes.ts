@@ -15,6 +15,7 @@ import { getAppConfig, getAppConfigAsync, checkConnectorStatus } from "./config"
 import { extractMeetingNotes, generateFollowUpDrafts, mapConfidenceToStatus, PROMPT_VERSION, isValidActionStatus, VALID_ACTION_STATUSES } from "./ai";
 import multer from "multer";
 import { extractTextFromImage, validateImageFile, MAX_FILE_SIZE } from "./ocr";
+import { transcribeAudio, validateAudioFile, MAX_AUDIO_SIZE, SUPPORTED_AUDIO_TYPES } from "./transcription";
 import {
   exchangeGoogleCode,
   exchangeMicrosoftCode,
@@ -1807,6 +1808,65 @@ Thanks!`,
       console.error("[OCR Error]", error);
       res.status(500).json({ 
         error: "OCR failed. Try again or type notes manually.",
+        text: "",
+      });
+    }
+  });
+
+  // ==================== AUDIO TRANSCRIPTION ====================
+  const transcriptionRateLimits = new Map<string, { count: number; resetTime: number }>();
+  const TRANSCRIPTION_RATE_LIMIT = 5; // max requests per minute (lower than OCR due to AI cost)
+  const TRANSCRIPTION_RATE_WINDOW = 60000; // 1 minute
+
+  const checkTranscriptionRateLimit = (userId: string): boolean => {
+    const now = Date.now();
+    const userLimit = transcriptionRateLimits.get(userId);
+    
+    if (!userLimit || now > userLimit.resetTime) {
+      transcriptionRateLimits.set(userId, { count: 1, resetTime: now + TRANSCRIPTION_RATE_WINDOW });
+      return true;
+    }
+    
+    if (userLimit.count >= TRANSCRIPTION_RATE_LIMIT) {
+      return false;
+    }
+    
+    userLimit.count++;
+    return true;
+  };
+
+  const audioUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: MAX_AUDIO_SIZE },
+  });
+
+  app.post("/api/transcribe", audioUpload.single("audio"), async (req, res) => {
+    const userId = req.query.userId as string;
+    
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    if (!checkTranscriptionRateLimit(userId)) {
+      return res.status(429).json({ error: "Too many requests. Please wait a moment." });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No audio file provided" });
+    }
+
+    const validation = validateAudioFile(req.file.mimetype, req.file.size);
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.error });
+    }
+
+    try {
+      const result = await transcribeAudio(req.file.buffer, req.file.mimetype);
+      res.json(result);
+    } catch (error) {
+      console.error("[Transcription Error]", error);
+      res.status(500).json({ 
+        error: "Transcription failed. Try again or type notes manually.",
         text: "",
       });
     }

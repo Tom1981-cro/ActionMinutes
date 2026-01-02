@@ -135,6 +135,15 @@ Admin endpoints (`/api/admin/*`) are protected by a `requireAdminAccess` middlew
 - **Mobile Camera Scaffold**: Capacitor camera integration placeholder ready for future mobile build
 - **Unit Tests**: 10 tests in `server/ocr/ocr.test.ts` for file validation
 
+### Audio Transcription (Voice-to-Text)
+- **Transcription Module** (`server/transcription/index.ts`): Speech-to-text using Gemini AI
+  - **Provider**: Gemini 2.5 Flash via Replit AI Integrations (credits-based, no API key required)
+  - **File Validation**: Accepts MP3, WAV, WebM, OGG, M4A; max 25MB file size
+  - **Rate Limiting**: 5 requests/minute per user (stricter due to AI cost)
+  - **Confidence Scoring**: Returns confidence level for transcribed text
+- **Capture Page Integration**: Upload audio button (purple theme) with progress indicator, preview dialog, insert/append modes
+- **API Endpoint**: `POST /api/transcribe` accepts audio file via multipart form data
+
 ### Frontend Libraries
 - **Chart.js**: Data visualization for the Blueprint demo page
 - **react-chartjs-2**: React wrapper for Chart.js
