@@ -62,23 +62,86 @@ function parseFeatureFlags(): FeatureFlags {
   };
 }
 
+// Cache for connector status to avoid repeated API calls
+let connectorStatusCache: { gmail: boolean; outlook: boolean; lastCheck: number } = {
+  gmail: false,
+  outlook: false,
+  lastCheck: 0,
+};
+const CONNECTOR_CHECK_INTERVAL = 30000; // 30 seconds
+
+async function checkReplitConnector(connectorName: string): Promise<boolean> {
+  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
+  if (!hostname) return false;
+  
+  const xReplitToken = process.env.REPL_IDENTITY 
+    ? 'repl ' + process.env.REPL_IDENTITY 
+    : process.env.WEB_REPL_RENEWAL 
+    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
+    : null;
+  
+  if (!xReplitToken) return false;
+  
+  try {
+    const response = await fetch(
+      `https://${hostname}/api/v2/connection?connector_names=${connectorName}`,
+      {
+        headers: {
+          'Accept': 'application/json',
+          'X_REPLIT_TOKEN': xReplitToken
+        }
+      }
+    );
+    
+    if (!response.ok) return false;
+    
+    const data = await response.json();
+    return !!(data.items && data.items.length > 0);
+  } catch {
+    return false;
+  }
+}
+
+export async function checkConnectorStatus(): Promise<{ gmail: boolean; outlook: boolean }> {
+  const now = Date.now();
+  if (now - connectorStatusCache.lastCheck < CONNECTOR_CHECK_INTERVAL) {
+    return { gmail: connectorStatusCache.gmail, outlook: connectorStatusCache.outlook };
+  }
+  
+  // Check for Replit connector availability
+  const hasConnectorHost = !!process.env.REPLIT_CONNECTORS_HOSTNAME;
+  
+  if (hasConnectorHost) {
+    const [gmail, outlook] = await Promise.all([
+      checkReplitConnector('google-mail'),
+      checkReplitConnector('outlook'),
+    ]);
+    connectorStatusCache = { gmail, outlook, lastCheck: now };
+    return { gmail, outlook };
+  }
+  
+  // Fallback to manual credentials check
+  const googleClientId = process.env.GOOGLE_CLIENT_ID;
+  const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const gmailManual = !!(googleClientId && googleClientSecret);
+  
+  const microsoftClientId = process.env.MICROSOFT_CLIENT_ID;
+  const microsoftClientSecret = process.env.MICROSOFT_CLIENT_SECRET;
+  const outlookManual = !!(microsoftClientId && microsoftClientSecret);
+  
+  connectorStatusCache = { gmail: gmailManual, outlook: outlookManual, lastCheck: now };
+  return { gmail: gmailManual, outlook: outlookManual };
+}
+
 function checkConfigStatus(): ConfigStatus {
   // Check for AI - Replit integration uses AI_INTEGRATIONS_OPENAI_API_KEY
   const replitAiKey = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
   const legacyAiKey = process.env.AI_API_KEY || process.env.OPENAI_API_KEY;
   const aiConfigured = !!(replitAiKey || legacyAiKey);
 
-  // Check for Gmail - Replit connector or manual credentials
-  const replitGmailConnector = process.env.GOOGLE_MAIL_CONNECTION_ID;
-  const googleClientId = process.env.GOOGLE_CLIENT_ID;
-  const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const gmailConfigured = !!(replitGmailConnector || (googleClientId && googleClientSecret));
-
-  // Check for Outlook - Replit connector or manual credentials
-  const replitOutlookConnector = process.env.OUTLOOK_CONNECTION_ID;
-  const microsoftClientId = process.env.MICROSOFT_CLIENT_ID;
-  const microsoftClientSecret = process.env.MICROSOFT_CLIENT_SECRET;
-  const outlookConfigured = !!(replitOutlookConnector || (microsoftClientId && microsoftClientSecret));
+  // Use cached connector status (updated async by checkConnectorStatus)
+  const gmailConfigured = connectorStatusCache.gmail;
+  const outlookConfigured = connectorStatusCache.outlook;
 
   const databaseUrl = process.env.DATABASE_URL;
   const capacitorEnabled = process.env.CAPACITOR_ENABLED;
@@ -117,7 +180,10 @@ export function getAppConfig(): AppConfig {
 }
 
 export async function getAppConfigAsync(): Promise<AppConfig> {
-  await checkDatabaseConnection();
+  await Promise.all([
+    checkDatabaseConnection(),
+    checkConnectorStatus(),
+  ]);
   return {
     features: parseFeatureFlags(),
     status: checkConfigStatus(),

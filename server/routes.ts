@@ -11,7 +11,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import crypto from "crypto";
-import { getAppConfig, getAppConfigAsync } from "./config";
+import { getAppConfig, getAppConfigAsync, checkConnectorStatus } from "./config";
 import { extractMeetingNotes, generateFollowUpDrafts, mapConfidenceToStatus, PROMPT_VERSION, isValidActionStatus, VALID_ACTION_STATUSES } from "./ai";
 import multer from "multer";
 import { extractTextFromImage, validateImageFile, MAX_FILE_SIZE } from "./ocr";
@@ -1453,30 +1453,27 @@ Thanks!`,
     
     const connections = await storage.getOAuthConnections(userId);
     
-    // Check which providers are configured (Replit connector or manual credentials)
-    const googleConfigured = !!(
-      process.env.GOOGLE_MAIL_CONNECTION_ID || 
-      (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
-    );
-    const microsoftConfigured = !!(
-      process.env.OUTLOOK_CONNECTION_ID || 
-      (process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET)
-    );
+    // Check connector status via Replit API (or manual credentials)
+    const connectorStatus = await checkConnectorStatus();
+    const hasConnectorHost = !!process.env.REPLIT_CONNECTORS_HOSTNAME;
     
-    // Check if using Replit-managed connectors
-    const useReplitGmail = !!process.env.GOOGLE_MAIL_CONNECTION_ID;
-    const useReplitOutlook = !!process.env.OUTLOOK_CONNECTION_ID;
+    // Also check for manual credentials as fallback
+    const googleManual = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+    const microsoftManual = !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET);
+    
+    const googleConfigured = connectorStatus.gmail || googleManual;
+    const microsoftConfigured = connectorStatus.outlook || microsoftManual;
     
     res.json({
       google: {
         configured: googleConfigured,
-        replitManaged: useReplitGmail,
-        connected: connections.find(c => c.provider === 'google') || null,
+        replitManaged: hasConnectorHost && connectorStatus.gmail,
+        connected: (hasConnectorHost && connectorStatus.gmail) || connections.find(c => c.provider === 'google') || null,
       },
       microsoft: {
         configured: microsoftConfigured,
-        replitManaged: useReplitOutlook,
-        connected: connections.find(c => c.provider === 'microsoft') || null,
+        replitManaged: hasConnectorHost && connectorStatus.outlook,
+        connected: (hasConnectorHost && connectorStatus.outlook) || connections.find(c => c.provider === 'microsoft') || null,
       },
     });
   });
