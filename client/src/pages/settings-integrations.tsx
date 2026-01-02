@@ -107,6 +107,11 @@ export default function SettingsIntegrationsPage() {
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Connected
               </Badge>
+            ) : integrations?.google?.replitManaged ? (
+              <Badge variant="outline" className="rounded-full bg-green-50 text-green-700 border-green-200">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Available
+              </Badge>
             ) : (
               <Badge variant="outline" className="rounded-full bg-gray-50 text-gray-500 border-gray-200">
                 <XCircle className="h-3 w-3 mr-1" />
@@ -140,6 +145,12 @@ export default function SettingsIntegrationsPage() {
                   </Button>
                 </div>
               </div>
+            ) : integrations?.google?.replitManaged ? (
+              <div className="space-y-3">
+                <p className="text-sm text-green-600 bg-green-50 p-3 rounded-xl">
+                  Gmail is available via app settings. Drafts will be created using the app's connection.
+                </p>
+              </div>
             ) : integrations?.google?.configured ? (
               <Button 
                 onClick={() => handleConnect('google')}
@@ -171,6 +182,11 @@ export default function SettingsIntegrationsPage() {
               <Badge variant="outline" className="rounded-full bg-green-50 text-green-700 border-green-200">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Connected
+              </Badge>
+            ) : integrations?.microsoft?.replitManaged ? (
+              <Badge variant="outline" className="rounded-full bg-green-50 text-green-700 border-green-200">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Available
               </Badge>
             ) : (
               <Badge variant="outline" className="rounded-full bg-gray-50 text-gray-500 border-gray-200">
@@ -205,6 +221,12 @@ export default function SettingsIntegrationsPage() {
                   </Button>
                 </div>
               </div>
+            ) : integrations?.microsoft?.replitManaged ? (
+              <div className="space-y-3">
+                <p className="text-sm text-green-600 bg-green-50 p-3 rounded-xl">
+                  Outlook is available via app settings. Drafts will be created using the app's connection.
+                </p>
+              </div>
             ) : integrations?.microsoft?.configured ? (
               <Button 
                 onClick={() => handleConnect('microsoft')}
@@ -222,18 +244,16 @@ export default function SettingsIntegrationsPage() {
         </Card>
       </div>
 
-      <Card className="bg-gray-50 border-gray-200 rounded-xl">
-        <CardContent className="py-4">
-          <h3 className="font-medium text-slate-800 mb-2">Setup Options</h3>
-          <p className="text-sm text-gray-600 mb-3">
-            Use Replit's built-in connectors (recommended) or configure manually with OAuth credentials.
-          </p>
-          <ul className="text-sm text-gray-600 space-y-1">
-            <li><strong>Replit Connectors:</strong> Set up Gmail or Outlook from the Integrations panel</li>
-            <li><strong>Manual:</strong> Add <code className="bg-white px-1 rounded">GOOGLE_CLIENT_ID</code> / <code className="bg-white px-1 rounded">GOOGLE_CLIENT_SECRET</code> or <code className="bg-white px-1 rounded">MICROSOFT_CLIENT_ID</code> / <code className="bg-white px-1 rounded">MICROSOFT_CLIENT_SECRET</code></li>
-          </ul>
-        </CardContent>
-      </Card>
+      {(integrations?.google?.replitManaged || integrations?.microsoft?.replitManaged) && (
+        <Card className="bg-blue-50 border-blue-200 rounded-xl">
+          <CardContent className="py-4">
+            <h3 className="font-medium text-blue-800 mb-2">How it works</h3>
+            <p className="text-sm text-blue-700">
+              Email integrations are configured at the app level. When you export a draft, it will be created using the app's email connection. This means all users can create drafts without needing to connect their own email accounts.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

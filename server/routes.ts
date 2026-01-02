@@ -1451,9 +1451,12 @@ Thanks!`,
     const userId = req.query.userId as string;
     if (!userId) return res.status(400).json({ error: "userId is required" });
     
+    // Get user's personal OAuth connections from database
     const connections = await storage.getOAuthConnections(userId);
+    const googleConnection = connections.find(c => c.provider === 'google') || null;
+    const microsoftConnection = connections.find(c => c.provider === 'microsoft') || null;
     
-    // Check connector status via Replit API (or manual credentials)
+    // Check connector status via Replit API (for app-level fallback)
     const connectorStatus = await checkConnectorStatus();
     const hasConnectorHost = !!process.env.REPLIT_CONNECTORS_HOSTNAME;
     
@@ -1461,6 +1464,7 @@ Thanks!`,
     const googleManual = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
     const microsoftManual = !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET);
     
+    // Integration is "configured" if either Replit connectors OR manual OAuth is available
     const googleConfigured = connectorStatus.gmail || googleManual;
     const microsoftConfigured = connectorStatus.outlook || microsoftManual;
     
@@ -1468,12 +1472,14 @@ Thanks!`,
       google: {
         configured: googleConfigured,
         replitManaged: hasConnectorHost && connectorStatus.gmail,
-        connected: (hasConnectorHost && connectorStatus.gmail) || connections.find(c => c.provider === 'google') || null,
+        // User is "connected" only if they have their own OAuth connection
+        connected: googleConnection,
       },
       microsoft: {
         configured: microsoftConfigured,
         replitManaged: hasConnectorHost && connectorStatus.outlook,
-        connected: (hasConnectorHost && connectorStatus.outlook) || connections.find(c => c.provider === 'microsoft') || null,
+        // User is "connected" only if they have their own OAuth connection
+        connected: microsoftConnection,
       },
     });
   });
