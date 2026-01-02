@@ -41,7 +41,10 @@ The schema (`shared/schema.ts`) defines these core entities:
 - **feedback**: User-submitted feedback with type, message, optional email, diagnostics (route, viewport, userAgent), and status
 
 ### Key Application Flows
-1. **Authentication**: Demo-mode auth with email/password, session-based
+1. **Authentication**: Replit Auth via OpenID Connect (supports Google, GitHub, X, Apple, email/password)
+   - Server routes: `/api/login`, `/api/logout`, `/api/auth/user`
+   - Client hook: `useAuth()` from `@/hooks/use-auth`
+   - Protected routes use `isAuthenticated` middleware
 2. **Meeting Capture**: Create meetings with title, date, attendees, and raw notes
 3. **AI Extraction**: Process notes to extract summary, actions, decisions, and risks
 4. **Draft Generation**: Auto-generate follow-up emails based on extracted content
@@ -53,8 +56,6 @@ Mode-based navigation controlled by workspace selection:
   - Inbox automatically filters to show only tasks assigned to the logged-in user
 - **Team/Work Mode** (workspace selected): Inbox, Meetings, Capture (primary), Drafts, Settings
   - Inbox shows filter toggle for Mine vs Workspace views
-
-A Blueprint demo page exists at `/blueprint` for showcasing the product.
 
 ### Admin Access Control (Demo-Only)
 Admin endpoints (`/api/admin/*`) are protected by a `requireAdminAccess` middleware that:

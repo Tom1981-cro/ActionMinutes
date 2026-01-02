@@ -27,6 +27,7 @@ import {
   prepareTokenForStorage,
   prepareTokenForUse,
 } from "./email-providers";
+import { setupAuth, registerAuthRoutes, isAuthenticated } from "./replit_integrations/auth";
 
 // ==================== RBAC HELPERS ====================
 type Permission = 'read' | 'write' | 'manage' | 'delete';
@@ -128,6 +129,10 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  
+  // ==================== REPLIT AUTH SETUP ====================
+  await setupAuth(app);
+  registerAuthRoutes(app);
   
   // ==================== GLOBAL ERROR HANDLER ====================
   const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => 
