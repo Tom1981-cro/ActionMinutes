@@ -137,6 +137,7 @@ export const actionItems = pgTable("action_items", {
   confidenceDueDate: real("confidence_due_date").notNull().default(0),
   tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
   notes: text("notes"),
+  reminderAt: timestamp("reminder_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

@@ -237,12 +237,16 @@ export function useUpdateUser() {
 
 // ==================== WORKSPACES ====================
 export function useWorkspaces() {
-  const { user, setWorkspaces } = useStore();
+  const { user, setWorkspaces, currentWorkspaceId, setCurrentWorkspace } = useStore();
   return useQuery({
     queryKey: ['workspaces', user.id],
     queryFn: async () => {
       const workspaces = await api.workspaces.list(user.id);
-      setWorkspaces(workspaces.map((w: any) => ({ id: w.id, name: w.name, role: 'member' })));
+      setWorkspaces(workspaces.map((w: any) => ({ id: w.id, name: w.name, role: w.role || 'member' })));
+      // Auto-select first workspace if none selected
+      if (!currentWorkspaceId && workspaces.length > 0) {
+        setCurrentWorkspace(workspaces[0].id);
+      }
       return workspaces;
     },
     enabled: !!user.id && user.isAuthenticated,

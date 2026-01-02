@@ -122,12 +122,12 @@ describe('AI Module', () => {
       expect(mapConfidenceToStatus(0.3, 0.3)).toBe('needs_review');
     });
 
-    it('returns pending when both are at or above threshold', () => {
-      expect(mapConfidenceToStatus(0.65, 0.65)).toBe('pending');
+    it('returns open when both are at or above threshold', () => {
+      expect(mapConfidenceToStatus(0.65, 0.65)).toBe('open');
     });
 
-    it('returns pending when both are well above threshold', () => {
-      expect(mapConfidenceToStatus(0.9, 0.9)).toBe('pending');
+    it('returns open when both are well above threshold', () => {
+      expect(mapConfidenceToStatus(0.9, 0.9)).toBe('open');
     });
   });
 

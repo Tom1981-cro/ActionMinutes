@@ -62,6 +62,7 @@ export interface ActionItem {
   confidenceDueDate: number; // 0-1
   tags: string[];
   notes?: string;
+  reminderAt?: string | null; // ISO string
 }
 
 export interface FollowUpDraft {

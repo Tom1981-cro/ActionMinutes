@@ -42,7 +42,7 @@ export function WorkspaceSwitcher() {
               <User className="h-4 w-4 text-slate-500" />
             )}
             <span className="text-sm font-medium text-slate-700">
-              {currentWorkspace?.name || "Personal"}
+              {currentWorkspace?.name || (user.enablePersonal ? "Personal" : "Select workspace")}
             </span>
           </div>
           <ChevronDown className="h-4 w-4 text-gray-400" />

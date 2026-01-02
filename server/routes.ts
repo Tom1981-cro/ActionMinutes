@@ -12,7 +12,7 @@ import {
 import { z } from "zod";
 import crypto from "crypto";
 import { getAppConfig, getAppConfigAsync } from "./config";
-import { extractMeetingNotes, generateFollowUpDrafts, mapConfidenceToStatus, PROMPT_VERSION } from "./ai";
+import { extractMeetingNotes, generateFollowUpDrafts, mapConfidenceToStatus, PROMPT_VERSION, isValidActionStatus, VALID_ACTION_STATUSES } from "./ai";
 import multer from "multer";
 import { extractTextFromImage, validateImageFile, MAX_FILE_SIZE } from "./ocr";
 import {
@@ -254,6 +254,14 @@ export async function registerRoutes(
       });
       
       req.session.userId = user.id;
+      
+      // Create default "My Work" workspace for new user
+      const workspace = await storage.createWorkspace({
+        name: "My Work",
+        createdByUserId: user.id,
+      });
+      await storage.createWorkspaceMember({ workspaceId: workspace.id, userId: user.id, role: "owner" });
+      
       const { password: _, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error) {
@@ -305,6 +313,16 @@ export async function registerRoutes(
     const user = await storage.getUser(req.session.userId);
     if (!user) {
       return res.status(401).json({ error: "User not found" });
+    }
+    
+    // Ensure user has at least one workspace (idempotent guard)
+    const workspaces = await storage.getWorkspaces(user.id);
+    if (workspaces.length === 0) {
+      const workspace = await storage.createWorkspace({
+        name: "My Work",
+        createdByUserId: user.id,
+      });
+      await storage.createWorkspaceMember({ workspaceId: workspace.id, userId: user.id, role: "owner" });
     }
     
     const { password: _, ...userWithoutPassword } = user;
@@ -735,8 +753,15 @@ Thanks!`,
   app.get("/api/workspaces", async (req, res) => {
     const userId = req.query.userId as string;
     if (!userId) return res.status(400).json({ error: "userId is required" });
-    const workspaces = await storage.getWorkspaces(userId);
-    res.json(workspaces);
+    const memberships = await storage.getUserWorkspaces(userId);
+    const workspacesWithRole = memberships.map(m => ({
+      id: m.workspace.id,
+      name: m.workspace.name,
+      createdByUserId: m.workspace.createdByUserId,
+      createdAt: m.workspace.createdAt,
+      role: m.role,
+    }));
+    res.json(workspacesWithRole);
   });
 
   app.get("/api/workspaces/:id", async (req, res) => {
@@ -890,8 +915,8 @@ Thanks!`,
   });
 
   app.post("/api/invites/:token/accept", async (req, res) => {
-    const userId = req.body.userId as string;
-    if (!userId) return res.status(400).json({ error: "userId is required" });
+    const userId = req.session.userId || req.body.userId as string;
+    if (!userId) return res.status(401).json({ error: "Please log in to accept this invite" });
     
     const invite = await storage.getWorkspaceInviteByToken(req.params.token);
     if (!invite) return res.status(404).json({ error: "Invite not found" });
@@ -1080,6 +1105,11 @@ Thanks!`,
     const updates = { ...req.body };
     if (updates.dueDate && typeof updates.dueDate === 'string') {
       updates.dueDate = new Date(updates.dueDate);
+    }
+    if (updates.status && !isValidActionStatus(updates.status)) {
+      return res.status(400).json({ 
+        error: `Invalid status. Must be one of: ${VALID_ACTION_STATUSES.join(', ')}` 
+      });
     }
     const action = await storage.updateActionItem(req.params.id, updates);
     if (!action) return res.status(404).json({ error: "Action item not found" });
@@ -1635,9 +1665,22 @@ Thanks!`,
     }
     
     await storage.updateDraft(draft.id, {
+      state: 'exported',
       providerDraftId: result.draftId,
       providerMetadata: { provider: 'gmail', webLink: result.webLink, createdAt: new Date().toISOString() },
     });
+    
+    // Update related action items to 'waiting' if this is an individual draft
+    if (draft.recipientEmail || draft.recipientName) {
+      const actions = await storage.getActionItemsForMeeting(draft.meetingId);
+      for (const action of actions) {
+        if (action.status === 'open' && 
+            ((draft.recipientEmail && action.ownerEmail === draft.recipientEmail) ||
+             (draft.recipientName && action.ownerName === draft.recipientName))) {
+          await storage.updateActionItem(action.id, { status: 'waiting' });
+        }
+      }
+    }
     
     await storage.updateOAuthConnection(connection.id, { lastUsedAt: new Date() });
     
@@ -1677,9 +1720,22 @@ Thanks!`,
     }
     
     await storage.updateDraft(draft.id, {
+      state: 'exported',
       providerDraftId: result.draftId,
       providerMetadata: { provider: 'outlook', webLink: result.webLink, createdAt: new Date().toISOString() },
     });
+    
+    // Update related action items to 'waiting' if this is an individual draft
+    if (draft.recipientEmail || draft.recipientName) {
+      const actions = await storage.getActionItemsForMeeting(draft.meetingId);
+      for (const action of actions) {
+        if (action.status === 'open' && 
+            ((draft.recipientEmail && action.ownerEmail === draft.recipientEmail) ||
+             (draft.recipientName && action.ownerName === draft.recipientName))) {
+          await storage.updateActionItem(action.id, { status: 'waiting' });
+        }
+      }
+    }
     
     await storage.updateOAuthConnection(connection.id, { lastUsedAt: new Date() });
     

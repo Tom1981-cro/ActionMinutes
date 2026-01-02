@@ -56,7 +56,14 @@ export function mapConfidenceToStatus(confidenceOwner: number, confidenceDueDate
   if (confidenceOwner < 0.65 || confidenceDueDate < 0.65) {
     return "needs_review";
   }
-  return "pending";
+  return "open";
+}
+
+export const VALID_ACTION_STATUSES = ["needs_review", "open", "waiting", "done", "pending"] as const;
+export type ActionStatus = typeof VALID_ACTION_STATUSES[number];
+
+export function isValidActionStatus(status: string): status is ActionStatus {
+  return VALID_ACTION_STATUSES.includes(status as ActionStatus);
 }
 
 function getExtractionPrompt(meetingTitle: string, attendees: string[], rawNotes: string): string {

@@ -19,6 +19,11 @@ const statusConfig: Record<string, {
     icon: CircleDot,
     className: 'bg-stone-100 text-stone-700 border-stone-200',
   },
+  pending: {
+    label: 'Open',
+    icon: CircleDot,
+    className: 'bg-stone-100 text-stone-700 border-stone-200',
+  },
   done: {
     label: 'Done',
     icon: Check,

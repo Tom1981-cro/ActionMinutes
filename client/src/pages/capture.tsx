@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Sparkles, Save, ArrowLeft, ChevronDown, ChevronUp, Users, Clock, MapPin, AlertTriangle, Camera, Upload, RefreshCw, Copy, X, Check, FileText, User, Building2 } from "lucide-react";
+import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateMeeting, useExtractMeeting, useAppConfig, useWorkspaces } from "@/lib/hooks";
@@ -44,9 +46,7 @@ export default function CapturePage() {
   const [insertMode, setInsertMode] = useState<"replace" | "append">("append");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // TODO: Capacitor camera - enable when Capacitor is added
-  // import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
-  const isCapacitorAvailable = false; // Set to true when Capacitor is integrated
+  const isCapacitorAvailable = Capacitor.isNativePlatform();
 
   const saveAttendees = async (meetingId: string) => {
     if (!attendees.trim()) return;
@@ -207,24 +207,29 @@ export default function CapturePage() {
     setOcrError(null);
   };
 
-  // TODO: Capacitor camera integration - uncomment when Capacitor is added
-  // const handleTakePhoto = async () => {
-  //   try {
-  //     const photo = await Camera.getPhoto({
-  //       quality: 90,
-  //       resultType: CameraResultType.Base64,
-  //       source: CameraSource.Camera,
-  //     });
-  //     // Convert base64 to file and run OCR
-  //     const base64Response = await fetch(`data:image/jpeg;base64,${photo.base64String}`);
-  //     const blob = await base64Response.blob();
-  //     const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
-  //     await runOcr(file);
-  //   } catch (error) {
-  //     console.error('Camera error:', error);
-  //     toast({ title: "Camera error", description: "Failed to take photo", variant: "destructive" });
-  //   }
-  // };
+  const handleTakePhoto = async () => {
+    try {
+      const photo = await CapacitorCamera.getPhoto({
+        quality: 90,
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Camera,
+      });
+      if (!photo.base64String) {
+        toast({ title: "Camera error", description: "No photo captured", variant: "destructive" });
+        return;
+      }
+      const base64Response = await fetch(`data:image/jpeg;base64,${photo.base64String}`);
+      const blob = await base64Response.blob();
+      const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
+      await runOcr(file);
+    } catch (error: any) {
+      console.error('Camera error:', error);
+      if (error?.message?.includes('cancelled')) {
+        return;
+      }
+      toast({ title: "Camera error", description: "Failed to take photo. Please try uploading instead.", variant: "destructive" });
+    }
+  };
 
   return (
     <div className="flex flex-col h-full pb-safe">

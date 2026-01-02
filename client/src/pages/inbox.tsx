@@ -19,6 +19,7 @@ type FilterType = "mine" | "workspace";
 interface ActionCardProps {
   item: any;
   onDone: () => void;
+  onWaiting: () => void;
   onRemind: () => void;
   onNudge: () => void;
   onEdit: () => void;
@@ -26,7 +27,7 @@ interface ActionCardProps {
   isReview?: boolean;
 }
 
-function ActionCard({ item, onDone, onRemind, onNudge, onEdit, onTap, isReview }: ActionCardProps) {
+function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap, isReview }: ActionCardProps) {
   const lowConfidence = item.confidenceOwner < 0.6 || item.confidenceDueDate < 0.6;
   const isOverdue = item.dueDate && new Date(item.dueDate) < new Date();
 
@@ -85,6 +86,19 @@ function ActionCard({ item, onDone, onRemind, onNudge, onEdit, onTap, isReview }
               <CheckCircle className="h-5 w-5" />
               <span className="text-[10px] font-medium">Done</span>
             </Button>
+            
+            {item.status !== 'waiting' && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={(e) => { e.stopPropagation(); onWaiting(); }}
+                className="flex-1 h-11 rounded-xl text-amber-600 hover:bg-amber-50 hover:text-amber-700 flex flex-col items-center gap-0.5 px-2"
+                data-testid={`button-waiting-${item.id}`}
+              >
+                <Clock className="h-5 w-5" />
+                <span className="text-[10px] font-medium">Waiting</span>
+              </Button>
+            )}
             
             <Button 
               variant="ghost" 
@@ -154,7 +168,7 @@ export default function InboxPage() {
   });
 
   const needsReview = filteredItems.filter((i: any) => i.status === "needs_review");
-  const openItems = filteredItems.filter((i: any) => i.status === "open" || i.status === "waiting").sort((a: any, b: any) => {
+  const openItems = filteredItems.filter((i: any) => i.status === "open" || i.status === "pending" || i.status === "waiting").sort((a: any, b: any) => {
     if (!a.dueDate) return 1;
     if (!b.dueDate) return -1;
     return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
@@ -163,6 +177,11 @@ export default function InboxPage() {
   const markDone = (id: string) => {
     updateActionItem.mutate({ id, updates: { status: "done" } });
     toast({ title: "Marked as done" });
+  };
+
+  const markWaiting = (id: string) => {
+    updateActionItem.mutate({ id, updates: { status: "waiting" } });
+    toast({ title: "Marked as waiting", description: "Waiting for a response." });
   };
   
   const handleRemind = (id: string) => {
@@ -241,6 +260,7 @@ export default function InboxPage() {
                 key={item.id} 
                 item={item} 
                 onDone={() => markDone(item.id)}
+                onWaiting={() => markWaiting(item.id)}
                 onRemind={() => handleRemind(item.id)}
                 onNudge={() => handleNudge(item.id)}
                 onEdit={() => handleEdit(item)}
@@ -288,6 +308,7 @@ export default function InboxPage() {
                 key={item.id} 
                 item={item} 
                 onDone={() => markDone(item.id)}
+                onWaiting={() => markWaiting(item.id)}
                 onRemind={() => handleRemind(item.id)}
                 onNudge={() => handleNudge(item.id)}
                 onEdit={() => handleEdit(item)}
