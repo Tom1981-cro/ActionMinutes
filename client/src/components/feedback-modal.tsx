@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
-import { Bug, Lightbulb, Palette, HelpCircle } from "lucide-react";
+import { Bug, Lightbulb, Palette, Question } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 interface FeedbackModalProps {
@@ -27,7 +27,7 @@ const feedbackTypes = [
   { value: "bug", label: "Bug", icon: Bug, color: "text-red-500" },
   { value: "feature", label: "Feature", icon: Lightbulb, color: "text-amber-500" },
   { value: "ux", label: "UX Issue", icon: Palette, color: "text-purple-500" },
-  { value: "other", label: "Other", icon: HelpCircle, color: "text-gray-500" },
+  { value: "other", label: "Other", icon: Question, color: "text-gray-500" },
 ];
 
 export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
@@ -121,7 +121,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                     )}
                     data-testid={`button-feedback-type-${t.value}`}
                   >
-                    <Icon className={cn("h-5 w-5", isSelected ? "text-indigo-600" : t.color)} />
+                    <Icon className={cn("h-5 w-5", isSelected ? "text-indigo-600" : t.color)} weight="duotone" />
                     <span className={cn(
                       "text-xs font-medium",
                       isSelected ? "text-indigo-700" : "text-gray-600"

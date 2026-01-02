@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { 
-  Inbox, Calendar, PlusCircle, FileText, Settings, LogOut, Bell, BookOpen 
-} from "lucide-react";
+  Tray, CalendarBlank, PlusCircle, FileText, GearSix, SignOut, Bell, BookOpen 
+} from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/hooks/use-auth";
@@ -21,17 +21,17 @@ export default function Layout({ children }: LayoutProps) {
   const isPersonalMode = currentWorkspaceId === null && user.enablePersonal;
 
   const personalNavItems = [
-    { href: "/inbox", label: "Inbox", icon: Inbox },
+    { href: "/inbox", label: "Inbox", icon: Tray },
     { href: "/reminders", label: "Reminders", icon: Bell, primary: true },
     { href: "/journal", label: "Journal", icon: BookOpen },
   ];
 
   const teamNavItems = [
-    { href: "/inbox", label: "Inbox", icon: Inbox },
-    { href: "/meetings", label: "Meetings", icon: Calendar },
+    { href: "/inbox", label: "Inbox", icon: Tray },
+    { href: "/meetings", label: "Meetings", icon: CalendarBlank },
     { href: "/capture", label: "Capture", icon: PlusCircle, primary: true },
     { href: "/drafts", label: "Drafts", icon: FileText },
-    { href: "/settings", label: "Settings", icon: Settings },
+    { href: "/settings", label: "Settings", icon: GearSix },
   ];
 
   const navItems = isPersonalMode ? personalNavItems : teamNavItems;
@@ -74,7 +74,7 @@ export default function Layout({ children }: LayoutProps) {
                     : "text-slate-600 hover:bg-gray-50 hover:text-indigo-600"
                 )}
               >
-                <item.icon className={cn("h-4 w-4", isActive ? "text-indigo-500" : "text-slate-400")} />
+                <item.icon className={cn("h-4 w-4", isActive ? "text-indigo-500" : "text-slate-400")} weight="duotone" />
                 {item.label}
               </Link>
             );
@@ -97,7 +97,7 @@ export default function Layout({ children }: LayoutProps) {
                   : "text-slate-500 hover:bg-gray-50 hover:text-indigo-600"
               )}
             >
-              <Settings className="h-4 w-4" />
+              <GearSix className="h-4 w-4" weight="duotone" />
               Settings
             </Link>
           )}
@@ -110,7 +110,7 @@ export default function Layout({ children }: LayoutProps) {
               setLocation("/");
             }}
           >
-            <LogOut className="h-4 w-4 mr-2" />
+            <SignOut className="h-4 w-4 mr-2" weight="duotone" />
             Sign out
           </Button>
         </div>
@@ -137,7 +137,7 @@ export default function Layout({ children }: LayoutProps) {
                   : "text-slate-400 hover:bg-gray-50 hover:text-indigo-600"
               )}
             >
-              <Settings className="h-5 w-5" />
+              <GearSix className="h-5 w-5" weight="duotone" />
             </Link>
           )}
         </div>
@@ -176,7 +176,7 @@ export default function Layout({ children }: LayoutProps) {
                       "flex items-center justify-center w-12 h-12 rounded-full shadow-lg shadow-indigo-500/30 transition-all btn-gradient",
                       isActive && "scale-105"
                     )}>
-                      <Icon className="h-6 w-6 text-white" />
+                      <Icon className="h-6 w-6 text-white" weight="duotone" />
                     </div>
                     <span className={cn(
                       "text-[10px] font-medium mt-1",
@@ -187,7 +187,7 @@ export default function Layout({ children }: LayoutProps) {
                   </div>
                 ) : (
                   <>
-                    <Icon className={cn("h-5 w-5 mb-1", isActive && "text-indigo-500")} />
+                    <Icon className={cn("h-5 w-5 mb-1", isActive && "text-indigo-500")} weight="duotone" />
                     <span className={cn(
                       "text-[10px] font-medium",
                       isActive ? "text-indigo-600" : "text-slate-500"

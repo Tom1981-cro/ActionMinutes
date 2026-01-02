@@ -8,9 +8,9 @@ import { useStore } from "@/lib/store";
 import { useUpdateUser } from "@/lib/hooks";
 import { Link } from "wouter";
 import { 
-  Settings2, Plug, Calendar, Sparkles, Users, MessageSquare, Shield, 
-  User, BookOpen, Clock, FileText, Scale, ChevronDown, ChevronRight, Info 
-} from "lucide-react";
+  GearSix, Plug, CalendarBlank, Sparkle, UsersThree, ChatCircle, ShieldCheck, 
+  User, BookOpen, Clock, FileText, Scales, CaretDown, CaretRight, Info 
+} from "@phosphor-icons/react";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
 import WorkspaceSettingsPage from "./workspace-settings";
@@ -45,9 +45,9 @@ function ExpandableSection({ title, icon, defaultOpen = false, children, testId 
               <span className="text-lg font-semibold text-slate-800">{title}</span>
             </div>
             {isOpen ? (
-              <ChevronDown className="h-5 w-5 text-gray-400" />
+              <CaretDown className="h-5 w-5 text-gray-400" weight="duotone" />
             ) : (
-              <ChevronRight className="h-5 w-5 text-gray-400" />
+              <CaretRight className="h-5 w-5 text-gray-400" weight="duotone" />
             )}
           </button>
         </CollapsibleTrigger>
@@ -85,7 +85,7 @@ export default function SettingsPage() {
       {/* AI Preferences Section */}
       <ExpandableSection
         title="AI Preferences"
-        icon={<Sparkles className="h-5 w-5 text-indigo-500" />}
+        icon={<Sparkle className="h-5 w-5 text-indigo-500" weight="duotone" />}
         testId="section-ai-preferences"
       >
         <div className="space-y-6">
@@ -165,7 +165,7 @@ export default function SettingsPage() {
       {/* Integrations Section */}
       <ExpandableSection
         title="Integrations"
-        icon={<Plug className="h-5 w-5 text-green-500" />}
+        icon={<Plug className="h-5 w-5 text-green-500" weight="duotone" />}
         testId="section-integrations"
       >
         <SettingsIntegrationsPage />
@@ -174,7 +174,7 @@ export default function SettingsPage() {
       {/* Exports Section */}
       <ExpandableSection
         title="Exports"
-        icon={<Calendar className="h-5 w-5 text-blue-500" />}
+        icon={<CalendarBlank className="h-5 w-5 text-blue-500" weight="duotone" />}
         testId="section-exports"
       >
         <SettingsExportsPage />
@@ -184,7 +184,7 @@ export default function SettingsPage() {
       {currentWorkspaceId && (
         <ExpandableSection
           title="Workspace"
-          icon={<Users className="h-5 w-5 text-purple-500" />}
+          icon={<UsersThree className="h-5 w-5 text-purple-500" weight="duotone" />}
           testId="section-workspace"
         >
           <WorkspaceSettingsPage workspaceId={currentWorkspaceId} />
@@ -194,7 +194,7 @@ export default function SettingsPage() {
       {/* Personal Section */}
       <ExpandableSection
         title="Personal"
-        icon={<User className="h-5 w-5 text-pink-500" />}
+        icon={<User className="h-5 w-5 text-pink-500" weight="duotone" />}
         testId="section-personal"
       >
         <div className="space-y-4">
@@ -206,13 +206,13 @@ export default function SettingsPage() {
           <div className="space-y-3">
             <Link href="/journal">
               <Button variant="outline" className="w-full justify-start h-12 rounded-xl border-gray-200" data-testid="link-journal">
-                <BookOpen className="h-4 w-4 mr-3 text-purple-500" />
+                <BookOpen className="h-4 w-4 mr-3 text-purple-500" weight="duotone" />
                 Open Journal
               </Button>
             </Link>
             <Link href="/reminders">
               <Button variant="outline" className="w-full justify-start h-12 rounded-xl border-gray-200" data-testid="link-reminders">
-                <Clock className="h-4 w-4 mr-3 text-indigo-500" />
+                <Clock className="h-4 w-4 mr-3 text-indigo-500" weight="duotone" />
                 Open Reminders
               </Button>
             </Link>
@@ -227,14 +227,14 @@ export default function SettingsPage() {
       {/* Support & Legal Section */}
       <ExpandableSection
         title="Support & Legal"
-        icon={<MessageSquare className="h-5 w-5 text-orange-500" />}
+        icon={<ChatCircle className="h-5 w-5 text-orange-500" weight="duotone" />}
         testId="section-support"
       >
         <div className="space-y-4">
           {/* About ActionMinutes */}
           <div className="space-y-3">
             <h3 className="font-medium text-slate-700 flex items-center gap-2">
-              <Info className="h-4 w-4 text-indigo-500" />
+              <Info className="h-4 w-4 text-indigo-500" weight="duotone" />
               About ActionMinutes
             </h3>
             <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
@@ -252,7 +252,7 @@ export default function SettingsPage() {
           {/* Privacy Settings */}
           <div className="space-y-3 pt-4 border-t border-gray-100">
             <h3 className="font-medium text-slate-700 flex items-center gap-2">
-              <Shield className="h-4 w-4 text-indigo-500" />
+              <ShieldCheck className="h-4 w-4 text-indigo-500" weight="duotone" />
               Privacy Settings
             </h3>
             <div className="flex items-start justify-between gap-4 py-2 pl-2">
@@ -276,13 +276,13 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <Link href="/privacy-policy">
                 <Button variant="outline" className="w-full justify-start h-11 rounded-xl border-gray-200 text-slate-700" data-testid="link-privacy-policy">
-                  <Shield className="h-4 w-4 mr-3 text-gray-500" />
+                  <ShieldCheck className="h-4 w-4 mr-3 text-gray-500" weight="duotone" />
                   Privacy Policy
                 </Button>
               </Link>
               <Link href="/terms">
                 <Button variant="outline" className="w-full justify-start h-11 rounded-xl border-gray-200 text-slate-700" data-testid="link-terms">
-                  <Scale className="h-4 w-4 mr-3 text-gray-500" />
+                  <Scales className="h-4 w-4 mr-3 text-gray-500" weight="duotone" />
                   Terms of Service
                 </Button>
               </Link>
@@ -298,7 +298,7 @@ export default function SettingsPage() {
               className="w-full justify-start h-11 rounded-xl border-gray-200 text-slate-700"
               data-testid="button-send-feedback"
             >
-              <MessageSquare className="h-4 w-4 mr-3 text-indigo-500" />
+              <ChatCircle className="h-4 w-4 mr-3 text-indigo-500" weight="duotone" />
               Send Feedback
             </Button>
             
@@ -310,7 +310,7 @@ export default function SettingsPage() {
                   className="w-full justify-start h-11 rounded-xl border-gray-200 text-slate-700"
                   data-testid="button-admin-feedback"
                 >
-                  <Shield className="h-4 w-4 mr-3 text-purple-500" />
+                  <ShieldCheck className="h-4 w-4 mr-3 text-purple-500" weight="duotone" />
                   Admin: View Feedback
                 </Button>
               </Link>
