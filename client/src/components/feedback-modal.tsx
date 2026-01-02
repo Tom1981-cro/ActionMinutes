@@ -93,7 +93,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md rounded-3xl">
+      <DialogContent className="sm:max-w-[420px] max-w-[calc(100vw-2rem)] rounded-3xl overflow-hidden">
         <DialogHeader>
           <DialogTitle className="text-xl text-slate-800">Send Feedback</DialogTitle>
           <DialogDescription className="text-gray-500">
@@ -101,7 +101,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 py-2">
+        <div className="space-y-5 py-2 w-full">
           <div className="space-y-2">
             <Label className="text-base text-slate-700">Type</Label>
             <div className="grid grid-cols-4 gap-2">
@@ -140,7 +140,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Describe your feedback..."
-              className="min-h-[120px] rounded-xl border-gray-200 text-base"
+              className="min-h-[100px] rounded-xl border-gray-200 text-base w-full"
               data-testid="input-feedback-message"
             />
           </div>
@@ -152,7 +152,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="h-12 rounded-xl border-gray-200"
+              className="h-11 rounded-xl border-gray-200 w-full"
               data-testid="input-feedback-email"
             />
             <p className="text-xs text-gray-400">For follow-up if needed</p>
@@ -172,15 +172,15 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
           </div>
 
           {includeDiagnostics && (
-            <div className="text-xs text-gray-400 bg-gray-50 p-3 rounded-xl space-y-1">
-              <div>Route: {location}</div>
-              <div>Viewport: {typeof window !== "undefined" ? `${window.innerWidth}x${window.innerHeight}` : "N/A"}</div>
-              <div className="truncate">Browser: {typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 60) + "..." : "N/A"}</div>
+            <div className="text-xs text-gray-400 bg-gray-50 p-3 rounded-xl space-y-1 overflow-hidden">
+              <div className="truncate">Route: {location}</div>
+              <div className="truncate">Viewport: {typeof window !== "undefined" ? `${window.innerWidth}x${window.innerHeight}` : "N/A"}</div>
+              <div className="truncate">Browser: {typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 50) + "..." : "N/A"}</div>
             </div>
           )}
         </div>
 
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-3 pt-2 w-full">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
