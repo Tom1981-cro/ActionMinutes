@@ -9,11 +9,10 @@ import { useUpdateUser } from "@/lib/hooks";
 import { Link } from "wouter";
 import { 
   Settings2, Plug, Calendar, Sparkles, Users, MessageSquare, Shield, 
-  User, BookOpen, Clock, FileText, Scale, ChevronDown, ChevronRight 
+  User, BookOpen, Clock, FileText, Scale, ChevronDown, ChevronRight, Info 
 } from "lucide-react";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
-import SettingsAuditPage from "./settings-audit";
 import WorkspaceSettingsPage from "./workspace-settings";
 import SettingsPrivacyPage from "./settings-privacy";
 import SettingsTermsPage from "./settings-terms";
@@ -87,7 +86,6 @@ export default function SettingsPage() {
       <ExpandableSection
         title="AI Preferences"
         icon={<Sparkles className="h-5 w-5 text-indigo-500" />}
-        defaultOpen={true}
         testId="section-ai-preferences"
       >
         <div className="space-y-6">
@@ -158,12 +156,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* AI Audit */}
-          <div className="space-y-4 pt-4 border-t border-gray-100">
-            <h3 className="font-medium text-slate-700">AI Audit Log</h3>
-            <SettingsAuditPage />
-          </div>
-
           <div className="p-4 bg-amber-50 text-amber-800 rounded-xl text-sm border border-amber-200">
             <strong>Note:</strong> Your notes will be processed by an AI service to generate outputs. You can disable AI anytime.
           </div>
@@ -232,15 +224,33 @@ export default function SettingsPage() {
         </div>
       </ExpandableSection>
 
-      {/* Support Section */}
+      {/* Support & Legal Section */}
       <ExpandableSection
-        title="Support"
+        title="Support & Legal"
         icon={<MessageSquare className="h-5 w-5 text-orange-500" />}
         testId="section-support"
       >
         <div className="space-y-4">
-          {/* Privacy Settings */}
+          {/* About ActionMinutes */}
           <div className="space-y-3">
+            <h3 className="font-medium text-slate-700 flex items-center gap-2">
+              <Info className="h-4 w-4 text-indigo-500" />
+              About ActionMinutes
+            </h3>
+            <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+              <p className="text-sm text-slate-700 leading-relaxed">
+                ActionMinutes transforms your messy meeting notes into actionable outputs. 
+                Simply capture your notes, and we'll extract clear action items with owners and due dates, 
+                key decisions, and ready-to-send follow-up emails — all in under 60 seconds.
+              </p>
+              <p className="text-xs text-slate-500 mt-3">
+                Minutes → Actions → Follow-ups
+              </p>
+            </div>
+          </div>
+
+          {/* Privacy Settings */}
+          <div className="space-y-3 pt-4 border-t border-gray-100">
             <h3 className="font-medium text-slate-700 flex items-center gap-2">
               <Shield className="h-4 w-4 text-indigo-500" />
               Privacy Settings
@@ -308,6 +318,11 @@ export default function SettingsPage() {
           </div>
         </div>
       </ExpandableSection>
+
+      {/* Version Number */}
+      <div className="text-center py-4">
+        <p className="text-xs text-gray-400">ActionMinutes v1.0.0</p>
+      </div>
 
       <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </div>
