@@ -7,11 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStore } from "@/lib/store";
 import { useUpdateUser, useAppConfig } from "@/lib/hooks";
 import { Link } from "wouter";
-import { Settings2, Plug, Calendar, Sparkles, Users, MessageSquare, Shield, Rocket, User, BookOpen, Clock } from "lucide-react";
+import { Settings2, Plug, Calendar, Sparkles, Users, MessageSquare, Shield, Rocket, User, BookOpen, Clock, FileText, Scale } from "lucide-react";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
 import SettingsAuditPage from "./settings-audit";
 import WorkspaceSettingsPage from "./workspace-settings";
+import SettingsPrivacyPage from "./settings-privacy";
+import SettingsTermsPage from "./settings-terms";
 import { FeedbackModal } from "@/components/feedback-modal";
 import { ReleaseReadinessPanel } from "@/components/release-readiness-panel";
 
@@ -66,6 +68,14 @@ export default function SettingsPage() {
             <TabsTrigger value="release" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm h-11 px-3 md:px-4" data-testid="tab-release">
               <Rocket className="h-4 w-4 md:mr-2" />
               <span className="hidden md:inline">Release</span>
+            </TabsTrigger>
+            <TabsTrigger value="privacy" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm h-11 px-3 md:px-4" data-testid="tab-privacy">
+              <Shield className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Privacy</span>
+            </TabsTrigger>
+            <TabsTrigger value="terms" className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm h-11 px-3 md:px-4" data-testid="tab-terms">
+              <Scale className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Terms</span>
             </TabsTrigger>
           </TabsList>
         </div>
@@ -266,6 +276,14 @@ export default function SettingsPage() {
 
         <TabsContent value="release" className="space-y-5 md:space-y-6">
           <ReleaseReadinessPanel />
+        </TabsContent>
+
+        <TabsContent value="privacy">
+          <SettingsPrivacyPage />
+        </TabsContent>
+
+        <TabsContent value="terms">
+          <SettingsTermsPage />
         </TabsContent>
       </Tabs>
     </div>
