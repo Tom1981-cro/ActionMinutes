@@ -12,6 +12,8 @@ import CapturePage from "@/pages/capture";
 import ExtractionPage from "@/pages/extraction";
 import DraftsPage from "@/pages/drafts";
 import SettingsPage from "@/pages/settings";
+import SettingsPrivacyPage from "@/pages/settings-privacy";
+import SettingsTermsPage from "@/pages/settings-terms";
 import AdminFeedbackPage from "@/pages/admin-feedback";
 import JournalPage from "@/pages/journal";
 import RemindersPage from "@/pages/reminders";
@@ -48,6 +50,12 @@ function Router() {
       </Route>
       <Route path="/settings">
         <Layout><SettingsPage /></Layout>
+      </Route>
+      <Route path="/privacy-policy">
+        <Layout><SettingsPrivacyPage /></Layout>
+      </Route>
+      <Route path="/terms">
+        <Layout><SettingsTermsPage /></Layout>
       </Route>
       <Route path="/journal">
         <Layout><JournalPage /></Layout>
