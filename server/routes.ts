@@ -1358,7 +1358,16 @@ Thanks!`,
     if (!reminder) return res.status(404).json({ error: "Reminder not found" });
     if (reminder.userId !== userId) return res.status(403).json({ error: "Access denied" });
     
-    const updated = await storage.updatePersonalReminder(req.params.id, req.body);
+    const updates: any = { ...req.body };
+    if (updates.dueDate && typeof updates.dueDate === 'string') {
+      updates.dueDate = new Date(updates.dueDate);
+    }
+    if (updates.completedAt && typeof updates.completedAt === 'string') {
+      updates.completedAt = new Date(updates.completedAt);
+    }
+    delete updates.userId;
+    
+    const updated = await storage.updatePersonalReminder(req.params.id, updates);
     res.json(updated);
   });
 
