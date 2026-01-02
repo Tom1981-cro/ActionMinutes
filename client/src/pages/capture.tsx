@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Sparkles, Save, ArrowLeft, ChevronDown, ChevronUp, Users, Clock, MapPin, AlertTriangle, Camera, Upload, RefreshCw, Copy, X, Check, FileText, User, Building2 } from "lucide-react";
-import { Camera as CapacitorCamera, CameraResultType, CameraSource } from '@capacitor/camera';
-import { Capacitor } from '@capacitor/core';
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateMeeting, useExtractMeeting, useAppConfig, useWorkspaces } from "@/lib/hooks";
@@ -46,7 +44,7 @@ export default function CapturePage() {
   const [insertMode, setInsertMode] = useState<"replace" | "append">("append");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isCapacitorAvailable = Capacitor.isNativePlatform();
+  const isCapacitorAvailable = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
 
   const saveAttendees = async (meetingId: string) => {
     if (!attendees.trim()) return;
@@ -209,7 +207,8 @@ export default function CapturePage() {
 
   const handleTakePhoto = async () => {
     try {
-      const photo = await CapacitorCamera.getPhoto({
+      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+      const photo = await Camera.getPhoto({
         quality: 90,
         resultType: CameraResultType.Base64,
         source: CameraSource.Camera,
