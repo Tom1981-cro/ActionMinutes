@@ -19,8 +19,43 @@ async function fetchUser(): Promise<User | null> {
   return response.json();
 }
 
+async function loginFn(email: string, password: string): Promise<User> {
+  const response = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || "Login failed");
+  }
+
+  return response.json();
+}
+
+async function registerFn(email: string, password: string, name?: string): Promise<User> {
+  const response = await fetch("/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ email, password, name }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || "Registration failed");
+  }
+
+  return response.json();
+}
+
 async function logoutFn(): Promise<void> {
-  window.location.href = "/api/logout";
+  await fetch("/api/auth/logout", {
+    method: "POST",
+    credentials: "include",
+  });
 }
 
 export function useAuth() {
@@ -53,19 +88,30 @@ export function useAuth() {
     }
   }, [user, setUser]);
 
-  const logoutMutation = useMutation({
-    mutationFn: logoutFn,
-    onSuccess: () => {
-      queryClient.setQueryData(["/api/auth/user"], null);
-      storeLogout();
-    },
-  });
+  const login = async (email: string, password: string) => {
+    const user = await loginFn(email, password);
+    queryClient.setQueryData(["/api/auth/user"], user);
+    return user;
+  };
+
+  const register = async (email: string, password: string, name?: string) => {
+    const user = await registerFn(email, password, name);
+    queryClient.setQueryData(["/api/auth/user"], user);
+    return user;
+  };
+
+  const logout = async () => {
+    await logoutFn();
+    queryClient.setQueryData(["/api/auth/user"], null);
+    storeLogout();
+  };
 
   return {
     user,
     isLoading,
     isAuthenticated: !!user,
-    logout: logoutMutation.mutate,
-    isLoggingOut: logoutMutation.isPending,
+    login,
+    register,
+    logout,
   };
 }

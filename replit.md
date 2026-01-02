@@ -41,10 +41,11 @@ The schema (`shared/schema.ts`) defines these core entities:
 - **feedback**: User-submitted feedback with type, message, optional email, diagnostics (route, viewport, userAgent), and status
 
 ### Key Application Flows
-1. **Authentication**: Replit Auth via OpenID Connect (supports Google, GitHub, X, Apple, email/password)
-   - Server routes: `/api/login`, `/api/logout`, `/api/auth/user`
-   - Client hook: `useAuth()` from `@/hooks/use-auth`
-   - Protected routes use `isAuthenticated` middleware
+1. **Authentication**: Username/password authentication with bcrypt password hashing
+   - Server routes: `/api/auth/register`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/user`
+   - Client hook: `useAuth()` from `@/hooks/use-auth` with `login`, `register`, `logout` functions
+   - Session-based auth with PostgreSQL session store
+   - Test credentials: `test@actionminutes.com` / `testpass123` (after seeding)
 2. **Meeting Capture**: Create meetings with title, date, attendees, and raw notes
 3. **AI Extraction**: Process notes to extract summary, actions, decisions, and risks
 4. **Draft Generation**: Auto-generate follow-up emails based on extracted content
