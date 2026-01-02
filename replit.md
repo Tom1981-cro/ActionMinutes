@@ -19,6 +19,7 @@ Preferred communication style: Simple, everyday language.
 - **Data Fetching**: TanStack React Query for server state management
 - **UI Components**: shadcn/ui component library built on Radix UI primitives
 - **Styling**: Tailwind CSS with Vibrant Enterprise design system (Inter font, Indigo/Purple gradient palette)
+- **Icons**: Phosphor Icons (Neo Duotone style with `weight="duotone"`) for primary navigation, settings, and feedback; legacy Lucide icons in secondary pages (incremental migration)
 - **Build Tool**: Vite with custom plugins for Replit integration
 
 ### Backend Architecture
