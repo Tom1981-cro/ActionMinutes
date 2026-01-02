@@ -2,11 +2,10 @@ import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Mail, ExternalLink, CheckCircle, XCircle, AlertTriangle, Clock } from "lucide-react";
+import { Loader2, Mail, CheckCircle, XCircle, AlertTriangle, Clock } from "lucide-react";
 import { useIntegrations, useDisconnectIntegration, useAppConfig } from "@/lib/hooks";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
-import { api } from "@/lib/api";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 
@@ -24,11 +23,11 @@ export default function SettingsIntegrationsPage() {
     const error = params.get('error');
     
     if (success === 'google') {
-      toast({ title: "Gmail Connected", description: "You can now create drafts directly in Gmail." });
+      toast({ title: "Gmail Connected", description: "You can now send emails directly from ActionMinutes." });
       refetch();
       window.history.replaceState({}, '', '/settings?tab=integrations');
     } else if (success === 'microsoft') {
-      toast({ title: "Outlook Connected", description: "You can now create drafts directly in Outlook." });
+      toast({ title: "Outlook Connected", description: "You can now send emails directly from ActionMinutes." });
       refetch();
       window.history.replaceState({}, '', '/settings?tab=integrations');
     } else if (error) {
@@ -83,11 +82,16 @@ export default function SettingsIntegrationsPage() {
     );
   }
 
+  const googleConnected = integrations?.google?.connected;
+  const microsoftConnected = integrations?.microsoft?.connected;
+  const googleConfigured = integrations?.google?.configured;
+  const microsoftConfigured = integrations?.microsoft?.configured;
+
   return (
     <div className="space-y-6">
       <div className="space-y-1">
         <h2 className="text-xl font-semibold text-slate-800">Email Integrations</h2>
-        <p className="text-gray-500">Connect your email to create drafts directly from ActionMinutes.</p>
+        <p className="text-gray-500">Connect your email to send follow-ups directly from ActionMinutes.</p>
       </div>
 
       <div className="grid gap-4">
@@ -99,18 +103,13 @@ export default function SettingsIntegrationsPage() {
               </div>
               <div>
                 <CardTitle className="text-lg text-slate-800">Gmail</CardTitle>
-                <CardDescription className="text-gray-500">Create drafts in your Gmail inbox</CardDescription>
+                <CardDescription className="text-gray-500">Send follow-ups from your Gmail account</CardDescription>
               </div>
             </div>
-            {integrations?.google?.connected ? (
+            {googleConnected ? (
               <Badge variant="outline" className="rounded-full bg-green-50 text-green-700 border-green-200">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Connected
-              </Badge>
-            ) : integrations?.google?.replitManaged ? (
-              <Badge variant="outline" className="rounded-full bg-green-50 text-green-700 border-green-200">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Available
               </Badge>
             ) : (
               <Badge variant="outline" className="rounded-full bg-gray-50 text-gray-500 border-gray-200">
@@ -120,17 +119,17 @@ export default function SettingsIntegrationsPage() {
             )}
           </CardHeader>
           <CardContent className="pt-4">
-            {integrations?.google?.connected ? (
+            {googleConnected ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">
-                      Connected as <span className="font-medium">{integrations.google.connected.accountEmail}</span>
+                      Connected as <span className="font-medium">{googleConnected.accountEmail}</span>
                     </p>
-                    {integrations.google.connected.lastUsedAt && (
+                    {googleConnected.lastUsedAt && (
                       <p className="text-xs text-gray-400 flex items-center mt-1">
                         <Clock className="h-3 w-3 mr-1" />
-                        Last used {format(new Date(integrations.google.connected.lastUsedAt), 'MMM d, yyyy')}
+                        Last used {format(new Date(googleConnected.lastUsedAt), 'MMM d, yyyy')}
                       </p>
                     )}
                   </div>
@@ -145,13 +144,7 @@ export default function SettingsIntegrationsPage() {
                   </Button>
                 </div>
               </div>
-            ) : integrations?.google?.replitManaged ? (
-              <div className="space-y-3">
-                <p className="text-sm text-green-600 bg-green-50 p-3 rounded-xl">
-                  Gmail is available via app settings. Drafts will be created using the app's connection.
-                </p>
-              </div>
-            ) : integrations?.google?.configured ? (
+            ) : googleConfigured ? (
               <Button 
                 onClick={() => handleConnect('google')}
                 className="rounded-full btn-gradient text-white font-semibold"
@@ -161,7 +154,7 @@ export default function SettingsIntegrationsPage() {
               </Button>
             ) : (
               <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-xl">
-                Gmail integration needs to be set up. Use Replit's Gmail connector or add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET manually.
+                Gmail integration is not configured. Please contact the app administrator.
               </p>
             )}
           </CardContent>
@@ -175,18 +168,13 @@ export default function SettingsIntegrationsPage() {
               </div>
               <div>
                 <CardTitle className="text-lg text-slate-800">Outlook</CardTitle>
-                <CardDescription className="text-gray-500">Create drafts in your Outlook inbox</CardDescription>
+                <CardDescription className="text-gray-500">Send follow-ups from your Outlook account</CardDescription>
               </div>
             </div>
-            {integrations?.microsoft?.connected ? (
+            {microsoftConnected ? (
               <Badge variant="outline" className="rounded-full bg-green-50 text-green-700 border-green-200">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Connected
-              </Badge>
-            ) : integrations?.microsoft?.replitManaged ? (
-              <Badge variant="outline" className="rounded-full bg-green-50 text-green-700 border-green-200">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Available
               </Badge>
             ) : (
               <Badge variant="outline" className="rounded-full bg-gray-50 text-gray-500 border-gray-200">
@@ -196,17 +184,17 @@ export default function SettingsIntegrationsPage() {
             )}
           </CardHeader>
           <CardContent className="pt-4">
-            {integrations?.microsoft?.connected ? (
+            {microsoftConnected ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">
-                      Connected as <span className="font-medium">{integrations.microsoft.connected.accountEmail}</span>
+                      Connected as <span className="font-medium">{microsoftConnected.accountEmail}</span>
                     </p>
-                    {integrations.microsoft.connected.lastUsedAt && (
+                    {microsoftConnected.lastUsedAt && (
                       <p className="text-xs text-gray-400 flex items-center mt-1">
                         <Clock className="h-3 w-3 mr-1" />
-                        Last used {format(new Date(integrations.microsoft.connected.lastUsedAt), 'MMM d, yyyy')}
+                        Last used {format(new Date(microsoftConnected.lastUsedAt), 'MMM d, yyyy')}
                       </p>
                     )}
                   </div>
@@ -221,13 +209,7 @@ export default function SettingsIntegrationsPage() {
                   </Button>
                 </div>
               </div>
-            ) : integrations?.microsoft?.replitManaged ? (
-              <div className="space-y-3">
-                <p className="text-sm text-green-600 bg-green-50 p-3 rounded-xl">
-                  Outlook is available via app settings. Drafts will be created using the app's connection.
-                </p>
-              </div>
-            ) : integrations?.microsoft?.configured ? (
+            ) : microsoftConfigured ? (
               <Button 
                 onClick={() => handleConnect('microsoft')}
                 className="rounded-full btn-gradient text-white font-semibold"
@@ -237,23 +219,12 @@ export default function SettingsIntegrationsPage() {
               </Button>
             ) : (
               <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-xl">
-                Outlook integration needs to be set up. Use Replit's Outlook connector or add MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET manually.
+                Outlook integration is not configured. Please contact the app administrator.
               </p>
             )}
           </CardContent>
         </Card>
       </div>
-
-      {(integrations?.google?.replitManaged || integrations?.microsoft?.replitManaged) && (
-        <Card className="bg-blue-50 border-blue-200 rounded-xl">
-          <CardContent className="py-4">
-            <h3 className="font-medium text-blue-800 mb-2">How it works</h3>
-            <p className="text-sm text-blue-700">
-              Email integrations are configured at the app level. When you export a draft, it will be created using the app's email connection. This means all users can create drafts without needing to connect their own email accounts.
-            </p>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

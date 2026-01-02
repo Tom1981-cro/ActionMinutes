@@ -1456,29 +1456,24 @@ Thanks!`,
     const googleConnection = connections.find(c => c.provider === 'google') || null;
     const microsoftConnection = connections.find(c => c.provider === 'microsoft') || null;
     
-    // Check connector status via Replit API (for app-level fallback)
+    // Check for per-user OAuth credentials (CLIENT_ID / CLIENT_SECRET)
+    const googleOAuthConfigured = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+    const microsoftOAuthConfigured = !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET);
+    
+    // Check if Replit connectors are available as app-level fallback
     const connectorStatus = await checkConnectorStatus();
-    const hasConnectorHost = !!process.env.REPLIT_CONNECTORS_HOSTNAME;
     
-    // Also check for manual credentials as fallback
-    const googleManual = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
-    const microsoftManual = !!(process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET);
-    
-    // Integration is "configured" if either Replit connectors OR manual OAuth is available
-    const googleConfigured = connectorStatus.gmail || googleManual;
-    const microsoftConfigured = connectorStatus.outlook || microsoftManual;
-    
+    // Per-user OAuth is "configured" only when OAuth credentials are available
+    // Replit connectors are app-level and don't support per-user connections
     res.json({
       google: {
-        configured: googleConfigured,
-        replitManaged: hasConnectorHost && connectorStatus.gmail,
-        // User is "connected" only if they have their own OAuth connection
+        configured: googleOAuthConfigured,
+        replitConnectorAvailable: connectorStatus.gmail,
         connected: googleConnection,
       },
       microsoft: {
-        configured: microsoftConfigured,
-        replitManaged: hasConnectorHost && connectorStatus.outlook,
-        // User is "connected" only if they have their own OAuth connection
+        configured: microsoftOAuthConfigured,
+        replitConnectorAvailable: connectorStatus.outlook,
         connected: microsoftConnection,
       },
     });
