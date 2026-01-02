@@ -104,7 +104,7 @@ export default function Layout({ children }: LayoutProps) {
             className="w-full justify-start text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg px-4"
             onClick={async () => {
               await logout();
-              setLocation("/auth");
+              setLocation("/");
             }}
           >
             <LogOut className="h-4 w-4 mr-2" />
