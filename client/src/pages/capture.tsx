@@ -1,11 +1,14 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Save, ArrowLeft, ChevronDown, ChevronUp, Users, Clock, MapPin, AlertTriangle, Camera, Upload, RefreshCw, Copy, X, Check, FileText, User, Building2, Mic } from "lucide-react";
+import { 
+  Sparkle, FloppyDisk, ArrowLeft, CaretDown, CaretUp, 
+  Users, Clock, MapPin, Camera, Upload, Microphone, 
+  ArrowsClockwise, Copy, X, Check, User, Buildings, WarningCircle
+} from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateMeeting, useExtractMeeting, useAppConfig, useWorkspaces } from "@/lib/hooks";
@@ -13,6 +16,44 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+
+// Hook to track virtual keyboard visibility and height
+function useVirtualKeyboard() {
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+
+    const viewport = window.visualViewport;
+    
+    const handleResize = () => {
+      const windowHeight = window.innerHeight;
+      const viewportHeight = viewport.height;
+      const heightDiff = windowHeight - viewportHeight;
+      
+      // If height difference is significant, keyboard is likely open
+      if (heightDiff > 100) {
+        setKeyboardHeight(heightDiff);
+        setIsKeyboardVisible(true);
+      } else {
+        setKeyboardHeight(0);
+        setIsKeyboardVisible(false);
+      }
+    };
+
+    viewport.addEventListener('resize', handleResize);
+    viewport.addEventListener('scroll', handleResize);
+    
+    return () => {
+      viewport.removeEventListener('resize', handleResize);
+      viewport.removeEventListener('scroll', handleResize);
+    };
+  }, []);
+
+  return { keyboardHeight, isKeyboardVisible };
+}
 
 export default function CapturePage() {
   const [, setLocation] = useLocation();
@@ -34,6 +75,11 @@ export default function CapturePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [scope, setScope] = useState<string>(currentWorkspaceId || "personal");
+  const [isHeaderSticky, setIsHeaderSticky] = useState(false);
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // OCR state
   const [ocrLoading, setOcrLoading] = useState(false);
@@ -54,6 +100,30 @@ export default function CapturePage() {
   const audioInputRef = useRef<HTMLInputElement>(null);
 
   const isCapacitorAvailable = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
+  const { keyboardHeight, isKeyboardVisible } = useVirtualKeyboard();
+  const [isTextareaFocused, setIsTextareaFocused] = useState(false);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.max(200, textarea.scrollHeight) + 'px';
+    }
+  }, [notes]);
+
+  // Sticky header on scroll
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      setIsHeaderSticky(container.scrollTop > 10);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const saveAttendees = async (meetingId: string) => {
     if (!attendees.trim()) return;
@@ -128,7 +198,6 @@ export default function CapturePage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate on client side first
     const validTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!validTypes.includes(file.type)) {
       setOcrError("Unsupported format. Use JPG or PNG.");
@@ -148,7 +217,6 @@ export default function CapturePage() {
     setOcrResult(null);
     setOcrProgress(0);
 
-    // Simulate progress for UX
     const progressInterval = setInterval(() => {
       setOcrProgress(prev => Math.min(prev + 10, 90));
     }, 500);
@@ -204,10 +272,6 @@ export default function CapturePage() {
     toast({ title: "Copied", description: "Text copied to clipboard." });
   };
 
-  const handleRetryOcr = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleDiscardOcr = () => {
     setShowOcrPreview(false);
     setOcrResult(null);
@@ -216,8 +280,8 @@ export default function CapturePage() {
 
   const handleTakePhoto = async () => {
     try {
-      const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
-      const photo = await Camera.getPhoto({
+      const { Camera: CapCamera, CameraResultType, CameraSource } = await import('@capacitor/camera');
+      const photo = await CapCamera.getPhoto({
         quality: 90,
         resultType: CameraResultType.Base64,
         source: CameraSource.Camera,
@@ -294,7 +358,7 @@ export default function CapturePage() {
       return;
     }
 
-    const maxSize = 25 * 1024 * 1024; // 25MB
+    const maxSize = 25 * 1024 * 1024;
     if (file.size > maxSize) {
       setTranscriptionError('File too large. Maximum size is 25MB.');
       return;
@@ -323,607 +387,435 @@ export default function CapturePage() {
     toast({ title: 'Copied', description: 'Transcription copied to clipboard.' });
   };
 
-  const handleRetryTranscription = () => {
-    audioInputRef.current?.click();
-  };
-
   const handleDiscardTranscription = () => {
     setShowTranscriptionPreview(false);
     setTranscriptionResult(null);
     setTranscriptionError(null);
   };
 
+  const isLoading = ocrLoading || transcriptionLoading;
+
   return (
-    <div className="flex flex-col h-full pb-safe">
-      <div className="flex-1 overflow-y-auto pb-28 md:pb-6">
-        <div className="max-w-3xl mx-auto space-y-4 md:space-y-6">
-          <div className="flex items-center gap-3 mb-2">
+    <div ref={containerRef} className="flex flex-col h-[calc(100vh-4rem)] md:h-screen overflow-y-auto">
+      {/* Sticky Header */}
+      <div 
+        ref={headerRef}
+        className={cn(
+          "sticky top-0 z-40 transition-all duration-300 px-4 py-3",
+          isHeaderSticky ? "glass-panel border-b border-white/10" : "bg-transparent"
+        )}
+      >
+        <div className="max-w-3xl mx-auto">
+          <div className="flex items-center gap-3 mb-3">
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={() => setLocation("/meetings")} 
-              className="rounded-full h-11 w-11 shrink-0" 
+              className="rounded-full h-10 w-10 shrink-0" 
               data-testid="button-back"
               aria-label="Go back to meetings"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5" weight="bold" />
             </Button>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-800">New Meeting</h1>
+            <h1 className="text-2xl md:text-3xl font-black text-gradient-light">Capture</h1>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="title" className="text-sm font-medium text-slate-600">Title</Label>
-              <Input 
-                id="title" 
-                value={title} 
-                onChange={(e) => setTitle(e.target.value)} 
-                className="bg-gray-50 border-gray-200 rounded-xl h-12 text-base px-4 focus:bg-white"
-                placeholder="What's this meeting about?"
-                data-testid="input-title"
-              />
-            </div>
-            
-            <div className="space-y-1.5">
-              <Label htmlFor="date" className="text-sm font-medium text-slate-600">Date</Label>
-              <Input 
-                id="date" 
-                type="date" 
-                value={date} 
-                onChange={(e) => setDate(e.target.value)} 
-                className="bg-gray-50 border-gray-200 rounded-xl h-12 text-base px-4 focus:bg-white"
-                data-testid="input-date"
-              />
-            </div>
+          {/* Compact Title & Date Row */}
+          <div className="flex gap-3">
+            <Input 
+              value={title} 
+              onChange={(e) => setTitle(e.target.value)} 
+              className="flex-1 bg-white/5 border-white/10 rounded-xl h-11 text-base px-4 text-white placeholder:text-white/40 focus:bg-white/10 focus:border-violet-500/50"
+              placeholder="Meeting title..."
+              data-testid="input-title"
+            />
+            <Input 
+              type="date" 
+              value={date} 
+              onChange={(e) => setDate(e.target.value)} 
+              className="w-36 bg-white/5 border-white/10 rounded-xl h-11 text-base px-3 text-white focus:bg-white/10 focus:border-violet-500/50"
+              data-testid="input-date"
+            />
+          </div>
+        </div>
+      </div>
 
-            <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-slate-600">Save to</Label>
-              <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
-                <Button
-                  type="button"
-                  variant={scope === "personal" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setScope("personal")}
-                  className={`flex-1 h-10 rounded-xl ${scope === "personal" ? 'bg-white shadow-sm text-slate-800' : 'text-gray-500'}`}
-                  data-testid="scope-personal"
-                >
-                  <User className="h-4 w-4 mr-2" />
-                  Personal
-                </Button>
-                {workspaces.length > 0 && (
-                  <Select value={scope !== "personal" ? scope : ""} onValueChange={(val) => setScope(val)}>
-                    <SelectTrigger 
-                      className={`flex-1 h-10 rounded-xl border-0 ${scope !== "personal" ? 'bg-white shadow-sm text-slate-800' : 'bg-transparent text-gray-500'}`}
-                      data-testid="scope-workspace"
-                    >
-                      <Building2 className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder="Workspace" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {workspaces.map((ws: any) => (
-                        <SelectItem key={ws.id} value={ws.id}>
-                          {ws.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+      {/* Main Content Area */}
+      <div className="flex-1 px-4 pb-32">
+        <div className="max-w-3xl mx-auto space-y-4">
+          {/* Scope Selector - Compact */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-white/50">Save to:</span>
+            <div className="flex gap-1.5">
+              <button
+                onClick={() => setScope("personal")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
+                  scope === "personal" 
+                    ? "bg-violet-500/20 text-violet-300 border border-violet-500/30" 
+                    : "text-white/50 hover:text-white/70 border border-white/10 hover:border-white/20"
                 )}
-              </div>
-              <p className="text-xs text-gray-400">
-                {scope === "personal" ? "Only you can see this meeting" : "Visible to workspace members"}
-              </p>
-            </div>
-
-            <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
-              <CollapsibleTrigger asChild>
-                <button 
-                  className="flex items-center justify-between w-full py-2 text-sm text-gray-500 hover:text-slate-700 transition-colors"
-                  data-testid="button-toggle-details"
-                >
-                  <span className="flex items-center gap-2">
-                    {hasDetails ? (
-                      <span className="text-indigo-600 font-medium">Details added</span>
-                    ) : (
-                      <>Add details (optional)</>
+                data-testid="scope-personal"
+              >
+                <User className="h-3.5 w-3.5" weight="duotone" />
+                Personal
+              </button>
+              {workspaces.length > 0 && (
+                <Select value={scope !== "personal" ? scope : ""} onValueChange={(val) => setScope(val)}>
+                  <SelectTrigger 
+                    className={cn(
+                      "h-auto px-3 py-1.5 rounded-lg text-xs font-medium border",
+                      scope !== "personal" 
+                        ? "bg-violet-500/20 text-violet-300 border-violet-500/30" 
+                        : "text-white/50 border-white/10 bg-transparent hover:border-white/20"
                     )}
-                  </span>
-                  {detailsOpen ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-4 pt-2">
+                    data-testid="scope-workspace"
+                  >
+                    <Buildings className="h-3.5 w-3.5 mr-1.5" weight="duotone" />
+                    <SelectValue placeholder="Workspace" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {workspaces.map((ws: any) => (
+                      <SelectItem key={ws.id} value={ws.id}>
+                        {ws.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </div>
+
+          {/* Optional Details - Collapsible */}
+          <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
+            <CollapsibleTrigger asChild>
+              <button 
+                className="flex items-center gap-2 text-xs text-white/50 hover:text-white/70 transition-colors"
+                data-testid="button-toggle-details"
+              >
+                {detailsOpen ? <CaretUp className="h-3.5 w-3.5" weight="bold" /> : <CaretDown className="h-3.5 w-3.5" weight="bold" />}
+                {hasDetails ? (
+                  <span className="text-violet-400">Details added</span>
+                ) : (
+                  <span>Add attendees, time, location</span>
+                )}
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-3 space-y-3">
+              <div className="glass-panel rounded-xl p-4 space-y-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="attendees" className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                    <Users className="h-4 w-4 text-gray-400" />
-                    Attendees
+                  <Label className="text-xs text-white/60 flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5" weight="duotone" />
+                    Attendees (comma separated)
                   </Label>
-                  <p className="text-xs text-gray-400">Separate attendees by comma</p>
                   <Input 
-                    id="attendees" 
                     placeholder="Alice, Bob, Charlie..." 
                     value={attendees}
                     onChange={(e) => setAttendees(e.target.value)}
-                    className="bg-gray-50 border-gray-200 rounded-xl h-12 text-base px-4 focus:bg-white"
+                    className="bg-white/5 border-white/10 rounded-xl h-10 text-sm px-3 text-white placeholder:text-white/30 focus:bg-white/10"
                     data-testid="input-attendees"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label htmlFor="time" className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-gray-400" />
+                    <Label className="text-xs text-white/60 flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5" weight="duotone" />
                       Time
                     </Label>
                     <Input 
-                      id="time" 
                       type="time"
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
-                      className="bg-gray-50 border-gray-200 rounded-xl h-12 text-base px-4 focus:bg-white"
+                      className="bg-white/5 border-white/10 rounded-xl h-10 text-sm px-3 text-white focus:bg-white/10"
                       data-testid="input-time"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="location" className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-gray-400" />
+                    <Label className="text-xs text-white/60 flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5" weight="duotone" />
                       Location
                     </Label>
                     <Input 
-                      id="location" 
                       placeholder="Room / Link"
                       value={location}
                       onChange={(e) => setLocationValue(e.target.value)}
-                      className="bg-gray-50 border-gray-200 rounded-xl h-12 text-base px-4 focus:bg-white"
+                      className="bg-white/5 border-white/10 rounded-xl h-10 text-sm px-3 text-white placeholder:text-white/30 focus:bg-white/10"
                       data-testid="input-location"
                     />
                   </div>
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
-
-          {/* Handwritten Notes Import Section */}
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100 p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center">
-                <FileText className="h-5 w-5 text-indigo-600" />
               </div>
-              <div>
-                <h3 className="font-semibold text-slate-800">Import handwritten notes</h3>
-                <p className="text-xs text-gray-500">Upload a photo of your notes</p>
-              </div>
-            </div>
-            
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleFileSelect}
-              className="hidden"
-              data-testid="input-ocr-file"
-            />
+            </CollapsibleContent>
+          </Collapsible>
 
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={ocrLoading}
-                className="flex-1 h-11 rounded-xl border-indigo-200 bg-white hover:bg-indigo-50 text-indigo-700"
-                data-testid="button-upload-photo"
+          {/* Hidden file inputs */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleFileSelect}
+            className="hidden"
+            data-testid="input-ocr-file"
+          />
+          <input
+            ref={audioInputRef}
+            type="file"
+            accept="audio/*"
+            onChange={handleAudioFileSelect}
+            className="hidden"
+            data-testid="input-audio-file"
+          />
+
+          {/* Compact Import Toolbar - becomes fixed when keyboard visible */}
+          <div 
+            className={cn(
+              "flex items-center gap-2 transition-all duration-200",
+              isKeyboardVisible && isTextareaFocused 
+                ? "fixed left-0 right-0 z-50 px-4 py-2 glass-panel border-t border-white/10" 
+                : ""
+            )}
+            style={isKeyboardVisible && isTextareaFocused ? { bottom: keyboardHeight } : {}}
+          >
+            <span className="text-xs text-white/50">Import:</span>
+
+            {isCapacitorAvailable && (
+              <button
+                onClick={handleTakePhoto}
+                disabled={isLoading}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white/60 border border-white/10 hover:border-violet-500/30 hover:text-violet-300 hover:bg-violet-500/10 transition-all disabled:opacity-50"
+                data-testid="button-take-photo"
+                title="Take photo of handwritten notes"
               >
-                <Upload className="h-4 w-4 mr-2" />
-                Upload photo
-              </Button>
-              
-              {isCapacitorAvailable && (
-                <Button
-                  variant="outline"
-                  onClick={() => {/* TODO: handleTakePhoto() */}}
-                  disabled={ocrLoading}
-                  className="flex-1 h-11 rounded-xl border-indigo-200 bg-white hover:bg-indigo-50 text-indigo-700"
-                  data-testid="button-take-photo"
-                >
-                  <Camera className="h-4 w-4 mr-2" />
-                  Take photo
-                </Button>
-              )}
-            </div>
-
-            {ocrLoading && (
-              <div className="mt-3 space-y-2">
-                <div className="flex items-center gap-2 text-sm text-indigo-600">
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  <span>Reading handwriting...</span>
-                </div>
-                <Progress value={ocrProgress} className="h-1.5" />
-              </div>
+                <Camera className="h-4 w-4" weight="duotone" />
+                Camera
+              </button>
             )}
 
-            {ocrError && (
-              <div className="mt-3 p-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-700 flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                <div>
-                  <p>{ocrError}</p>
-                  <p className="text-xs mt-1 text-red-600">Tip: Try brighter light, closer crop, or clearer handwriting.</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Voice Transcription Section */}
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                <Mic className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-slate-800">Transcribe audio recording</h3>
-                <p className="text-xs text-gray-500">Upload a voice memo or meeting recording</p>
-              </div>
-            </div>
-            
-            <input
-              ref={audioInputRef}
-              type="file"
-              accept="audio/*"
-              onChange={handleAudioFileSelect}
-              className="hidden"
-              data-testid="input-audio-file"
-            />
-
-            <Button
-              variant="outline"
-              onClick={() => audioInputRef.current?.click()}
-              disabled={transcriptionLoading}
-              className="w-full h-11 rounded-xl border-purple-200 bg-white hover:bg-purple-50 text-purple-700"
-              data-testid="button-upload-audio"
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white/60 border border-white/10 hover:border-violet-500/30 hover:text-violet-300 hover:bg-violet-500/10 transition-all disabled:opacity-50"
+              data-testid="button-upload-photo"
+              title="Upload photo of handwritten notes"
             >
-              <Upload className="h-4 w-4 mr-2" />
-              Upload audio file
-            </Button>
+              <Upload className="h-4 w-4" weight="duotone" />
+              Photo
+            </button>
 
-            {transcriptionLoading && (
-              <div className="mt-3 space-y-2">
-                <div className="flex items-center gap-2 text-sm text-purple-600">
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  <span>Transcribing audio...</span>
-                </div>
-                <Progress value={transcriptionProgress} className="h-1.5" />
-              </div>
-            )}
+            <button
+              onClick={() => audioInputRef.current?.click()}
+              disabled={isLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white/60 border border-white/10 hover:border-fuchsia-500/30 hover:text-fuchsia-300 hover:bg-fuchsia-500/10 transition-all disabled:opacity-50"
+              data-testid="button-upload-audio"
+              title="Upload audio recording"
+            >
+              <Microphone className="h-4 w-4" weight="duotone" />
+              Audio
+            </button>
 
-            {transcriptionError && (
-              <div className="mt-3 p-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-700 flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-                <div>
-                  <p>{transcriptionError}</p>
-                  <p className="text-xs mt-1 text-red-600">Tip: Try a clearer recording with less background noise.</p>
-                </div>
+            {isLoading && (
+              <div className="flex items-center gap-2 text-xs text-violet-400">
+                <ArrowsClockwise className="h-4 w-4 animate-spin" weight="bold" />
+                <span>{ocrLoading ? 'Reading...' : 'Transcribing...'}</span>
               </div>
             )}
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between px-1">
-              <Label htmlFor="notes" className="text-base font-semibold text-slate-800">Meeting Notes</Label>
-              <span className="text-xs text-gray-400">Paste or type everything</span>
-            </div>
-            <Textarea 
-              id="notes" 
-              placeholder="Paste your notes here...
+          {/* Progress Bar */}
+          {(ocrLoading || transcriptionLoading) && (
+            <Progress value={ocrLoading ? ocrProgress : transcriptionProgress} className="h-1" />
+          )}
 
-• Action items
-• Decisions made  
-• Discussion points
-• Follow-ups needed
-
-Just dump everything—AI will sort it out." 
-              className="min-h-[320px] md:min-h-[360px] font-mono text-base leading-relaxed bg-white p-4 resize-y border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              data-testid="textarea-notes"
-            />
-          </div>
-
-          {!aiEnabled && (
-            <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 text-sm">
-              <AlertTriangle className="h-4 w-4 shrink-0" />
-              <span>AI extraction is currently disabled. You can still save meetings as drafts.</span>
+          {/* Error Messages */}
+          {(ocrError || transcriptionError) && (
+            <div className="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-sm text-red-400">
+              <WarningCircle className="h-4 w-4 shrink-0 mt-0.5" weight="duotone" />
+              <div>
+                <p>{ocrError || transcriptionError}</p>
+                <button 
+                  onClick={() => { setOcrError(null); setTranscriptionError(null); }}
+                  className="text-xs text-red-300 hover:underline mt-1"
+                >
+                  Dismiss
+                </button>
+              </div>
             </div>
           )}
 
-          <div className="hidden md:flex items-center gap-3 pt-2">
-            <Button 
-              size="lg" 
-              className="flex-1 text-base h-14 rounded-xl btn-gradient text-white font-semibold shadow-lg shadow-indigo-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
-              onClick={handleExtract}
-              disabled={isSubmitting || !aiEnabled}
-              data-testid="button-extract-desktop"
-            >
-              {isSubmitting ? (
-                "Processing..."
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-5 w-5" />
-                  {aiEnabled ? "Extract Actions" : "AI Disabled"}
-                </>
-              )}
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline" 
-              onClick={handleSaveDraft}
-              className="h-14 rounded-xl border-indigo-200 hover:bg-indigo-50 text-indigo-700"
-              data-testid="button-save-draft-desktop"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Save Draft
-            </Button>
+          {/* Main Notes Textarea - Expanding */}
+          <div className="relative">
+            <textarea
+              ref={textareaRef}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Type or paste your meeting notes here...
+
+• What was discussed?
+• What decisions were made?
+• What are the next steps?
+• Who is responsible for what?"
+              className="w-full min-h-[300px] p-4 bg-white/5 border border-white/10 rounded-2xl text-base text-white placeholder:text-white/30 resize-none focus:outline-none focus:border-violet-500/50 focus:bg-white/8 transition-all"
+              style={{ lineHeight: '1.75' }}
+              data-testid="input-notes"
+              onFocus={() => setIsTextareaFocused(true)}
+              onBlur={() => setIsTextareaFocused(false)}
+            />
           </div>
         </div>
       </div>
 
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-lg border-t border-gray-200 p-4 pb-safe z-50">
-        <div className="flex items-center gap-3 max-w-3xl mx-auto">
-          <Button 
-            variant="outline" 
+      {/* Fixed Bottom Action Bar */}
+      <div 
+        className="fixed bottom-16 md:bottom-0 left-0 right-0 z-40 glass-panel border-t border-white/10 px-4 py-3"
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 12px)' }}
+      >
+        <div className="max-w-3xl mx-auto flex gap-3">
+          <Button
+            variant="outline"
             onClick={handleSaveDraft}
-            className="h-12 px-4 rounded-xl border-indigo-200 hover:bg-indigo-50 text-indigo-700 shrink-0"
+            disabled={isSubmitting || !notes.trim()}
+            className="flex-1 h-12 rounded-xl"
             data-testid="button-save-draft"
           >
-            <Save className="h-5 w-5" />
+            <FloppyDisk className="h-5 w-5 mr-2" weight="duotone" />
+            Save Draft
           </Button>
-          <Button 
-            size="lg" 
-            className="flex-1 text-base h-12 rounded-xl btn-gradient text-white font-semibold shadow-lg shadow-indigo-500/30 disabled:opacity-50" 
+          
+          <Button
             onClick={handleExtract}
             disabled={isSubmitting || !notes.trim() || !aiEnabled}
+            className="flex-[2] h-12 rounded-xl btn-gradient"
             data-testid="button-extract"
           >
             {isSubmitting ? (
-              "Processing..."
-            ) : !aiEnabled ? (
-              "AI Disabled"
+              <ArrowsClockwise className="h-5 w-5 mr-2 animate-spin" weight="bold" />
             ) : (
-              <>
-                <Sparkles className="mr-2 h-5 w-5" />
-                Extract Actions
-              </>
+              <Sparkle className="h-5 w-5 mr-2" weight="duotone" />
             )}
+            {aiEnabled ? "Extract Actions" : "AI Disabled"}
           </Button>
         </div>
       </div>
 
       {/* OCR Preview Dialog */}
       <Dialog open={showOcrPreview} onOpenChange={setShowOcrPreview}>
-        <DialogContent className="max-w-lg mx-4">
+        <DialogContent className="glass-panel border-white/20 text-white max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-indigo-600" />
-              Extracted Text
-            </DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-white">Extracted Text</DialogTitle>
+            <DialogDescription className="text-white/60">
               Review the text extracted from your handwritten notes
             </DialogDescription>
           </DialogHeader>
           
-          {ocrResult && (
-            <div className="space-y-4">
-              {/* Confidence indicator */}
-              {ocrResult.confidence !== undefined && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">Confidence:</span>
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full ${
-                        ocrResult.confidence >= 70 ? 'bg-green-500' : 
-                        ocrResult.confidence >= 50 ? 'bg-amber-500' : 'bg-red-500'
-                      }`}
-                      style={{ width: `${ocrResult.confidence}%` }}
-                    />
-                  </div>
-                  <span className={`text-sm font-medium ${
-                    ocrResult.confidence >= 70 ? 'text-green-600' : 
-                    ocrResult.confidence >= 50 ? 'text-amber-600' : 'text-red-600'
-                  }`}>
-                    {ocrResult.confidence}%
-                  </span>
-                </div>
-              )}
-
-              {/* Warnings */}
-              {ocrResult.warnings && ocrResult.warnings.length > 0 && (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
-                  {ocrResult.warnings.map((w, i) => (
-                    <p key={i}>{w}</p>
-                  ))}
-                </div>
-              )}
-
-              {/* Text preview */}
-              <div className="max-h-64 overflow-y-auto p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                <pre className="whitespace-pre-wrap text-sm text-slate-700 font-mono">
-                  {ocrResult.text || "No text detected"}
-                </pre>
-              </div>
-
-              {/* Insert mode toggle */}
-              {notes.trim() && ocrResult.text && (
-                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-600">Insert mode:</span>
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant={insertMode === "append" ? "default" : "outline"}
-                      onClick={() => setInsertMode("append")}
-                      className="h-8 text-xs"
-                      data-testid="button-insert-append"
-                    >
-                      Append
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={insertMode === "replace" ? "default" : "outline"}
-                      onClick={() => setInsertMode("replace")}
-                      className="h-8 text-xs"
-                      data-testid="button-insert-replace"
-                    >
-                      Replace
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Action buttons */}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  onClick={handleInsertOcrText}
-                  disabled={!ocrResult.text}
-                  className="flex-1 btn-gradient text-white font-semibold shadow-lg shadow-indigo-500/30"
-                  data-testid="button-insert-ocr"
-                >
-                  <Check className="h-4 w-4 mr-2" />
-                  Insert into notes
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleCopyOcrText}
-                  disabled={!ocrResult.text}
-                  data-testid="button-copy-ocr"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleRetryOcr}
-                  data-testid="button-retry-ocr"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={handleDiscardOcr}
-                  className="text-gray-500"
-                  data-testid="button-discard-ocr"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+          <div className="space-y-4">
+            <div className="max-h-64 overflow-y-auto p-3 bg-white/5 rounded-xl border border-white/10 text-sm text-white/80 whitespace-pre-wrap">
+              {ocrResult?.text}
             </div>
-          )}
+            
+            {ocrResult?.confidence && (
+              <p className="text-xs text-white/50">
+                Confidence: {Math.round(ocrResult.confidence)}%
+              </p>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setInsertMode("append")}
+                className={cn(
+                  "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all",
+                  insertMode === "append" 
+                    ? "bg-violet-500/20 text-violet-300 border border-violet-500/30" 
+                    : "text-white/50 border border-white/10"
+                )}
+              >
+                Append to notes
+              </button>
+              <button
+                onClick={() => setInsertMode("replace")}
+                className={cn(
+                  "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all",
+                  insertMode === "replace" 
+                    ? "bg-violet-500/20 text-violet-300 border border-violet-500/30" 
+                    : "text-white/50 border border-white/10"
+                )}
+              >
+                Replace notes
+              </button>
+            </div>
+
+            <div className="flex gap-2">
+              <Button variant="ghost" onClick={handleDiscardOcr} className="flex-1">
+                <X className="h-4 w-4 mr-2" weight="bold" />
+                Discard
+              </Button>
+              <Button variant="ghost" onClick={handleCopyOcrText} className="flex-1">
+                <Copy className="h-4 w-4 mr-2" weight="duotone" />
+                Copy
+              </Button>
+              <Button onClick={handleInsertOcrText} className="flex-1 btn-gradient">
+                <Check className="h-4 w-4 mr-2" weight="bold" />
+                Insert
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Transcription Preview Dialog */}
       <Dialog open={showTranscriptionPreview} onOpenChange={setShowTranscriptionPreview}>
-        <DialogContent className="max-w-lg mx-4">
+        <DialogContent className="glass-panel border-white/20 text-white max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Mic className="h-5 w-5 text-purple-600" />
-              Transcribed Audio
-            </DialogTitle>
-            <DialogDescription>
-              Review the text transcribed from your audio recording
+            <DialogTitle className="text-white">Transcribed Audio</DialogTitle>
+            <DialogDescription className="text-white/60">
+              Review the transcription from your audio recording
             </DialogDescription>
           </DialogHeader>
           
-          {transcriptionResult && (
-            <div className="space-y-4">
-              {/* Confidence indicator */}
-              {transcriptionResult.confidence !== undefined && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">Confidence:</span>
-                  <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full ${
-                        transcriptionResult.confidence >= 0.7 ? 'bg-green-500' : 
-                        transcriptionResult.confidence >= 0.5 ? 'bg-amber-500' : 'bg-red-500'
-                      }`}
-                      style={{ width: `${transcriptionResult.confidence * 100}%` }}
-                    />
-                  </div>
-                  <span className={`text-sm font-medium ${
-                    transcriptionResult.confidence >= 0.7 ? 'text-green-600' : 
-                    transcriptionResult.confidence >= 0.5 ? 'text-amber-600' : 'text-red-600'
-                  }`}>
-                    {Math.round(transcriptionResult.confidence * 100)}%
-                  </span>
-                </div>
-              )}
-
-              {/* Text preview */}
-              <div className="max-h-64 overflow-y-auto p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                <pre className="whitespace-pre-wrap text-sm text-slate-700 font-mono">
-                  {transcriptionResult.text || "No speech detected"}
-                </pre>
-              </div>
-
-              {/* Insert mode toggle */}
-              {notes.trim() && transcriptionResult.text && (
-                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-600">Insert mode:</span>
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant={transcriptionInsertMode === "append" ? "default" : "outline"}
-                      onClick={() => setTranscriptionInsertMode("append")}
-                      className="h-8 text-xs"
-                      data-testid="button-transcription-append"
-                    >
-                      Append
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={transcriptionInsertMode === "replace" ? "default" : "outline"}
-                      onClick={() => setTranscriptionInsertMode("replace")}
-                      className="h-8 text-xs"
-                      data-testid="button-transcription-replace"
-                    >
-                      Replace
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Action buttons */}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  onClick={handleInsertTranscription}
-                  disabled={!transcriptionResult.text}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold shadow-lg shadow-purple-500/30"
-                  data-testid="button-insert-transcription"
-                >
-                  <Check className="h-4 w-4 mr-2" />
-                  Insert into notes
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleCopyTranscription}
-                  disabled={!transcriptionResult.text}
-                  data-testid="button-copy-transcription"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleRetryTranscription}
-                  data-testid="button-retry-transcription"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={handleDiscardTranscription}
-                  className="text-gray-500"
-                  data-testid="button-discard-transcription"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
+          <div className="space-y-4">
+            <div className="max-h-64 overflow-y-auto p-3 bg-white/5 rounded-xl border border-white/10 text-sm text-white/80 whitespace-pre-wrap">
+              {transcriptionResult?.text}
             </div>
-          )}
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setTranscriptionInsertMode("append")}
+                className={cn(
+                  "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all",
+                  transcriptionInsertMode === "append" 
+                    ? "bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30" 
+                    : "text-white/50 border border-white/10"
+                )}
+              >
+                Append to notes
+              </button>
+              <button
+                onClick={() => setTranscriptionInsertMode("replace")}
+                className={cn(
+                  "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all",
+                  transcriptionInsertMode === "replace" 
+                    ? "bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30" 
+                    : "text-white/50 border border-white/10"
+                )}
+              >
+                Replace notes
+              </button>
+            </div>
+
+            <div className="flex gap-2">
+              <Button variant="ghost" onClick={handleDiscardTranscription} className="flex-1">
+                <X className="h-4 w-4 mr-2" weight="bold" />
+                Discard
+              </Button>
+              <Button variant="ghost" onClick={handleCopyTranscription} className="flex-1">
+                <Copy className="h-4 w-4 mr-2" weight="duotone" />
+                Copy
+              </Button>
+              <Button onClick={handleInsertTranscription} className="flex-1 btn-gradient">
+                <Check className="h-4 w-4 mr-2" weight="bold" />
+                Insert
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
