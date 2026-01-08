@@ -34,6 +34,7 @@ export const users = pgTable("users", {
   enablePersonal: boolean("enable_personal").notNull().default(false),
   allowImageStorage: boolean("allow_image_storage").notNull().default(false),
   hasCompletedOnboarding: boolean("has_completed_onboarding").notNull().default(false),
+  hasCompletedTutorial: boolean("has_completed_tutorial").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

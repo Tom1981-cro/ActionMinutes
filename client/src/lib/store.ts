@@ -14,6 +14,7 @@ interface User {
   personalAiEnabled: boolean;
   allowImageStorage: boolean;
   hasCompletedOnboarding: boolean;
+  hasCompletedTutorial: boolean;
   isAuthenticated: boolean;
 }
 
@@ -50,6 +51,7 @@ export const useStore = create<AppState>()(
         personalAiEnabled: true,
         allowImageStorage: false,
         hasCompletedOnboarding: false,
+        hasCompletedTutorial: false,
         isAuthenticated: false,
       },
 
@@ -75,6 +77,7 @@ export const useStore = create<AppState>()(
           personalAiEnabled: true,
           allowImageStorage: false,
           hasCompletedOnboarding: false,
+          hasCompletedTutorial: false,
           isAuthenticated: false,
         },
         currentWorkspaceId: null,
