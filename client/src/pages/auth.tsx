@@ -22,6 +22,7 @@ export default function AuthPage() {
     }
   }, [isLoading, isAuthenticated, user, setLocation]);
 
+  // Show loading while Clerk is loading or while we're authenticating with the backend
   if (!isLoaded || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -30,7 +31,21 @@ export default function AuthPage() {
     );
   }
 
-  if (isSignedIn) {
+  // If Clerk is signed in, show loading while backend sync happens
+  // The useEffect above will redirect once authentication is complete
+  if (isSignedIn && !isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-indigo-600 mx-auto" />
+          <p className="text-gray-500">Signing you in...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If fully authenticated, the useEffect will handle redirect
+  if (isAuthenticated && user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
