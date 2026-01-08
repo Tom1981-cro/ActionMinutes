@@ -68,9 +68,6 @@ export default function Layout({ children }: LayoutProps) {
         </div>
 
         <nav className="space-y-1 flex-1">
-          <p className="px-4 py-1 text-xs font-semibold text-violet-400/70 uppercase tracking-wider">
-            {isPersonalMode ? "Personal" : "Work"}
-          </p>
           {navItems.map((item) => {
             const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             return (
