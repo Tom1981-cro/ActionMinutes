@@ -43,8 +43,8 @@ export function WorkspaceSwitcher() {
             )}
             <span className="text-sm font-medium text-slate-700">
               {currentWorkspace ? (
-                <span>
-                  <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Workspace</span>: {currentWorkspace.name}
+                <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">
+                  {currentWorkspace.name}
                 </span>
               ) : (user.enablePersonal ? (
                 <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Personal</span>
@@ -95,7 +95,7 @@ export function WorkspaceSwitcher() {
                 <Users className="h-5 w-5 text-indigo-500" />
                 <div className="text-left">
                   <p className="font-medium text-slate-700">
-                    <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Workspace</span>: {workspace.name}
+                    <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">{workspace.name}</span>
                   </p>
                   <p className="text-xs text-gray-500">Team workspace</p>
                 </div>
