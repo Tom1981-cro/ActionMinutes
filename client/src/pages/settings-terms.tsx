@@ -1,136 +1,103 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "wouter";
+import { ArrowLeft } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/button";
 
 export default function SettingsTermsPage() {
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h2 className="text-xl font-semibold text-slate-800">Terms of Service</h2>
-        <p className="text-gray-500">Last updated: January 2, 2026</p>
+      <div className="flex items-center gap-4">
+        <Link href="/settings">
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold text-slate-800">Terms of Service</h2>
+          <p className="text-gray-500 text-sm">Last updated: January 2, 2026</p>
+        </div>
       </div>
 
-      <Card className="bg-white border-gray-200 rounded-xl">
-        <CardHeader>
-          <CardTitle className="text-lg text-slate-800">1. Acceptance of Terms</CardTitle>
-        </CardHeader>
-        <CardContent className="prose prose-sm text-gray-600 space-y-3">
-          <p>
-            By accessing or using ActionMinutes, you agree to be bound by these Terms of Service. 
-            If you do not agree to these terms, please do not use our service.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Card className="bg-white border-gray-200 rounded-xl overflow-hidden">
+          <CardHeader className="bg-slate-50 border-b border-gray-100">
+            <CardTitle className="text-lg text-slate-900">1. Master Service Agreement</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm text-gray-700 p-6 space-y-4">
+            <p>
+              These Terms of Service ("Agreement") constitute a legally binding contract between you and ActionMinutes. By accessing our platform, you acknowledge that you have read, understood, and agree to be bound by these terms. If you are entering into this Agreement on behalf of a company or other legal entity, you represent that you have the authority to bind such entity to these terms.
+            </p>
+          </CardContent>
+        </Card>
 
-      <Card className="bg-white border-gray-200 rounded-xl">
-        <CardHeader>
-          <CardTitle className="text-lg text-slate-800">2. Description of Service</CardTitle>
-        </CardHeader>
-        <CardContent className="prose prose-sm text-gray-600 space-y-3">
-          <p>
-            ActionMinutes is a productivity application that helps you:
-          </p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li>Convert meeting notes into structured action items</li>
-            <li>Extract decisions and key points from discussions</li>
-            <li>Generate follow-up email drafts</li>
-            <li>Manage personal reminders and journal entries</li>
-            <li>Collaborate with team members in workspaces</li>
-          </ul>
-        </CardContent>
-      </Card>
+        <Card className="bg-white border-gray-200 rounded-xl overflow-hidden">
+          <CardHeader className="bg-slate-50 border-b border-gray-100">
+            <CardTitle className="text-lg text-slate-900">2. Acceptable Use Policy</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm text-gray-700 p-6 space-y-4">
+            <p>You agree to use ActionMinutes only for lawful professional purposes. Prohibited activities include, but are not limited to:</p>
+            <ul className="list-disc pl-5 space-y-2">
+              <li>Reverse engineering or attempting to extract the source code of the service.</li>
+              <li>Using the service to store or transmit infringing, libelous, or otherwise unlawful material.</li>
+              <li>Attempting to gain unauthorized access to any part of the service or its related systems.</li>
+              <li>Interfering with or disrupting the integrity or performance of the service.</li>
+            </ul>
+          </CardContent>
+        </Card>
 
-      <Card className="bg-white border-gray-200 rounded-xl">
-        <CardHeader>
-          <CardTitle className="text-lg text-slate-800">3. User Responsibilities</CardTitle>
-        </CardHeader>
-        <CardContent className="prose prose-sm text-gray-600 space-y-3">
-          <p>As a user, you agree to:</p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li>Provide accurate account information</li>
-            <li>Maintain the security of your account credentials</li>
-            <li>Use the service in compliance with applicable laws</li>
-            <li>Not upload malicious content or attempt to compromise the service</li>
-            <li>Respect the privacy of other workspace members</li>
-          </ul>
-        </CardContent>
-      </Card>
+        <Card className="bg-white border-gray-200 rounded-xl overflow-hidden">
+          <CardHeader className="bg-slate-50 border-b border-gray-100">
+            <CardTitle className="text-lg text-slate-900">3. Intellectual Property and Content Rights</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm text-gray-700 p-6 space-y-4">
+            <p>
+              <strong>Your Content:</strong> You retain all ownership rights to the meeting notes, transcriptions, and entries you provide. You grant ActionMinutes a non-exclusive, world-wide, royalty-free license to host, copy, and display your content solely as necessary to provide the service to you.
+            </p>
+            <p>
+              <strong>Our Platform:</strong> ActionMinutes and its original content (excluding user content), features, and functionality are and will remain the exclusive property of ActionMinutes and its licensors.
+            </p>
+          </CardContent>
+        </Card>
 
-      <Card className="bg-white border-gray-200 rounded-xl">
-        <CardHeader>
-          <CardTitle className="text-lg text-slate-800">4. Content Ownership</CardTitle>
-        </CardHeader>
-        <CardContent className="prose prose-sm text-gray-600 space-y-3">
-          <p>
-            You retain ownership of all content you upload to ActionMinutes, including meeting notes, 
-            action items, and journal entries. By using our service, you grant us a limited license 
-            to process your content for the purpose of providing the service.
-          </p>
-        </CardContent>
-      </Card>
+        <Card className="bg-white border-gray-200 rounded-xl overflow-hidden">
+          <CardHeader className="bg-slate-50 border-b border-gray-100">
+            <CardTitle className="text-lg text-slate-900">4. AI Reliability and Disclaimer</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm text-gray-700 p-6 space-y-4">
+            <p>
+              ActionMinutes utilizes Artificial Intelligence to automate meeting summaries and action item extraction. Due to the nature of machine learning, these outputs may occasionally be inaccurate or incomplete.
+            </p>
+            <p className="italic bg-slate-50 p-3 rounded-lg border-l-4 border-violet-500">
+              User acknowledges and agrees that all AI-generated outputs must be reviewed and verified by a human user before being acted upon. ActionMinutes shall not be liable for any decisions made based on unverified AI outputs.
+            </p>
+          </CardContent>
+        </Card>
 
-      <Card className="bg-white border-gray-200 rounded-xl">
-        <CardHeader>
-          <CardTitle className="text-lg text-slate-800">5. AI-Generated Content</CardTitle>
-        </CardHeader>
-        <CardContent className="prose prose-sm text-gray-600 space-y-3">
-          <p>
-            ActionMinutes uses artificial intelligence to extract action items, summarize notes, 
-            and generate email drafts. While we strive for accuracy, AI-generated content may 
-            contain errors. You are responsible for reviewing and verifying all AI-generated 
-            content before use.
-          </p>
-        </CardContent>
-      </Card>
+        <Card className="bg-white border-gray-200 rounded-xl overflow-hidden">
+          <CardHeader className="bg-slate-50 border-b border-gray-100">
+            <CardTitle className="text-lg text-slate-900">5. Limitation of Liability and Indemnification</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm text-gray-700 p-6 space-y-4">
+            <p>
+              TO THE MAXIMUM EXTENT PERMITTED BY LAW, ACTIONMINUTES SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS OR REVENUES.
+            </p>
+            <p>
+              You agree to indemnify and hold harmless ActionMinutes from and against any claims, damages, or expenses arising from your use of the service or breach of this Agreement.
+            </p>
+          </CardContent>
+        </Card>
 
-      <Card className="bg-white border-gray-200 rounded-xl">
-        <CardHeader>
-          <CardTitle className="text-lg text-slate-800">6. Service Availability</CardTitle>
-        </CardHeader>
-        <CardContent className="prose prose-sm text-gray-600 space-y-3">
-          <p>
-            We strive to maintain high availability but do not guarantee uninterrupted service. 
-            We may temporarily suspend the service for maintenance or updates. We are not liable 
-            for any loss resulting from service unavailability.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-white border-gray-200 rounded-xl">
-        <CardHeader>
-          <CardTitle className="text-lg text-slate-800">7. Limitation of Liability</CardTitle>
-        </CardHeader>
-        <CardContent className="prose prose-sm text-gray-600 space-y-3">
-          <p>
-            ActionMinutes is provided "as is" without warranties of any kind. We are not liable 
-            for any indirect, incidental, or consequential damages arising from your use of the service.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-white border-gray-200 rounded-xl">
-        <CardHeader>
-          <CardTitle className="text-lg text-slate-800">8. Termination</CardTitle>
-        </CardHeader>
-        <CardContent className="prose prose-sm text-gray-600 space-y-3">
-          <p>
-            You may terminate your account at any time. We reserve the right to suspend or 
-            terminate accounts that violate these terms. Upon termination, your data will be 
-            deleted in accordance with our Privacy Policy.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-white border-gray-200 rounded-xl">
-        <CardHeader>
-          <CardTitle className="text-lg text-slate-800">9. Changes to Terms</CardTitle>
-        </CardHeader>
-        <CardContent className="prose prose-sm text-gray-600">
-          <p>
-            We may update these terms from time to time. We will notify you of significant changes 
-            via email or in-app notification. Continued use of the service after changes constitutes 
-            acceptance of the new terms.
-          </p>
-        </CardContent>
-      </Card>
+        <Card className="bg-white border-gray-200 rounded-xl overflow-hidden">
+          <CardHeader className="bg-slate-50 border-b border-gray-100">
+            <CardTitle className="text-lg text-slate-900">6. Termination and Suspension</CardTitle>
+          </CardHeader>
+          <CardContent className="prose prose-sm text-gray-700 p-6 space-y-4">
+            <p>
+              We reserve the right to suspend or terminate your access to the service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms. All provisions of the Terms which by their nature should survive termination shall survive termination.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
