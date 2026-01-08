@@ -76,38 +76,6 @@ export default function AuthPage() {
             />
           )}
         </div>
-
-        <div className="flex justify-center text-sm text-slate-500">
-          {isRegisterMode ? (
-            <>
-              Already have an account?{" "}
-              <button 
-                type="button"
-                onClick={() => setIsRegisterMode(false)}
-                className="text-indigo-600 font-medium ml-1 hover:underline"
-                data-testid="link-signin"
-              >
-                Sign in
-              </button>
-            </>
-          ) : (
-            <>
-              Don't have an account?{" "}
-              <button 
-                type="button"
-                onClick={() => setIsRegisterMode(true)}
-                className="text-indigo-600 font-medium ml-1 hover:underline"
-                data-testid="link-register"
-              >
-                Create account
-              </button>
-            </>
-          )}
-        </div>
-        
-        <p className="text-center text-xs text-slate-400">
-          Secure authentication powered by Clerk
-        </p>
       </div>
     </div>
   );
