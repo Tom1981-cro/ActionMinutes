@@ -32,7 +32,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
   const isOverdue = item.dueDate && new Date(item.dueDate) < new Date();
 
   return (
-    <Card className={`bg-white border-gray-200 rounded-xl overflow-hidden card-interactive ${isReview ? 'border-l-4 border-l-amber-400' : ''}`}>
+    <Card className={`overflow-hidden ${isReview ? 'border-l-4 border-l-amber-400' : ''}`}>
       <CardContent className="p-0">
         <button 
           className="w-full p-4 text-left space-y-3 tap-highlight"
@@ -41,14 +41,14 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
         >
           <div className="flex items-start gap-3">
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-base leading-relaxed text-slate-800 mb-2">
+              <p className="font-medium text-base leading-relaxed text-white mb-2">
                 {item.text}
               </p>
               
               <div className="flex flex-wrap gap-2">
                 <StatusBadge status={item.status} size="sm" />
                 {lowConfidence && (
-                  <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-orange-50 text-orange-600 border-orange-200">
+                  <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-amber-500/20 text-amber-400 border-amber-500/30">
                     <AlertTriangle className="h-3 w-3" />
                     Low confidence
                   </span>
@@ -57,15 +57,15 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600">
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-white/60">
             {item.ownerName && (
               <span className="flex items-center gap-1.5">
-                <User className="h-4 w-4 text-gray-400" />
+                <User className="h-4 w-4 text-white/40" />
                 <span>{item.ownerName}</span>
               </span>
             )}
             {item.dueDate && (
-              <span className={`flex items-center gap-1.5 ${isOverdue ? 'text-red-600' : ''}`}>
+              <span className={`flex items-center gap-1.5 ${isOverdue ? 'text-red-400' : ''}`}>
                 <Calendar className="h-4 w-4" />
                 <span>{format(new Date(item.dueDate), "MMM d")}</span>
                 {isOverdue && <span className="text-xs">(overdue)</span>}
@@ -74,13 +74,13 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
           </div>
         </button>
 
-        <div className="border-t border-gray-100 bg-gray-50/50 px-2 py-2">
+        <div className="border-t border-white/10 bg-white/5 px-2 py-2">
           <div className="flex items-center justify-between gap-1">
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={(e) => { e.stopPropagation(); onDone(); }}
-              className="flex-1 h-11 rounded-xl text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 flex flex-col items-center gap-0.5 px-2"
+              className="flex-1 h-11 rounded-xl text-violet-400 hover:bg-violet-500/20 hover:text-violet-300 flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-done-${item.id}`}
             >
               <CheckCircle className="h-5 w-5" />
@@ -92,7 +92,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
                 variant="ghost" 
                 size="sm" 
                 onClick={(e) => { e.stopPropagation(); onWaiting(); }}
-                className="flex-1 h-11 rounded-xl text-amber-600 hover:bg-amber-50 hover:text-amber-700 flex flex-col items-center gap-0.5 px-2"
+                className="flex-1 h-11 rounded-xl text-amber-400 hover:bg-amber-500/20 hover:text-amber-300 flex flex-col items-center gap-0.5 px-2"
                 data-testid={`button-waiting-${item.id}`}
               >
                 <Clock className="h-5 w-5" />
@@ -104,7 +104,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
               variant="ghost" 
               size="sm" 
               onClick={(e) => { e.stopPropagation(); onRemind(); }}
-              className="flex-1 h-11 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 flex flex-col items-center gap-0.5 px-2"
+              className="flex-1 h-11 rounded-xl text-white/50 hover:bg-white/10 hover:text-white/80 flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-remind-${item.id}`}
             >
               <Bell className="h-5 w-5" />
@@ -115,7 +115,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
               variant="ghost" 
               size="sm" 
               onClick={(e) => { e.stopPropagation(); onNudge(); }}
-              className="flex-1 h-11 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 flex flex-col items-center gap-0.5 px-2"
+              className="flex-1 h-11 rounded-xl text-white/50 hover:bg-white/10 hover:text-white/80 flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-nudge-${item.id}`}
             >
               <MessageCircle className="h-5 w-5" />
@@ -126,7 +126,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
               variant="ghost" 
               size="sm" 
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
-              className="flex-1 h-11 rounded-xl text-gray-500 hover:bg-gray-100 hover:text-gray-700 flex flex-col items-center gap-0.5 px-2"
+              className="flex-1 h-11 rounded-xl text-white/50 hover:bg-white/10 hover:text-white/80 flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-edit-${item.id}`}
             >
               <Pencil className="h-5 w-5" />
@@ -153,7 +153,7 @@ export default function InboxPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
       </div>
     );
   }
@@ -209,30 +209,30 @@ export default function InboxPage() {
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-800">Inbox</h1>
-            <p className="text-gray-500 text-base mt-1">
+            <h1 className="text-4xl font-black tracking-tight text-gradient-light">Inbox</h1>
+            <p className="text-white/50 text-base mt-1">
               {totalItems === 0 ? "All clear" : `${totalItems} open ${totalItems === 1 ? 'item' : 'items'}`}
             </p>
           </div>
         </div>
 
         {!isPersonalMode && (
-          <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
+          <div className="flex gap-2 p-1 glass-panel rounded-xl">
             <Button
-              variant={filter === "mine" ? "default" : "ghost"}
+              variant="ghost"
               size="sm"
               onClick={() => setFilter("mine")}
-              className={`flex-1 h-10 rounded-xl ${filter === "mine" ? 'bg-white shadow-sm text-slate-800' : 'text-gray-500'}`}
+              className={`flex-1 h-10 rounded-xl ${filter === "mine" ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' : 'text-white/60 hover:text-white/80'}`}
               data-testid="filter-mine"
             >
               <User className="h-4 w-4 mr-2" />
               Mine
             </Button>
             <Button
-              variant={filter === "workspace" ? "default" : "ghost"}
+              variant="ghost"
               size="sm"
               onClick={() => setFilter("workspace")}
-              className={`flex-1 h-10 rounded-xl ${filter === "workspace" ? 'bg-white shadow-sm text-slate-800' : 'text-gray-500'}`}
+              className={`flex-1 h-10 rounded-xl ${filter === "workspace" ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' : 'text-white/60 hover:text-white/80'}`}
               data-testid="filter-workspace"
             >
               <Users className="h-4 w-4 mr-2" />
@@ -245,11 +245,11 @@ export default function InboxPage() {
       {needsReview.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-1 bg-amber-400 rounded-full" />
-            <h2 className="text-base font-semibold text-slate-700">
+            <div className="h-6 w-1 bg-amber-400 rounded-full shadow-glow-sm" />
+            <h2 className="text-base font-semibold text-white">
               Needs Review
             </h2>
-            <Badge className="bg-amber-100 text-amber-700 rounded-full ml-auto">
+            <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full ml-auto">
               {needsReview.length}
             </Badge>
           </div>
@@ -274,30 +274,30 @@ export default function InboxPage() {
 
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <div className="h-6 w-1 bg-indigo-500 rounded-full" />
-          <h2 className="text-base font-semibold text-slate-700">
+          <div className="h-6 w-1 bg-violet-500 rounded-full shadow-glow-sm" />
+          <h2 className="text-base font-semibold text-white">
             Open Items
           </h2>
-          <Badge variant="secondary" className="bg-gray-200 text-gray-700 rounded-full ml-auto">
+          <Badge variant="secondary" className="bg-violet-500/20 text-violet-300 border border-violet-500/30 rounded-full ml-auto">
             {openItems.length}
           </Badge>
         </div>
 
         {openItems.length === 0 && needsReview.length === 0 ? (
-          <Card className="bg-gray-50/50 border-dashed border-gray-300 rounded-xl">
+          <Card className="border-dashed border-white/20">
              <CardContent className="py-12 text-center space-y-3">
-               <div className="mx-auto h-16 w-16 bg-indigo-100 rounded-full flex items-center justify-center">
-                 <CheckCircle className="h-8 w-8 text-indigo-600" />
+               <div className="mx-auto h-16 w-16 bg-violet-500/20 rounded-full flex items-center justify-center shadow-glow-sm">
+                 <CheckCircle className="h-8 w-8 text-violet-400" />
                </div>
                <div>
-                 <p className="text-lg font-medium text-slate-700">Inbox zero!</p>
-                 <p className="text-gray-500 text-base mt-1">No open items. You're all caught up.</p>
+                 <p className="text-lg font-medium text-white">Inbox zero!</p>
+                 <p className="text-white/50 text-base mt-1">No open items. You're all caught up.</p>
                </div>
              </CardContent>
            </Card>
         ) : openItems.length === 0 ? (
-          <Card className="bg-gray-50/50 border-dashed border-gray-300 rounded-xl">
-            <CardContent className="py-8 text-center text-gray-500 text-base">
+          <Card className="border-dashed border-white/20">
+            <CardContent className="py-8 text-center text-white/50 text-base">
               No open items. Review the items above to move forward.
             </CardContent>
           </Card>
