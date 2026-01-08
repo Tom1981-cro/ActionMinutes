@@ -48,10 +48,9 @@ export default function Layout({ children }: LayoutProps) {
 
   const navItems = isPersonalMode ? personalNavItems : teamNavItems;
 
-  // Check both Clerk sign-in status and store authentication to handle race conditions
-  const isFullyAuthenticated = isSignedIn && (user.isAuthenticated || authIsAuthenticated);
-  
-  if (!isFullyAuthenticated) {
+  // Use Clerk's sign-in status as the source of truth for showing the app shell
+  // The store sync happens in the background after Clerk authenticates
+  if (!isSignedIn) {
     return <div className="min-h-screen bg-background">{children}</div>;
   }
 
