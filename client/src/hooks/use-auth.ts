@@ -1,7 +1,35 @@
 import { useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useUser, useClerk } from "@clerk/clerk-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useStore } from "@/lib/store";
 import type { User } from "@shared/schema";
+
+async function syncUserToBackend(clerkUser: {
+  id: string;
+  emailAddresses: { emailAddress: string }[];
+  firstName: string | null;
+  lastName: string | null;
+}): Promise<User> {
+  const email = clerkUser.emailAddresses[0]?.emailAddress || "";
+  const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || "User";
+  
+  const response = await fetch("/api/auth/clerk-sync", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      clerkId: clerkUser.id,
+      email,
+      name,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to sync user");
+  }
+
+  return response.json();
+}
 
 async function fetchUser(): Promise<User | null> {
   const response = await fetch("/api/auth/user", {
@@ -19,39 +47,7 @@ async function fetchUser(): Promise<User | null> {
   return response.json();
 }
 
-async function loginFn(email: string, password: string): Promise<User> {
-  const response = await fetch("/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ email, password }),
-  });
-
-  if (!response.ok) {
-    const data = await response.json();
-    throw new Error(data.error || "Login failed");
-  }
-
-  return response.json();
-}
-
-async function registerFn(email: string, password: string, name?: string): Promise<User> {
-  const response = await fetch("/api/auth/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify({ email, password, name }),
-  });
-
-  if (!response.ok) {
-    const data = await response.json();
-    throw new Error(data.error || "Registration failed");
-  }
-
-  return response.json();
-}
-
-async function logoutFn(): Promise<void> {
+async function logoutBackend(): Promise<void> {
   await fetch("/api/auth/logout", {
     method: "POST",
     credentials: "include",
@@ -61,16 +57,34 @@ async function logoutFn(): Promise<void> {
 export function useAuth() {
   const queryClient = useQueryClient();
   const { setUser, logout: storeLogout } = useStore();
+  const { user: clerkUser, isLoaded: clerkLoaded, isSignedIn } = useUser();
+  const { signOut } = useClerk();
   
-  const { data: user, isLoading } = useQuery<User | null>({
+  const { data: user, isLoading: dbUserLoading, refetch } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
     queryFn: fetchUser,
     retry: false,
     staleTime: 1000 * 60 * 5,
+    enabled: clerkLoaded && isSignedIn,
   });
 
   useEffect(() => {
-    if (user) {
+    if (clerkLoaded && isSignedIn && clerkUser && !user) {
+      syncUserToBackend(clerkUser).then((syncedUser) => {
+        queryClient.setQueryData(["/api/auth/user"], syncedUser);
+      }).catch(console.error);
+    }
+  }, [clerkLoaded, isSignedIn, clerkUser, user, queryClient]);
+
+  useEffect(() => {
+    if (clerkLoaded && !isSignedIn) {
+      queryClient.setQueryData(["/api/auth/user"], null);
+      storeLogout();
+    }
+  }, [clerkLoaded, isSignedIn, queryClient, storeLogout]);
+
+  useEffect(() => {
+    if (isSignedIn && user) {
       setUser({
         id: user.id,
         email: user.email || "",
@@ -87,32 +101,22 @@ export function useAuth() {
         isAuthenticated: true,
       });
     }
-  }, [user, setUser]);
+  }, [isSignedIn, user, setUser]);
 
-  const login = async (email: string, password: string) => {
-    const user = await loginFn(email, password);
-    queryClient.setQueryData(["/api/auth/user"], user);
-    return user;
-  };
-
-  const register = async (email: string, password: string, name?: string) => {
-    const user = await registerFn(email, password, name);
-    queryClient.setQueryData(["/api/auth/user"], user);
-    return user;
-  };
+  const isLoading = !clerkLoaded || (isSignedIn && dbUserLoading);
 
   const logout = async () => {
-    await logoutFn();
+    await logoutBackend();
+    await signOut();
     queryClient.setQueryData(["/api/auth/user"], null);
     storeLogout();
   };
 
   return {
-    user,
+    user: isSignedIn ? user : null,
     isLoading,
-    isAuthenticated: !!user,
-    login,
-    register,
+    isAuthenticated: !!isSignedIn && !!user,
     logout,
+    refetch,
   };
 }

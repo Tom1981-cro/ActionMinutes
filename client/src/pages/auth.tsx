@@ -1,23 +1,16 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { ArrowRight, Sparkles, Loader2, Mail, Lock, User } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { SignIn, SignUp, useUser } from "@clerk/clerk-react";
+import { Loader2 } from "lucide-react";
 import logoIcon from "@assets/am_logo_1767300370565.png";
+import { useState } from "react";
 
 export default function AuthPage() {
-  const { isLoading, isAuthenticated, user, login, register } = useAuth();
+  const { isLoading, isAuthenticated, user } = useAuth();
+  const { isSignedIn, isLoaded } = useUser();
   const [, setLocation] = useLocation();
   const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
@@ -29,36 +22,15 @@ export default function AuthPage() {
     }
   }, [isLoading, isAuthenticated, user, setLocation]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  if (!isLoaded || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
-    try {
-      let loggedInUser;
-      if (isRegisterMode) {
-        loggedInUser = await register(email, password, name);
-        toast({ title: "Account created!", description: "Welcome to ActionMinutes" });
-        setLocation("/onboarding");
-      } else {
-        loggedInUser = await login(email, password);
-        if (loggedInUser?.hasCompletedOnboarding) {
-          setLocation("/inbox");
-        } else {
-          setLocation("/onboarding");
-        }
-      }
-    } catch (error: any) {
-      toast({
-        title: isRegisterMode ? "Registration failed" : "Login failed",
-        description: error.message || "Please check your credentials and try again",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (isLoading) {
+  if (isSignedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
@@ -81,121 +53,72 @@ export default function AuthPage() {
           </p>
         </div>
 
-        <Card className="border-gray-200 shadow-glow bg-white rounded-2xl">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-slate-900 text-xl">
-              {isRegisterMode ? "Create an account" : "Welcome back"}
-            </CardTitle>
-            <CardDescription className="text-slate-500">
-              {isRegisterMode 
-                ? "Enter your details to get started" 
-                : "Sign in to your account"}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {isRegisterMode && (
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-slate-700 font-medium">Name</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input 
-                      id="name" 
-                      type="text" 
-                      placeholder="Your name" 
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="pl-10 h-12 rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                      data-testid="input-name"
-                    />
-                  </div>
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-700 font-medium">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="name@company.com" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="pl-10 h-12 rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                    data-testid="input-email"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-700 font-medium">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    className="pl-10 h-12 rounded-lg border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                    data-testid="input-password"
-                  />
-                </div>
-              </div>
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-base rounded-lg btn-gradient text-white font-semibold shadow-lg shadow-indigo-500/30" 
-                disabled={isSubmitting}
-                data-testid="button-signin"
+        <div className="flex justify-center">
+          {isRegisterMode ? (
+            <SignUp 
+              appearance={{
+                elements: {
+                  rootBox: "w-full",
+                  card: "shadow-glow rounded-2xl border-gray-200",
+                  headerTitle: "text-slate-900",
+                  headerSubtitle: "text-slate-500",
+                  formButtonPrimary: "btn-gradient shadow-lg shadow-indigo-500/30",
+                  footerActionLink: "text-indigo-600 hover:text-indigo-700",
+                }
+              }}
+              routing="hash"
+              signInUrl="/auth"
+              afterSignUpUrl="/onboarding"
+            />
+          ) : (
+            <SignIn 
+              appearance={{
+                elements: {
+                  rootBox: "w-full",
+                  card: "shadow-glow rounded-2xl border-gray-200",
+                  headerTitle: "text-slate-900",
+                  headerSubtitle: "text-slate-500",
+                  formButtonPrimary: "btn-gradient shadow-lg shadow-indigo-500/30",
+                  footerActionLink: "text-indigo-600 hover:text-indigo-700",
+                }
+              }}
+              routing="hash"
+              signUpUrl="/auth"
+              afterSignInUrl="/inbox"
+            />
+          )}
+        </div>
+
+        <div className="flex justify-center text-sm text-slate-500">
+          {isRegisterMode ? (
+            <>
+              Already have an account?{" "}
+              <button 
+                type="button"
+                onClick={() => setIsRegisterMode(false)}
+                className="text-indigo-600 font-medium ml-1 hover:underline"
+                data-testid="link-signin"
               >
-                {isSubmitting ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    {isRegisterMode ? "Creating account..." : "Signing in..."}
-                  </span>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    {isRegisterMode ? "Create Account" : "Sign In"}
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex justify-center text-sm text-slate-500">
-            {isRegisterMode ? (
-              <>
-                Already have an account?{" "}
-                <button 
-                  type="button"
-                  onClick={() => setIsRegisterMode(false)}
-                  className="text-indigo-600 font-medium ml-1 hover:underline"
-                  data-testid="link-signin"
-                >
-                  Sign in
-                </button>
-              </>
-            ) : (
-              <>
-                Don't have an account?{" "}
-                <button 
-                  type="button"
-                  onClick={() => setIsRegisterMode(true)}
-                  className="text-indigo-600 font-medium ml-1 hover:underline"
-                  data-testid="link-register"
-                >
-                  Create account
-                </button>
-              </>
-            )}
-          </CardFooter>
-        </Card>
+                Sign in
+              </button>
+            </>
+          ) : (
+            <>
+              Don't have an account?{" "}
+              <button 
+                type="button"
+                onClick={() => setIsRegisterMode(true)}
+                className="text-indigo-600 font-medium ml-1 hover:underline"
+                data-testid="link-register"
+              >
+                Create account
+              </button>
+            </>
+          )}
+        </div>
         
         <p className="text-center text-xs text-slate-400">
-          Secure authentication with encrypted passwords
+          Secure authentication powered by Clerk
         </p>
       </div>
     </div>

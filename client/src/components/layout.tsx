@@ -1,10 +1,11 @@
 import { Link, useLocation } from "wouter";
 import { 
-  Tray, CalendarBlank, PlusCircle, FileText, GearSix, SignOut, Bell, BookOpen 
+  Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut 
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/hooks/use-auth";
+import { useUser } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import logoIcon from "@assets/am_logo_1767300370565.png";
@@ -17,6 +18,7 @@ export default function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
   const { user, currentWorkspaceId } = useStore();
   const { logout } = useAuth();
+  const { user: clerkUser } = useUser();
 
   const isPersonalMode = currentWorkspaceId === null && user.enablePersonal;
 
@@ -82,9 +84,22 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         <div className="mt-auto pt-4 border-t border-gray-100">
-          <div className="px-4 py-2 mb-2">
-            <p className="text-sm font-bold text-slate-900" data-testid="text-user-name">{user.name}</p>
-            <p className="text-xs text-slate-500 truncate" data-testid="text-user-email">{user.email}</p>
+          <div className="px-4 py-2 mb-2 flex items-center gap-3">
+            {clerkUser?.imageUrl ? (
+              <img 
+                src={clerkUser.imageUrl} 
+                alt="Avatar" 
+                className="w-9 h-9 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-semibold">
+                {(user.name || "U").charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-slate-900 truncate" data-testid="text-user-name">{user.name}</p>
+              <p className="text-xs text-slate-500 truncate" data-testid="text-user-email">{user.email}</p>
+            </div>
           </div>
           {showPersonalSettingsLink && (
             <Link 
@@ -140,6 +155,27 @@ export default function Layout({ children }: LayoutProps) {
               <GearSix className="h-5 w-5" weight="duotone" />
             </Link>
           )}
+          <button
+            onClick={async () => {
+              await logout();
+              setLocation("/");
+            }}
+            className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+            data-testid="mobile-signout"
+            title="Sign out"
+          >
+            {clerkUser?.imageUrl ? (
+              <img 
+                src={clerkUser.imageUrl} 
+                alt="Avatar" 
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-semibold">
+                {(user.name || "U").charAt(0).toUpperCase()}
+              </div>
+            )}
+          </button>
         </div>
       </header>
 
