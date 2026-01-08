@@ -58,9 +58,16 @@ export default function Layout({ children }: LayoutProps) {
     );
   }
 
-  // Use Clerk's sign-in status as the source of truth for showing the app shell
+  // Redirect to auth page if not signed in
   if (!isSignedIn) {
-    return <div className="min-h-screen bg-background">{children}</div>;
+    if (location !== "/" && location !== "/auth") {
+      setLocation("/");
+    }
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+      </div>
+    );
   }
 
   return (
