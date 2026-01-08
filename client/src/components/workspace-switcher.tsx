@@ -56,7 +56,9 @@ export function WorkspaceSwitcher() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-md rounded-3xl">
         <DialogHeader>
-          <DialogTitle className="text-slate-800">Switch Workspace</DialogTitle>
+          <DialogTitle className="text-slate-800">
+            Switch <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Workspace</span>
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-2 mt-4">
           {user.enablePersonal && (
@@ -106,16 +108,20 @@ export function WorkspaceSwitcher() {
             <DialogTrigger asChild>
               <button className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 border-2 border-dashed border-gray-200 text-gray-500" data-testid="button-create-workspace">
                 <Plus className="h-5 w-5" />
-                <span className="font-medium">Create workspace</span>
+                <span className="font-medium">Create <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Workspace</span></span>
               </button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md rounded-3xl">
-              <DialogHeader>
-                <DialogTitle className="text-slate-800">Create Workspace</DialogTitle>
-              </DialogHeader>
+            <DialogHeader>
+              <DialogTitle className="text-slate-800">
+                Create <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Workspace</span>
+              </DialogTitle>
+            </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-700">Workspace Name</Label>
+                  <Label className="text-slate-700">
+                    <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Workspace</span> Name
+                  </Label>
                   <Input
                     placeholder="e.g., Engineering Team"
                     value={newName}
@@ -127,10 +133,12 @@ export function WorkspaceSwitcher() {
                 <Button 
                   onClick={handleCreate} 
                   disabled={!newName.trim() || createWorkspace.isPending}
-                  className="w-full rounded-xl bg-indigo-500 hover:bg-indigo-600"
+                  className="w-full rounded-xl bg-indigo-500 hover:bg-indigo-600 btn-gradient"
                   data-testid="button-confirm-create-workspace"
                 >
-                  {createWorkspace.isPending ? "Creating..." : "Create Workspace"}
+                  {createWorkspace.isPending ? "Creating..." : (
+                    <span>Create <span className="font-black">Workspace</span></span>
+                  )}
                 </Button>
               </div>
             </DialogContent>
