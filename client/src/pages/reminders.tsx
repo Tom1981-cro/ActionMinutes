@@ -190,9 +190,9 @@ export default function RemindersPage() {
   const [activeMobileTab, setActiveMobileTab] = useState<ReminderBucket>("today");
 
   const { data: reminders = [], isLoading } = useQuery<Reminder[]>({
-    queryKey: ['/api/reminders', user.id],
+    queryKey: ['/api/personal/reminders', user.id],
     queryFn: async () => {
-      const res = await fetch(`/api/reminders?userId=${user.id}`);
+      const res = await fetch(`/api/personal/reminders?userId=${user.id}`);
       if (!res.ok) throw new Error('Failed to fetch reminders');
       return res.json();
     },
@@ -201,7 +201,7 @@ export default function RemindersPage() {
 
   const createReminder = useMutation({
     mutationFn: async (data: Partial<Reminder>) => {
-      const res = await fetch('/api/reminders', {
+      const res = await fetch('/api/personal/reminders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...data, userId: user.id }),
@@ -210,32 +210,33 @@ export default function RemindersPage() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/personal/reminders', user.id] });
+      toast({ title: "Reminder added" });
     },
   });
 
   const updateReminder = useMutation({
     mutationFn: async ({ id, ...data }: { id: string } & Partial<Reminder>) => {
-      const res = await fetch(`/api/reminders/${id}`, {
+      const res = await fetch(`/api/personal/reminders/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, userId: user.id }),
       });
       if (!res.ok) throw new Error('Failed to update reminder');
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/personal/reminders', user.id] });
     },
   });
 
   const deleteReminder = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/reminders/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/personal/reminders/${id}?userId=${user.id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete reminder');
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/personal/reminders', user.id] });
       toast({ title: "Reminder deleted" });
     },
   });
@@ -250,7 +251,6 @@ export default function RemindersPage() {
       priority: 'normal',
     });
     setQuickAddText("");
-    toast({ title: "Reminder added" });
   };
 
   const handleComplete = (reminder: Reminder) => {
