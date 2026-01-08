@@ -4,7 +4,7 @@ import { X, ArrowRight, ArrowLeft, Sparkle, Check } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface TutorialStep {
   id: string;
@@ -64,16 +64,20 @@ export function Tutorial() {
 
   useEffect(() => {
     if (user.isAuthenticated && user.hasCompletedOnboarding && !user.hasCompletedTutorial) {
+      setCurrentStep(0);
       const timer = setTimeout(() => setIsVisible(true), 500);
       return () => clearTimeout(timer);
     }
   }, [user.isAuthenticated, user.hasCompletedOnboarding, user.hasCompletedTutorial]);
 
   const completeTutorial = useCallback(async () => {
-    setIsVisible(false);
-    updateUser({ hasCompletedTutorial: true });
     try {
-      await apiRequest("PATCH", "/api/users/me", { hasCompletedTutorial: true });
+      const response = await apiRequest("PATCH", "/api/users/me", { hasCompletedTutorial: true });
+      if (response.ok) {
+        updateUser({ hasCompletedTutorial: true });
+        setIsVisible(false);
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      }
     } catch (error) {
       console.error("Failed to save tutorial completion:", error);
     }
@@ -208,16 +212,20 @@ export function Tutorial() {
 
 export function useRestartTutorial() {
   const { updateUser } = useStore();
+  const [, setLocation] = useLocation();
   
   const restartTutorial = useCallback(async () => {
-    updateUser({ hasCompletedTutorial: false });
     try {
-      await apiRequest("PATCH", "/api/users/me", { hasCompletedTutorial: false });
+      const response = await apiRequest("PATCH", "/api/users/me", { hasCompletedTutorial: false });
+      if (response.ok) {
+        updateUser({ hasCompletedTutorial: false });
+        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+        setLocation("/inbox");
+      }
     } catch (error) {
       console.error("Failed to restart tutorial:", error);
     }
-    window.location.href = "/inbox";
-  }, [updateUser]);
+  }, [updateUser, setLocation]);
 
   return restartTutorial;
 }

@@ -3,6 +3,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import Layout from "@/components/layout";
+import { Tutorial } from "@/components/tutorial";
 
 import AuthPage from "@/pages/auth";
 import OnboardingPage from "@/pages/onboarding";
@@ -83,6 +84,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router />
+      <Tutorial />
       <Toaster />
     </QueryClientProvider>
   );

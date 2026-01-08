@@ -132,6 +132,7 @@ export function useAuth() {
         personalAiEnabled: user.personalAiEnabled ?? true,
         allowImageStorage: user.allowImageStorage ?? false,
         hasCompletedOnboarding: user.hasCompletedOnboarding ?? false,
+        hasCompletedTutorial: user.hasCompletedTutorial ?? false,
         isAuthenticated: true,
       });
     }

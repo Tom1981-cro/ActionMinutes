@@ -9,7 +9,7 @@ import { useUpdateUser } from "@/lib/hooks";
 import { Link } from "wouter";
 import { 
   GearSix, Plug, CalendarBlank, Sparkle, UsersThree, ChatCircle, ShieldCheck, 
-  User, BookOpen, Clock, FileText, Scales, CaretDown, CaretRight, Info 
+  User, BookOpen, Clock, FileText, Scales, CaretDown, CaretRight, Info, Lifebuoy 
 } from "@phosphor-icons/react";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
@@ -17,6 +17,7 @@ import WorkspaceSettingsPage from "./workspace-settings";
 import SettingsPrivacyPage from "./settings-privacy";
 import SettingsTermsPage from "./settings-terms";
 import { FeedbackModal } from "@/components/feedback-modal";
+import { useRestartTutorial } from "@/components/tutorial";
 import { cn } from "@/lib/utils";
 
 const ADMIN_EMAIL = "tomi.vida@gmail.com";
@@ -64,6 +65,7 @@ function ExpandableSection({ title, icon, defaultOpen = false, children, testId 
 export default function SettingsPage() {
   const { user, updateUser: updateLocalUser, currentWorkspaceId } = useStore();
   const updateUser = useUpdateUser();
+  const restartTutorial = useRestartTutorial();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const isAdmin = user.email === ADMIN_EMAIL;
@@ -289,9 +291,18 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Feedback */}
+          {/* Help & Feedback */}
           <div className="space-y-3 pt-4 border-t border-gray-100">
-            <h3 className="font-medium text-slate-700">Feedback</h3>
+            <h3 className="font-medium text-slate-700">Help & Feedback</h3>
+            <Button
+              variant="outline"
+              onClick={restartTutorial}
+              className="w-full justify-start h-11 rounded-xl border-gray-200 text-slate-700"
+              data-testid="button-restart-tutorial"
+            >
+              <Lifebuoy className="h-4 w-4 mr-3 text-purple-500" weight="duotone" />
+              Take a Tour
+            </Button>
             <Button
               variant="outline"
               onClick={() => setFeedbackOpen(true)}
