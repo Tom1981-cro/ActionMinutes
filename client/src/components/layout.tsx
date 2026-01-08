@@ -18,8 +18,8 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
   const { user, currentWorkspaceId, theme, toggleTheme } = useStore();
-  const { logout } = useAuth();
-  const { user: clerkUser } = useUser();
+  const { logout, isAuthenticated: authIsAuthenticated } = useAuth();
+  const { user: clerkUser, isSignedIn } = useUser();
 
   useEffect(() => {
     const root = document.documentElement;
@@ -47,7 +47,10 @@ export default function Layout({ children }: LayoutProps) {
   const navItems = isPersonalMode ? personalNavItems : teamNavItems;
   const showSettingsLink = true; // Always show settings in the footer now
 
-  if (!user.isAuthenticated) {
+  // Check both Clerk sign-in status and store authentication to handle race conditions
+  const isFullyAuthenticated = isSignedIn && (user.isAuthenticated || authIsAuthenticated);
+  
+  if (!isFullyAuthenticated) {
     return <div className="min-h-screen bg-background">{children}</div>;
   }
 
