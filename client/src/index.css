@@ -324,6 +324,10 @@
     color: #111827;
   }
   
+  .light .text-white\/90 {
+    color: #111827;
+  }
+  
   /* Light Mode Toggle/Tab Button Text */
   .light .text-violet-300 {
     color: #6d28d9;

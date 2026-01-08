@@ -203,8 +203,8 @@ export default function SettingsPage() {
       >
         <div className="space-y-4">
           <div className="p-4 bg-violet-500/10 rounded-xl text-sm border border-violet-500/30">
-            <h3 className="font-semibold text-violet-300 mb-1">Your Personal Space</h3>
-            <p className="text-violet-200/80">These features are private to you. No one else can see your personal meetings, journal entries, or reminders.</p>
+            <h3 className="font-semibold text-violet-700 mb-1">Your Personal Space</h3>
+            <p className="text-violet-900/80">These features are private to you. No one else can see your personal meetings, journal entries, or reminders.</p>
           </div>
 
           <div className="space-y-3">
