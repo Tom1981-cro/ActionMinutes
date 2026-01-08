@@ -1,12 +1,11 @@
-import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { useActionItems, useUpdateActionItem } from "@/lib/hooks";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle, CalendarClock, AlertCircle, Calendar, ChevronRight, Clock, Sun, ArrowRight } from "lucide-react";
-import { format, isToday, isTomorrow, isPast, addDays, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { CheckCircle, Clock, CalendarBlank, Warning, Sun, ArrowRight, SpinnerGap, CaretRight, type Icon as PhosphorIcon } from "@phosphor-icons/react";
+import { isToday, isTomorrow, isPast, addDays, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
@@ -30,7 +29,7 @@ function AgendaSection({
   onTap 
 }: { 
   title: string; 
-  icon: React.ComponentType<{ className?: string }>;
+  icon: PhosphorIcon;
   items: ActionItem[];
   accentColor: string;
   onMarkDone: (id: string) => void;
@@ -42,9 +41,9 @@ function AgendaSection({
     <section className="space-y-3">
       <div className="flex items-center gap-2">
         <div className={`h-6 w-1 ${accentColor} rounded-full`} />
-        <Icon className="h-4 w-4 text-slate-600" />
-        <h2 className="text-base font-semibold text-slate-700">{title}</h2>
-        <Badge variant="secondary" className="bg-gray-200 text-gray-700 rounded-full ml-auto">
+        <Icon className="h-4 w-4 text-white/60" weight="duotone" />
+        <h2 className="text-base font-semibold text-white">{title}</h2>
+        <Badge variant="outline" className="bg-white/10 text-white/70 border-white/20 rounded-full ml-auto">
           {items.length}
         </Badge>
       </div>
@@ -53,7 +52,7 @@ function AgendaSection({
         {items.map((item) => (
           <Card
             key={item.id}
-            className="bg-white border-gray-200 rounded-xl hover:shadow-md transition-all cursor-pointer"
+            className="glass-panel rounded-xl hover:bg-white/10 transition-all cursor-pointer"
             onClick={() => onTap(item)}
             data-testid={`agenda-item-${item.id}`}
           >
@@ -61,18 +60,18 @@ function AgendaSection({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 rounded-full shrink-0 mt-0.5 text-gray-400 hover:text-green-600 hover:bg-green-50"
+                className="h-6 w-6 rounded-full shrink-0 mt-0.5 text-white/40 hover:text-emerald-400 hover:bg-emerald-500/20"
                 onClick={(e) => {
                   e.stopPropagation();
                   onMarkDone(item.id);
                 }}
                 data-testid={`button-done-${item.id}`}
               >
-                <CheckCircle className="h-5 w-5" />
+                <CheckCircle className="h-5 w-5" weight="duotone" />
               </Button>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-slate-800 font-medium line-clamp-2">{item.description}</p>
-                <div className="flex items-center gap-2 mt-1.5 text-xs text-gray-500">
+                <p className="text-sm text-white font-medium line-clamp-2">{item.description}</p>
+                <div className="flex items-center gap-2 mt-1.5 text-xs text-white/50">
                   {item.ownerName && <span>{item.ownerName}</span>}
                   {item.ownerName && item.meetingTitle && <span>•</span>}
                   {item.meetingTitle && (
@@ -80,7 +79,7 @@ function AgendaSection({
                   )}
                 </div>
               </div>
-              <ChevronRight className="h-4 w-4 text-gray-400 shrink-0" />
+              <CaretRight className="h-4 w-4 text-white/40 shrink-0" weight="bold" />
             </CardContent>
           </Card>
         ))}
@@ -154,7 +153,7 @@ export default function AgendaPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+        <SpinnerGap className="h-8 w-8 animate-spin text-violet-500" weight="bold" />
       </div>
     );
   }
@@ -166,8 +165,8 @@ export default function AgendaPage() {
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-800">Agenda</h1>
-            <p className="text-gray-500 text-base mt-1">
+            <h1 className="text-4xl font-black tracking-tight text-gradient-light">Agenda</h1>
+            <p className="text-white/50 text-base mt-1">
               {totalItems === 0 ? "All clear" : `${totalItems} upcoming ${totalItems === 1 ? 'item' : 'items'}`}
             </p>
           </div>
@@ -175,22 +174,20 @@ export default function AgendaPage() {
       </div>
 
       {totalItems === 0 ? (
-        <Card className="bg-gray-50/50 border-dashed border-gray-300 rounded-xl">
-          <CardContent className="py-12 text-center space-y-3">
-            <div className="mx-auto h-16 w-16 bg-indigo-100 rounded-full flex items-center justify-center">
-              <CalendarClock className="h-8 w-8 text-indigo-600" />
-            </div>
-            <div>
-              <p className="text-lg font-medium text-slate-700">All caught up!</p>
-              <p className="text-gray-500 text-base mt-1">No upcoming tasks on your agenda.</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="glass-panel rounded-2xl border-dashed border-white/20 py-12 text-center space-y-3">
+          <div className="mx-auto h-16 w-16 bg-violet-500/20 rounded-2xl flex items-center justify-center">
+            <CalendarBlank className="h-8 w-8 text-violet-400" weight="duotone" />
+          </div>
+          <div>
+            <p className="text-lg font-medium text-white">All caught up!</p>
+            <p className="text-white/50 text-base mt-1">No upcoming tasks on your agenda.</p>
+          </div>
+        </div>
       ) : (
         <div className="space-y-6">
           <AgendaSection
             title="Overdue"
-            icon={AlertCircle}
+            icon={Warning}
             items={overdue}
             accentColor="bg-red-500"
             onMarkDone={handleMarkDone}
@@ -208,15 +205,15 @@ export default function AgendaPage() {
             title="Tomorrow"
             icon={ArrowRight}
             items={tomorrowItems}
-            accentColor="bg-blue-500"
+            accentColor="bg-sky-500"
             onMarkDone={handleMarkDone}
             onTap={handleTap}
           />
           <AgendaSection
             title="Next 7 Days"
-            icon={Calendar}
+            icon={CalendarBlank}
             items={nextWeekItems}
-            accentColor="bg-indigo-500"
+            accentColor="bg-violet-500"
             onMarkDone={handleMarkDone}
             onTap={handleTap}
           />
@@ -225,7 +222,7 @@ export default function AgendaPage() {
               title="No Due Date"
               icon={Clock}
               items={noDueDate}
-              accentColor="bg-gray-400"
+              accentColor="bg-white/40"
               onMarkDone={handleMarkDone}
               onTap={handleTap}
             />
