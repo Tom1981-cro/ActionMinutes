@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  Clock, Plus, Loader2, CheckCircle, Circle, Trash2, GripVertical,
-  Sun, Sunrise, CalendarDays, CalendarRange, Star, ChevronRight,
-  MoreHorizontal, Download, ArrowRight
-} from "lucide-react";
+  Sun, SunHorizon, CalendarDots, CalendarBlank, Sparkle, 
+  Plus, SpinnerGap, CheckCircle, Circle, Trash, DotsSixVertical,
+  CaretRight, DotsThree, ArrowRight, Export, Rocket, Coffee, 
+  FireSimple, Moon, Heart
+} from "@phosphor-icons/react";
 import { format, addDays, addWeeks, addMonths, startOfTomorrow, startOfWeek, startOfMonth } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
@@ -21,6 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 type ReminderBucket = 'today' | 'tomorrow' | 'next_week' | 'next_month' | 'sometime';
 
@@ -38,18 +40,72 @@ interface Reminder {
   updatedAt: string;
 }
 
-const BUCKETS: { value: ReminderBucket; label: string; icon: typeof Sun; color: string; bgColor: string }[] = [
-  { value: "today", label: "Today", icon: Sun, color: "text-amber-600", bgColor: "bg-amber-50 border-amber-200" },
-  { value: "tomorrow", label: "Tomorrow", icon: Sunrise, color: "text-orange-600", bgColor: "bg-orange-50 border-orange-200" },
-  { value: "next_week", label: "Next Week", icon: CalendarDays, color: "text-blue-600", bgColor: "bg-blue-50 border-blue-200" },
-  { value: "next_month", label: "Next Month", icon: CalendarRange, color: "text-purple-600", bgColor: "bg-purple-50 border-purple-200" },
-  { value: "sometime", label: "Sometime", icon: Star, color: "text-gray-500", bgColor: "bg-gray-50 border-gray-200" },
+const BUCKETS: { 
+  value: ReminderBucket; 
+  label: string; 
+  icon: typeof Sun; 
+  color: string; 
+  glowColor: string;
+  emptyIcon: typeof Rocket;
+  emptyText: string;
+  emptySubtext: string;
+}[] = [
+  { 
+    value: "today", 
+    label: "Today", 
+    icon: Sun, 
+    color: "text-amber-400", 
+    glowColor: "shadow-amber-500/20",
+    emptyIcon: FireSimple,
+    emptyText: "All clear!",
+    emptySubtext: "Nothing urgent today"
+  },
+  { 
+    value: "tomorrow", 
+    label: "Tomorrow", 
+    icon: SunHorizon, 
+    color: "text-orange-400", 
+    glowColor: "shadow-orange-500/20",
+    emptyIcon: Coffee,
+    emptyText: "Free day ahead",
+    emptySubtext: "Enjoy the breathing room"
+  },
+  { 
+    value: "next_week", 
+    label: "Next Week", 
+    icon: CalendarDots, 
+    color: "text-sky-400", 
+    glowColor: "shadow-sky-500/20",
+    emptyIcon: Rocket,
+    emptyText: "Week looks open",
+    emptySubtext: "Add tasks to plan ahead"
+  },
+  { 
+    value: "next_month", 
+    label: "Next Month", 
+    icon: CalendarBlank, 
+    color: "text-violet-400", 
+    glowColor: "shadow-violet-500/20",
+    emptyIcon: Moon,
+    emptyText: "Month is clear",
+    emptySubtext: "Long-term planning space"
+  },
+  { 
+    value: "sometime", 
+    label: "Sometime", 
+    icon: Sparkle, 
+    color: "text-fuchsia-400", 
+    glowColor: "shadow-fuchsia-500/20",
+    emptyIcon: Heart,
+    emptyText: "Wishlist empty",
+    emptySubtext: "Save ideas for later"
+  },
 ];
 
 const PRIORITY_OPTIONS = [
-  { value: "low", label: "Low", color: "text-gray-500" },
-  { value: "normal", label: "Normal", color: "text-blue-500" },
-  { value: "high", label: "High", color: "text-red-500" },
+  { value: "low", label: "Low", color: "text-white/50" },
+  { value: "normal", label: "Normal", color: "text-sky-400" },
+  { value: "high", label: "High", color: "text-red-400" },
 ];
 
 function computeBucketFromDate(date: Date): ReminderBucket {
@@ -125,25 +181,27 @@ export default function RemindersPage() {
   const [editText, setEditText] = useState("");
   const [editNotes, setEditNotes] = useState("");
   const [editPriority, setEditPriority] = useState("normal");
-  const [editBucket, setEditBucket] = useState<ReminderBucket>("sometime");
+  const [editBucket, setEditBucket] = useState<ReminderBucket>("today");
   const [showCompleted, setShowCompleted] = useState(false);
-  
   const [draggedReminder, setDraggedReminder] = useState<Reminder | null>(null);
   const [dragOverBucket, setDragOverBucket] = useState<ReminderBucket | null>(null);
   
-  const { data: reminders = [], isLoading } = useQuery({
-    queryKey: ['reminders', user.id],
+  // Mobile tab state
+  const [activeMobileTab, setActiveMobileTab] = useState<ReminderBucket>("today");
+
+  const { data: reminders = [], isLoading } = useQuery<Reminder[]>({
+    queryKey: ['/api/reminders', user.id],
     queryFn: async () => {
-      const res = await fetch(`/api/personal/reminders?userId=${user.id}`);
-      if (!res.ok) throw new Error('Failed to load reminders');
-      return res.json() as Promise<Reminder[]>;
+      const res = await fetch(`/api/reminders?userId=${user.id}`);
+      if (!res.ok) throw new Error('Failed to fetch reminders');
+      return res.json();
     },
-    enabled: !!user.id && user.isAuthenticated,
+    enabled: !!user.id,
   });
-  
+
   const createReminder = useMutation({
-    mutationFn: async (data: { text: string; bucket: ReminderBucket; priority?: string; dueDate?: string }) => {
-      const res = await fetch('/api/personal/reminders', {
+    mutationFn: async (data: Partial<Reminder>) => {
+      const res = await fetch('/api/reminders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...data, userId: user.id }),
@@ -152,49 +210,85 @@ export default function RemindersPage() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reminders'] });
-      setQuickAddText("");
-      toast({ title: "Reminder added" });
+      queryClient.invalidateQueries({ queryKey: ['/api/reminders'] });
     },
   });
-  
+
   const updateReminder = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; [key: string]: any }) => {
-      const res = await fetch(`/api/personal/reminders/${id}?userId=${user.id}`, {
+    mutationFn: async ({ id, ...data }: { id: string } & Partial<Reminder>) => {
+      const res = await fetch(`/api/reminders/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...updates, userId: user.id }),
+        body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error('Failed to update reminder');
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/reminders'] });
     },
   });
-  
+
   const deleteReminder = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/personal/reminders/${id}?userId=${user.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/reminders/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Failed to delete reminder');
-      return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/reminders'] });
       toast({ title: "Reminder deleted" });
     },
   });
-  
+
   const handleQuickAdd = () => {
     if (!quickAddText.trim()) return;
     const dueDate = getDueDateForBucket(quickAddBucket);
-    createReminder.mutate({ 
-      text: quickAddText, 
+    createReminder.mutate({
+      text: quickAddText,
       bucket: quickAddBucket,
-      dueDate: dueDate?.toISOString(),
+      dueDate: dueDate?.toISOString() || null,
+      priority: 'normal',
+    });
+    setQuickAddText("");
+    toast({ title: "Reminder added" });
+  };
+
+  const handleComplete = (reminder: Reminder) => {
+    updateReminder.mutate({ 
+      id: reminder.id, 
+      isCompleted: true,
+      completedAt: new Date().toISOString(),
+    });
+    toast({ title: "Nice work!", description: "Task completed" });
+  };
+
+  const handleUncomplete = (reminder: Reminder) => {
+    updateReminder.mutate({ 
+      id: reminder.id, 
+      isCompleted: false,
+      completedAt: null,
     });
   };
-  
+
+  const handleSnooze = (reminder: Reminder, toBucket: ReminderBucket) => {
+    const dueDate = getDueDateForBucket(toBucket);
+    updateReminder.mutate({ 
+      id: reminder.id, 
+      bucket: toBucket,
+      dueDate: dueDate?.toISOString() || null,
+    });
+    toast({ title: `Snoozed to ${BUCKETS.find(b => b.value === toBucket)?.label}` });
+  };
+
+  const handleRebucket = (reminder: Reminder) => {
+    if (!reminder.dueDate) return;
+    const newBucket = computeBucketFromDate(new Date(reminder.dueDate));
+    if (newBucket !== reminder.bucket) {
+      updateReminder.mutate({ id: reminder.id, bucket: newBucket });
+      toast({ title: `Moved to ${BUCKETS.find(b => b.value === newBucket)?.label}` });
+    }
+  };
+
   const handleDragStart = (e: React.DragEvent, reminder: Reminder) => {
     setDraggedReminder(reminder);
     e.dataTransfer.effectAllowed = 'move';
@@ -225,45 +319,7 @@ export default function RemindersPage() {
     }
     setDraggedReminder(null);
   };
-  
-  const handleSnooze = (reminder: Reminder, toBucket: ReminderBucket) => {
-    const dueDate = getDueDateForBucket(toBucket);
-    updateReminder.mutate({ 
-      id: reminder.id, 
-      bucket: toBucket,
-      dueDate: dueDate?.toISOString() || null,
-    });
-    toast({ title: `Snoozed to ${BUCKETS.find(b => b.value === toBucket)?.label}` });
-  };
-  
-  const handleComplete = (reminder: Reminder) => {
-    updateReminder.mutate({ 
-      id: reminder.id, 
-      isCompleted: true,
-    });
-    toast({ title: "Marked as done" });
-  };
-  
-  const handleUncomplete = (reminder: Reminder) => {
-    updateReminder.mutate({ 
-      id: reminder.id, 
-      isCompleted: false,
-      completedAt: null,
-    });
-  };
-  
-  const handleRebucket = (reminder: Reminder) => {
-    if (!reminder.dueDate) {
-      toast({ title: "No due date set", variant: "destructive" });
-      return;
-    }
-    const newBucket = computeBucketFromDate(new Date(reminder.dueDate));
-    if (newBucket !== reminder.bucket) {
-      updateReminder.mutate({ id: reminder.id, bucket: newBucket });
-      toast({ title: `Rebucketed to ${BUCKETS.find(b => b.value === newBucket)?.label}` });
-    }
-  };
-  
+
   const openEditDialog = (reminder: Reminder) => {
     setEditingReminder(reminder);
     setEditText(reminder.text);
@@ -272,9 +328,9 @@ export default function RemindersPage() {
     setEditBucket(reminder.bucket);
     setShowEditDialog(true);
   };
-  
-  const handleSaveEdit = () => {
-    if (!editingReminder) return;
+
+  const saveEditedReminder = () => {
+    if (!editingReminder || !editText.trim()) return;
     const dueDate = getDueDateForBucket(editBucket);
     updateReminder.mutate({
       id: editingReminder.id,
@@ -312,17 +368,167 @@ export default function RemindersPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+        <SpinnerGap className="h-8 w-8 animate-spin text-violet-500" weight="bold" />
       </div>
     );
   }
 
+  // Render a single bucket card
+  const renderBucketCard = (bucket: typeof BUCKETS[0], isSpan2 = false) => {
+    const bucketReminders = getBucketReminders(bucket.value);
+    const BucketIcon = bucket.icon;
+    const EmptyIcon = bucket.emptyIcon;
+    const isDragOver = dragOverBucket === bucket.value;
+    
+    return (
+      <div
+        key={bucket.value}
+        className={cn(
+          "glass-panel rounded-2xl transition-all duration-300 min-h-[180px] flex flex-col",
+          isDragOver && "border-violet-500/50 bg-violet-500/10 scale-[1.02]",
+          isSpan2 && "md:col-span-2"
+        )}
+        onDragOver={(e) => handleDragOver(e, bucket.value)}
+        onDragLeave={handleDragLeave}
+        onDrop={(e) => handleDrop(e, bucket.value)}
+        data-testid={`bucket-${bucket.value}`}
+      >
+        {/* Bucket Header */}
+        <div className={cn(
+          "p-4 border-b border-white/10 flex items-center justify-between",
+          isDragOver && "border-violet-500/30"
+        )}>
+          <div className="flex items-center gap-2.5">
+            <div className={cn(
+              "w-8 h-8 rounded-xl flex items-center justify-center",
+              bucket.color.replace('text-', 'bg-').replace('-400', '-500/20')
+            )}>
+              <BucketIcon className={cn("h-4 w-4", bucket.color)} weight="duotone" />
+            </div>
+            <span className="font-semibold text-white text-sm">{bucket.label}</span>
+          </div>
+          {bucketReminders.length > 0 && (
+            <span className={cn(
+              "text-xs font-medium rounded-full px-2.5 py-1",
+              bucket.color.replace('text-', 'bg-').replace('-400', '-500/20'),
+              bucket.color
+            )}>
+              {bucketReminders.length}
+            </span>
+          )}
+        </div>
+        
+        {/* Bucket Content */}
+        <div className="p-3 flex-1 space-y-2 overflow-y-auto max-h-[300px]">
+          {bucketReminders.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full py-6 text-center">
+              <div className={cn(
+                "w-12 h-12 rounded-2xl flex items-center justify-center mb-3",
+                bucket.color.replace('text-', 'bg-').replace('-400', '-500/10')
+              )}>
+                <EmptyIcon className={cn("h-6 w-6", bucket.color)} weight="duotone" />
+              </div>
+              <p className="text-white/70 text-sm font-medium">{bucket.emptyText}</p>
+              <p className="text-white/40 text-xs mt-0.5">{bucket.emptySubtext}</p>
+            </div>
+          ) : (
+            bucketReminders.map((reminder) => (
+              <div
+                key={reminder.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, reminder)}
+                className={cn(
+                  "bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 p-3 cursor-grab active:cursor-grabbing transition-all group",
+                  draggedReminder?.id === reminder.id && "opacity-50"
+                )}
+                data-testid={`reminder-${reminder.id}`}
+              >
+                <div className="flex items-start gap-3">
+                  <button
+                    onClick={() => handleComplete(reminder)}
+                    className="shrink-0 mt-0.5 p-0.5 rounded-full hover:bg-white/10 transition-colors"
+                    data-testid={`complete-${reminder.id}`}
+                  >
+                    <Circle className="h-5 w-5 text-white/30 hover:text-green-400" weight="regular" />
+                  </button>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white leading-snug">{reminder.text}</p>
+                    {reminder.priority === 'high' && (
+                      <span className="text-xs text-red-400 flex items-center gap-1 mt-1">
+                        <FireSimple className="h-3 w-3" weight="fill" />
+                        High priority
+                      </span>
+                    )}
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="shrink-0 p-1.5 rounded-lg hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-all">
+                        <DotsThree className="h-4 w-4 text-white/50" weight="bold" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48 glass-panel border-white/20 text-white">
+                      <DropdownMenuItem onClick={() => openEditDialog(reminder)} className="text-white/80 focus:text-white focus:bg-white/10">
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-white/10" />
+                      <DropdownMenuItem 
+                        onClick={() => handleSnooze(reminder, 'tomorrow')}
+                        disabled={reminder.bucket === 'tomorrow'}
+                        className="text-white/80 focus:text-white focus:bg-white/10"
+                      >
+                        <ArrowRight className="h-4 w-4 mr-2" weight="bold" />
+                        Snooze to Tomorrow
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleSnooze(reminder, 'next_week')}
+                        disabled={reminder.bucket === 'next_week'}
+                        className="text-white/80 focus:text-white focus:bg-white/10"
+                      >
+                        <ArrowRight className="h-4 w-4 mr-2" weight="bold" />
+                        Snooze to Next Week
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleSnooze(reminder, 'sometime')}
+                        disabled={reminder.bucket === 'sometime'}
+                        className="text-white/80 focus:text-white focus:bg-white/10"
+                      >
+                        <Sparkle className="h-4 w-4 mr-2" weight="duotone" />
+                        Move to Sometime
+                      </DropdownMenuItem>
+                      {reminder.dueDate && (
+                        <>
+                          <DropdownMenuSeparator className="bg-white/10" />
+                          <DropdownMenuItem onClick={() => handleRebucket(reminder)} className="text-white/80 focus:text-white focus:bg-white/10">
+                            Rebucket from date
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                      <DropdownMenuSeparator className="bg-white/10" />
+                      <DropdownMenuItem 
+                        onClick={() => deleteReminder.mutate(reminder.id)}
+                        className="text-red-400 focus:text-red-300 focus:bg-red-500/10"
+                      >
+                        <Trash className="h-4 w-4 mr-2" weight="duotone" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4 pb-6">
+      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-800">Reminders</h1>
-          <p className="text-gray-500 text-base mt-1">Personal tasks organized by when you'll do them</p>
+          <h1 className="text-4xl font-black tracking-tight text-gradient-light">Reminders</h1>
+          <p className="text-white/50 text-base mt-1">Personal tasks organized by when you'll do them</p>
         </div>
         <Button 
           onClick={handleExportICS}
@@ -330,29 +536,30 @@ export default function RemindersPage() {
           className="rounded-xl"
           data-testid="button-export-ics"
         >
-          <Download className="h-4 w-4 mr-2" />
+          <Export className="h-4 w-4 mr-2" weight="duotone" />
           Export
         </Button>
       </div>
       
-      <div className="flex gap-2 items-center bg-white rounded-xl border border-gray-200 p-2 shadow-sm">
+      {/* Quick Add */}
+      <div className="flex gap-2 items-center glass-panel rounded-xl p-2">
         <Input
           value={quickAddText}
           onChange={(e) => setQuickAddText(e.target.value)}
           placeholder="Add a reminder..."
-          className="flex-1 border-0 bg-transparent focus-visible:ring-0 text-base"
+          className="flex-1 border-0 bg-transparent focus-visible:ring-0 text-base text-white placeholder:text-white/40"
           onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
           data-testid="input-quick-add"
         />
         <Select value={quickAddBucket} onValueChange={(v) => setQuickAddBucket(v as ReminderBucket)}>
-          <SelectTrigger className="w-auto border-0 bg-gray-100 rounded-lg" data-testid="select-quick-bucket">
+          <SelectTrigger className="w-auto border-0 bg-white/10 rounded-lg text-white" data-testid="select-quick-bucket">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="glass-panel border-white/20">
             {BUCKETS.map((bucket) => (
-              <SelectItem key={bucket.value} value={bucket.value}>
+              <SelectItem key={bucket.value} value={bucket.value} className="text-white focus:bg-white/10 focus:text-white">
                 <span className="flex items-center gap-2">
-                  <bucket.icon className={`h-4 w-4 ${bucket.color}`} />
+                  <bucket.icon className={cn("h-4 w-4", bucket.color)} weight="duotone" />
                   {bucket.label}
                 </span>
               </SelectItem>
@@ -362,144 +569,80 @@ export default function RemindersPage() {
         <Button 
           onClick={handleQuickAdd}
           disabled={!quickAddText.trim() || createReminder.isPending}
-          className="rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600"
+          className="rounded-xl btn-gradient"
           data-testid="button-quick-add"
         >
-          {createReminder.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          {createReminder.isPending ? <SpinnerGap className="h-4 w-4 animate-spin" weight="bold" /> : <Plus className="h-4 w-4" weight="bold" />}
         </Button>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-        {BUCKETS.map((bucket) => {
-          const bucketReminders = getBucketReminders(bucket.value);
-          const BucketIcon = bucket.icon;
-          const isDragOver = dragOverBucket === bucket.value;
-          
-          return (
-            <div
-              key={bucket.value}
-              className={`rounded-xl border-2 transition-all min-h-[200px] ${
-                isDragOver 
-                  ? 'border-indigo-400 bg-indigo-50/50 scale-[1.02]' 
-                  : `border-gray-200 ${bucket.bgColor}`
-              }`}
-              onDragOver={(e) => handleDragOver(e, bucket.value)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, bucket.value)}
-              data-testid={`bucket-${bucket.value}`}
-            >
-              <div className={`p-3 border-b ${isDragOver ? 'border-indigo-200' : 'border-gray-200'}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <BucketIcon className={`h-4 w-4 ${bucket.color}`} />
-                    <span className="font-medium text-slate-700 text-sm">{bucket.label}</span>
-                  </div>
-                  {bucketReminders.length > 0 && (
-                    <span className="text-xs bg-white/80 text-slate-600 rounded-full px-2 py-0.5">
-                      {bucketReminders.length}
-                    </span>
-                  )}
-                </div>
-              </div>
-              
-              <div className="p-2 space-y-2">
-                {bucketReminders.length === 0 ? (
-                  <p className="text-xs text-gray-400 text-center py-4">Drop here or add new</p>
-                ) : (
-                  bucketReminders.map((reminder) => (
-                    <div
-                      key={reminder.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, reminder)}
-                      className={`bg-white rounded-lg border border-gray-200 p-2 cursor-grab active:cursor-grabbing hover:shadow-md transition-all group ${
-                        draggedReminder?.id === reminder.id ? 'opacity-50' : ''
-                      }`}
-                      data-testid={`reminder-${reminder.id}`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <button
-                          onClick={() => handleComplete(reminder)}
-                          className="shrink-0 mt-0.5 p-0.5 rounded-full hover:bg-gray-100"
-                          data-testid={`complete-${reminder.id}`}
-                        >
-                          <Circle className="h-4 w-4 text-gray-300 hover:text-green-500" />
-                        </button>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-slate-700 leading-tight">{reminder.text}</p>
-                          {reminder.priority === 'high' && (
-                            <span className="text-xs text-red-500">High priority</span>
-                          )}
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="shrink-0 p-1 rounded hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <MoreHorizontal className="h-3 w-3 text-gray-400" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => openEditDialog(reminder)}>
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => handleSnooze(reminder, 'tomorrow')}
-                              disabled={reminder.bucket === 'tomorrow'}
-                            >
-                              <ArrowRight className="h-4 w-4 mr-2" />
-                              Snooze to Tomorrow
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleSnooze(reminder, 'next_week')}
-                              disabled={reminder.bucket === 'next_week'}
-                            >
-                              <ArrowRight className="h-4 w-4 mr-2" />
-                              Snooze to Next Week
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleSnooze(reminder, 'sometime')}
-                              disabled={reminder.bucket === 'sometime'}
-                            >
-                              <Star className="h-4 w-4 mr-2" />
-                              Move to Sometime
-                            </DropdownMenuItem>
-                            {reminder.dueDate && (
-                              <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => handleRebucket(reminder)}>
-                                  Rebucket from date
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => deleteReminder.mutate(reminder.id)}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  ))
+      {/* Mobile Tab Selector - Only visible on mobile */}
+      <div className="md:hidden">
+        <div className="flex gap-1 p-1 glass-panel rounded-xl overflow-x-auto">
+          {BUCKETS.map((bucket) => {
+            const count = getBucketReminders(bucket.value).length;
+            const isActive = activeMobileTab === bucket.value;
+            return (
+              <button
+                key={bucket.value}
+                onClick={() => setActiveMobileTab(bucket.value)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap transition-all",
+                  isActive 
+                    ? cn("bg-white/10 text-white", bucket.color.replace('text-', 'border-l-2 border-'))
+                    : "text-white/50"
                 )}
-              </div>
-            </div>
-          );
-        })}
+              >
+                <bucket.icon className={cn("h-4 w-4", isActive ? bucket.color : "text-white/40")} weight="duotone" />
+                {bucket.label}
+                {count > 0 && (
+                  <span className={cn(
+                    "text-[10px] px-1.5 py-0.5 rounded-full",
+                    isActive ? "bg-white/20 text-white" : "bg-white/10 text-white/50"
+                  )}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        
+        {/* Mobile Active Tab Content */}
+        <div className="mt-3">
+          {renderBucketCard(BUCKETS.find(b => b.value === activeMobileTab)!)}
+        </div>
       </div>
       
+      {/* Desktop Bento Grid - Hidden on mobile */}
+      <div className="hidden md:grid md:grid-cols-3 gap-4">
+        {/* Today - Spans 2 columns */}
+        {renderBucketCard(BUCKETS[0], true)}
+        
+        {/* Tomorrow */}
+        {renderBucketCard(BUCKETS[1])}
+        
+        {/* Next Week */}
+        {renderBucketCard(BUCKETS[2])}
+        
+        {/* Next Month */}
+        {renderBucketCard(BUCKETS[3])}
+        
+        {/* Sometime */}
+        {renderBucketCard(BUCKETS[4])}
+      </div>
+      
+      {/* Completed Section */}
       {completedReminders.length > 0 && (
         <div className="mt-6">
           <button
             onClick={() => setShowCompleted(!showCompleted)}
-            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
+            className="flex items-center gap-2 text-sm text-white/50 hover:text-white/70 transition-colors"
             data-testid="toggle-completed"
           >
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CheckCircle className="h-4 w-4 text-green-400" weight="fill" />
             Recently done ({completedReminders.length})
-            <ChevronRight className={`h-4 w-4 transition-transform ${showCompleted ? 'rotate-90' : ''}`} />
+            <CaretRight className={cn("h-4 w-4 transition-transform", showCompleted && "rotate-90")} weight="bold" />
           </button>
           
           {showCompleted && (
@@ -507,26 +650,26 @@ export default function RemindersPage() {
               {completedReminders.slice(0, 10).map((reminder) => (
                 <div 
                   key={reminder.id}
-                  className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg opacity-60 hover:opacity-100 transition-opacity"
+                  className="flex items-center gap-3 p-3 glass-panel rounded-xl opacity-60 hover:opacity-100 transition-opacity"
                 >
                   <button
                     onClick={() => handleUncomplete(reminder)}
                     className="shrink-0"
                     data-testid={`uncomplete-${reminder.id}`}
                   >
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckCircle className="h-5 w-5 text-green-400" weight="fill" />
                   </button>
-                  <span className="text-sm text-gray-500 line-through flex-1">{reminder.text}</span>
+                  <span className="text-sm text-white/50 line-through flex-1">{reminder.text}</span>
                   {reminder.completedAt && (
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-white/30">
                       {format(new Date(reminder.completedAt), 'MMM d')}
                     </span>
                   )}
                   <button
                     onClick={() => deleteReminder.mutate(reminder.id)}
-                    className="shrink-0 p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-500"
+                    className="shrink-0 p-1.5 rounded-lg hover:bg-red-500/10 text-white/30 hover:text-red-400 transition-colors"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash className="h-4 w-4" weight="duotone" />
                   </button>
                 </div>
               ))}
@@ -534,47 +677,44 @@ export default function RemindersPage() {
           )}
         </div>
       )}
-      
+
+      {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="glass-panel border-white/20 text-white">
           <DialogHeader>
-            <DialogTitle>Edit Reminder</DialogTitle>
+            <DialogTitle className="text-white">Edit Reminder</DialogTitle>
           </DialogHeader>
-          
-          <div className="space-y-4">
+          <div className="space-y-4 pt-2">
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600">Reminder</label>
+              <label className="text-sm text-white/60">What</label>
               <Input
                 value={editText}
                 onChange={(e) => setEditText(e.target.value)}
-                className="bg-gray-50 border-gray-200 rounded-xl"
-                data-testid="input-edit-text"
+                placeholder="Reminder text..."
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
             </div>
-            
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600">Notes (optional)</label>
+              <label className="text-sm text-white/60">Notes</label>
               <Textarea
                 value={editNotes}
                 onChange={(e) => setEditNotes(e.target.value)}
-                placeholder="Add details..."
-                className="bg-gray-50 border-gray-200 rounded-xl min-h-[80px]"
-                data-testid="input-edit-notes"
+                placeholder="Add notes..."
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 min-h-[80px]"
               />
             </div>
-            
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-600">When</label>
+                <label className="text-sm text-white/60">When</label>
                 <Select value={editBucket} onValueChange={(v) => setEditBucket(v as ReminderBucket)}>
-                  <SelectTrigger className="rounded-xl">
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="glass-panel border-white/20">
                     {BUCKETS.map((bucket) => (
-                      <SelectItem key={bucket.value} value={bucket.value}>
+                      <SelectItem key={bucket.value} value={bucket.value} className="text-white focus:bg-white/10 focus:text-white">
                         <span className="flex items-center gap-2">
-                          <bucket.icon className={`h-4 w-4 ${bucket.color}`} />
+                          <bucket.icon className={cn("h-4 w-4", bucket.color)} weight="duotone" />
                           {bucket.label}
                         </span>
                       </SelectItem>
@@ -582,38 +722,27 @@ export default function RemindersPage() {
                   </SelectContent>
                 </Select>
               </div>
-              
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-600">Priority</label>
+                <label className="text-sm text-white/60">Priority</label>
                 <Select value={editPriority} onValueChange={setEditPriority}>
-                  <SelectTrigger className="rounded-xl">
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    {PRIORITY_OPTIONS.map((p) => (
-                      <SelectItem key={p.value} value={p.value}>
-                        <span className={p.color}>{p.label}</span>
+                  <SelectContent className="glass-panel border-white/20">
+                    {PRIORITY_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value} className="text-white focus:bg-white/10 focus:text-white">
+                        <span className={opt.color}>{opt.label}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            
             <div className="flex gap-2 pt-2">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowEditDialog(false)}
-                className="flex-1 rounded-xl"
-              >
+              <Button variant="outline" onClick={() => setShowEditDialog(false)} className="flex-1">
                 Cancel
               </Button>
-              <Button 
-                onClick={handleSaveEdit}
-                disabled={!editText.trim()}
-                className="flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600"
-                data-testid="button-save-edit"
-              >
+              <Button onClick={saveEditedReminder} className="flex-1 btn-gradient">
                 Save
               </Button>
             </div>
