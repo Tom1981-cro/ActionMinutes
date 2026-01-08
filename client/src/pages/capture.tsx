@@ -436,7 +436,7 @@ export default function CapturePage() {
             <Input 
               value={title} 
               onChange={(e) => setTitle(e.target.value)} 
-              className="flex-1 bg-white/5 border-white/10 rounded-xl h-11 text-base px-4 text-white placeholder:text-white/40 focus:bg-white/10 focus:border-violet-500/50"
+              className="flex-1 bg-white/5 border-white/10 rounded-xl h-11 text-base px-4 text-white placeholder:text-white/40 light:placeholder:text-gray-400 focus:bg-white/10 focus:border-violet-500/50"
               placeholder="Meeting title..."
               data-testid="input-title"
             />
@@ -523,7 +523,7 @@ export default function CapturePage() {
                     placeholder="Alice, Bob, Charlie..." 
                     value={attendees}
                     onChange={(e) => setAttendees(e.target.value)}
-                    className="bg-white/5 border-white/10 rounded-xl h-10 text-sm px-3 text-white placeholder:text-white/30 focus:bg-white/10"
+                    className="bg-white/5 border-white/10 rounded-xl h-10 text-sm px-3 text-white placeholder:text-white/30 light:placeholder:text-gray-400 focus:bg-white/10"
                     data-testid="input-attendees"
                   />
                 </div>
@@ -550,7 +550,7 @@ export default function CapturePage() {
                       placeholder="Room / Link"
                       value={location}
                       onChange={(e) => setLocationValue(e.target.value)}
-                      className="bg-white/5 border-white/10 rounded-xl h-10 text-sm px-3 text-white placeholder:text-white/30 focus:bg-white/10"
+                      className="bg-white/5 border-white/10 rounded-xl h-10 text-sm px-3 text-white placeholder:text-white/30 light:placeholder:text-gray-400 focus:bg-white/10"
                       data-testid="input-location"
                     />
                   </div>

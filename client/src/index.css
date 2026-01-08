@@ -358,8 +358,14 @@
   .light .bg-white\/5 {
     background-color: rgba(0, 0, 0, 0.03);
   }
-  .light .bg-white\/10 {
-    background-color: rgba(0, 0, 0, 0.05);
+  .light .placeholder\:text-white\/20::placeholder {
+    color: #9ca3af;
+  }
+  .light .placeholder\:text-white\/30::placeholder {
+    color: #9ca3af;
+  }
+  .light .placeholder\:text-white\/40::placeholder {
+    color: #6b7280;
   }
   .light .hover\:bg-white\/5:hover {
     background-color: rgba(0, 0, 0, 0.03);
