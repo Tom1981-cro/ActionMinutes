@@ -34,7 +34,7 @@ export function WorkspaceSwitcher() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-2 text-left h-auto py-2 px-3 rounded-xl hover:bg-gray-100" data-testid="button-workspace-switcher">
+        <Button variant="ghost" className="flex items-center gap-2 text-left h-auto py-2 px-3 rounded-xl hover:bg-violet-500/20 hover:border-violet-500/30 border border-transparent transition-all" data-testid="button-workspace-switcher">
           <div className="flex items-center gap-2">
             {currentWorkspaceId ? (
               <Users className="h-4 w-4 text-indigo-500" />
