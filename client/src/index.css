@@ -201,6 +201,9 @@
     -moz-osx-font-smoothing: grayscale;
     color-scheme: dark;
   }
+  html.light {
+    color-scheme: light;
+  }
   body {
     @apply font-sans antialiased bg-background text-foreground;
     line-height: 1.6;
@@ -208,6 +211,10 @@
     min-height: 100dvh;
     background: linear-gradient(145deg, #121212 0%, #0a0a0a 50%, #121212 100%);
     background-attachment: fixed;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  .light body {
+    background: linear-gradient(145deg, #fafafa 0%, #f0f0f0 50%, #fafafa 100%);
   }
   
   /* Premium Page Titles */
@@ -261,6 +268,23 @@
     border: 1px solid rgba(139, 92, 246, 0.2);
   }
 
+  /* Light Mode Glass Panel Overrides */
+  .light .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  }
+  
+  .light .glass-panel-dark {
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+  }
+  
+  .light .glass-panel-violet {
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.15);
+  }
+
   /* Gradient Text */
   .text-gradient {
     background-clip: text;
@@ -274,6 +298,52 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-image: linear-gradient(135deg, #ffffff 0%, #a78bfa 100%);
+  }
+  
+  .light .text-gradient-light {
+    background-image: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+  }
+
+  /* Light Mode Text Color Overrides */
+  .light .text-white {
+    color: #121212;
+  }
+  .light .text-white\/40 {
+    color: rgba(18, 18, 18, 0.4);
+  }
+  .light .text-white\/50 {
+    color: rgba(18, 18, 18, 0.5);
+  }
+  .light .text-white\/60 {
+    color: rgba(18, 18, 18, 0.6);
+  }
+  .light .text-white\/70 {
+    color: rgba(18, 18, 18, 0.7);
+  }
+  .light .text-white\/80 {
+    color: rgba(18, 18, 18, 0.8);
+  }
+  
+  /* Light Mode Border Overrides */
+  .light .border-white\/10 {
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+  .light .border-white\/20 {
+    border-color: rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Light Mode Background Overrides */
+  .light .bg-white\/5 {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+  .light .bg-white\/10 {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  .light .hover\:bg-white\/5:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+  .light .hover\:bg-white\/10:hover {
+    background-color: rgba(0, 0, 0, 0.05);
   }
 
   /* ========== BUTTON STYLES ========== */

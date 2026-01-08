@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+type Theme = "dark" | "light";
+
 interface User {
   id: string;
   email: string;
@@ -26,6 +28,7 @@ interface Workspace {
 
 interface AppState {
   user: User;
+  theme: Theme;
   currentWorkspaceId: string | null;
   workspaces: Workspace[];
   setUser: (user: User) => void;
@@ -34,6 +37,8 @@ interface AppState {
   updateUser: (updates: Partial<User>) => void;
   setCurrentWorkspace: (workspaceId: string | null) => void;
   setWorkspaces: (workspaces: Workspace[]) => void;
+  setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
 }
 
 export const useStore = create<AppState>()(
@@ -55,6 +60,7 @@ export const useStore = create<AppState>()(
         isAuthenticated: false,
       },
 
+      theme: "dark" as Theme,
       currentWorkspaceId: null,
       workspaces: [],
 
@@ -91,6 +97,12 @@ export const useStore = create<AppState>()(
       setCurrentWorkspace: (workspaceId) => set({ currentWorkspaceId: workspaceId }),
 
       setWorkspaces: (workspaces) => set({ workspaces }),
+
+      setTheme: (theme) => set({ theme }),
+
+      toggleTheme: () => set((state) => ({ 
+        theme: state.theme === "dark" ? "light" : "dark" 
+      })),
     }),
     {
       name: "action-minutes-storage",

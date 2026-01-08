@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { 
-  Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut 
+  Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon 
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
@@ -16,9 +17,18 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
-  const { user, currentWorkspaceId } = useStore();
+  const { user, currentWorkspaceId, theme, toggleTheme } = useStore();
   const { logout } = useAuth();
   const { user: clerkUser } = useUser();
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === "light") {
+      root.classList.add("light");
+    } else {
+      root.classList.remove("light");
+    }
+  }, [theme]);
 
   const isPersonalMode = currentWorkspaceId === null && user.enablePersonal;
 
@@ -118,6 +128,24 @@ export default function Layout({ children }: LayoutProps) {
           )}
           <Button 
             variant="ghost" 
+            data-testid="button-theme-toggle"
+            className="w-full justify-start text-white/50 hover:text-violet-300 hover:bg-white/5 rounded-xl px-4 mb-1"
+            onClick={toggleTheme}
+          >
+            {theme === "dark" ? (
+              <>
+                <Sun className="h-4 w-4 mr-2" weight="duotone" />
+                Light mode
+              </>
+            ) : (
+              <>
+                <Moon className="h-4 w-4 mr-2" weight="duotone" />
+                Dark mode
+              </>
+            )}
+          </Button>
+          <Button 
+            variant="ghost" 
             data-testid="button-signout"
             className="w-full justify-start text-white/50 hover:text-red-400 hover:bg-red-500/10 rounded-xl px-4"
             onClick={async () => {
@@ -141,6 +169,18 @@ export default function Layout({ children }: LayoutProps) {
         </div>
         <div className="flex items-center gap-2">
           <WorkspaceSwitcher />
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-xl text-white/50 hover:bg-white/5 hover:text-violet-300 transition-colors"
+            data-testid="mobile-theme-toggle"
+            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" weight="duotone" />
+            ) : (
+              <Moon className="h-5 w-5" weight="duotone" />
+            )}
+          </button>
           {showPersonalSettingsLink && (
             <Link 
               href="/settings"
