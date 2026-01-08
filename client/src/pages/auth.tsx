@@ -41,18 +41,6 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50">
       <div className="w-full max-w-md space-y-8">
-        <div className="text-center space-y-3">
-          <div className="flex justify-center items-center gap-3 mb-4">
-            <img src={logoIcon} alt="ActionMinutes" className="w-12 h-12 rounded-xl" />
-            <span className="text-2xl tracking-tight text-slate-900">
-              <span className="font-bold">Action</span><span className="font-normal">Minutes</span>
-            </span>
-          </div>
-          <p className="text-lg text-slate-600">
-            Turn Minutes into <span className="text-purple-600 font-medium">Actionable Velocity</span>
-          </p>
-        </div>
-
         <div className="flex justify-center">
           {isRegisterMode ? (
             <SignUp 
