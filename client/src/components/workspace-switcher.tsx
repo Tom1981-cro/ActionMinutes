@@ -42,7 +42,11 @@ export function WorkspaceSwitcher() {
               <User className="h-4 w-4 text-slate-500" />
             )}
             <span className="text-sm font-medium text-slate-700">
-              {currentWorkspace?.name || (user.enablePersonal ? "Personal" : "Select workspace")}
+              {currentWorkspace?.name || (user.enablePersonal ? (
+                <span>
+                  Action<span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Personal</span>
+                </span>
+              ) : "Select workspace")}
             </span>
           </div>
           <ChevronDown className="h-4 w-4 text-gray-400" />
@@ -64,7 +68,9 @@ export function WorkspaceSwitcher() {
               <div className="flex items-center gap-3">
                 <User className="h-5 w-5 text-slate-500" />
                 <div className="text-left">
-                  <p className="font-medium text-slate-700">Personal</p>
+                  <p className="font-medium text-slate-700">
+                    Action<span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Personal</span>
+                  </p>
                   <p className="text-xs text-gray-500">Your private meetings</p>
                 </div>
               </div>
@@ -84,7 +90,9 @@ export function WorkspaceSwitcher() {
               <div className="flex items-center gap-3">
                 <Users className="h-5 w-5 text-indigo-500" />
                 <div className="text-left">
-                  <p className="font-medium text-slate-700">{workspace.name}</p>
+                  <p className="font-medium text-slate-700">
+                    Action<span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Workspace</span>: {workspace.name}
+                  </p>
                   <p className="text-xs text-gray-500">Team workspace</p>
                 </div>
               </div>
