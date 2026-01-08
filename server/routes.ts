@@ -32,6 +32,9 @@ import bcrypt from "bcryptjs";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
+import { createClerkClient } from "@clerk/clerk-sdk-node";
+
+const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
 // ==================== RBAC HELPERS ====================
 type Permission = 'read' | 'write' | 'manage' | 'delete';
@@ -336,6 +339,27 @@ export async function registerRoutes(
       
       if (!clerkId || !email) {
         return res.status(400).json({ error: "clerkId and email are required" });
+      }
+      
+      // Verify Clerk session token if CLERK_SECRET_KEY is available
+      if (process.env.CLERK_SECRET_KEY) {
+        const authHeader = req.headers.authorization;
+        if (!authHeader?.startsWith("Bearer ")) {
+          return res.status(401).json({ error: "Missing authorization header" });
+        }
+        
+        try {
+          const token = authHeader.substring(7);
+          const verifiedSession = await clerkClient.verifyToken(token);
+          
+          // Ensure the clerkId in the request matches the verified session
+          if (verifiedSession.sub !== clerkId) {
+            return res.status(403).json({ error: "ClerkId mismatch" });
+          }
+        } catch (verifyError) {
+          console.error("Clerk token verification failed:", verifyError);
+          return res.status(401).json({ error: "Invalid Clerk session" });
+        }
       }
       
       let user = await storage.getUserByClerkId(clerkId);

@@ -42,11 +42,15 @@ The schema (`shared/schema.ts`) defines these core entities:
 - **feedback**: User-submitted feedback with type, message, optional email, diagnostics (route, viewport, userAgent), and status
 
 ### Key Application Flows
-1. **Authentication**: Username/password authentication with bcrypt password hashing
-   - Server routes: `/api/auth/register`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/user`
-   - Client hook: `useAuth()` from `@/hooks/use-auth` with `login`, `register`, `logout` functions
-   - Session-based auth with PostgreSQL session store
-   - Test credentials: `test@actionminutes.com` / `testpass123` (after seeding)
+1. **Authentication**: Clerk-powered authentication with backend session sync
+   - **Clerk SDK**: Frontend uses `@clerk/clerk-react` for SignIn/SignUp UI components
+   - **Backend Verification**: `@clerk/clerk-sdk-node` verifies session tokens on `/api/auth/clerk-sync`
+   - **Hybrid Sessions**: Clerk handles auth UI, Express sessions maintain backend state
+   - **User Sync**: First Clerk sign-in creates/links user in database via `clerkId` column
+   - Server routes: `/api/auth/clerk-sync` (token-verified), `/api/auth/logout`, `/api/auth/user`
+   - Client hook: `useAuth()` from `@/hooks/use-auth` with `logout`, `refetch` functions
+   - Environment: `VITE_CLERK_PUBLISHABLE_KEY` (frontend), `CLERK_SECRET_KEY` (backend)
+   - **Legacy Fallback**: Demo/test users still use bcrypt passwords via `/api/auth/login`
 2. **Meeting Capture**: Create meetings with title, date, attendees, and raw notes
 3. **AI Extraction**: Process notes to extract summary, actions, decisions, and risks
 4. **Draft Generation**: Auto-generate follow-up emails based on extracted content

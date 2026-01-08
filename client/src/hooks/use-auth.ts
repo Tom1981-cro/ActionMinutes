@@ -4,18 +4,27 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useStore } from "@/lib/store";
 import type { User } from "@shared/schema";
 
-async function syncUserToBackend(clerkUser: {
-  id: string;
-  emailAddresses: { emailAddress: string }[];
-  firstName: string | null;
-  lastName: string | null;
-}): Promise<User> {
+async function syncUserToBackend(
+  clerkUser: {
+    id: string;
+    emailAddresses: { emailAddress: string }[];
+    firstName: string | null;
+    lastName: string | null;
+  },
+  getToken: () => Promise<string | null>
+): Promise<User> {
   const email = clerkUser.emailAddresses[0]?.emailAddress || "";
   const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || "User";
   
+  const token = await getToken();
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  
   const response = await fetch("/api/auth/clerk-sync", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     credentials: "include",
     body: JSON.stringify({
       clerkId: clerkUser.id,
@@ -58,7 +67,7 @@ export function useAuth() {
   const queryClient = useQueryClient();
   const { setUser, logout: storeLogout } = useStore();
   const { user: clerkUser, isLoaded: clerkLoaded, isSignedIn } = useUser();
-  const { signOut } = useClerk();
+  const { signOut, session } = useClerk();
   
   const { data: user, isLoading: dbUserLoading, refetch } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
@@ -69,12 +78,13 @@ export function useAuth() {
   });
 
   useEffect(() => {
-    if (clerkLoaded && isSignedIn && clerkUser && !user) {
-      syncUserToBackend(clerkUser).then((syncedUser) => {
+    if (clerkLoaded && isSignedIn && clerkUser && !user && session) {
+      const getToken = () => session.getToken();
+      syncUserToBackend(clerkUser, getToken).then((syncedUser) => {
         queryClient.setQueryData(["/api/auth/user"], syncedUser);
       }).catch(console.error);
     }
-  }, [clerkLoaded, isSignedIn, clerkUser, user, queryClient]);
+  }, [clerkLoaded, isSignedIn, clerkUser, user, queryClient, session]);
 
   useEffect(() => {
     if (clerkLoaded && !isSignedIn) {
