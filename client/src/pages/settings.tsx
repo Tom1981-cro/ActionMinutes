@@ -333,8 +333,10 @@ export default function SettingsPage() {
       </ExpandableSection>
 
       {/* Version Number */}
-      <div className="text-center py-4">
-        <p className="text-xs text-white/30">ActionMinutes v1.0.0</p>
+      <div className="text-center py-6">
+        <p className="text-xs text-white/40 light:text-gray-500 font-medium">
+          ActionMinutes v1.0.1. - by <a href="https://www.relay-labs.app" target="_blank" rel="noopener noreferrer" className="hover:text-violet-400 underline decoration-violet-500/30 underline-offset-2 transition-all">Relay Labs</a>
+        </p>
       </div>
 
       <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />

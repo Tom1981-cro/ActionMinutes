@@ -14,7 +14,7 @@ export default function SettingsTermsPage() {
         </Link>
         <div className="space-y-1">
           <h2 className="text-xl font-semibold text-slate-800">Terms of Service</h2>
-          <p className="text-gray-500 text-sm">Last updated: January 2, 2026</p>
+          <p className="text-gray-500 text-sm">Last updated: January 8, 2026</p>
         </div>
       </div>
 
@@ -25,7 +25,7 @@ export default function SettingsTermsPage() {
           </CardHeader>
           <CardContent className="prose prose-sm text-gray-700 p-6 space-y-4">
             <p>
-              These Terms of Service ("Agreement") constitute a legally binding contract between you and ActionMinutes. By accessing our platform, you acknowledge that you have read, understood, and agree to be bound by these terms. If you are entering into this Agreement on behalf of a company or other legal entity, you represent that you have the authority to bind such entity to these terms.
+              These Terms of Service ("Agreement") constitute a legally binding contract between you and Relay Labs ("Company", "we", "us"), the operator of the ActionMinutes platform. By accessing our platform, you acknowledge that you have read, understood, and agree to be bound by these terms. If you are entering into this Agreement on behalf of a company or other legal entity, you represent that you have the authority to bind such entity to these terms.
             </p>
           </CardContent>
         </Card>

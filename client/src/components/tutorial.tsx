@@ -118,14 +118,15 @@ export function Tutorial() {
   return (
     <>
       <div 
-        className="fixed inset-0 bg-black/40 z-50 transition-opacity duration-300"
+        className="fixed inset-0 bg-black/20 z-50 transition-opacity duration-300"
         onClick={handleSkip}
         data-testid="tutorial-overlay"
       />
 
       <div
         className={cn(
-          "fixed z-50 w-[90vw] max-w-md bg-white rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.3)] border border-gray-100 p-6 transition-all duration-300",
+          "fixed z-50 w-[90vw] max-w-md bg-white rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.15)] border border-gray-100 p-6 transition-all duration-300",
+          "after:content-[''] after:absolute after:-inset-4 after:bg-white/40 after:backdrop-blur-md after:-z-10 after:rounded-[2rem]",
           step.position === "center" && "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
           step.position === "bottom" && "bottom-24 left-1/2 -translate-x-1/2 md:bottom-8",
           step.position === "top" && "top-24 left-1/2 -translate-x-1/2"

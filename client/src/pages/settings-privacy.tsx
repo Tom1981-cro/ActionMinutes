@@ -14,7 +14,7 @@ export default function SettingsPrivacyPage() {
         </Link>
         <div className="space-y-1">
           <h2 className="text-xl font-semibold text-slate-800">Privacy Policy</h2>
-          <p className="text-gray-500 text-sm">Last updated: January 2, 2026</p>
+          <p className="text-gray-500 text-sm">Last updated: January 8, 2026</p>
         </div>
       </div>
 
@@ -25,7 +25,7 @@ export default function SettingsPrivacyPage() {
           </CardHeader>
           <CardContent className="prose prose-sm text-gray-700 p-6 space-y-4">
             <p>
-              At ActionMinutes, we recognize that the confidentiality and security of your meeting data are paramount. This Privacy Policy describes how we collect, use, process, and protect your information when you use our services. We adhere to industry-standard data protection practices to ensure your information remains private and secure.
+              At ActionMinutes (a service provided by Relay Labs), we recognize that the confidentiality and security of your meeting data are paramount. This Privacy Policy describes how we collect, use, process, and protect your information when you use our services. We adhere to industry-standard data protection practices to ensure your information remains private and secure.
             </p>
           </CardContent>
         </Card>
