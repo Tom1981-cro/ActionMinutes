@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon 
 } from "@phosphor-icons/react";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/hooks/use-auth";
@@ -19,7 +20,7 @@ export default function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
   const { user, currentWorkspaceId, theme, toggleTheme } = useStore();
   const { logout, isAuthenticated: authIsAuthenticated } = useAuth();
-  const { user: clerkUser, isSignedIn } = useUser();
+  const { user: clerkUser, isSignedIn, isLoaded: clerkLoaded } = useUser();
 
   useEffect(() => {
     const root = document.documentElement;
@@ -48,8 +49,16 @@ export default function Layout({ children }: LayoutProps) {
 
   const navItems = isPersonalMode ? personalNavItems : teamNavItems;
 
+  // Wait for Clerk to load before checking auth status
+  if (!clerkLoaded) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+      </div>
+    );
+  }
+
   // Use Clerk's sign-in status as the source of truth for showing the app shell
-  // The store sync happens in the background after Clerk authenticates
   if (!isSignedIn) {
     return <div className="min-h-screen bg-background">{children}</div>;
   }
