@@ -33,7 +33,6 @@ export default function Layout({ children }: LayoutProps) {
   const isPersonalMode = currentWorkspaceId === null && user.enablePersonal;
 
   const personalNavItems = [
-    { href: "/inbox", label: "Inbox", icon: Tray },
     { href: "/reminders", label: "Reminders", icon: Bell, primary: true },
     { href: "/journal", label: "Journal", icon: BookOpen },
   ];
