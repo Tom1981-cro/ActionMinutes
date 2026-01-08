@@ -29,6 +29,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={AuthPage} />
+      <Route path="/auth" component={AuthPage} />
       <Route path="/onboarding" component={OnboardingPage} />
       <Route path="/store-screens" component={StoreScreensPage} />
       <Route path="/marketing" component={MarketingPage} />
