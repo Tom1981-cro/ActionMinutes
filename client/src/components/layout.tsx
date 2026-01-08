@@ -42,11 +42,10 @@ export default function Layout({ children }: LayoutProps) {
     { href: "/meetings", label: "Meetings", icon: CalendarBlank },
     { href: "/capture", label: "Capture", icon: PlusCircle, primary: true },
     { href: "/drafts", label: "Drafts", icon: FileText },
-    { href: "/settings", label: "Settings", icon: GearSix },
   ];
 
   const navItems = isPersonalMode ? personalNavItems : teamNavItems;
-  const showPersonalSettingsLink = isPersonalMode || (currentWorkspaceId === null && !user.enablePersonal);
+  const showSettingsLink = true; // Always show settings in the footer now
 
   if (!user.isAuthenticated) {
     return <div className="min-h-screen bg-background">{children}</div>;
@@ -107,10 +106,10 @@ export default function Layout({ children }: LayoutProps) {
               <p className="text-xs text-white/50 truncate" data-testid="text-user-email">{user.email}</p>
             </div>
           </div>
-          {showPersonalSettingsLink && (
+          {showSettingsLink && (
             <Link 
               href="/settings"
-              data-testid="nav-settings-personal"
+              data-testid="nav-settings"
               className={cn(
                 "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer mb-1",
                 location === "/settings"
@@ -177,10 +176,10 @@ export default function Layout({ children }: LayoutProps) {
               <Moon className="h-5 w-5" weight="duotone" />
             )}
           </button>
-          {showPersonalSettingsLink && (
+          {showSettingsLink && (
             <Link 
               href="/settings"
-              data-testid="mobile-settings-personal"
+              data-testid="mobile-settings"
               className={cn(
                 "p-2 rounded-xl transition-colors",
                 location === "/settings"
