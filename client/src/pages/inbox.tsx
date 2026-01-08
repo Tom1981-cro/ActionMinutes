@@ -41,7 +41,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
         >
           <div className="flex items-start gap-3">
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-base leading-relaxed text-white mb-2">
+              <p className="font-medium text-base leading-relaxed text-white mb-2 light:text-gray-900">
                 {item.text}
               </p>
               
@@ -57,10 +57,10 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-white/60">
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-white/60 light:text-gray-500">
             {item.ownerName && (
               <span className="flex items-center gap-1.5">
-                <User className="h-4 w-4 text-white/40" />
+                <User className="h-4 w-4 text-white/40 light:text-gray-400" />
                 <span>{item.ownerName}</span>
               </span>
             )}
@@ -209,8 +209,8 @@ export default function InboxPage() {
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-black tracking-tight text-gradient-light">Inbox</h1>
-            <p className="text-white/50 text-base mt-1">
+            <h1 className="text-4xl font-black tracking-tight text-gradient-light light:text-charcoal-900">Inbox</h1>
+            <p className="text-white/50 text-base mt-1 light:text-gray-500">
               {totalItems === 0 ? "All clear" : `${totalItems} open ${totalItems === 1 ? 'item' : 'items'}`}
             </p>
           </div>
@@ -222,7 +222,11 @@ export default function InboxPage() {
               variant="ghost"
               size="sm"
               onClick={() => setFilter("mine")}
-              className={`flex-1 h-10 rounded-xl ${filter === "mine" ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' : 'text-white/60 hover:text-white/80'}`}
+              className={`flex-1 h-10 rounded-xl transition-all duration-300 ${
+                filter === "mine" 
+                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30 shadow-glow-sm' 
+                  : 'text-white/60 hover:text-white/80 light:text-gray-700 light:hover:text-violet-700 light:hover:bg-gray-100'
+              }`}
               data-testid="filter-mine"
             >
               <User className="h-4 w-4 mr-2" />
@@ -232,7 +236,11 @@ export default function InboxPage() {
               variant="ghost"
               size="sm"
               onClick={() => setFilter("workspace")}
-              className={`flex-1 h-10 rounded-xl ${filter === "workspace" ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' : 'text-white/60 hover:text-white/80'}`}
+              className={`flex-1 h-10 rounded-xl transition-all duration-300 ${
+                filter === "workspace" 
+                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30 shadow-glow-sm' 
+                  : 'text-white/60 hover:text-white/80 light:text-gray-700 light:hover:text-violet-700 light:hover:bg-gray-100'
+              }`}
               data-testid="filter-workspace"
             >
               <Users className="h-4 w-4 mr-2" />
@@ -246,10 +254,10 @@ export default function InboxPage() {
         <section className="space-y-3">
           <div className="flex items-center gap-2">
             <div className="h-6 w-1 bg-amber-400 rounded-full shadow-glow-sm" />
-            <h2 className="text-base font-semibold text-white">
+            <h2 className="text-base font-semibold text-white light:text-gray-900">
               Needs Review
             </h2>
-            <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full ml-auto">
+            <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full ml-auto light:bg-amber-100 light:text-amber-700 light:border-amber-200">
               {needsReview.length}
             </Badge>
           </div>
@@ -275,10 +283,10 @@ export default function InboxPage() {
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <div className="h-6 w-1 bg-violet-500 rounded-full shadow-glow-sm" />
-          <h2 className="text-base font-semibold text-white">
+          <h2 className="text-base font-semibold text-white light:text-gray-900">
             Open Items
           </h2>
-          <Badge variant="secondary" className="bg-violet-500/20 text-violet-300 border border-violet-500/30 rounded-full ml-auto">
+          <Badge variant="secondary" className="bg-violet-500/20 text-violet-300 border border-violet-500/30 rounded-full ml-auto light:bg-violet-100 light:text-violet-700 light:border-violet-200">
             {openItems.length}
           </Badge>
         </div>
