@@ -141,10 +141,13 @@ export function useAuth() {
   const isLoading = !clerkLoaded || (isSignedIn && dbUserLoading);
 
   const logout = async () => {
+    // Clear local state first
+    storeLogout();
+    queryClient.clear();
+    
+    // Then logout from backend and Clerk
     await logoutBackend();
     await signOut();
-    queryClient.setQueryData(["/api/auth/user"], null);
-    storeLogout();
   };
 
   return {

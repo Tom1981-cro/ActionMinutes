@@ -162,7 +162,7 @@ export default function Layout({ children }: LayoutProps) {
             )}
             onClick={async () => {
               await logout();
-              setLocation("/");
+              window.location.href = "/";
             }}
           >
             <SignOut className="h-4 w-4 mr-2" weight="duotone" />
@@ -210,7 +210,7 @@ export default function Layout({ children }: LayoutProps) {
           <button
             onClick={async () => {
               await logout();
-              setLocation("/");
+              window.location.href = "/";
             }}
             className="p-1 rounded-xl hover:bg-white/5 transition-colors"
             data-testid="mobile-signout"
