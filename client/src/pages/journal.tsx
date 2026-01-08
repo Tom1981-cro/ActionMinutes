@@ -2,28 +2,31 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
-  BookOpen, Plus, Loader2, Smile, Meh, Frown, Sparkles, ChevronRight, 
-  AlertTriangle, Target, CheckCircle2, Lightbulb, Heart
-} from "lucide-react";
+  Smiley, SmileyMeh, SmileySad, Sparkle, CaretRight, 
+  Warning, Target, Heart, Lightbulb, CheckCircle, SpinnerGap, Plus, BookOpen
+} from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const MOOD_OPTIONS = [
-  { value: "good", icon: Smile, label: "Good", color: "text-green-500", bg: "bg-green-50 border-green-200" },
-  { value: "okay", icon: Meh, label: "Okay", color: "text-amber-500", bg: "bg-amber-50 border-amber-200" },
-  { value: "tough", icon: Frown, label: "Tough", color: "text-red-500", bg: "bg-red-50 border-red-200" },
+  { value: "good", icon: Smiley, label: "Good", color: "text-emerald-400", bgSelected: "bg-emerald-500/20 border-emerald-500/50", bgHover: "hover:bg-emerald-500/10" },
+  { value: "okay", icon: SmileyMeh, label: "Okay", color: "text-amber-400", bgSelected: "bg-amber-500/20 border-amber-500/50", bgHover: "hover:bg-amber-500/10" },
+  { value: "tough", icon: SmileySad, label: "Tough", color: "text-red-400", bgSelected: "bg-red-500/20 border-red-500/50", bgHover: "hover:bg-red-500/10" },
 ];
 
-const SIGNAL_ICONS: Record<string, typeof AlertTriangle> = {
-  overwhelm: AlertTriangle,
+const SIGNAL_ICONS: Record<string, typeof Warning> = {
+  overwhelm: Warning,
   deadlines: Target,
   conflict: Heart,
   decision: Lightbulb,
-  avoidance: CheckCircle2,
+  avoidance: CheckCircle,
 };
 
 const SIGNAL_LABELS: Record<string, string> = {
@@ -62,6 +65,7 @@ export default function JournalPage() {
   const [safetyMessage, setSafetyMessage] = useState<string | null>(null);
   const [viewingEntry, setViewingEntry] = useState<any | null>(null);
   const [entryAnalysis, setEntryAnalysis] = useState<{ summary: JournalSummary | null; signals: string[] } | null>(null);
+  const [moveLowPriorityTasks, setMoveLowPriorityTasks] = useState(false);
   
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ['journal', user.id],
@@ -126,6 +130,7 @@ export default function JournalPage() {
       setSuggestedPrompts([]);
       setDetectedSignals([]);
       setSafetyMessage(null);
+      setMoveLowPriorityTasks(false);
       toast({ title: "Entry saved" });
     },
   });
@@ -147,11 +152,25 @@ export default function JournalPage() {
     },
   });
   
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!newText.trim()) {
       toast({ title: "Please write something", variant: "destructive" });
       return;
     }
+    
+    if (moveLowPriorityTasks && selectedMood === 'tough') {
+      try {
+        await fetch('/api/reminders/snooze-low-priority', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id }),
+        });
+        toast({ title: "Low-priority tasks moved to tomorrow" });
+      } catch (e) {
+        console.error('Failed to snooze tasks', e);
+      }
+    }
+    
     createEntry.mutate({ 
       rawText: newText, 
       mood: selectedMood || undefined, 
@@ -178,7 +197,7 @@ export default function JournalPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+        <SpinnerGap className="h-8 w-8 animate-spin text-violet-500" weight="bold" />
       </div>
     );
   }
@@ -187,28 +206,28 @@ export default function JournalPage() {
     <div className="space-y-5 pb-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-800">Journal</h1>
-          <p className="text-gray-500 text-base mt-1">Private reflections and notes</p>
+          <h1 className="text-4xl font-black tracking-tight text-gradient-light">Journal</h1>
+          <p className="text-white/50 text-base mt-1">Private reflections and notes</p>
         </div>
         <Button 
           onClick={() => setShowNewEntry(true)}
-          className="rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 shadow-lg"
+          className="rounded-xl btn-gradient"
           data-testid="button-new-entry"
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-4 w-4 mr-2" weight="bold" />
           New Entry
         </Button>
       </div>
       
       {entries.length === 0 ? (
-        <Card className="bg-gray-50/50 border-dashed border-gray-300 rounded-xl">
+        <Card className="glass-panel border-dashed border-white/20 rounded-2xl">
           <CardContent className="py-12 text-center space-y-3">
-            <div className="mx-auto h-16 w-16 bg-indigo-100 rounded-full flex items-center justify-center">
-              <BookOpen className="h-8 w-8 text-indigo-600" />
+            <div className="mx-auto h-16 w-16 bg-violet-500/20 rounded-2xl flex items-center justify-center">
+              <BookOpen className="h-8 w-8 text-violet-400" weight="duotone" />
             </div>
             <div>
-              <p className="text-lg font-medium text-slate-700">Start your journal</p>
-              <p className="text-gray-500 text-base mt-1">Capture your thoughts, reflections, and ideas</p>
+              <p className="text-lg font-medium text-white">Start your journal</p>
+              <p className="text-white/50 text-base mt-1">Capture your thoughts, reflections, and ideas</p>
             </div>
             <Button 
               onClick={() => setShowNewEntry(true)}
@@ -224,47 +243,48 @@ export default function JournalPage() {
           {entries.map((entry: any) => (
             <Card 
               key={entry.id} 
-              className="bg-white border-gray-200 rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
+              className="glass-panel rounded-2xl overflow-hidden cursor-pointer hover:bg-white/10 transition-all"
               onClick={() => openEntry(entry)}
               data-testid={`card-entry-${entry.id}`}
             >
               <CardContent className="p-4 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-white/50">
                     {format(new Date(entry.date), "EEEE, MMM d")}
                   </span>
                   <div className="flex items-center gap-2">
                     {entry.aiProcessed && (
-                      <span className="text-xs bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full flex items-center gap-1">
-                        <Sparkles className="h-3 w-3" />
+                      <span className="text-xs bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Sparkle className="h-3 w-3" weight="fill" />
                         AI
                       </span>
                     )}
                     {entry.mood && (
-                      <span className={`flex items-center gap-1 text-sm ${
-                        entry.mood === 'good' ? 'text-green-500' : 
-                        entry.mood === 'okay' ? 'text-amber-500' : 'text-red-500'
-                      }`}>
-                        {entry.mood === 'good' && <Smile className="h-4 w-4" />}
-                        {entry.mood === 'okay' && <Meh className="h-4 w-4" />}
-                        {entry.mood === 'tough' && <Frown className="h-4 w-4" />}
+                      <span className={cn(
+                        "flex items-center gap-1 text-sm",
+                        entry.mood === 'good' ? 'text-emerald-400' : 
+                        entry.mood === 'okay' ? 'text-amber-400' : 'text-red-400'
+                      )}>
+                        {entry.mood === 'good' && <Smiley className="h-4 w-4" weight="duotone" />}
+                        {entry.mood === 'okay' && <SmileyMeh className="h-4 w-4" weight="duotone" />}
+                        {entry.mood === 'tough' && <SmileySad className="h-4 w-4" weight="duotone" />}
                       </span>
                     )}
                   </div>
                 </div>
-                <p className="text-slate-700 whitespace-pre-wrap line-clamp-3">
+                <p className="text-white/80 whitespace-pre-wrap line-clamp-3">
                   {entry.rawText}
                 </p>
                 {entry.detectedSignals && entry.detectedSignals.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-2">
                     {entry.detectedSignals.slice(0, 2).map((signal: string) => {
-                      const Icon = SIGNAL_ICONS[signal] || AlertTriangle;
+                      const Icon = SIGNAL_ICONS[signal] || Warning;
                       return (
                         <span 
                           key={signal}
-                          className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full flex items-center gap-1"
+                          className="text-xs bg-white/10 text-white/60 px-2 py-0.5 rounded-full flex items-center gap-1"
                         >
-                          <Icon className="h-3 w-3" />
+                          <Icon className="h-3 w-3" weight="duotone" />
                           {SIGNAL_LABELS[signal] || signal}
                         </span>
                       );
@@ -277,24 +297,25 @@ export default function JournalPage() {
         </div>
       )}
       
+      {/* New Entry Modal with Glass Panel */}
       <Dialog open={showNewEntry} onOpenChange={setShowNewEntry}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto glass-panel border-white/20 text-white">
           <DialogHeader>
-            <DialogTitle>New Journal Entry</DialogTitle>
+            <DialogTitle className="text-white text-lg font-semibold">New Journal Entry</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             {safetyMessage && (
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-sm flex items-start gap-3">
-                <Heart className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-200 text-sm flex items-start gap-3">
+                <Heart className="h-5 w-5 flex-shrink-0 mt-0.5 text-amber-400" weight="fill" />
                 <div>
-                  <p className="font-medium">You matter</p>
-                  <p className="mt-1">{safetyMessage}</p>
+                  <p className="font-medium text-amber-300">You matter</p>
+                  <p className="mt-1 text-amber-200/80">{safetyMessage}</p>
                   <a 
                     href="https://988lifeline.org" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-amber-700 underline mt-2 inline-block"
+                    className="text-amber-300 underline mt-2 inline-block hover:text-amber-200"
                   >
                     988 Suicide & Crisis Lifeline
                   </a>
@@ -302,39 +323,61 @@ export default function JournalPage() {
               </div>
             )}
 
+            {/* Mood Selection with Framer Motion */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600">How are you feeling?</label>
+              <label className="text-sm font-medium text-white/60">How are you feeling?</label>
               <div className="flex gap-3">
-                {MOOD_OPTIONS.map((mood) => (
-                  <button
-                    key={mood.value}
-                    onClick={() => setSelectedMood(mood.value)}
-                    className={`flex-1 py-3 rounded-xl border-2 transition-all ${
-                      selectedMood === mood.value 
-                        ? `${mood.bg}` 
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    data-testid={`mood-${mood.value}`}
-                  >
-                    <mood.icon className={`h-6 w-6 mx-auto ${mood.color}`} />
-                    <span className="text-xs text-gray-600 mt-1 block">{mood.label}</span>
-                  </button>
-                ))}
+                {MOOD_OPTIONS.map((mood) => {
+                  const isSelected = selectedMood === mood.value;
+                  const MoodIcon = mood.icon;
+                  
+                  return (
+                    <motion.button
+                      key={mood.value}
+                      onClick={() => setSelectedMood(mood.value)}
+                      className={cn(
+                        "flex-1 py-4 rounded-xl border-2 transition-colors",
+                        isSelected 
+                          ? mood.bgSelected
+                          : `border-white/10 ${mood.bgHover}`
+                      )}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      data-testid={`mood-${mood.value}`}
+                    >
+                      <motion.div
+                        animate={isSelected ? { scale: [1, 1.2, 1.1] } : { scale: 1 }}
+                        transition={isSelected ? { 
+                          type: "spring", 
+                          stiffness: 400, 
+                          damping: 10,
+                          duration: 0.3 
+                        } : {}}
+                      >
+                        <MoodIcon className={cn("h-8 w-8 mx-auto", mood.color)} weight="duotone" />
+                      </motion.div>
+                      <span className={cn(
+                        "text-xs mt-2 block transition-colors",
+                        isSelected ? "text-white" : "text-white/50"
+                      )}>{mood.label}</span>
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
 
             {detectedSignals.length > 0 && (
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                <p className="text-xs text-slate-500 mb-2">I noticed:</p>
+              <div className="p-3 bg-white/5 rounded-xl border border-white/10">
+                <p className="text-xs text-white/40 mb-2">I noticed:</p>
                 <div className="flex flex-wrap gap-2">
                   {detectedSignals.map((signal) => {
-                    const Icon = SIGNAL_ICONS[signal] || AlertTriangle;
+                    const Icon = SIGNAL_ICONS[signal] || Warning;
                     return (
                       <span 
                         key={signal}
-                        className="text-xs bg-white text-slate-600 px-2 py-1 rounded-lg border border-slate-200 flex items-center gap-1"
+                        className="text-xs bg-white/10 text-white/70 px-2 py-1 rounded-lg border border-white/10 flex items-center gap-1"
                       >
-                        <Icon className="h-3 w-3 text-indigo-500" />
+                        <Icon className="h-3 w-3 text-violet-400" weight="duotone" />
                         {SIGNAL_LABELS[signal] || signal}
                       </span>
                     );
@@ -345,8 +388,8 @@ export default function JournalPage() {
             
             {suggestedPrompts.length > 0 && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-600 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-purple-500" />
+                <label className="text-sm font-medium text-white/60 flex items-center gap-2">
+                  <Sparkle className="h-4 w-4 text-violet-400" weight="fill" />
                   Suggested prompts
                 </label>
                 <div className="grid gap-2">
@@ -354,10 +397,10 @@ export default function JournalPage() {
                     <button
                       key={prompt.id}
                       onClick={() => selectPrompt(prompt)}
-                      className="text-left p-3 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 text-sm text-slate-700 transition-colors border border-indigo-100"
+                      className="text-left p-3 rounded-xl bg-violet-500/10 hover:bg-violet-500/20 text-sm text-white/80 transition-colors border border-violet-500/20"
                       data-testid={`prompt-${prompt.id}`}
                     >
-                      <ChevronRight className="h-3 w-3 inline mr-2 text-indigo-400" />
+                      <CaretRight className="h-3 w-3 inline mr-2 text-violet-400" weight="bold" />
                       {prompt.text}
                     </button>
                   ))}
@@ -366,17 +409,45 @@ export default function JournalPage() {
             )}
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-600">Your thoughts</label>
+              <label className="text-sm font-medium text-white/60">Your thoughts</label>
               <Textarea
                 value={newText}
                 onChange={(e) => setNewText(e.target.value)}
                 placeholder="Write whatever's on your mind..."
-                className="min-h-[200px] bg-gray-50 border-gray-200 rounded-xl focus:bg-white"
+                className="min-h-[200px] bg-white/5 border-white/10 rounded-xl text-white placeholder:text-white/30 focus:bg-white/8 focus:border-violet-500/50"
                 data-testid="input-journal-text"
               />
             </div>
+
+            {/* Conditional checkbox for "Tough" mood */}
+            <AnimatePresence>
+              {selectedMood === 'tough' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+                    <Checkbox
+                      id="move-tasks"
+                      checked={moveLowPriorityTasks}
+                      onCheckedChange={(checked) => setMoveLowPriorityTasks(checked === true)}
+                      className="mt-0.5 border-red-400/50 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"
+                    />
+                    <label 
+                      htmlFor="move-tasks" 
+                      className="text-sm text-red-200/80 cursor-pointer leading-snug"
+                    >
+                      Would you like to move today's low-priority tasks to tomorrow?
+                    </label>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
             
-            <div className="flex gap-2">
+            <div className="flex gap-2 pt-2">
               <Button 
                 variant="outline" 
                 onClick={() => setShowNewEntry(false)}
@@ -387,58 +458,60 @@ export default function JournalPage() {
               <Button 
                 onClick={handleSave}
                 disabled={createEntry.isPending || !newText.trim()}
-                className="flex-1 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600"
+                className="flex-1 rounded-xl btn-gradient"
                 data-testid="button-save-entry"
               >
-                {createEntry.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Entry"}
+                {createEntry.isPending ? <SpinnerGap className="h-4 w-4 animate-spin" weight="bold" /> : "Save Entry"}
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
+      {/* View Entry Modal with Glass Panel */}
       <Dialog open={!!viewingEntry} onOpenChange={() => setViewingEntry(null)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto glass-panel border-white/20 text-white">
           {viewingEntry && (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
+                <DialogTitle className="flex items-center gap-2 text-white">
                   {format(new Date(viewingEntry.date), "EEEE, MMMM d, yyyy")}
                   {viewingEntry.mood && (
-                    <span className={`ml-auto flex items-center gap-1 text-sm ${
-                      viewingEntry.mood === 'good' ? 'text-green-500' : 
-                      viewingEntry.mood === 'okay' ? 'text-amber-500' : 'text-red-500'
-                    }`}>
-                      {viewingEntry.mood === 'good' && <Smile className="h-4 w-4" />}
-                      {viewingEntry.mood === 'okay' && <Meh className="h-4 w-4" />}
-                      {viewingEntry.mood === 'tough' && <Frown className="h-4 w-4" />}
+                    <span className={cn(
+                      "ml-auto flex items-center gap-1 text-sm",
+                      viewingEntry.mood === 'good' ? 'text-emerald-400' : 
+                      viewingEntry.mood === 'okay' ? 'text-amber-400' : 'text-red-400'
+                    )}>
+                      {viewingEntry.mood === 'good' && <Smiley className="h-4 w-4" weight="duotone" />}
+                      {viewingEntry.mood === 'okay' && <SmileyMeh className="h-4 w-4" weight="duotone" />}
+                      {viewingEntry.mood === 'tough' && <SmileySad className="h-4 w-4" weight="duotone" />}
                     </span>
                   )}
                 </DialogTitle>
               </DialogHeader>
 
               <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded-xl">
-                  <p className="text-slate-700 whitespace-pre-wrap">{viewingEntry.rawText}</p>
+                <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                  <p className="text-white/80 whitespace-pre-wrap">{viewingEntry.rawText}</p>
                 </div>
 
                 {entryAnalysis?.summary && (
                   <div className="space-y-3">
-                    <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                    <div className="p-4 bg-violet-500/10 rounded-xl border border-violet-500/20">
                       <div className="flex items-center gap-2 mb-2">
-                        <Sparkles className="h-4 w-4 text-purple-500" />
-                        <span className="text-sm font-medium text-slate-700">AI Summary</span>
+                        <Sparkle className="h-4 w-4 text-violet-400" weight="fill" />
+                        <span className="text-sm font-medium text-white">AI Summary</span>
                       </div>
-                      <p className="text-slate-600 text-sm">{entryAnalysis.summary.summary}</p>
+                      <p className="text-white/70 text-sm">{entryAnalysis.summary.summary}</p>
                     </div>
 
                     {entryAnalysis.summary.top3 && entryAnalysis.summary.top3.length > 0 && (
-                      <div className="p-4 bg-white rounded-xl border border-gray-200">
-                        <p className="text-sm font-medium text-slate-700 mb-2">Top 3 Points</p>
+                      <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                        <p className="text-sm font-medium text-white mb-2">Top 3 Points</p>
                         <ul className="space-y-1">
                           {entryAnalysis.summary.top3.map((point, i) => (
-                            <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                              <span className="text-indigo-500 font-medium">{i + 1}.</span>
+                            <li key={i} className="text-sm text-white/70 flex items-start gap-2">
+                              <span className="text-violet-400 font-medium">{i + 1}.</span>
                               {point}
                             </li>
                           ))}
@@ -447,12 +520,12 @@ export default function JournalPage() {
                     )}
 
                     {entryAnalysis.summary.nextSteps && entryAnalysis.summary.nextSteps.length > 0 && (
-                      <div className="p-4 bg-white rounded-xl border border-gray-200">
-                        <p className="text-sm font-medium text-slate-700 mb-2">Suggested Next Steps</p>
+                      <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                        <p className="text-sm font-medium text-white mb-2">Suggested Next Steps</p>
                         <ul className="space-y-1">
                           {entryAnalysis.summary.nextSteps.map((step, i) => (
-                            <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                              <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                            <li key={i} className="text-sm text-white/70 flex items-start gap-2">
+                              <CheckCircle className="h-4 w-4 text-emerald-400 flex-shrink-0 mt-0.5" weight="fill" />
                               {step}
                             </li>
                           ))}
@@ -465,13 +538,13 @@ export default function JournalPage() {
                 {entryAnalysis?.signals && entryAnalysis.signals.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {entryAnalysis.signals.map((signal) => {
-                      const Icon = SIGNAL_ICONS[signal] || AlertTriangle;
+                      const Icon = SIGNAL_ICONS[signal] || Warning;
                       return (
                         <span 
                           key={signal}
-                          className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full flex items-center gap-1"
+                          className="text-xs bg-white/10 text-white/60 px-2 py-1 rounded-full flex items-center gap-1"
                         >
-                          <Icon className="h-3 w-3" />
+                          <Icon className="h-3 w-3" weight="duotone" />
                           {SIGNAL_LABELS[signal] || signal}
                         </span>
                       );
@@ -488,9 +561,9 @@ export default function JournalPage() {
                     data-testid="button-analyze-entry"
                   >
                     {analyzeEntry.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      <SpinnerGap className="h-4 w-4 animate-spin mr-2" weight="bold" />
                     ) : (
-                      <Sparkles className="h-4 w-4 mr-2 text-purple-500" />
+                      <Sparkle className="h-4 w-4 mr-2 text-violet-400" weight="fill" />
                     )}
                     Get AI Insights
                   </Button>
