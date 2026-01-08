@@ -334,8 +334,8 @@ export default function SettingsPage() {
 
       {/* Version Number */}
       <div className="text-center py-6">
-        <p className="text-xs text-white/40 light:text-gray-500 font-medium">
-          ActionMinutes v1.0.1. - by <a href="https://www.relay-labs.app" target="_blank" rel="noopener noreferrer" className="hover:text-violet-400 underline decoration-violet-500/30 underline-offset-2 transition-all">Relay Labs</a>
+        <p className="text-xs text-white/60 light:text-gray-600 font-medium">
+          ActionMinutes v1.0.1. - by <a href="https://relay-labs.app" target="_blank" rel="noopener noreferrer" className="hover:text-violet-400 underline decoration-violet-500/30 underline-offset-2 transition-all">Relay Labs</a>
         </p>
       </div>
 
