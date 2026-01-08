@@ -35,6 +35,7 @@ export default function Layout({ children }: LayoutProps) {
   const personalNavItems = [
     { href: "/reminders", label: "Reminders", icon: Bell, primary: true },
     { href: "/journal", label: "Journal", icon: BookOpen },
+    { href: "/settings", label: "Settings", icon: GearSix },
   ];
 
   const teamNavItems = [
@@ -42,10 +43,10 @@ export default function Layout({ children }: LayoutProps) {
     { href: "/meetings", label: "Meetings", icon: CalendarBlank },
     { href: "/capture", label: "Capture", icon: PlusCircle, primary: true },
     { href: "/drafts", label: "Drafts", icon: FileText },
+    { href: "/settings", label: "Settings", icon: GearSix },
   ];
 
   const navItems = isPersonalMode ? personalNavItems : teamNavItems;
-  const showSettingsLink = true; // Always show settings in the footer now
 
   // Check both Clerk sign-in status and store authentication to handle race conditions
   const isFullyAuthenticated = isSignedIn && (user.isAuthenticated || authIsAuthenticated);
@@ -117,21 +118,6 @@ export default function Layout({ children }: LayoutProps) {
               <p className={cn("text-xs truncate", theme === "light" ? "text-gray-500" : "text-white/50")} data-testid="text-user-email">{user.email}</p>
             </div>
           </div>
-          {showSettingsLink && (
-            <Link 
-              href="/settings"
-              data-testid="nav-settings"
-              className={cn(
-                "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer mb-1",
-                location === "/settings"
-                  ? theme === "light" ? "bg-violet-100 text-violet-700" : "bg-violet-500/20 text-violet-300"
-                  : theme === "light" ? "text-gray-600 hover:bg-gray-100 hover:text-violet-700" : "text-white/60 hover:bg-white/5 hover:text-violet-300"
-              )}
-            >
-              <GearSix className="h-4 w-4" weight="duotone" />
-              Settings
-            </Link>
-          )}
           <Button 
             variant="ghost" 
             data-testid="button-theme-toggle"
@@ -193,20 +179,6 @@ export default function Layout({ children }: LayoutProps) {
               <Moon className="h-5 w-5" weight="duotone" />
             )}
           </button>
-          {showSettingsLink && (
-            <Link 
-              href="/settings"
-              data-testid="mobile-settings"
-              className={cn(
-                "p-2 rounded-xl transition-colors",
-                location === "/settings"
-                  ? "bg-violet-500/20 text-violet-300"
-                  : "text-white/50 hover:bg-white/5 hover:text-violet-300"
-              )}
-            >
-              <GearSix className="h-5 w-5" weight="duotone" />
-            </Link>
-          )}
           <button
             onClick={async () => {
               await logout();
