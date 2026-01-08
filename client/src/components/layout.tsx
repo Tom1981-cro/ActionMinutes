@@ -54,11 +54,15 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col md:flex-row font-sans bg-mesh">
       {/* Desktop Sidebar - Glassmorphism */}
-      <aside className="hidden md:flex w-64 flex-col glass-panel border-r border-white/10 p-4 h-screen sticky top-0">
+      <aside className={cn(
+        "hidden md:flex w-64 flex-col glass-panel border-r p-4 h-screen sticky top-0",
+        theme === "light" ? "border-gray-200" : "border-white/10"
+      )}>
         <div className="flex items-center gap-2 px-2 mb-4 mt-4">
           <img src={logoIcon} alt="ActionMinutes" className="w-8 h-8 rounded-lg" />
           <span className="text-xl tracking-tight">
-            <span className="font-bold text-white">Action</span><span className="font-normal text-violet-300">Minutes</span>
+            <span className={cn("font-bold", theme === "light" ? "text-gray-900" : "text-white")}>Action</span>
+            <span className={cn("font-normal", theme === "light" ? "text-violet-600" : "text-violet-300")}>Minutes</span>
           </span>
         </div>
 
@@ -77,24 +81,28 @@ export default function Layout({ children }: LayoutProps) {
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 cursor-pointer",
                   isActive
-                    ? "bg-violet-500/20 text-violet-300 font-semibold border border-violet-500/30 shadow-glow-sm"
-                    : "text-white/70 hover:bg-white/5 hover:text-violet-300"
+                    ? theme === "light"
+                      ? "bg-violet-100 text-violet-700 font-semibold border border-violet-300/50"
+                      : "bg-violet-500/20 text-violet-300 font-semibold border border-violet-500/30 shadow-glow-sm"
+                    : theme === "light"
+                      ? "text-gray-700 hover:bg-gray-100 hover:text-violet-700"
+                      : "text-white/70 hover:bg-white/5 hover:text-violet-300"
                 )}
               >
-                <item.icon className={cn("h-4 w-4", isActive ? "text-violet-400" : "text-white/50")} weight="duotone" />
+                <item.icon className={cn("h-4 w-4", isActive ? (theme === "light" ? "text-violet-600" : "text-violet-400") : (theme === "light" ? "text-gray-500" : "text-white/50"))} weight="duotone" />
                 {item.label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="mt-auto pt-4 border-t border-white/10">
+        <div className={cn("mt-auto pt-4 border-t", theme === "light" ? "border-gray-200" : "border-white/10")}>
           <div className="px-4 py-2 mb-2 flex items-center gap-3">
             {clerkUser?.imageUrl ? (
               <img 
                 src={clerkUser.imageUrl} 
                 alt="Avatar" 
-                className="w-9 h-9 rounded-full object-cover ring-2 ring-violet-500/30"
+                className={cn("w-9 h-9 rounded-full object-cover ring-2", theme === "light" ? "ring-violet-400/50" : "ring-violet-500/30")}
               />
             ) : (
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-sm font-semibold shadow-glow-sm">
@@ -102,8 +110,8 @@ export default function Layout({ children }: LayoutProps) {
               </div>
             )}
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-white truncate" data-testid="text-user-name">{user.name}</p>
-              <p className="text-xs text-white/50 truncate" data-testid="text-user-email">{user.email}</p>
+              <p className={cn("text-sm font-bold truncate", theme === "light" ? "text-gray-900" : "text-white")} data-testid="text-user-name">{user.name}</p>
+              <p className={cn("text-xs truncate", theme === "light" ? "text-gray-500" : "text-white/50")} data-testid="text-user-email">{user.email}</p>
             </div>
           </div>
           {showSettingsLink && (
@@ -113,8 +121,8 @@ export default function Layout({ children }: LayoutProps) {
               className={cn(
                 "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer mb-1",
                 location === "/settings"
-                  ? "bg-violet-500/20 text-violet-300"
-                  : "text-white/60 hover:bg-white/5 hover:text-violet-300"
+                  ? theme === "light" ? "bg-violet-100 text-violet-700" : "bg-violet-500/20 text-violet-300"
+                  : theme === "light" ? "text-gray-600 hover:bg-gray-100 hover:text-violet-700" : "text-white/60 hover:bg-white/5 hover:text-violet-300"
               )}
             >
               <GearSix className="h-4 w-4" weight="duotone" />
@@ -124,7 +132,10 @@ export default function Layout({ children }: LayoutProps) {
           <Button 
             variant="ghost" 
             data-testid="button-theme-toggle"
-            className="w-full justify-start text-white/50 hover:text-violet-300 hover:bg-white/5 rounded-xl px-4 mb-1"
+            className={cn(
+              "w-full justify-start rounded-xl px-4 mb-1",
+              theme === "light" ? "text-gray-600 hover:bg-gray-100 hover:text-violet-700" : "text-white/50 hover:text-violet-300 hover:bg-white/5"
+            )}
             onClick={toggleTheme}
           >
             {theme === "dark" ? (
@@ -142,7 +153,10 @@ export default function Layout({ children }: LayoutProps) {
           <Button 
             variant="ghost" 
             data-testid="button-signout"
-            className="w-full justify-start text-white/50 hover:text-red-400 hover:bg-red-500/10 rounded-xl px-4"
+            className={cn(
+              "w-full justify-start rounded-xl px-4",
+              theme === "light" ? "text-gray-600 hover:text-red-600 hover:bg-red-50" : "text-white/50 hover:text-red-400 hover:bg-red-500/10"
+            )}
             onClick={async () => {
               await logout();
               setLocation("/");
