@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useStore } from "@/lib/store";
@@ -17,14 +17,16 @@ async function syncUserToBackend(
   const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || "User";
   
   const token = await getToken();
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  if (!token) {
+    throw new Error("No token available");
   }
   
   const response = await fetch("/api/auth/clerk-sync", {
     method: "POST",
-    headers,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
+    },
     credentials: "include",
     body: JSON.stringify({
       clerkId: clerkUser.id,
@@ -77,12 +79,34 @@ export function useAuth() {
     enabled: clerkLoaded && isSignedIn,
   });
 
+  const syncAttemptedRef = useRef(false);
+  
   useEffect(() => {
-    if (clerkLoaded && isSignedIn && clerkUser && !user && session) {
-      const getToken = () => session.getToken();
-      syncUserToBackend(clerkUser, getToken).then((syncedUser) => {
-        queryClient.setQueryData(["/api/auth/user"], syncedUser);
-      }).catch(console.error);
+    if (clerkLoaded && isSignedIn && clerkUser && !user && session && !syncAttemptedRef.current) {
+      syncAttemptedRef.current = true;
+      
+      const attemptSync = async (retries = 3) => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            const getToken = () => session.getToken();
+            const syncedUser = await syncUserToBackend(clerkUser, getToken);
+            queryClient.setQueryData(["/api/auth/user"], syncedUser);
+            return;
+          } catch (error) {
+            if (i < retries - 1) {
+              await new Promise(resolve => setTimeout(resolve, 500 * (i + 1)));
+            } else {
+              console.error("Failed to sync user after retries:", error);
+            }
+          }
+        }
+      };
+      
+      attemptSync();
+    }
+    
+    if (!isSignedIn) {
+      syncAttemptedRef.current = false;
     }
   }, [clerkLoaded, isSignedIn, clerkUser, user, queryClient, session]);
 
