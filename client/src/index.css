@@ -332,6 +332,20 @@
     color: #7c3aed;
   }
   
+  /* Light Mode Badge Colors */
+  .light .text-emerald-400 {
+    color: #059669;
+  }
+  .light .text-emerald-300 {
+    color: #10b981;
+  }
+  .light .text-sky-300 {
+    color: #0284c7;
+  }
+  .light .border-emerald-400\/50 {
+    border-color: rgba(5, 150, 105, 0.5);
+  }
+  
   /* Light Mode Border Overrides */
   .light .border-white\/10 {
     border-color: rgba(0, 0, 0, 0.1);

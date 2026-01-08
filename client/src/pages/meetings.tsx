@@ -46,7 +46,7 @@ export default function MeetingsPage() {
         
         {meetings.map((meeting: any) => (
           <Link key={meeting.id} href={meeting.parseState === 'draft' ? `/capture?id=${meeting.id}` : `/meeting/${meeting.id}`}>
-            <Card className="glass-panel hover:bg-white/10 transition-all cursor-pointer group rounded-2xl" data-testid={`card-meeting-${meeting.id}`}>
+            <Card className="glass-panel hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl" data-testid={`card-meeting-${meeting.id}`}>
               <CardHeader className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
                 <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
                   <CardTitle className="text-lg leading-snug text-white group-hover:text-violet-300 transition-colors">{meeting.title}</CardTitle>
@@ -55,7 +55,7 @@ export default function MeetingsPage() {
                       variant="outline"
                       className={cn(
                         "rounded-full shrink-0",
-                        meeting.parseState === 'finalized' && 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+                        meeting.parseState === 'finalized' && 'bg-transparent text-emerald-400 border-emerald-400/50',
                         meeting.parseState === 'processing' && 'bg-violet-500/20 text-violet-300 border-violet-500/30',
                         meeting.parseState === 'parsed' && 'bg-sky-500/20 text-sky-300 border-sky-500/30',
                         meeting.parseState === 'draft' && 'bg-white/10 text-white/60 border-white/20'
