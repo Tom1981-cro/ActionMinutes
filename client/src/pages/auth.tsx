@@ -77,7 +77,7 @@ export default function AuthPage() {
             </span>
           </div>
           <p className="text-lg text-slate-600">
-            Turn Minutes into <span className="text-purple-600 font-medium">Velocity</span>
+            Turn Minutes into <span className="text-purple-600 font-medium">Actionable Velocity</span>
           </p>
         </div>
 
