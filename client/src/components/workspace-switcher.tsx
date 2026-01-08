@@ -42,7 +42,11 @@ export function WorkspaceSwitcher() {
               <User className="h-4 w-4 text-slate-500" />
             )}
             <span className="text-sm font-medium text-slate-700">
-              {currentWorkspace?.name || (user.enablePersonal ? (
+              {currentWorkspace ? (
+                <span>
+                  <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Workspace</span>: {currentWorkspace.name}
+                </span>
+              ) : (user.enablePersonal ? (
                 <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Personal</span>
               ) : "Select workspace")}
             </span>
