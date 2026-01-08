@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { 
   Sparkle, FloppyDisk, ArrowLeft, CaretDown, CaretUp, 
   Users, Clock, MapPin, Camera, Upload, Microphone, 
-  ArrowsClockwise, Copy, X, Check, User, Buildings, WarningCircle
+  ArrowsClockwise, Copy, X, Check, User, Buildings, WarningCircle,
+  ListChecks, Plus
 } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -16,7 +17,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { cn, extractActionsFromText, type ExtractedAction } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Hook to track virtual keyboard visibility and height
 function useVirtualKeyboard() {
@@ -102,6 +104,15 @@ export default function CapturePage() {
   const isCapacitorAvailable = typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();
   const { keyboardHeight, isKeyboardVisible } = useVirtualKeyboard();
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
+
+  // Action detection state
+  const [showReviewActions, setShowReviewActions] = useState(false);
+  const [selectedActions, setSelectedActions] = useState<Set<number>>(new Set());
+  const [isAddingToReminders, setIsAddingToReminders] = useState(false);
+  
+  // Detect actions in notes
+  const detectedActions = useMemo(() => extractActionsFromText(notes), [notes]);
+  const hasDetectedActions = detectedActions.length > 0;
 
   // Auto-resize textarea
   useEffect(() => {
@@ -642,8 +653,31 @@ export default function CapturePage() {
             </div>
           )}
 
-          {/* Main Notes Textarea - Expanding */}
+          {/* Main Notes Textarea - Expanding with Action Highlighting */}
           <div className="relative">
+            {/* Background highlight layer for detected actions */}
+            <div 
+              className="absolute inset-0 p-4 pointer-events-none overflow-hidden rounded-2xl"
+              style={{ lineHeight: '1.75' }}
+              aria-hidden="true"
+            >
+              <pre className="whitespace-pre-wrap break-words text-base font-sans text-transparent m-0">
+                {notes.split('\n').map((line, index) => {
+                  const isActionLine = /^\s*(Action|TODO|Task):\s*/i.test(line);
+                  return (
+                    <span key={index}>
+                      {isActionLine ? (
+                        <span className="bg-amber-400/20 rounded px-1 -mx-1">{line}</span>
+                      ) : (
+                        line
+                      )}
+                      {index < notes.split('\n').length - 1 ? '\n' : ''}
+                    </span>
+                  );
+                })}
+              </pre>
+            </div>
+            
             <textarea
               ref={textareaRef}
               value={notes}
@@ -653,14 +687,31 @@ export default function CapturePage() {
 • What was discussed?
 • What decisions were made?
 • What are the next steps?
-• Who is responsible for what?"
-              className="w-full min-h-[300px] p-4 bg-white/5 border border-white/10 rounded-2xl text-base text-white placeholder:text-white/30 resize-none focus:outline-none focus:border-violet-500/50 focus:bg-white/8 transition-all"
-              style={{ lineHeight: '1.75' }}
+• Who is responsible for what?
+
+Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
+              className="w-full min-h-[300px] p-4 bg-white/5 border border-white/10 rounded-2xl text-base text-white placeholder:text-white/30 resize-none focus:outline-none focus:border-violet-500/50 focus:bg-white/8 transition-all relative"
+              style={{ lineHeight: '1.75', background: 'transparent' }}
               data-testid="input-notes"
               onFocus={() => setIsTextareaFocused(true)}
               onBlur={() => setIsTextareaFocused(false)}
             />
           </div>
+
+          {/* Review Actions Button - appears when actions are detected */}
+          {hasDetectedActions && (
+            <button
+              onClick={() => {
+                setSelectedActions(new Set(detectedActions.map((_, i) => i)));
+                setShowReviewActions(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 hover:bg-amber-500/30 transition-all w-full justify-center"
+              data-testid="button-review-actions"
+            >
+              <ListChecks className="h-5 w-5" weight="duotone" />
+              <span className="font-medium">Review {detectedActions.length} Detected Action{detectedActions.length !== 1 ? 's' : ''}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -813,6 +864,149 @@ export default function CapturePage() {
               <Button onClick={handleInsertTranscription} className="flex-1 btn-gradient">
                 <Check className="h-4 w-4 mr-2" weight="bold" />
                 Insert
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Review Actions Dialog */}
+      <Dialog open={showReviewActions} onOpenChange={setShowReviewActions}>
+        <DialogContent className="glass-panel border-white/20 text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <ListChecks className="h-5 w-5 text-amber-400" weight="duotone" />
+              Review Detected Actions
+            </DialogTitle>
+            <DialogDescription className="text-white/60">
+              Select the actions you want to add to your Reminders list
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="max-h-64 overflow-y-auto space-y-2">
+              {detectedActions.map((action, index) => (
+                <div 
+                  key={index}
+                  className={cn(
+                    "flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer",
+                    selectedActions.has(index)
+                      ? "bg-amber-500/20 border-amber-500/30"
+                      : "bg-white/5 border-white/10 hover:bg-white/10"
+                  )}
+                  onClick={() => {
+                    const newSelected = new Set(selectedActions);
+                    if (newSelected.has(index)) {
+                      newSelected.delete(index);
+                    } else {
+                      newSelected.add(index);
+                    }
+                    setSelectedActions(newSelected);
+                  }}
+                >
+                  <Checkbox
+                    checked={selectedActions.has(index)}
+                    onCheckedChange={(checked) => {
+                      const newSelected = new Set(selectedActions);
+                      if (checked) {
+                        newSelected.add(index);
+                      } else {
+                        newSelected.delete(index);
+                      }
+                      setSelectedActions(newSelected);
+                    }}
+                    className="mt-0.5 border-amber-400/50 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={cn(
+                        "text-xs px-2 py-0.5 rounded-full font-medium",
+                        action.keyword === 'Action' && "bg-violet-500/20 text-violet-300",
+                        action.keyword === 'TODO' && "bg-sky-500/20 text-sky-300",
+                        action.keyword === 'Task' && "bg-emerald-500/20 text-emerald-300"
+                      )}>
+                        {action.keyword}
+                      </span>
+                      <span className="text-xs text-white/40">Line {action.lineNumber}</span>
+                    </div>
+                    <p className="text-sm text-white/80">{action.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex items-center justify-between text-xs text-white/50">
+              <button
+                onClick={() => setSelectedActions(new Set(detectedActions.map((_, i) => i)))}
+                className="hover:text-white/70 transition-colors"
+              >
+                Select all
+              </button>
+              <span>{selectedActions.size} of {detectedActions.length} selected</span>
+              <button
+                onClick={() => setSelectedActions(new Set())}
+                className="hover:text-white/70 transition-colors"
+              >
+                Clear all
+              </button>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowReviewActions(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={async () => {
+                  if (selectedActions.size === 0) {
+                    toast({ title: "No actions selected", variant: "destructive" });
+                    return;
+                  }
+                  
+                  setIsAddingToReminders(true);
+                  
+                  // Mock functionality - in real implementation, this would call the API
+                  try {
+                    const actionsToAdd = detectedActions.filter((_, i) => selectedActions.has(i));
+                    
+                    for (const action of actionsToAdd) {
+                      await fetch('/api/reminders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          userId: user.id,
+                          text: action.text,
+                          bucket: 'today',
+                          priority: 'normal',
+                        }),
+                      });
+                    }
+                    
+                    toast({ 
+                      title: `Added ${actionsToAdd.length} action${actionsToAdd.length !== 1 ? 's' : ''} to Reminders`,
+                      description: "Check your Reminders to see them"
+                    });
+                    setShowReviewActions(false);
+                    setSelectedActions(new Set());
+                  } catch (error) {
+                    toast({ title: "Failed to add actions", variant: "destructive" });
+                  } finally {
+                    setIsAddingToReminders(false);
+                  }
+                }}
+                disabled={selectedActions.size === 0 || isAddingToReminders}
+                className="flex-1 btn-gradient"
+                data-testid="button-add-to-reminders"
+              >
+                {isAddingToReminders ? (
+                  <ArrowsClockwise className="h-4 w-4 mr-2 animate-spin" weight="bold" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" weight="bold" />
+                )}
+                Add to Reminders
               </Button>
             </div>
           </div>
