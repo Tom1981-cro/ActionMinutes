@@ -71,13 +71,14 @@ export function Tutorial() {
   }, [user.isAuthenticated, user.hasCompletedOnboarding, user.hasCompletedTutorial]);
 
   const completeTutorial = useCallback(async () => {
+    // Always hide the tutorial immediately for good UX
+    setIsVisible(false);
+    updateUser({ hasCompletedTutorial: true });
+    
+    // Then try to persist to the server (don't block on this)
     try {
-      const response = await apiRequest("PATCH", "/api/users/me", { hasCompletedTutorial: true });
-      if (response.ok) {
-        updateUser({ hasCompletedTutorial: true });
-        setIsVisible(false);
-        queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      }
+      await apiRequest("PATCH", "/api/users/me", { hasCompletedTutorial: true });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     } catch (error) {
       console.error("Failed to save tutorial completion:", error);
     }
