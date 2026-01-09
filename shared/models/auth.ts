@@ -35,6 +35,10 @@ export const users = pgTable("users", {
   allowImageStorage: boolean("allow_image_storage").notNull().default(false),
   hasCompletedOnboarding: boolean("has_completed_onboarding").notNull().default(false),
   hasCompletedTutorial: boolean("has_completed_tutorial").notNull().default(false),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  subscriptionStatus: text("subscription_status"),
+  subscriptionPlan: text("subscription_plan"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -33,6 +33,12 @@ export interface IStorage {
   getUserByClerkId(clerkId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
+  updateUserStripeInfo(userId: string, stripeInfo: {
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+    subscriptionStatus?: string;
+    subscriptionPlan?: string;
+  }): Promise<User | undefined>;
   
   // Meetings
   getMeetings(userId: string, workspaceId?: string): Promise<Meeting[]>;
@@ -167,6 +173,16 @@ export class DatabaseStorage implements IStorage {
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
     const [user] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    return user || undefined;
+  }
+
+  async updateUserStripeInfo(userId: string, stripeInfo: {
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+    subscriptionStatus?: string;
+    subscriptionPlan?: string;
+  }): Promise<User | undefined> {
+    const [user] = await db.update(users).set(stripeInfo).where(eq(users.id, userId)).returning();
     return user || undefined;
   }
 
