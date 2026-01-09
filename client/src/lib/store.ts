@@ -18,6 +18,10 @@ interface User {
   hasCompletedOnboarding: boolean;
   hasCompletedTutorial: boolean;
   isAuthenticated: boolean;
+  stripeCustomerId?: string;
+  stripeSubscriptionId?: string;
+  subscriptionStatus?: string;
+  subscriptionPlan?: string;
 }
 
 interface Workspace {

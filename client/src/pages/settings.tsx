@@ -9,7 +9,8 @@ import { useUpdateUser } from "@/lib/hooks";
 import { Link } from "wouter";
 import { 
   GearSix, Plug, CalendarBlank, Sparkle, UsersThree, ChatCircle, ShieldCheck, 
-  User, BookOpen, Clock, FileText, Scales, CaretDown, CaretRight, Info, Lifebuoy 
+  User, BookOpen, Clock, FileText, Scales, CaretDown, CaretRight, Info, Lifebuoy,
+  CreditCard, Crown, Rocket, CheckCircle, Warning
 } from "@phosphor-icons/react";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
@@ -67,8 +68,75 @@ export default function SettingsPage() {
   const updateUser = useUpdateUser();
   const restartTutorial = useRestartTutorial();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [isManaging, setIsManaging] = useState(false);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
 
   const isAdmin = user.email === ADMIN_EMAIL;
+  
+  const isPro = user.subscriptionPlan === 'pro' || user.subscriptionPlan === 'team';
+  const subscriptionStatus = user.subscriptionStatus || 'none';
+  const isActive = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
+  const isPastDue = subscriptionStatus === 'past_due';
+  const hasExistingSubscription = user.stripeSubscriptionId && subscriptionStatus !== 'canceled';
+
+  const handleUpgrade = async () => {
+    if (hasExistingSubscription) {
+      setSubscriptionError('You already have an active subscription. Use "Manage Subscription" to make changes.');
+      return;
+    }
+    
+    setIsUpgrading(true);
+    setSubscriptionError(null);
+    try {
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ plan: 'pro' })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error) {
+      console.error('Failed to create checkout session:', error);
+      setSubscriptionError(error instanceof Error ? error.message : 'Failed to start upgrade. Please try again.');
+    } finally {
+      setIsUpgrading(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setIsManaging(true);
+    setSubscriptionError(null);
+    try {
+      const response = await fetch('/api/create-portal-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create portal session');
+      }
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No portal URL returned');
+      }
+    } catch (error) {
+      console.error('Failed to create portal session:', error);
+      setSubscriptionError(error instanceof Error ? error.message : 'Failed to open subscription portal. Please try again.');
+    } finally {
+      setIsManaging(false);
+    }
+  };
 
   const handleToggle = (field: string, value: boolean) => {
     updateLocalUser({ [field]: value });
@@ -163,6 +231,155 @@ export default function SettingsPage() {
           <div className="p-4 bg-amber-500/10 text-amber-400 rounded-xl text-sm border border-amber-500/30">
             <strong>Note:</strong> Your notes will be processed by an AI service to generate outputs. You can disable AI anytime.
           </div>
+        </div>
+      </ExpandableSection>
+
+      {/* Subscription Section */}
+      <ExpandableSection
+        title="Subscription"
+        icon={<CreditCard className="h-5 w-5 text-amber-400" weight="duotone" />}
+        testId="section-subscription"
+      >
+        <div className="space-y-6">
+          {/* Error Display */}
+          {subscriptionError && (
+            <div className="p-4 bg-red-500/10 text-red-400 rounded-xl text-sm border border-red-500/30" data-testid="subscription-error">
+              <strong>Error:</strong> {subscriptionError}
+            </div>
+          )}
+
+          {/* Current Plan Status */}
+          <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+            <div className="flex items-center gap-3">
+              {isPro ? (
+                <div className="p-2 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-lg">
+                  <Crown className="h-6 w-6 text-amber-400" weight="duotone" />
+                </div>
+              ) : (
+                <div className="p-2 bg-white/10 rounded-lg">
+                  <Rocket className="h-6 w-6 text-white/50" weight="duotone" />
+                </div>
+              )}
+              <div>
+                <p className="font-semibold text-white" data-testid="text-current-plan">
+                  {isPro ? (user.subscriptionPlan === 'team' ? 'Team Plan' : 'Pro Plan') : 'Free Plan'}
+                </p>
+                <div className="flex items-center gap-2">
+                  {isPro && isActive && (
+                    <span className="flex items-center gap-1 text-sm text-emerald-400" data-testid="status-active">
+                      <CheckCircle className="h-4 w-4" weight="duotone" />
+                      Active
+                    </span>
+                  )}
+                  {isPro && isPastDue && (
+                    <span className="flex items-center gap-1 text-sm text-amber-400" data-testid="status-past-due">
+                      <Warning className="h-4 w-4" weight="duotone" />
+                      Past Due
+                    </span>
+                  )}
+                  {!isPro && (
+                    <span className="text-sm text-white/50" data-testid="status-free">
+                      300 min/month • 5 AI extractions
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Upgrade Card - Show for Free users */}
+          {!isPro && (
+            <Card className="overflow-hidden border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Crown className="h-5 w-5 text-amber-400" weight="duotone" />
+                  <CardTitle className="text-lg text-white">Upgrade to Pro</CardTitle>
+                </div>
+                <CardDescription className="text-white/70">
+                  Unlock unlimited meeting minutes and AI extractions
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ul className="space-y-2 text-sm text-white/80">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
+                    Unlimited meeting minutes
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
+                    Unlimited AI extractions
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
+                    Priority email support
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
+                    Custom email signatures
+                  </li>
+                </ul>
+                <div className="pt-2">
+                  <p className="text-2xl font-bold text-white">
+                    $12<span className="text-base font-normal text-white/60">/month</span>
+                  </p>
+                </div>
+                <Button
+                  onClick={handleUpgrade}
+                  disabled={isUpgrading}
+                  className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white h-12 rounded-xl font-semibold"
+                  data-testid="button-upgrade"
+                >
+                  {isUpgrading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Redirecting...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Rocket className="h-5 w-5" weight="duotone" />
+                      Upgrade to Pro
+                    </span>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Manage Subscription - Show for Pro users */}
+          {isPro && (
+            <div className="space-y-4">
+              <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                <p className="text-sm text-white/70 mb-4">
+                  Manage your subscription, update payment methods, or cancel your plan through the Stripe Customer Portal.
+                </p>
+                <Button
+                  onClick={handleManageSubscription}
+                  disabled={isManaging}
+                  variant="outline"
+                  className="w-full h-11 rounded-xl"
+                  data-testid="button-manage-subscription"
+                >
+                  {isManaging ? (
+                    <span className="flex items-center gap-2">
+                      <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Redirecting...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4" weight="duotone" />
+                      Manage Subscription
+                    </span>
+                  )}
+                </Button>
+              </div>
+
+              {isPastDue && (
+                <div className="p-4 bg-amber-500/10 text-amber-400 rounded-xl text-sm border border-amber-500/30">
+                  <strong>Payment Issue:</strong> Your subscription payment is past due. Please update your payment method to continue enjoying Pro features.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </ExpandableSection>
 
