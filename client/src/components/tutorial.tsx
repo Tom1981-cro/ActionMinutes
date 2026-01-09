@@ -4,6 +4,7 @@ import { X, ArrowRight, ArrowLeft, Sparkle, Check } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
+import { useAuth } from "@/hooks/use-auth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface TutorialStep {
@@ -60,15 +61,18 @@ export function Tutorial() {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [, setLocation] = useLocation();
-  const { user, updateUser } = useStore();
+  const { updateUser } = useStore();
+  const { user: authUser, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (user.isAuthenticated && user.hasCompletedOnboarding && !user.hasCompletedTutorial) {
+    // Use backend user data to check tutorial completion status
+    // This ensures tutorial only shows for users who haven't completed it in the database
+    if (isAuthenticated && authUser?.hasCompletedOnboarding && !authUser?.hasCompletedTutorial) {
       setCurrentStep(0);
       const timer = setTimeout(() => setIsVisible(true), 500);
       return () => clearTimeout(timer);
     }
-  }, [user.isAuthenticated, user.hasCompletedOnboarding, user.hasCompletedTutorial]);
+  }, [isAuthenticated, authUser?.hasCompletedOnboarding, authUser?.hasCompletedTutorial]);
 
   const completeTutorial = useCallback(async () => {
     // Always hide the tutorial immediately for good UX

@@ -177,14 +177,19 @@ export default function Layout({ children }: LayoutProps) {
         <div className="flex items-center gap-2">
           <img src={logoIcon} alt="ActionMinutes" className="w-7 h-7 rounded-lg" />
           <span className="text-lg tracking-tight">
-            <span className="font-bold text-white">Action</span><span className="font-normal text-violet-300">Minutes</span>
+            <span className={cn("font-bold", theme === "light" ? "text-gray-900" : "text-white")}>Action</span>
+            <span className={cn("font-normal", theme === "light" ? "text-violet-600" : "text-violet-300")}>Minutes</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <WorkspaceSwitcher />
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-xl text-white/50 hover:bg-white/5 hover:text-violet-300 transition-colors"
+            className={cn(
+              "p-2 rounded-xl transition-colors",
+              theme === "light" 
+                ? "text-gray-500 hover:bg-gray-100 hover:text-violet-600" 
+                : "text-white/50 hover:bg-white/5 hover:text-violet-300"
+            )}
             data-testid="mobile-theme-toggle"
             title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
           >
