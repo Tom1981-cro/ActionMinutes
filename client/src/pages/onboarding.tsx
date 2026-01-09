@@ -54,7 +54,7 @@ export default function OnboardingPage() {
         hasCompletedOnboarding: true
       });
     }
-    setLocation("/inbox");
+    setLocation("/app/inbox");
   };
 
   return (

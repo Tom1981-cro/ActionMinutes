@@ -1,10 +1,13 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import Layout from "@/components/layout";
 import { Tutorial } from "@/components/tutorial";
+import { useUser } from "@clerk/clerk-react";
+import { Loader2 } from "lucide-react";
 
+import LandingPage from "@/pages/landing";
 import AuthPage from "@/pages/auth";
 import OnboardingPage from "@/pages/onboarding";
 import InboxPage from "@/pages/inbox";
@@ -26,53 +29,137 @@ import InvitePage from "@/pages/invite";
 import AgendaPage from "@/pages/agenda";
 import NotFound from "@/pages/not-found";
 
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isSignedIn, isLoaded } = useUser();
+  const [, setLocation] = useLocation();
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    setLocation("/login");
+    return null;
+  }
+
+  return <>{children}</>;
+}
+
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={AuthPage} />
-      <Route path="/auth" component={AuthPage} />
-      <Route path="/onboarding" component={OnboardingPage} />
+      {/* Public routes */}
+      <Route path="/" component={LandingPage} />
+      <Route path="/login" component={AuthPage} />
+      <Route path="/privacy-policy" component={SettingsPrivacyPage} />
+      <Route path="/terms" component={SettingsTermsPage} />
       <Route path="/store-screens" component={StoreScreensPage} />
       <Route path="/marketing" component={MarketingPage} />
-      
-      <Route path="/inbox">
-        <Layout><InboxPage /></Layout>
-      </Route>
-      <Route path="/meetings">
-        <Layout><MeetingsPage /></Layout>
-      </Route>
-      <Route path="/capture">
-        <Layout><CapturePage /></Layout>
-      </Route>
-      <Route path="/meeting/:id">
-        <Layout><ExtractionPage /></Layout>
-      </Route>
-      <Route path="/drafts">
-        <Layout><DraftsPage /></Layout>
-      </Route>
-      <Route path="/settings">
-        <Layout><SettingsPage /></Layout>
-      </Route>
-      <Route path="/privacy-policy">
-        <Layout><SettingsPrivacyPage /></Layout>
-      </Route>
-      <Route path="/terms">
-        <Layout><SettingsTermsPage /></Layout>
-      </Route>
-      <Route path="/journal">
-        <Layout><JournalPage /></Layout>
-      </Route>
-      <Route path="/reminders">
-        <Layout><RemindersPage /></Layout>
-      </Route>
-      <Route path="/admin/feedback" component={AdminFeedbackPage} />
-      <Route path="/mobile-build-guide">
-        <Layout><MobileBuildGuidePage /></Layout>
-      </Route>
       <Route path="/help/testing" component={TestingGuidePage} />
       <Route path="/invite/:token" component={InvitePage} />
-      <Route path="/agenda">
-        <Layout><AgendaPage /></Layout>
+      
+      {/* Onboarding (after login but before full app access) */}
+      <Route path="/app/onboarding">
+        <ProtectedRoute>
+          <OnboardingPage />
+        </ProtectedRoute>
+      </Route>
+
+      {/* Protected app routes */}
+      <Route path="/app/inbox">
+        <ProtectedRoute>
+          <Layout><InboxPage /></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/meetings">
+        <ProtectedRoute>
+          <Layout><MeetingsPage /></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/capture">
+        <ProtectedRoute>
+          <Layout><CapturePage /></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/meeting/:id">
+        <ProtectedRoute>
+          <Layout><ExtractionPage /></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/drafts">
+        <ProtectedRoute>
+          <Layout><DraftsPage /></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/settings">
+        <ProtectedRoute>
+          <Layout><SettingsPage /></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/journal">
+        <ProtectedRoute>
+          <Layout><JournalPage /></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/reminders">
+        <ProtectedRoute>
+          <Layout><RemindersPage /></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/agenda">
+        <ProtectedRoute>
+          <Layout><AgendaPage /></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/mobile-build-guide">
+        <ProtectedRoute>
+          <Layout><MobileBuildGuidePage /></Layout>
+        </ProtectedRoute>
+      </Route>
+
+      {/* Admin routes */}
+      <Route path="/admin/feedback">
+        <ProtectedRoute>
+          <AdminFeedbackPage />
+        </ProtectedRoute>
+      </Route>
+
+      {/* Default /app route - redirect to inbox */}
+      <Route path="/app">
+        <Redirect to="/app/inbox" />
+      </Route>
+
+      {/* Redirect old routes to new /app/* structure */}
+      <Route path="/inbox">
+        <Redirect to="/app/inbox" />
+      </Route>
+      <Route path="/meetings">
+        <Redirect to="/app/meetings" />
+      </Route>
+      <Route path="/capture">
+        <Redirect to="/app/capture" />
+      </Route>
+      <Route path="/drafts">
+        <Redirect to="/app/drafts" />
+      </Route>
+      <Route path="/settings">
+        <Redirect to="/app/settings" />
+      </Route>
+      <Route path="/journal">
+        <Redirect to="/app/journal" />
+      </Route>
+      <Route path="/reminders">
+        <Redirect to="/app/reminders" />
+      </Route>
+      <Route path="/onboarding">
+        <Redirect to="/app/onboarding" />
+      </Route>
+      <Route path="/auth">
+        <Redirect to="/login" />
       </Route>
 
       <Route component={NotFound} />

@@ -34,17 +34,17 @@ export default function Layout({ children }: LayoutProps) {
   const isPersonalMode = currentWorkspaceId === null && user.enablePersonal;
 
   const personalNavItems = [
-    { href: "/reminders", label: "Reminders", icon: Bell, primary: true },
-    { href: "/journal", label: "Journal", icon: BookOpen },
-    { href: "/settings", label: "Settings", icon: GearSix },
+    { href: "/app/reminders", label: "Reminders", icon: Bell, primary: true },
+    { href: "/app/journal", label: "Journal", icon: BookOpen },
+    { href: "/app/settings", label: "Settings", icon: GearSix },
   ];
 
   const teamNavItems = [
-    { href: "/inbox", label: "Inbox", icon: Tray },
-    { href: "/meetings", label: "Meetings", icon: CalendarBlank },
-    { href: "/capture", label: "Capture", icon: PlusCircle, primary: true },
-    { href: "/drafts", label: "Drafts", icon: FileText },
-    { href: "/settings", label: "Settings", icon: GearSix },
+    { href: "/app/inbox", label: "Inbox", icon: Tray },
+    { href: "/app/meetings", label: "Meetings", icon: CalendarBlank },
+    { href: "/app/capture", label: "Capture", icon: PlusCircle, primary: true },
+    { href: "/app/drafts", label: "Drafts", icon: FileText },
+    { href: "/app/settings", label: "Settings", icon: GearSix },
   ];
 
   const navItems = isPersonalMode ? personalNavItems : teamNavItems;
@@ -58,10 +58,10 @@ export default function Layout({ children }: LayoutProps) {
     );
   }
 
-  // Redirect to auth page if not signed in
+  // Redirect to login page if not signed in
   if (!isSignedIn) {
-    if (location !== "/" && location !== "/auth") {
-      setLocation("/");
+    if (!location.startsWith("/login") && location !== "/") {
+      setLocation("/login");
     }
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">

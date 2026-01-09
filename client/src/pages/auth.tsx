@@ -15,9 +15,9 @@ export default function AuthPage() {
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
       if (user.hasCompletedOnboarding) {
-        setLocation("/inbox");
+        setLocation("/app/inbox");
       } else {
-        setLocation("/onboarding");
+        setLocation("/app/onboarding");
       }
     }
   }, [isLoading, isAuthenticated, user, setLocation]);
@@ -70,8 +70,8 @@ export default function AuthPage() {
                 }
               }}
               routing="hash"
-              signInUrl="/auth"
-              afterSignUpUrl="/onboarding"
+              signInUrl="/login"
+              afterSignUpUrl="/app/onboarding"
             />
           ) : (
             <SignIn 
@@ -86,8 +86,8 @@ export default function AuthPage() {
                 }
               }}
               routing="hash"
-              signUpUrl="/auth"
-              afterSignInUrl="/inbox"
+              signUpUrl="/login"
+              afterSignInUrl="/app/inbox"
             />
           )}
         </div>
