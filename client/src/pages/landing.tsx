@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { 
   Lightning, Brain, BookOpen, Kanban, ArrowRight, Sparkle,
-  Check
+  TwitterLogo, Check
 } from "@phosphor-icons/react";
 import logoIcon from "@assets/am_logo_1767300370565.png";
 
@@ -408,6 +408,45 @@ export default function LandingPage() {
           </motion.div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="py-12 px-4 border-t border-white/5 relative">
+        <div className="container max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <img src={logoIcon} alt="ActionMinutes" className="w-7 h-7 rounded-lg" />
+              <span className="text-sm text-white/40">
+                ActionMinutes by{" "}
+                <a 
+                  href="https://relay-labs.app" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-violet-400 hover:text-violet-300 transition-colors"
+                >
+                  Relay Labs
+                </a>
+              </span>
+            </div>
+            <div className="flex items-center gap-8 text-sm text-white/40">
+              <a 
+                href="https://twitter.com/actionminutes" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-white transition-colors flex items-center gap-2"
+              >
+                <TwitterLogo className="h-4 w-4" weight="fill" />
+                Twitter
+              </a>
+              <Link href="/privacy-policy" className="hover:text-white transition-colors">
+                Privacy
+              </Link>
+              <Link href="/terms" className="hover:text-white transition-colors">
+                Terms
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
