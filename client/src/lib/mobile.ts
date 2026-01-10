@@ -226,5 +226,65 @@ export async function downloadFile(content: string, filename: string, mimeType: 
   }
 }
 
+// Haptic feedback for iOS
+export function triggerHaptic(style: 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error' = 'light'): void {
+  if (!isNativePlatform()) return;
+  
+  // Use the web vibration API as fallback, native haptics handled by Capacitor
+  if ('vibrate' in navigator) {
+    const patterns: Record<string, number | number[]> = {
+      light: 10,
+      medium: 20,
+      heavy: 30,
+      success: [10, 50, 10],
+      warning: [20, 30, 20],
+      error: [30, 20, 30, 20, 30],
+    };
+    navigator.vibrate(patterns[style] || 10);
+  }
+}
+
+// Safe area insets helper for iOS notch/Dynamic Island
+export function getSafeAreaInsets(): { top: number; bottom: number; left: number; right: number } {
+  if (typeof window === 'undefined') {
+    return { top: 0, bottom: 0, left: 0, right: 0 };
+  }
+  
+  const computedStyle = getComputedStyle(document.documentElement);
+  return {
+    top: parseInt(computedStyle.getPropertyValue('--sat') || '0', 10) || (isIOS() ? 47 : 0),
+    bottom: parseInt(computedStyle.getPropertyValue('--sab') || '0', 10) || (isIOS() ? 34 : 0),
+    left: parseInt(computedStyle.getPropertyValue('--sal') || '0', 10),
+    right: parseInt(computedStyle.getPropertyValue('--sar') || '0', 10),
+  };
+}
+
+// Open app settings (useful when permissions are denied)
+export async function openAppSettings(): Promise<void> {
+  if (isNativePlatform() && isIOS()) {
+    // On iOS, this opens the system settings for the app
+    window.open('app-settings:', '_system');
+  }
+}
+
+// Get device info
+export function getDeviceInfo(): {
+  platform: string;
+  isNative: boolean;
+  isIOS: boolean;
+  isAndroid: boolean;
+  version: string;
+  build: string;
+} {
+  return {
+    platform: getPlatform(),
+    isNative: isNativePlatform(),
+    isIOS: isIOS(),
+    isAndroid: isAndroid(),
+    version: APP_VERSION,
+    build: BUILD_NUMBER,
+  };
+}
+
 export const APP_VERSION = '1.0.0';
 export const BUILD_NUMBER = '1';
