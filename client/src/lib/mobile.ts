@@ -2,9 +2,64 @@ import { Share } from '@capacitor/share';
 import { LocalNotifications, LocalNotificationSchema } from '@capacitor/local-notifications';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
 
 export const isNativePlatform = () => Capacitor.isNativePlatform();
 export const getPlatform = () => Capacitor.getPlatform();
+export const isIOS = () => Capacitor.getPlatform() === 'ios';
+export const isAndroid = () => Capacitor.getPlatform() === 'android';
+
+// Camera functions for note scanning
+export async function takePicture(): Promise<Photo | null> {
+  try {
+    const image = await Camera.getPhoto({
+      quality: 90,
+      allowEditing: true,
+      resultType: CameraResultType.Uri,
+      source: CameraSource.Camera,
+      saveToGallery: false,
+    });
+    return image;
+  } catch (error) {
+    console.error('Camera capture failed:', error);
+    return null;
+  }
+}
+
+export async function pickFromGallery(): Promise<Photo | null> {
+  try {
+    const image = await Camera.getPhoto({
+      quality: 90,
+      allowEditing: true,
+      resultType: CameraResultType.Uri,
+      source: CameraSource.Photos,
+    });
+    return image;
+  } catch (error) {
+    console.error('Gallery pick failed:', error);
+    return null;
+  }
+}
+
+export async function checkCameraPermissions(): Promise<boolean> {
+  try {
+    const permissions = await Camera.checkPermissions();
+    return permissions.camera === 'granted' || permissions.camera === 'limited';
+  } catch (error) {
+    console.error('Permission check failed:', error);
+    return false;
+  }
+}
+
+export async function requestCameraPermissions(): Promise<boolean> {
+  try {
+    const permissions = await Camera.requestPermissions();
+    return permissions.camera === 'granted' || permissions.camera === 'limited';
+  } catch (error) {
+    console.error('Permission request failed:', error);
+    return false;
+  }
+}
 
 export async function shareContent(options: {
   title?: string;
