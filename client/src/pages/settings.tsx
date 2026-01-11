@@ -13,6 +13,7 @@ import {
   CreditCard, Crown, Rocket, CheckCircle, Warning
 } from "@phosphor-icons/react";
 import { useGeoData } from "@/components/stripe-pricing-table";
+import { getAccessToken } from "@/hooks/use-auth";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
 import WorkspaceSettingsPage from "./workspace-settings";
@@ -92,9 +93,14 @@ export default function SettingsPage() {
     setIsUpgrading(true);
     setSubscriptionError(null);
     try {
+      const accessToken = getAccessToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
       const response = await fetch('/api/create-checkout-session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
         body: JSON.stringify({ plan })
       });
@@ -119,9 +125,14 @@ export default function SettingsPage() {
     setIsManaging(true);
     setSubscriptionError(null);
     try {
+      const accessToken = getAccessToken();
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
       const response = await fetch('/api/create-portal-session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include'
       });
       const data = await response.json();
