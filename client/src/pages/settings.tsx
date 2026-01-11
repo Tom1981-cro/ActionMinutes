@@ -12,6 +12,7 @@ import {
   User, BookOpen, Clock, FileText, Scales, CaretDown, CaretRight, Info, Lifebuoy,
   CreditCard, Crown, Rocket, CheckCircle, Warning
 } from "@phosphor-icons/react";
+import { StripePricingTable, useGeoData } from "@/components/stripe-pricing-table";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
 import WorkspaceSettingsPage from "./workspace-settings";
@@ -287,62 +288,15 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Upgrade Card - Show for Free users */}
+          {/* Upgrade Section - Show for Free users */}
           {!isPro && (
-            <Card className="overflow-hidden border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Crown className="h-5 w-5 text-amber-400" weight="duotone" />
-                  <CardTitle className="text-lg text-white">Upgrade to Pro</CardTitle>
-                </div>
-                <CardDescription className="text-white/70">
-                  Unlock unlimited meeting minutes and AI extractions
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-2 text-sm text-white/80">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
-                    Unlimited meeting minutes
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
-                    Unlimited AI extractions
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
-                    Priority email support
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
-                    Custom email signatures
-                  </li>
-                </ul>
-                <div className="pt-2">
-                  <p className="text-2xl font-bold text-white">
-                    $12<span className="text-base font-normal text-white/60">/month</span>
-                  </p>
-                </div>
-                <Button
-                  onClick={handleUpgrade}
-                  disabled={isUpgrading}
-                  className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white h-12 rounded-xl font-semibold"
-                  data-testid="button-upgrade"
-                >
-                  {isUpgrading ? (
-                    <span className="flex items-center gap-2">
-                      <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Redirecting...
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Rocket className="h-5 w-5" weight="duotone" />
-                      Upgrade to Pro
-                    </span>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-white mb-2">Choose Your Plan</h3>
+                <p className="text-sm text-white/60">Select a plan that fits your needs</p>
+              </div>
+              <StripePricingTable clientReferenceId={user.id} />
+            </div>
           )}
 
           {/* Manage Subscription - Show for Pro users */}

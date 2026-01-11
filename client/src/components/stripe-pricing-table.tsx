@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Loader2 } from "lucide-react";
 
 interface GeoData {
@@ -12,21 +12,6 @@ interface GeoData {
 interface StripePricingTableProps {
   className?: string;
   clientReferenceId?: string;
-}
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      "stripe-pricing-table": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          "pricing-table-id"?: string;
-          "publishable-key"?: string;
-          "client-reference-id"?: string;
-        },
-        HTMLElement
-      >;
-    }
-  }
 }
 
 export function useGeoData() {
@@ -103,13 +88,20 @@ export function StripePricingTable({ className, clientReferenceId }: StripePrici
     );
   }
 
-  return (
-    <div className={className}>
-      <stripe-pricing-table
-        pricing-table-id={geoData.pricingTableId}
-        publishable-key={geoData.publishableKey}
-        client-reference-id={clientReferenceId}
-      />
-    </div>
-  );
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current && geoData.pricingTableId && geoData.publishableKey) {
+      containerRef.current.innerHTML = "";
+      const table = document.createElement("stripe-pricing-table");
+      table.setAttribute("pricing-table-id", geoData.pricingTableId);
+      table.setAttribute("publishable-key", geoData.publishableKey);
+      if (clientReferenceId) {
+        table.setAttribute("client-reference-id", clientReferenceId);
+      }
+      containerRef.current.appendChild(table);
+    }
+  }, [geoData, clientReferenceId]);
+
+  return <div ref={containerRef} className={className} />;
 }
