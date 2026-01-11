@@ -157,7 +157,16 @@ function MouseGlow() {
 
 function PricingSection() {
   const { geoData } = useGeoData();
-  const currency = geoData?.currency || "USD";
+  const isEU = geoData?.isEU || false;
+  const [isYearly, setIsYearly] = useState(false);
+  
+  const prices = {
+    starter: { monthly: 0, yearly: 0 },
+    pro: { monthly: 12, yearly: Math.round(12 * 12 * 0.8 / 12) },
+    team: { monthly: 29, yearly: Math.round(29 * 12 * 0.8 / 12) }
+  };
+
+  const currencySymbol = isEU ? "€" : "$";
 
   return (
     <section className="py-24 px-4 relative" id="pricing">
@@ -169,27 +178,182 @@ function PricingSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-white/50 text-lg max-w-xl mx-auto mb-4">
+          <p className="text-white/60 text-lg max-w-xl mx-auto mb-8">
             Start free, upgrade when you're ready.
+            {isEU && <span className="block text-sm text-violet-400 mt-2">Prices shown in EUR</span>}
           </p>
-          {geoData?.isEU && (
-            <p className="text-sm text-violet-400">
-              Prices shown in EUR for EU customers
-            </p>
-          )}
+
+          <div className="inline-flex items-center gap-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full p-1.5">
+            <button
+              onClick={() => setIsYearly(false)}
+              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
+                !isYearly ? 'bg-violet-600 text-white' : 'text-white/60 hover:text-white'
+              }`}
+              data-testid="pricing-toggle-monthly"
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setIsYearly(true)}
+              className={`px-5 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                isYearly ? 'bg-violet-600 text-white' : 'text-white/60 hover:text-white'
+              }`}
+              data-testid="pricing-toggle-yearly"
+            >
+              Yearly
+              <span className="bg-emerald-500/20 text-emerald-400 text-xs px-2 py-0.5 rounded-full">
+                20% off
+              </span>
+            </button>
+          </div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <StripePricingTable className="max-w-4xl mx-auto" />
-        </motion.div>
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 items-start">
+          <motion.div 
+            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 hover:bg-white/[0.07] transition-all"
+            variants={floatUpVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            custom={0}
+          >
+            <h3 className="text-xl font-bold text-white mb-2">Starter</h3>
+            <p className="text-white/60 text-sm mb-6">Perfect for trying it out.</p>
+            
+            <div className="mb-6">
+              <span className="text-4xl font-bold text-white">{currencySymbol}0</span>
+              <span className="text-white/50 ml-2">/month</span>
+            </div>
+
+            <ul className="space-y-3 mb-8">
+              <li className="flex items-center gap-3 text-white/80">
+                <Check className="h-5 w-5 text-violet-400 flex-shrink-0" weight="bold" />
+                <span>300 mins/mo transcription</span>
+              </li>
+              <li className="flex items-center gap-3 text-white/80">
+                <Check className="h-5 w-5 text-violet-400 flex-shrink-0" weight="bold" />
+                <span>5 AI extractions</span>
+              </li>
+              <li className="flex items-center gap-3 text-white/80">
+                <Check className="h-5 w-5 text-violet-400 flex-shrink-0" weight="bold" />
+                <span>7-day history</span>
+              </li>
+            </ul>
+
+            <Link
+              href="/login"
+              className="block w-full text-center bg-white/10 hover:bg-white/15 border border-white/20 text-white py-3 rounded-xl font-semibold transition-all"
+              data-testid="pricing-starter-cta"
+            >
+              Start for Free
+            </Link>
+          </motion.div>
+
+          <motion.div 
+            className="relative bg-white/5 backdrop-blur-xl border-2 border-violet-500 rounded-3xl p-8 hover:bg-white/[0.07] transition-all md:scale-105 md:-my-4"
+            variants={floatUpVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            custom={1}
+          >
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+              <span className="bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
+                Most Popular
+              </span>
+            </div>
+
+            <h3 className="text-xl font-bold text-white mb-2 mt-2">Pro</h3>
+            <p className="text-white/60 text-sm mb-6">For serious productivity.</p>
+            
+            <div className="mb-6">
+              <span className="text-4xl font-bold text-white">
+                {currencySymbol}{isYearly ? prices.pro.yearly : prices.pro.monthly}
+              </span>
+              <span className="text-white/50 ml-2">/month</span>
+              {isYearly && (
+                <span className="block text-sm text-emerald-400 mt-1">
+                  Billed annually
+                </span>
+              )}
+            </div>
+
+            <ul className="space-y-3 mb-8">
+              <li className="flex items-center gap-3 text-white/80">
+                <Check className="h-5 w-5 text-violet-400 flex-shrink-0" weight="bold" />
+                <span>Unlimited transcription</span>
+              </li>
+              <li className="flex items-center gap-3 text-white/80">
+                <Check className="h-5 w-5 text-violet-400 flex-shrink-0" weight="bold" />
+                <span>Unlimited AI extractions</span>
+              </li>
+              <li className="flex items-center gap-3 text-white/80">
+                <Check className="h-5 w-5 text-violet-400 flex-shrink-0" weight="bold" />
+                <span>Notion Integration</span>
+              </li>
+            </ul>
+
+            <Link
+              href="/login?plan=pro"
+              className="group relative block w-full text-center text-white py-3 rounded-xl font-semibold transition-all overflow-hidden"
+              data-testid="pricing-pro-cta"
+            >
+              <span className="absolute inset-0 bg-gradient-to-r from-violet-600 to-fuchsia-600" />
+              <span className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <span className="relative">Get Pro</span>
+            </Link>
+          </motion.div>
+
+          <motion.div 
+            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 hover:bg-white/[0.07] transition-all"
+            variants={floatUpVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            custom={2}
+          >
+            <h3 className="text-xl font-bold text-white mb-2">Team</h3>
+            <p className="text-white/60 text-sm mb-6">Collaborate with your crew.</p>
+            
+            <div className="mb-6">
+              <span className="text-4xl font-bold text-white">
+                {currencySymbol}{isYearly ? prices.team.yearly : prices.team.monthly}
+              </span>
+              <span className="text-white/50 ml-2">/month</span>
+              {isYearly && (
+                <span className="block text-sm text-emerald-400 mt-1">
+                  Billed annually
+                </span>
+              )}
+            </div>
+
+            <ul className="space-y-3 mb-8">
+              <li className="flex items-center gap-3 text-white/80">
+                <Check className="h-5 w-5 text-violet-400 flex-shrink-0" weight="bold" />
+                <span>5 Team seats</span>
+              </li>
+              <li className="flex items-center gap-3 text-white/80">
+                <Check className="h-5 w-5 text-violet-400 flex-shrink-0" weight="bold" />
+                <span>Shared Workspace</span>
+              </li>
+              <li className="flex items-center gap-3 text-white/80">
+                <Check className="h-5 w-5 text-violet-400 flex-shrink-0" weight="bold" />
+                <span>Priority Support</span>
+              </li>
+            </ul>
+
+            <Link
+              href="/login?plan=team"
+              className="block w-full text-center bg-white hover:bg-white/90 text-gray-900 py-3 rounded-xl font-semibold transition-all"
+              data-testid="pricing-team-cta"
+            >
+              Get Team
+            </Link>
+          </motion.div>
+        </div>
       </div>
     </section>
   );

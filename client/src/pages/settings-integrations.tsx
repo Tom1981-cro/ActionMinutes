@@ -38,11 +38,11 @@ export default function SettingsIntegrationsPage() {
 
   if (config && !config.features.integrationsEnabled) {
     return (
-      <Card className="bg-amber-50 border-amber-200 rounded-xl">
+      <Card className="bg-amber-500/10 border-amber-500/30 rounded-xl">
         <CardContent className="py-8 text-center">
-          <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-4" />
-          <h3 className="font-semibold text-amber-800 mb-2">Integrations Disabled</h3>
-          <p className="text-amber-700 text-sm">
+          <AlertTriangle className="h-10 w-10 text-amber-400 mx-auto mb-4" />
+          <h3 className="font-semibold text-amber-300 mb-2">Integrations Disabled</h3>
+          <p className="text-amber-400/80 text-sm">
             Email integrations are currently disabled. Set INTEGRATIONS_FEATURE_ENABLED=true to enable this feature.
           </p>
         </CardContent>
@@ -77,7 +77,7 @@ export default function SettingsIntegrationsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
       </div>
     );
   }
@@ -90,29 +90,29 @@ export default function SettingsIntegrationsPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold text-slate-800">Email Integrations</h2>
-        <p className="text-gray-500">Connect your email to send follow-ups directly from ActionMinutes.</p>
+        <h2 className="text-xl font-semibold text-white">Email Integrations</h2>
+        <p className="text-white/60">Connect your email to send follow-ups directly from ActionMinutes.</p>
       </div>
 
       <div className="grid gap-4">
-        <Card className="bg-white border-gray-200 rounded-xl">
+        <Card className="bg-white/5 border-white/10 rounded-xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-50 rounded-xl">
-                <Mail className="h-5 w-5 text-red-500" />
+              <div className="p-2 bg-red-500/20 rounded-xl">
+                <Mail className="h-5 w-5 text-red-400" />
               </div>
               <div>
-                <CardTitle className="text-lg text-slate-800">Gmail</CardTitle>
-                <CardDescription className="text-gray-500">Send follow-ups from your Gmail account</CardDescription>
+                <CardTitle className="text-lg text-white">Gmail</CardTitle>
+                <CardDescription className="text-white/60">Send follow-ups from your Gmail account</CardDescription>
               </div>
             </div>
             {googleConnected ? (
-              <Badge variant="outline" className="rounded-full bg-green-50 text-green-700 border-green-200">
+              <Badge variant="outline" className="rounded-full bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Connected
               </Badge>
             ) : (
-              <Badge variant="outline" className="rounded-full bg-gray-50 text-gray-500 border-gray-200">
+              <Badge variant="outline" className="rounded-full bg-white/5 text-white/50 border-white/10">
                 <XCircle className="h-3 w-3 mr-1" />
                 Not connected
               </Badge>
@@ -123,13 +123,11 @@ export default function SettingsIntegrationsPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">
-                      Connected as <span className="font-medium">{googleConnected.accountEmail}</span>
-                    </p>
-                    {googleConnected.lastUsedAt && (
-                      <p className="text-xs text-gray-400 flex items-center mt-1">
-                        <Clock className="h-3 w-3 mr-1" />
-                        Last used {format(new Date(googleConnected.lastUsedAt), 'MMM d, yyyy')}
+                    <p className="text-sm text-white/80">{integrations.google.email}</p>
+                    {integrations.google.expiresAt && (
+                      <p className="text-xs text-white/50 flex items-center gap-1 mt-1">
+                        <Clock className="h-3 w-3" />
+                        Expires {format(new Date(integrations.google.expiresAt), "MMM d, yyyy")}
                       </p>
                     )}
                   </div>
@@ -137,47 +135,55 @@ export default function SettingsIntegrationsPage() {
                     variant="outline" 
                     size="sm" 
                     onClick={() => handleDisconnect('google')}
-                    className="rounded-full border-gray-300"
+                    disabled={disconnectIntegration.isPending}
+                    className="text-red-400 border-red-500/30 hover:bg-red-500/10"
                     data-testid="button-disconnect-gmail"
                   >
-                    Disconnect
+                    {disconnectIntegration.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Disconnect"
+                    )}
                   </Button>
                 </div>
               </div>
             ) : googleConfigured ? (
               <Button 
                 onClick={() => handleConnect('google')}
-                className="rounded-full btn-gradient text-white font-semibold"
+                className="w-full bg-white/10 hover:bg-white/15 text-white border border-white/20"
                 data-testid="button-connect-gmail"
               >
+                <Mail className="h-4 w-4 mr-2" />
                 Connect Gmail
               </Button>
             ) : (
-              <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-xl">
-                Gmail integration is not configured. Please contact the app administrator.
-              </p>
+              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                <p className="text-sm text-amber-400">
+                  Gmail integration requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to be configured.
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="bg-white border-gray-200 rounded-xl">
+        <Card className="bg-white/5 border-white/10 rounded-xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-50 rounded-xl">
-                <Mail className="h-5 w-5 text-blue-500" />
+              <div className="p-2 bg-blue-500/20 rounded-xl">
+                <Mail className="h-5 w-5 text-blue-400" />
               </div>
               <div>
-                <CardTitle className="text-lg text-slate-800">Outlook</CardTitle>
-                <CardDescription className="text-gray-500">Send follow-ups from your Outlook account</CardDescription>
+                <CardTitle className="text-lg text-white">Outlook</CardTitle>
+                <CardDescription className="text-white/60">Send follow-ups from your Outlook account</CardDescription>
               </div>
             </div>
             {microsoftConnected ? (
-              <Badge variant="outline" className="rounded-full bg-green-50 text-green-700 border-green-200">
+              <Badge variant="outline" className="rounded-full bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Connected
               </Badge>
             ) : (
-              <Badge variant="outline" className="rounded-full bg-gray-50 text-gray-500 border-gray-200">
+              <Badge variant="outline" className="rounded-full bg-white/5 text-white/50 border-white/10">
                 <XCircle className="h-3 w-3 mr-1" />
                 Not connected
               </Badge>
@@ -188,13 +194,11 @@ export default function SettingsIntegrationsPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600">
-                      Connected as <span className="font-medium">{microsoftConnected.accountEmail}</span>
-                    </p>
-                    {microsoftConnected.lastUsedAt && (
-                      <p className="text-xs text-gray-400 flex items-center mt-1">
-                        <Clock className="h-3 w-3 mr-1" />
-                        Last used {format(new Date(microsoftConnected.lastUsedAt), 'MMM d, yyyy')}
+                    <p className="text-sm text-white/80">{integrations.microsoft.email}</p>
+                    {integrations.microsoft.expiresAt && (
+                      <p className="text-xs text-white/50 flex items-center gap-1 mt-1">
+                        <Clock className="h-3 w-3" />
+                        Expires {format(new Date(integrations.microsoft.expiresAt), "MMM d, yyyy")}
                       </p>
                     )}
                   </div>
@@ -202,25 +206,33 @@ export default function SettingsIntegrationsPage() {
                     variant="outline" 
                     size="sm" 
                     onClick={() => handleDisconnect('microsoft')}
-                    className="rounded-full border-gray-300"
+                    disabled={disconnectIntegration.isPending}
+                    className="text-red-400 border-red-500/30 hover:bg-red-500/10"
                     data-testid="button-disconnect-outlook"
                   >
-                    Disconnect
+                    {disconnectIntegration.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Disconnect"
+                    )}
                   </Button>
                 </div>
               </div>
             ) : microsoftConfigured ? (
               <Button 
                 onClick={() => handleConnect('microsoft')}
-                className="rounded-full btn-gradient text-white font-semibold"
+                className="w-full bg-white/10 hover:bg-white/15 text-white border border-white/20"
                 data-testid="button-connect-outlook"
               >
+                <Mail className="h-4 w-4 mr-2" />
                 Connect Outlook
               </Button>
             ) : (
-              <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-xl">
-                Outlook integration is not configured. Please contact the app administrator.
-              </p>
+              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+                <p className="text-sm text-amber-400">
+                  Outlook integration requires MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET to be configured.
+                </p>
+              </div>
             )}
           </CardContent>
         </Card>

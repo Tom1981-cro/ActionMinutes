@@ -12,7 +12,7 @@ import {
   User, BookOpen, Clock, FileText, Scales, CaretDown, CaretRight, Info, Lifebuoy,
   CreditCard, Crown, Rocket, CheckCircle, Warning
 } from "@phosphor-icons/react";
-import { StripePricingTable, useGeoData } from "@/components/stripe-pricing-table";
+import { useGeoData, formatPrice } from "@/components/stripe-pricing-table";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
 import WorkspaceSettingsPage from "./workspace-settings";
@@ -68,12 +68,14 @@ export default function SettingsPage() {
   const { user, updateUser: updateLocalUser, currentWorkspaceId } = useStore();
   const updateUser = useUpdateUser();
   const restartTutorial = useRestartTutorial();
+  const { geoData } = useGeoData();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isManaging, setIsManaging] = useState(false);
   const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
 
   const isAdmin = user.email === ADMIN_EMAIL;
+  const currencySymbol = geoData?.isEU ? "€" : "$";
   
   const isPro = user.subscriptionPlan === 'pro' || user.subscriptionPlan === 'team';
   const subscriptionStatus = user.subscriptionStatus || 'none';
@@ -290,12 +292,95 @@ export default function SettingsPage() {
 
           {/* Upgrade Section - Show for Free users */}
           {!isPro && (
-            <div className="space-y-4">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-white mb-2">Choose Your Plan</h3>
-                <p className="text-sm text-white/60">Select a plan that fits your needs</p>
+            <div className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-all">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg text-white">Pro</CardTitle>
+                      <span className="bg-violet-500/20 text-violet-300 text-xs font-medium px-2 py-1 rounded-full">Popular</span>
+                    </div>
+                    <CardDescription className="text-white/60">For serious productivity</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <span className="text-3xl font-bold text-white">{currencySymbol}12</span>
+                      <span className="text-white/50 ml-1">/month</span>
+                    </div>
+                    <ul className="space-y-2 text-sm text-white/80">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
+                        Unlimited transcription
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
+                        Unlimited AI extractions
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
+                        Priority email support
+                      </li>
+                    </ul>
+                    <Button
+                      onClick={() => handleUpgrade()}
+                      disabled={isUpgrading}
+                      className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white h-11 rounded-xl font-semibold"
+                      data-testid="button-upgrade-pro"
+                    >
+                      {isUpgrading ? (
+                        <span className="flex items-center gap-2">
+                          <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Redirecting...
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <Rocket className="h-4 w-4" weight="duotone" />
+                          Upgrade to Pro
+                        </span>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-all">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg text-white">Team</CardTitle>
+                    <CardDescription className="text-white/60">Collaborate with your crew</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <span className="text-3xl font-bold text-white">{currencySymbol}29</span>
+                      <span className="text-white/50 ml-1">/month</span>
+                    </div>
+                    <ul className="space-y-2 text-sm text-white/80">
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
+                        Everything in Pro
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
+                        5 Team seats
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
+                        Shared Workspace
+                      </li>
+                    </ul>
+                    <Button
+                      onClick={handleUpgrade}
+                      disabled={isUpgrading}
+                      variant="outline"
+                      className="w-full h-11 rounded-xl text-white border-white/20 hover:bg-white/10"
+                      data-testid="button-upgrade-team"
+                    >
+                      <span className="flex items-center gap-2">
+                        <UsersThree className="h-4 w-4" weight="duotone" />
+                        Get Team
+                      </span>
+                    </Button>
+                  </CardContent>
+                </Card>
               </div>
-              <StripePricingTable clientReferenceId={user.id} />
             </div>
           )}
 
@@ -303,14 +388,14 @@ export default function SettingsPage() {
           {isPro && (
             <div className="space-y-4">
               <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                <p className="text-sm text-white/70 mb-4">
+                <p className="text-sm text-white/80 mb-4">
                   Manage your subscription, update payment methods, or cancel your plan through the Stripe Customer Portal.
                 </p>
                 <Button
                   onClick={handleManageSubscription}
                   disabled={isManaging}
                   variant="outline"
-                  className="w-full h-11 rounded-xl"
+                  className="w-full h-11 rounded-xl text-white border-white/20 hover:bg-white/10"
                   data-testid="button-manage-subscription"
                 >
                   {isManaging ? (
