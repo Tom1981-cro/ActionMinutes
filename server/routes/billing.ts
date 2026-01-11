@@ -2,12 +2,13 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { getUncachableStripeClient } from '../stripeClient';
 import { storage } from '../storage';
+import { getPriceId, type PlanType, type BillingInterval } from '../stripeConfig';
 
 const router = Router();
 
 const createCheckoutSchema = z.object({
-  priceId: z.string(),
-  plan: z.enum(['pro', 'team']).optional(),
+  plan: z.enum(['pro', 'team']).default('pro'),
+  interval: z.enum(['monthly', 'yearly']).default('monthly'),
 });
 
 router.post('/api/create-checkout-session', async (req, res) => {
@@ -17,11 +18,23 @@ router.post('/api/create-checkout-session', async (req, res) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const { priceId, plan } = createCheckoutSchema.parse(req.body);
+    const { plan, interval } = createCheckoutSchema.parse(req.body);
 
     const user = await storage.getUser(userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.stripeSubscriptionId && user.subscriptionStatus && 
+        !['canceled', 'incomplete_expired'].includes(user.subscriptionStatus)) {
+      return res.status(400).json({ error: 'You already have an active subscription. Use the customer portal to manage it.' });
+    }
+
+    let priceId: string;
+    try {
+      priceId = getPriceId(plan as PlanType, interval as BillingInterval);
+    } catch (err) {
+      return res.status(400).json({ error: 'Stripe price IDs not configured. Please contact support.' });
     }
 
     const stripe = await getUncachableStripeClient();
@@ -49,7 +62,8 @@ router.post('/api/create-checkout-session', async (req, res) => {
       client_reference_id: userId,
       metadata: {
         userId,
-        plan: plan || 'pro',
+        plan,
+        interval,
       },
     });
 
