@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { getUncachableStripeClient } from '../stripeClient';
 import { storage } from '../storage';
 import { getPriceId, type PlanType, type BillingInterval } from '../stripeConfig';
+import { requireAuth } from '../jwt';
 
 const router = Router();
 
@@ -11,9 +12,9 @@ const createCheckoutSchema = z.object({
   interval: z.enum(['monthly', 'yearly']).default('monthly'),
 });
 
-router.post('/api/create-checkout-session', async (req, res) => {
+router.post('/api/create-checkout-session', requireAuth, async (req, res) => {
   try {
-    const userId = (req as any).session?.userId;
+    const userId = req.userId;
     if (!userId) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
@@ -74,9 +75,9 @@ router.post('/api/create-checkout-session', async (req, res) => {
   }
 });
 
-router.post('/api/create-portal-session', async (req, res) => {
+router.post('/api/create-portal-session', requireAuth, async (req, res) => {
   try {
-    const userId = (req as any).session?.userId;
+    const userId = req.userId;
     if (!userId) {
       return res.status(401).json({ error: 'Not authenticated' });
     }

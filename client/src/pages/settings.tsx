@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -6,14 +6,14 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useStore } from "@/lib/store";
 import { useUpdateUser } from "@/lib/hooks";
-import { Link } from "wouter";
+import { Link, useSearch } from "wouter";
 import { 
   GearSix, Plug, CalendarBlank, Sparkle, UsersThree, ChatCircle, ShieldCheck, 
   User, BookOpen, Clock, FileText, Scales, CaretDown, CaretRight, Info, Lifebuoy,
   CreditCard, Crown, Rocket, CheckCircle, Warning
 } from "@phosphor-icons/react";
 import { useGeoData } from "@/components/stripe-pricing-table";
-import { getAccessToken } from "@/hooks/use-auth";
+import { authenticatedFetch } from "@/hooks/use-auth";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
 import WorkspaceSettingsPage from "./workspace-settings";
@@ -29,12 +29,19 @@ interface ExpandableSectionProps {
   title: string;
   icon: ReactNode;
   defaultOpen?: boolean;
+  forceOpen?: boolean;
   children: ReactNode;
   testId?: string;
 }
 
-function ExpandableSection({ title, icon, defaultOpen = false, children, testId }: ExpandableSectionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+function ExpandableSection({ title, icon, defaultOpen = false, forceOpen, children, testId }: ExpandableSectionProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen || forceOpen);
+  
+  useEffect(() => {
+    if (forceOpen) {
+      setIsOpen(true);
+    }
+  }, [forceOpen]);
   
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -70,6 +77,8 @@ export default function SettingsPage() {
   const updateUser = useUpdateUser();
   const restartTutorial = useRestartTutorial();
   const { geoData } = useGeoData();
+  const search = useSearch();
+  const tabParam = new URLSearchParams(search).get("tab");
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isManaging, setIsManaging] = useState(false);
@@ -77,6 +86,7 @@ export default function SettingsPage() {
 
   const isAdmin = user.email === ADMIN_EMAIL;
   const currencySymbol = geoData?.isEU ? "€" : "$";
+  const openSubscription = tabParam === "subscription";
   
   const isPro = user.subscriptionPlan === 'pro' || user.subscriptionPlan === 'team';
   const subscriptionStatus = user.subscriptionStatus || 'none';
@@ -93,15 +103,9 @@ export default function SettingsPage() {
     setIsUpgrading(true);
     setSubscriptionError(null);
     try {
-      const accessToken = getAccessToken();
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-      const response = await fetch('/api/create-checkout-session', {
+      const response = await authenticatedFetch('/api/create-checkout-session', {
         method: 'POST',
-        headers,
-        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan })
       });
       const data = await response.json();
@@ -125,15 +129,9 @@ export default function SettingsPage() {
     setIsManaging(true);
     setSubscriptionError(null);
     try {
-      const accessToken = getAccessToken();
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-      const response = await fetch('/api/create-portal-session', {
+      const response = await authenticatedFetch('/api/create-portal-session', {
         method: 'POST',
-        headers,
-        credentials: 'include'
+        headers: { 'Content-Type': 'application/json' }
       });
       const data = await response.json();
       if (!response.ok) {
@@ -253,6 +251,7 @@ export default function SettingsPage() {
         title="Subscription"
         icon={<CreditCard className="h-5 w-5 text-amber-400" weight="duotone" />}
         testId="section-subscription"
+        forceOpen={openSubscription}
       >
         <div className="space-y-6">
           {/* Error Display */}

@@ -54,7 +54,13 @@ export default function OnboardingPage() {
         hasCompletedOnboarding: true
       });
     }
-    setLocation("/app/inbox");
+    const pendingPlan = sessionStorage.getItem('pendingPlan');
+    if (pendingPlan) {
+      sessionStorage.removeItem('pendingPlan');
+      setLocation("/app/settings?tab=subscription");
+    } else {
+      setLocation("/app/inbox");
+    }
   };
 
   return (

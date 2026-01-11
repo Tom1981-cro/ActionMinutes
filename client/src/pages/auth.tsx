@@ -110,16 +110,30 @@ export default function AuthPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const planParam = new URLSearchParams(search).get("plan");
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
-      if (user.hasCompletedOnboarding) {
-        setLocation("/app/inbox");
-      } else {
+      if (!user.hasCompletedOnboarding) {
+        if (planParam) {
+          sessionStorage.setItem('pendingPlan', planParam);
+        }
         setLocation("/app/onboarding");
+      } else if (planParam) {
+        setLocation("/app/settings?tab=subscription");
+      } else {
+        setLocation("/app/inbox");
       }
     }
-  }, [isLoading, isAuthenticated, user, setLocation]);
+  }, [isLoading, isAuthenticated, user, setLocation, planParam]);
+
+  useEffect(() => {
+    return () => {
+      if (!planParam) {
+        sessionStorage.removeItem('pendingPlan');
+      }
+    };
+  }, [planParam]);
 
   if (isLoading) {
     return (

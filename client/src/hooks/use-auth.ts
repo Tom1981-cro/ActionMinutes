@@ -27,6 +27,44 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
   });
 }
 
+export async function authenticatedFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  if (!accessToken) {
+    const refreshResult = await refreshTokens();
+    if (refreshResult) {
+      accessToken = refreshResult.accessToken;
+    } else {
+      throw new Error('Not authenticated. Please log in again.');
+    }
+  }
+  
+  const headers = new Headers(options.headers);
+  headers.set("Authorization", `Bearer ${accessToken}`);
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
+
+  if (response.status === 401) {
+    const refreshResult = await refreshTokens();
+    if (refreshResult) {
+      accessToken = refreshResult.accessToken;
+      const retryHeaders = new Headers(options.headers);
+      retryHeaders.set("Authorization", `Bearer ${accessToken}`);
+      return fetch(url, {
+        ...options,
+        headers: retryHeaders,
+        credentials: "include",
+      });
+    } else {
+      throw new Error('Session expired. Please log in again.');
+    }
+  }
+
+  return response;
+}
+
 async function refreshTokens(): Promise<{ user: User; accessToken: string } | null> {
   try {
     const response = await fetch("/api/auth/refresh", {
