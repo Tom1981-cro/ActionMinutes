@@ -7,7 +7,6 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/hooks/use-auth";
-import { useUser } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import logoIcon from "@assets/am_logo_1767300370565.png";
@@ -19,8 +18,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
   const { user, currentWorkspaceId, theme, toggleTheme } = useStore();
-  const { logout, isAuthenticated: authIsAuthenticated } = useAuth();
-  const { user: clerkUser, isSignedIn, isLoaded: clerkLoaded } = useUser();
+  const { logout, isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     const root = document.documentElement;
@@ -49,8 +47,7 @@ export default function Layout({ children }: LayoutProps) {
 
   const navItems = isPersonalMode ? personalNavItems : teamNavItems;
 
-  // Wait for Clerk to load before checking auth status
-  if (!clerkLoaded) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
@@ -58,8 +55,7 @@ export default function Layout({ children }: LayoutProps) {
     );
   }
 
-  // Redirect to login page if not signed in
-  if (!isSignedIn) {
+  if (!isAuthenticated) {
     if (!location.startsWith("/login") && location !== "/") {
       setLocation("/login");
     }
@@ -117,17 +113,9 @@ export default function Layout({ children }: LayoutProps) {
 
         <div className={cn("mt-auto pt-4 border-t", theme === "light" ? "border-gray-200" : "border-white/10")}>
           <div className="px-4 py-2 mb-2 flex items-center gap-3">
-            {clerkUser?.imageUrl ? (
-              <img 
-                src={clerkUser.imageUrl} 
-                alt="Avatar" 
-                className={cn("w-9 h-9 rounded-full object-cover ring-2", theme === "light" ? "ring-violet-400/50" : "ring-violet-500/30")}
-              />
-            ) : (
-              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-sm font-semibold shadow-glow-sm">
-                {(user.name || "U").charAt(0).toUpperCase()}
-              </div>
-            )}
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-sm font-semibold shadow-glow-sm">
+              {(user.name || "U").charAt(0).toUpperCase()}
+            </div>
             <div className="min-w-0 flex-1">
               <p className={cn("text-sm font-bold truncate", theme === "light" ? "text-gray-900" : "text-white")} data-testid="text-user-name">{user.name}</p>
               <p className={cn("text-xs truncate", theme === "light" ? "text-gray-500" : "text-white/50")} data-testid="text-user-email">{user.email}</p>
@@ -208,17 +196,9 @@ export default function Layout({ children }: LayoutProps) {
             data-testid="mobile-signout"
             title="Sign out"
           >
-            {clerkUser?.imageUrl ? (
-              <img 
-                src={clerkUser.imageUrl} 
-                alt="Avatar" 
-                className="w-8 h-8 rounded-full object-cover ring-2 ring-violet-500/30"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-xs font-semibold">
-                {(user.name || "U").charAt(0).toUpperCase()}
-              </div>
-            )}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-xs font-semibold">
+              {(user.name || "U").charAt(0).toUpperCase()}
+            </div>
           </button>
         </div>
       </header>

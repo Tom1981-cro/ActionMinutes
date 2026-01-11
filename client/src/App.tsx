@@ -4,7 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import Layout from "@/components/layout";
 import { Tutorial } from "@/components/tutorial";
-import { useUser } from "@clerk/clerk-react";
+import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 
 import LandingPage from "@/pages/landing";
@@ -30,10 +30,10 @@ import AgendaPage from "@/pages/agenda";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isSignedIn, isLoaded } = useUser();
+  const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
 
-  if (!isLoaded) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
@@ -41,7 +41,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isSignedIn) {
+  if (!isAuthenticated) {
     setLocation("/login");
     return null;
   }

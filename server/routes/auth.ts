@@ -241,7 +241,10 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
       expiresAt: new Date(Date.now() + 30 * 60 * 1000),
     });
 
-    console.log(`Password reset token for ${email}: ${resetToken}`);
+    const resetUrl = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/login?token=${resetToken}`;
+    
+    console.log(`[Auth] Password reset requested for ${email}`);
+    console.log(`[Auth] Reset URL: ${resetUrl}`);
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(500).json({ error: 'Failed to process request' });

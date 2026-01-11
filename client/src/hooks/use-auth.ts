@@ -1,53 +1,67 @@
-import { useEffect, useRef } from "react";
-import { useUser, useClerk } from "@clerk/clerk-react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useStore } from "@/lib/store";
 import type { User } from "@shared/schema";
 
-async function syncUserToBackend(
-  clerkUser: {
-    id: string;
-    emailAddresses: { emailAddress: string }[];
-    firstName: string | null;
-    lastName: string | null;
-  },
-  getToken: () => Promise<string | null>
-): Promise<User> {
-  const email = clerkUser.emailAddresses[0]?.emailAddress || "";
-  const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || "User";
+let accessToken: string | null = null;
+
+export function getAccessToken(): string | null {
+  return accessToken;
+}
+
+export function setAccessToken(token: string | null): void {
+  accessToken = token;
+}
+
+async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(options.headers);
   
-  const token = await getToken();
-  if (!token) {
-    throw new Error("No token available");
+  if (accessToken) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
   }
-  
-  const response = await fetch("/api/auth/clerk-sync", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
-    },
+
+  return fetch(url, {
+    ...options,
+    headers,
     credentials: "include",
-    body: JSON.stringify({
-      clerkId: clerkUser.id,
-      email,
-      name,
-    }),
   });
+}
 
-  if (!response.ok) {
-    throw new Error("Failed to sync user");
+async function refreshTokens(): Promise<{ user: User; accessToken: string } | null> {
+  try {
+    const response = await fetch("/api/auth/refresh", {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return response.json();
+  } catch {
+    return null;
   }
-
-  return response.json();
 }
 
 async function fetchUser(): Promise<User | null> {
-  const response = await fetch("/api/auth/user", {
-    credentials: "include",
-  });
+  if (!accessToken) {
+    const refreshResult = await refreshTokens();
+    if (refreshResult) {
+      accessToken = refreshResult.accessToken;
+      return refreshResult.user;
+    }
+    return null;
+  }
+
+  const response = await fetchWithAuth("/api/auth/user");
 
   if (response.status === 401) {
+    const refreshResult = await refreshTokens();
+    if (refreshResult) {
+      accessToken = refreshResult.accessToken;
+      return refreshResult.user;
+    }
     return null;
   }
 
@@ -58,67 +72,96 @@ async function fetchUser(): Promise<User | null> {
   return response.json();
 }
 
-async function logoutBackend(): Promise<void> {
+export async function loginUser(email: string, password: string): Promise<{ user: User; accessToken: string }> {
+  const response = await fetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Login failed");
+  }
+
+  const result = await response.json();
+  accessToken = result.accessToken;
+  return result;
+}
+
+export async function registerUser(email: string, password: string, name: string): Promise<{ user: User; accessToken: string }> {
+  const response = await fetch("/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ email, password, name }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Registration failed");
+  }
+
+  const result = await response.json();
+  accessToken = result.accessToken;
+  return result;
+}
+
+export async function forgotPassword(email: string): Promise<void> {
+  const response = await fetch("/api/auth/forgot-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to send reset email");
+  }
+}
+
+export async function resetPassword(token: string, password: string): Promise<void> {
+  const response = await fetch("/api/auth/reset-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, password }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to reset password");
+  }
+}
+
+export async function logoutUser(): Promise<void> {
   await fetch("/api/auth/logout", {
     method: "POST",
     credentials: "include",
   });
+  accessToken = null;
 }
 
 export function useAuth() {
   const queryClient = useQueryClient();
   const { setUser, logout: storeLogout } = useStore();
-  const { user: clerkUser, isLoaded: clerkLoaded, isSignedIn } = useUser();
-  const { signOut, session } = useClerk();
-  
+  const [isInitialized, setIsInitialized] = useState(false);
+
   const { data: user, isLoading: dbUserLoading, refetch } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
     queryFn: fetchUser,
     retry: false,
     staleTime: 1000 * 60 * 5,
-    enabled: clerkLoaded && isSignedIn,
   });
 
-  const syncAttemptedRef = useRef(false);
-  
   useEffect(() => {
-    if (clerkLoaded && isSignedIn && clerkUser && !user && session && !syncAttemptedRef.current) {
-      syncAttemptedRef.current = true;
-      
-      const attemptSync = async (retries = 3) => {
-        for (let i = 0; i < retries; i++) {
-          try {
-            const getToken = () => session.getToken();
-            const syncedUser = await syncUserToBackend(clerkUser, getToken);
-            queryClient.setQueryData(["/api/auth/user"], syncedUser);
-            return;
-          } catch (error) {
-            if (i < retries - 1) {
-              await new Promise(resolve => setTimeout(resolve, 500 * (i + 1)));
-            } else {
-              console.error("Failed to sync user after retries:", error);
-            }
-          }
-        }
-      };
-      
-      attemptSync();
+    if (!dbUserLoading) {
+      setIsInitialized(true);
     }
-    
-    if (!isSignedIn) {
-      syncAttemptedRef.current = false;
-    }
-  }, [clerkLoaded, isSignedIn, clerkUser, user, queryClient, session]);
+  }, [dbUserLoading]);
 
   useEffect(() => {
-    if (clerkLoaded && !isSignedIn) {
-      queryClient.setQueryData(["/api/auth/user"], null);
-      storeLogout();
-    }
-  }, [clerkLoaded, isSignedIn, queryClient, storeLogout]);
-
-  useEffect(() => {
-    if (isSignedIn && user) {
+    if (user) {
       setUser({
         id: user.id,
         email: user.email || "",
@@ -136,24 +179,34 @@ export function useAuth() {
         isAuthenticated: true,
       });
     }
-  }, [isSignedIn, user, setUser]);
+  }, [user, setUser]);
 
-  const isLoading = !clerkLoaded || (isSignedIn && dbUserLoading);
+  const login = useCallback(async (email: string, password: string) => {
+    const result = await loginUser(email, password);
+    queryClient.setQueryData(["/api/auth/user"], result.user);
+    return result.user;
+  }, [queryClient]);
 
-  const logout = async () => {
-    // Clear local state first
+  const register = useCallback(async (email: string, password: string, name: string) => {
+    const result = await registerUser(email, password, name);
+    queryClient.setQueryData(["/api/auth/user"], result.user);
+    return result.user;
+  }, [queryClient]);
+
+  const logout = useCallback(async () => {
     storeLogout();
     queryClient.clear();
-    
-    // Then logout from backend and Clerk
-    await logoutBackend();
-    await signOut();
-  };
+    await logoutUser();
+  }, [queryClient, storeLogout]);
+
+  const isLoading = !isInitialized || dbUserLoading;
 
   return {
-    user: isSignedIn ? user : null,
+    user,
     isLoading,
-    isAuthenticated: !!isSignedIn && !!user,
+    isAuthenticated: !!user,
+    login,
+    register,
     logout,
     refetch,
   };

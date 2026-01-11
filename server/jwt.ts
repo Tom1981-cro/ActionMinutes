@@ -3,9 +3,13 @@ import { Request, Response, NextFunction } from 'express';
 import { storage } from './storage';
 import type { User } from '@shared/schema';
 
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+const JWT_SECRET = process.env.JWT_SECRET || process.env.SESSION_SECRET || 'action-minutes-jwt-secret-dev-only';
 const ACCESS_TOKEN_EXPIRY = 15 * 60 * 1000; // 15 minutes
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  console.warn('[JWT] WARNING: JWT_SECRET not set in production. Using fallback secret.');
+}
 
 interface TokenPayload {
   userId: string;
