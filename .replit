@@ -46,3 +46,8 @@ waitForPort = 5000
 [agent]
 mockupState = "FULLSTACK"
 integrations = ["javascript_database:1.0.0", "javascript_openai_ai_integrations:2.0.0", "javascript_log_in_with_replit:2.0.0", "google-mail:1.0.0", "outlook:1.0.0", "javascript_gemini_ai_integrations:2.0.0", "stripe:2.0.0"]
+
+[userenv]
+
+[userenv.shared]
+STRIPE_PRICING_TABLE_ID = "prctbl_1SoMBTAAZoqPUHwYr93nkCh1"

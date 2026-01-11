@@ -2018,6 +2018,40 @@ Thanks!`,
     }
   });
 
+  // ==================== GEO DETECTION ====================
+  const EU_COUNTRIES = new Set([
+    'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR',
+    'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL',
+    'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE'
+  ]);
+
+  app.get("/api/geo", async (req, res) => {
+    try {
+      const cfCountry = req.headers['cf-ipcountry'] as string | undefined;
+      const xCountry = req.headers['x-country'] as string | undefined;
+      const countryCode = cfCountry || xCountry || null;
+      
+      const isEU = countryCode ? EU_COUNTRIES.has(countryCode.toUpperCase()) : false;
+      const currency = isEU ? 'EUR' : 'USD';
+      
+      res.json({
+        countryCode: countryCode?.toUpperCase() || null,
+        isEU,
+        currency,
+        pricingTableId: process.env.STRIPE_PRICING_TABLE_ID || null,
+        publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || null
+      });
+    } catch (error) {
+      res.json({
+        countryCode: null,
+        isEU: false,
+        currency: 'USD',
+        pricingTableId: process.env.STRIPE_PRICING_TABLE_ID || null,
+        publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || null
+      });
+    }
+  });
+
   // Apply global error handler last
   app.use(errorHandler);
 
