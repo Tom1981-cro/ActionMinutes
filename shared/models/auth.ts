@@ -1,8 +1,7 @@
 import { sql } from "drizzle-orm";
 import { index, jsonb, pgTable, timestamp, varchar, text, boolean } from "drizzle-orm/pg-core";
 
-// Session storage table.
-// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+// Session storage table (kept for backwards compatibility)
 export const sessions = pgTable(
   "sessions",
   {
@@ -13,8 +12,7 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)]
 );
 
-// User storage table - combines Replit Auth fields with app-specific fields
-// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+// User storage table
 export const users = pgTable("users", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
   clerkId: varchar("clerk_id", { length: 255 }).unique(),
@@ -23,7 +21,6 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  // App-specific fields
   name: text("name"),
   tone: text("tone").notNull().default('direct'),
   timezone: text("timezone").notNull().default('UTC'),
@@ -39,9 +36,34 @@ export const users = pgTable("users", {
   stripeSubscriptionId: text("stripe_subscription_id"),
   subscriptionStatus: text("subscription_status"),
   subscriptionPlan: text("subscription_plan"),
+  emailVerified: boolean("email_verified").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Refresh tokens for JWT authentication
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  tokenHash: text("token_hash").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  revokedAt: timestamp("revoked_at"),
+  userAgent: text("user_agent"),
+  ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Password reset tokens
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  tokenHash: text("token_hash").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export type RefreshToken = typeof refreshTokens.$inferSelect;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;

@@ -3,6 +3,7 @@ import {
   actionItems, followUpDrafts, personalEntries, personalReminders, journalPrompts, journalPromptShown,
   workspaces, workspaceMembers, workspaceInvites,
   oauthConnections, calendarExports, aiAuditLogs, feedback,
+  refreshTokens, passwordResetTokens,
   type User, type InsertUser,
   type Meeting, type InsertMeeting,
   type Attendee, type InsertAttendee,
@@ -21,7 +22,8 @@ import {
   type CalendarExport, type InsertCalendarExport,
   type AiAuditLog, type InsertAiAuditLog,
   type Feedback, type InsertFeedback,
-  type WorkspaceRole
+  type WorkspaceRole,
+  type RefreshToken, type PasswordResetToken
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, or, isNull, ilike } from "drizzle-orm";
@@ -40,6 +42,17 @@ export interface IStorage {
     subscriptionStatus?: string | null;
     subscriptionPlan?: string | null;
   }): Promise<User | undefined>;
+  
+  // Refresh Tokens
+  createRefreshToken(token: { userId: string; tokenHash: string; expiresAt: Date; userAgent?: string | null; ipAddress?: string | null }): Promise<RefreshToken>;
+  getRefreshTokenByHash(tokenHash: string): Promise<RefreshToken | undefined>;
+  revokeRefreshToken(id: string): Promise<void>;
+  revokeAllUserRefreshTokens(userId: string): Promise<void>;
+  
+  // Password Reset Tokens
+  createPasswordResetToken(token: { userId: string; tokenHash: string; expiresAt: Date }): Promise<PasswordResetToken>;
+  getPasswordResetTokenByHash(tokenHash: string): Promise<PasswordResetToken | undefined>;
+  markPasswordResetTokenUsed(id: string): Promise<void>;
   
   // Meetings
   getMeetings(userId: string, workspaceId?: string): Promise<Meeting[]>;
@@ -190,6 +203,42 @@ export class DatabaseStorage implements IStorage {
   }): Promise<User | undefined> {
     const [user] = await db.update(users).set(stripeInfo).where(eq(users.id, userId)).returning();
     return user || undefined;
+  }
+
+  // ==================== REFRESH TOKENS ====================
+  async createRefreshToken(token: { userId: string; tokenHash: string; expiresAt: Date; userAgent?: string | null; ipAddress?: string | null }): Promise<RefreshToken> {
+    const [newToken] = await db.insert(refreshTokens).values(token).returning();
+    return newToken;
+  }
+
+  async getRefreshTokenByHash(tokenHash: string): Promise<RefreshToken | undefined> {
+    const [token] = await db.select().from(refreshTokens).where(eq(refreshTokens.tokenHash, tokenHash));
+    return token || undefined;
+  }
+
+  async revokeRefreshToken(id: string): Promise<void> {
+    await db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.id, id));
+  }
+
+  async revokeAllUserRefreshTokens(userId: string): Promise<void> {
+    await db.update(refreshTokens).set({ revokedAt: new Date() }).where(
+      and(eq(refreshTokens.userId, userId), isNull(refreshTokens.revokedAt))
+    );
+  }
+
+  // ==================== PASSWORD RESET TOKENS ====================
+  async createPasswordResetToken(token: { userId: string; tokenHash: string; expiresAt: Date }): Promise<PasswordResetToken> {
+    const [newToken] = await db.insert(passwordResetTokens).values(token).returning();
+    return newToken;
+  }
+
+  async getPasswordResetTokenByHash(tokenHash: string): Promise<PasswordResetToken | undefined> {
+    const [token] = await db.select().from(passwordResetTokens).where(eq(passwordResetTokens.tokenHash, tokenHash));
+    return token || undefined;
+  }
+
+  async markPasswordResetTokenUsed(id: string): Promise<void> {
+    await db.update(passwordResetTokens).set({ usedAt: new Date() }).where(eq(passwordResetTokens.id, id));
   }
 
   // ==================== MEETINGS ====================
