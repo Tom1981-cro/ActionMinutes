@@ -12,7 +12,7 @@ import {
   User, BookOpen, Clock, FileText, Scales, CaretDown, CaretRight, Info, Lifebuoy,
   CreditCard, Crown, Rocket, CheckCircle, Warning
 } from "@phosphor-icons/react";
-import { useGeoData, formatPrice } from "@/components/stripe-pricing-table";
+import { useGeoData } from "@/components/stripe-pricing-table";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
 import WorkspaceSettingsPage from "./workspace-settings";
@@ -83,7 +83,7 @@ export default function SettingsPage() {
   const isPastDue = subscriptionStatus === 'past_due';
   const hasExistingSubscription = user.stripeSubscriptionId && subscriptionStatus !== 'canceled';
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (plan: 'pro' | 'team' = 'pro') => {
     if (hasExistingSubscription) {
       setSubscriptionError('You already have an active subscription. Use "Manage Subscription" to make changes.');
       return;
@@ -96,7 +96,7 @@ export default function SettingsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ plan: 'pro' })
+        body: JSON.stringify({ plan })
       });
       const data = await response.json();
       if (!response.ok) {
@@ -367,7 +367,7 @@ export default function SettingsPage() {
                       </li>
                     </ul>
                     <Button
-                      onClick={handleUpgrade}
+                      onClick={() => handleUpgrade('team')}
                       disabled={isUpgrading}
                       variant="outline"
                       className="w-full h-11 rounded-xl text-white border-white/20 hover:bg-white/10"
