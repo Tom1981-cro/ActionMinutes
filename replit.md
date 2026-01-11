@@ -42,15 +42,16 @@ The schema (`shared/schema.ts`) defines these core entities:
 - **feedback**: User-submitted feedback with type, message, optional email, diagnostics (route, viewport, userAgent), and status
 
 ### Key Application Flows
-1. **Authentication**: Clerk-powered authentication with backend session sync
-   - **Clerk SDK**: Frontend uses `@clerk/clerk-react` for SignIn/SignUp UI components
-   - **Backend Verification**: `@clerk/clerk-sdk-node` verifies session tokens on `/api/auth/clerk-sync`
-   - **Hybrid Sessions**: Clerk handles auth UI, Express sessions maintain backend state
-   - **User Sync**: First Clerk sign-in creates/links user in database via `clerkId` column
-   - Server routes: `/api/auth/clerk-sync` (token-verified), `/api/auth/logout`, `/api/auth/user`
-   - Client hook: `useAuth()` from `@/hooks/use-auth` with `logout`, `refetch` functions
-   - Environment: `VITE_CLERK_PUBLISHABLE_KEY` (frontend), `CLERK_SECRET_KEY` (backend)
-   - **Legacy Fallback**: Demo/test users still use bcrypt passwords via `/api/auth/login`
+1. **Authentication**: Custom JWT-based authentication with secure token rotation
+   - **JWT Service** (`server/jwt.ts`): Signs/verifies tokens using HMAC-SHA256
+   - **Access Tokens**: 15-minute expiry, stored in memory, sent in Authorization header
+   - **Refresh Tokens**: 7-day expiry, stored in httpOnly cookies, rotated on each use
+   - **Token Storage**: Refresh tokens hashed (SHA-256) before database storage in `refreshTokens` table
+   - **Password Reset**: Tokens stored in `passwordResetTokens` table, 30-minute expiry, single-use
+   - **Password Rules**: Minimum 8 characters with at least one letter and one number
+   - Server routes: `/api/auth/register`, `/api/auth/login`, `/api/auth/refresh`, `/api/auth/logout`, `/api/auth/forgot-password`, `/api/auth/reset-password`, `/api/auth/user`
+   - Client hook: `useAuth()` from `@/hooks/use-auth` with `login`, `register`, `logout`, `isAuthenticated` 
+   - Environment: `JWT_SECRET` (required in production, falls back to `SESSION_SECRET` in development)
 2. **Meeting Capture**: Create meetings with title, date, attendees, and raw notes
 3. **AI Extraction**: Process notes to extract summary, actions, decisions, and risks
 4. **Draft Generation**: Auto-generate follow-up emails based on extracted content
