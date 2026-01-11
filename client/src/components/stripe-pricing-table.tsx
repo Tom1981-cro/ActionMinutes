@@ -70,6 +70,20 @@ export function formatPrice(amount: number, currency: "EUR" | "USD"): string {
 
 export function StripePricingTable({ className, clientReferenceId }: StripePricingTableProps) {
   const { geoData, loading } = useGeoData();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (containerRef.current && geoData?.pricingTableId && geoData?.publishableKey) {
+      containerRef.current.innerHTML = "";
+      const table = document.createElement("stripe-pricing-table");
+      table.setAttribute("pricing-table-id", geoData.pricingTableId);
+      table.setAttribute("publishable-key", geoData.publishableKey);
+      if (clientReferenceId) {
+        table.setAttribute("client-reference-id", clientReferenceId);
+      }
+      containerRef.current.appendChild(table);
+    }
+  }, [geoData, clientReferenceId]);
 
   if (loading) {
     return (
@@ -87,21 +101,6 @@ export function StripePricingTable({ className, clientReferenceId }: StripePrici
       </div>
     );
   }
-
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (containerRef.current && geoData.pricingTableId && geoData.publishableKey) {
-      containerRef.current.innerHTML = "";
-      const table = document.createElement("stripe-pricing-table");
-      table.setAttribute("pricing-table-id", geoData.pricingTableId);
-      table.setAttribute("publishable-key", geoData.publishableKey);
-      if (clientReferenceId) {
-        table.setAttribute("client-reference-id", clientReferenceId);
-      }
-      containerRef.current.appendChild(table);
-    }
-  }, [geoData, clientReferenceId]);
 
   return <div ref={containerRef} className={className} />;
 }
