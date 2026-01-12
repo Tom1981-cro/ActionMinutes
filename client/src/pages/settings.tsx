@@ -562,6 +562,12 @@ export default function SettingsPage() {
           {/* Help & Feedback */}
           <div className="space-y-3 pt-4 border-t border-white/10">
             <h3 className="font-medium text-white/90">Help & Feedback</h3>
+            <Link href="/support">
+              <Button variant="outline" className="w-full justify-start h-11 rounded-xl" data-testid="link-support">
+                <Lifebuoy className="h-4 w-4 mr-3 text-amber-400" weight="duotone" />
+                Support
+              </Button>
+            </Link>
             <Button
               variant="outline"
               onClick={restartTutorial}

@@ -111,29 +111,24 @@ export default function AuthPage() {
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const planParam = new URLSearchParams(search).get("plan");
+  const justRegistered = sessionStorage.getItem('justRegistered') === 'true';
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && user) {
-      if (!user.hasCompletedOnboarding) {
+      if (justRegistered && !user.hasCompletedOnboarding) {
         if (planParam) {
           sessionStorage.setItem('pendingPlan', planParam);
         }
         setLocation("/app/onboarding");
       } else if (planParam) {
+        sessionStorage.removeItem('justRegistered');
         setLocation("/app/settings?tab=subscription");
       } else {
+        sessionStorage.removeItem('justRegistered');
         setLocation("/app/inbox");
       }
     }
-  }, [isLoading, isAuthenticated, user, setLocation, planParam]);
-
-  useEffect(() => {
-    return () => {
-      if (!planParam) {
-        sessionStorage.removeItem('pendingPlan');
-      }
-    };
-  }, [planParam]);
+  }, [isLoading, isAuthenticated, user, setLocation, planParam, justRegistered]);
 
   if (isLoading) {
     return (
@@ -171,6 +166,7 @@ export default function AuthPage() {
           setSubmitting(false);
           return;
         }
+        sessionStorage.setItem('justRegistered', 'true');
         await register(email, password, name);
       } else if (mode === "forgot") {
         await forgotPassword(email);

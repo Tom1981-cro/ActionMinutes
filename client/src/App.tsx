@@ -18,6 +18,7 @@ import DraftsPage from "@/pages/drafts";
 import SettingsPage from "@/pages/settings";
 import SettingsPrivacyPage from "@/pages/settings-privacy";
 import SettingsTermsPage from "@/pages/settings-terms";
+import SupportPage from "@/pages/support";
 import AdminFeedbackPage from "@/pages/admin-feedback";
 import JournalPage from "@/pages/journal";
 import RemindersPage from "@/pages/reminders";
@@ -57,6 +58,7 @@ function Router() {
       <Route path="/login" component={AuthPage} />
       <Route path="/privacy-policy" component={SettingsPrivacyPage} />
       <Route path="/terms" component={SettingsTermsPage} />
+      <Route path="/support" component={SupportPage} />
       <Route path="/store-screens" component={StoreScreensPage} />
       <Route path="/marketing" component={MarketingPage} />
       <Route path="/help/testing" component={TestingGuidePage} />

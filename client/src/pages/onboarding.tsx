@@ -54,6 +54,7 @@ export default function OnboardingPage() {
         hasCompletedOnboarding: true
       });
     }
+    sessionStorage.removeItem('justRegistered');
     const pendingPlan = sessionStorage.getItem('pendingPlan');
     if (pendingPlan) {
       sessionStorage.removeItem('pendingPlan');

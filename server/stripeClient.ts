@@ -35,7 +35,10 @@ async function getCredentials() {
   connectionSettings = data.items?.[0];
 
   if (!connectionSettings || (!connectionSettings.settings.publishable || !connectionSettings.settings.secret)) {
-    throw new Error(`Stripe ${targetEnvironment} connection not found`);
+    const helpMessage = isProduction 
+      ? 'Please configure your live Stripe API keys when publishing the app.'
+      : 'Please connect Stripe in the Integrations panel.';
+    throw new Error(`Stripe ${targetEnvironment} connection not found. ${helpMessage}`);
   }
 
   return {
