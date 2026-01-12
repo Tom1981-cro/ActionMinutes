@@ -8,6 +8,8 @@ import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
+import { usePlan } from "@/hooks/use-plan";
+import { UpgradePrompt } from "@/components/upgrade-prompt";
 
 export default function SettingsIntegrationsPage() {
   const { data: integrations, isLoading, refetch } = useIntegrations();
@@ -16,6 +18,7 @@ export default function SettingsIntegrationsPage() {
   const { user } = useStore();
   const { toast } = useToast();
   const [location] = useLocation();
+  const { canUseEmailIntegrations, isFree } = usePlan();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -86,6 +89,18 @@ export default function SettingsIntegrationsPage() {
   const microsoftConnected = integrations?.microsoft?.connected;
   const googleConfigured = integrations?.google?.configured;
   const microsoftConfigured = integrations?.microsoft?.configured;
+
+  if (isFree && !canUseEmailIntegrations) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold text-white">Email Integrations</h2>
+          <p className="text-white/60">Connect your email to send follow-ups directly from ActionMinutes.</p>
+        </div>
+        <UpgradePrompt feature="email_integration" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

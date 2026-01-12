@@ -8,7 +8,7 @@ import {
   Sparkle, FloppyDisk, ArrowLeft, CaretDown, CaretUp, 
   Users, Clock, MapPin, Camera, Upload, Microphone, 
   ArrowsClockwise, Copy, X, Check, User, Buildings, WarningCircle,
-  ListChecks, Plus
+  ListChecks, Plus, Lightning
 } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +19,8 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn, extractActionsFromText, type ExtractedAction } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
+import { usePlan } from "@/hooks/use-plan";
+import { UsageBadge, UpgradePrompt } from "@/components/upgrade-prompt";
 
 // Hook to track virtual keyboard visibility and height
 function useVirtualKeyboard() {
@@ -65,8 +67,19 @@ export default function CapturePage() {
   const extractMeeting = useExtractMeeting();
   const { data: config } = useAppConfig();
   const { data: workspaces = [] } = useWorkspaces();
+  const { 
+    canUseAiExtraction, 
+    canUseTranscription, 
+    usage, 
+    isFree,
+    getRemainingAiExtractions,
+    getRemainingTranscriptionMinutes,
+    refetch: refetchPlan
+  } = usePlan();
 
   const aiEnabled = config?.features?.aiEnabled !== false;
+  const canExtract = aiEnabled && canUseAiExtraction();
+  const canTranscribe = canUseTranscription();
 
   const [title, setTitle] = useState(`Meeting — ${format(new Date(), "MMM d")}`);
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -158,6 +171,16 @@ export default function CapturePage() {
       return;
     }
     
+    if (!canExtract) {
+      toast({ 
+        title: "AI extraction limit reached", 
+        description: "Upgrade to Pro for unlimited extractions.", 
+        variant: "destructive" 
+      });
+      setLocation("/app/settings?tab=subscription");
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -174,14 +197,24 @@ export default function CapturePage() {
       await extractMeeting.mutateAsync(meeting.id);
       
       toast({ title: "Processing...", description: "AI is extracting actions." });
+      refetchPlan();
       
       setTimeout(() => {
         setIsSubmitting(false);
         setLocation(`/meeting/${meeting.id}`);
       }, 500);
-    } catch (error) {
+    } catch (error: any) {
       setIsSubmitting(false);
-      toast({ title: "Error", description: "Failed to create meeting", variant: "destructive" });
+      if (error?.response?.status === 403 && error?.response?.data?.limitType) {
+        toast({ 
+          title: "Limit reached", 
+          description: "Upgrade to Pro for unlimited access.", 
+          variant: "destructive" 
+        });
+        refetchPlan();
+      } else {
+        toast({ title: "Error", description: "Failed to create meeting", variant: "destructive" });
+      }
     }
   };
 
@@ -363,6 +396,11 @@ export default function CapturePage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (!canTranscribe) {
+      setTranscriptionError('Monthly transcription limit reached. Upgrade to Pro for more minutes.');
+      return;
+    }
+
     const validTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/webm', 'audio/ogg', 'audio/m4a', 'audio/mp4', 'audio/x-m4a'];
     if (!validTypes.includes(file.type) && !file.type.startsWith('audio/')) {
       setTranscriptionError('Unsupported format. Use MP3, WAV, M4A, or WebM.');
@@ -376,6 +414,7 @@ export default function CapturePage() {
     }
 
     await runTranscription(file);
+    refetchPlan();
   };
 
   const handleInsertTranscription = () => {
