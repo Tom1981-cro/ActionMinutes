@@ -78,6 +78,31 @@ Admin endpoints (`/api/admin/*`) are protected by a `requireAdminAccess` middlew
 - **Diagnostics**: Captures route, viewport size, user agent
 - **Admin page**: `/admin/feedback` with search, status filtering, detail view
 
+### Plan-Based Access Control
+- **Plan Configuration** (`shared/plans.ts`): Centralized plan hierarchy with Free/Pro/Team tiers
+  - **Free (Starter)**: 5 AI extractions/month, 300 transcription minutes, 7-day history, no email integrations
+  - **Pro**: Unlimited AI/transcription, unlimited history, email integrations, priority support
+  - **Team**: All Pro features plus workspaces (10 max), team seats (5 members)
+- **Usage Tracking** (`usageTracking` table): Monthly counters for aiExtractions and transcriptionMinutes per user
+- **Server Middleware** (`server/middleware/planAccess.ts`):
+  - `requirePlan(minPlan)`: Enforces minimum plan tier
+  - `requireCapability(capability)`: Checks specific capability access
+  - `checkUsageLimit(limitType)`: Checks usage against plan limits
+  - `incrementAiExtraction(userId)`: Checks limit and increments counter atomically
+  - `incrementTranscriptionMinutes(userId, minutes)`: Checks limit and increments counter atomically
+- **Client Hook** (`client/src/hooks/use-plan.ts`): React hook for plan state
+  - Provides `canUseAiExtraction()`, `canUseTranscription()`, `canUseEmailIntegrations`, `canUseWorkspaces`
+  - Usage display with `getAiUsagePercent()`, `getRemainingAiExtractions()`
+- **Upgrade Prompts** (`client/src/components/upgrade-prompt.tsx`): Consistent upgrade CTAs
+  - `UpgradePrompt`: Full card with usage display and upgrade button
+  - `UsageBadge`: Compact usage indicator
+  - `FeatureGate`: Wrapper component for conditional feature rendering
+- **API Endpoint**: `GET /api/users/me/plan` returns plan info, usage stats, and capabilities
+- **Plan Enforcement Points**:
+  - AI extraction: Capture page checks limits before extraction, server rejects over-limit requests
+  - Transcription: Audio upload checks limits, server enforces monthly minutes
+  - Email integrations: Settings page shows upgrade prompt for free users
+
 ### Production Hardening
 - **Configuration Module** (`server/config.ts`): Centralized environment validation and feature flags
 - **Feature Flags**: AI_FEATURE_ENABLED, INTEGRATIONS_FEATURE_ENABLED, PERSONAL_FEATURE_ENABLED, TEAM_FEATURE_ENABLED, REMINDERS_FEATURE_ENABLED

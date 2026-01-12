@@ -15,11 +15,14 @@ export interface PlanUsage {
 }
 
 export interface PlanCapabilities {
+  unlimitedAiExtractions: boolean;
+  unlimitedTranscription: boolean;
+  unlimitedHistory: boolean;
   emailIntegrations: boolean;
   workspaces: boolean;
-  advancedAnalytics: boolean;
+  teamSeats: boolean;
   prioritySupport: boolean;
-  customBranding: boolean;
+  personalMode: boolean;
 }
 
 export interface PlanInfo {
@@ -81,7 +84,8 @@ export function usePlan() {
   
   const canUseEmailIntegrations = planInfo?.capabilities?.emailIntegrations ?? false;
   const canUseWorkspaces = planInfo?.capabilities?.workspaces ?? false;
-  const canUseAdvancedAnalytics = planInfo?.capabilities?.advancedAnalytics ?? false;
+  const canUseTeamSeats = planInfo?.capabilities?.teamSeats ?? false;
+  const hasPrioritySupport = planInfo?.capabilities?.prioritySupport ?? false;
   
   const getAiUsagePercent = () => {
     if (!planInfo || planInfo.usage.aiExtractions.unlimited) return 0;
@@ -122,7 +126,8 @@ export function usePlan() {
     canUseTranscription,
     canUseEmailIntegrations,
     canUseWorkspaces,
-    canUseAdvancedAnalytics,
+    canUseTeamSeats,
+    hasPrioritySupport,
     getAiUsagePercent,
     getTranscriptionUsagePercent,
     getRemainingAiExtractions,
