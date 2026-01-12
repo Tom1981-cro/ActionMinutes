@@ -2034,12 +2034,22 @@ Thanks!`,
       const isEU = countryCode ? EU_COUNTRIES.has(countryCode.toUpperCase()) : false;
       const currency = isEU ? 'EUR' : 'USD';
       
+      // Get publishable key from Stripe connector
+      let publishableKey: string | null = null;
+      try {
+        const { getStripePublishableKey } = await import('./stripeClient');
+        publishableKey = await getStripePublishableKey();
+      } catch (stripeError) {
+        // Stripe connector not configured - key will be null
+        console.log('Stripe connector not available for geo endpoint');
+      }
+      
       res.json({
         countryCode: countryCode?.toUpperCase() || null,
         isEU,
         currency,
         pricingTableId: process.env.STRIPE_PRICING_TABLE_ID || null,
-        publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || null
+        publishableKey
       });
     } catch (error) {
       res.json({
@@ -2047,7 +2057,7 @@ Thanks!`,
         isEU: false,
         currency: 'USD',
         pricingTableId: process.env.STRIPE_PRICING_TABLE_ID || null,
-        publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || null
+        publishableKey: null
       });
     }
   });

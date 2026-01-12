@@ -226,7 +226,7 @@ export function useRestartTutorial() {
       if (response.ok) {
         updateUser({ hasCompletedTutorial: false });
         queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-        setLocation("/inbox");
+        setLocation("/app/inbox");
       }
     } catch (error) {
       console.error("Failed to restart tutorial:", error);

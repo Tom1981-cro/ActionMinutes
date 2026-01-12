@@ -28,6 +28,7 @@ import MarketingPage from "@/pages/marketing";
 import TestingGuidePage from "@/pages/testing-guide";
 import InvitePage from "@/pages/invite";
 import AgendaPage from "@/pages/agenda";
+import GuidePage from "@/pages/guide";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -120,6 +121,11 @@ function Router() {
       <Route path="/app/mobile-build-guide">
         <ProtectedRoute>
           <Layout><MobileBuildGuidePage /></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/guide">
+        <ProtectedRoute>
+          <Layout><GuidePage /></Layout>
         </ProtectedRoute>
       </Route>
 

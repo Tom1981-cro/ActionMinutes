@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { 
-  Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon 
+  Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
+  Lifebuoy, BookOpenText, CaretDown 
 } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -9,6 +10,14 @@ import { useStore } from "@/lib/store";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
+import { useRestartTutorial } from "@/components/tutorial";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import logoIcon from "@assets/am_logo_1767300370565.png";
 
 interface LayoutProps {
@@ -19,6 +28,7 @@ export default function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
   const { user, currentWorkspaceId, theme, toggleTheme } = useStore();
   const { logout, isAuthenticated, isLoading } = useAuth();
+  const restartTutorial = useRestartTutorial();
 
   useEffect(() => {
     const root = document.documentElement;
@@ -112,51 +122,92 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         <div className={cn("mt-auto pt-4 border-t", theme === "light" ? "border-gray-200" : "border-white/10")}>
-          <div className="px-4 py-2 mb-2 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-sm font-semibold shadow-glow-sm">
-              {(user.name || "U").charAt(0).toUpperCase()}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className={cn("text-sm font-bold truncate", theme === "light" ? "text-gray-900" : "text-white")} data-testid="text-user-name">{user.name}</p>
-              <p className={cn("text-xs truncate", theme === "light" ? "text-gray-500" : "text-white/50")} data-testid="text-user-email">{user.email}</p>
-            </div>
-          </div>
-          <Button 
-            variant="ghost" 
-            data-testid="button-theme-toggle"
-            className={cn(
-              "w-full justify-start rounded-xl px-4 mb-1",
-              theme === "light" ? "text-gray-600 hover:bg-gray-100 hover:text-violet-700" : "text-white/50 hover:text-violet-300 hover:bg-white/5"
-            )}
-            onClick={toggleTheme}
-          >
-            {theme === "dark" ? (
-              <>
-                <Sun className="h-4 w-4 mr-2" weight="duotone" />
-                Light mode
-              </>
-            ) : (
-              <>
-                <Moon className="h-4 w-4 mr-2" weight="duotone" />
-                Dark mode
-              </>
-            )}
-          </Button>
-          <Button 
-            variant="ghost" 
-            data-testid="button-signout"
-            className={cn(
-              "w-full justify-start rounded-xl px-4",
-              theme === "light" ? "text-gray-600 hover:text-red-600 hover:bg-red-50" : "text-white/50 hover:text-red-400 hover:bg-red-500/10"
-            )}
-            onClick={async () => {
-              await logout();
-              window.location.href = "/";
-            }}
-          >
-            <SignOut className="h-4 w-4 mr-2" weight="duotone" />
-            Sign out
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button 
+                className={cn(
+                  "w-full px-4 py-2 flex items-center gap-3 rounded-xl transition-colors cursor-pointer",
+                  theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/5"
+                )}
+                data-testid="button-user-menu"
+              >
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-sm font-semibold shadow-glow-sm">
+                  {(user.name || "U").charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1 text-left">
+                  <p className={cn("text-sm font-bold truncate", theme === "light" ? "text-gray-900" : "text-white")} data-testid="text-user-name">{user.name}</p>
+                  <p className={cn("text-xs truncate", theme === "light" ? "text-gray-500" : "text-white/50")} data-testid="text-user-email">{user.email}</p>
+                </div>
+                <CaretDown className={cn("h-4 w-4 flex-shrink-0", theme === "light" ? "text-gray-400" : "text-white/40")} weight="bold" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="start" 
+              className={cn(
+                "w-56 rounded-xl",
+                theme === "light" ? "bg-white border-gray-200" : "bg-[#1a1a1a] border-white/10"
+              )}
+            >
+              <DropdownMenuItem 
+                onClick={restartTutorial}
+                className={cn(
+                  "rounded-lg cursor-pointer",
+                  theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/5"
+                )}
+                data-testid="menu-take-tour"
+              >
+                <Lifebuoy className={cn("h-4 w-4 mr-2", theme === "light" ? "text-fuchsia-500" : "text-fuchsia-400")} weight="duotone" />
+                <span className={theme === "light" ? "text-gray-700" : "text-white/80"}>Take a Tour</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setLocation("/app/guide")}
+                className={cn(
+                  "rounded-lg cursor-pointer",
+                  theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/5"
+                )}
+                data-testid="menu-getting-started"
+              >
+                <BookOpenText className={cn("h-4 w-4 mr-2", theme === "light" ? "text-violet-500" : "text-violet-400")} weight="duotone" />
+                <span className={theme === "light" ? "text-gray-700" : "text-white/80"}>Getting Started Guide</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className={theme === "light" ? "bg-gray-200" : "bg-white/10"} />
+              <DropdownMenuItem 
+                onClick={toggleTheme}
+                className={cn(
+                  "rounded-lg cursor-pointer",
+                  theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/5"
+                )}
+                data-testid="menu-theme-toggle"
+              >
+                {theme === "dark" ? (
+                  <>
+                    <Sun className="h-4 w-4 mr-2 text-amber-400" weight="duotone" />
+                    <span className="text-white/80">Light Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="h-4 w-4 mr-2 text-violet-500" weight="duotone" />
+                    <span className="text-gray-700">Dark Mode</span>
+                  </>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className={theme === "light" ? "bg-gray-200" : "bg-white/10"} />
+              <DropdownMenuItem 
+                onClick={async () => {
+                  await logout();
+                  window.location.href = "/";
+                }}
+                className={cn(
+                  "rounded-lg cursor-pointer",
+                  theme === "light" ? "text-red-600 hover:bg-red-50" : "text-red-400 hover:bg-red-500/10"
+                )}
+                data-testid="menu-signout"
+              >
+                <SignOut className="h-4 w-4 mr-2" weight="duotone" />
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </aside>
 
@@ -170,36 +221,88 @@ export default function Layout({ children }: LayoutProps) {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={toggleTheme}
-            className={cn(
-              "p-2 rounded-xl transition-colors",
-              theme === "light" 
-                ? "text-gray-500 hover:bg-gray-100 hover:text-violet-600" 
-                : "text-white/50 hover:bg-white/5 hover:text-violet-300"
-            )}
-            data-testid="mobile-theme-toggle"
-            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5" weight="duotone" />
-            ) : (
-              <Moon className="h-5 w-5" weight="duotone" />
-            )}
-          </button>
-          <button
-            onClick={async () => {
-              await logout();
-              window.location.href = "/";
-            }}
-            className="p-1 rounded-xl hover:bg-white/5 transition-colors"
-            data-testid="mobile-signout"
-            title="Sign out"
-          >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-xs font-semibold">
-              {(user.name || "U").charAt(0).toUpperCase()}
-            </div>
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="p-1 rounded-xl hover:bg-white/5 transition-colors"
+                data-testid="mobile-user-menu"
+              >
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-white text-xs font-semibold">
+                  {(user.name || "U").charAt(0).toUpperCase()}
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="end" 
+              className={cn(
+                "w-56 rounded-xl",
+                theme === "light" ? "bg-white border-gray-200" : "bg-[#1a1a1a] border-white/10"
+              )}
+            >
+              <div className={cn("px-3 py-2 border-b", theme === "light" ? "border-gray-100" : "border-white/10")}>
+                <p className={cn("text-sm font-bold truncate", theme === "light" ? "text-gray-900" : "text-white")}>{user.name}</p>
+                <p className={cn("text-xs truncate", theme === "light" ? "text-gray-500" : "text-white/50")}>{user.email}</p>
+              </div>
+              <DropdownMenuItem 
+                onClick={restartTutorial}
+                className={cn(
+                  "rounded-lg cursor-pointer",
+                  theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/5"
+                )}
+                data-testid="mobile-menu-take-tour"
+              >
+                <Lifebuoy className={cn("h-4 w-4 mr-2", theme === "light" ? "text-fuchsia-500" : "text-fuchsia-400")} weight="duotone" />
+                <span className={theme === "light" ? "text-gray-700" : "text-white/80"}>Take a Tour</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setLocation("/app/guide")}
+                className={cn(
+                  "rounded-lg cursor-pointer",
+                  theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/5"
+                )}
+                data-testid="mobile-menu-getting-started"
+              >
+                <BookOpenText className={cn("h-4 w-4 mr-2", theme === "light" ? "text-violet-500" : "text-violet-400")} weight="duotone" />
+                <span className={theme === "light" ? "text-gray-700" : "text-white/80"}>Getting Started Guide</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className={theme === "light" ? "bg-gray-200" : "bg-white/10"} />
+              <DropdownMenuItem 
+                onClick={toggleTheme}
+                className={cn(
+                  "rounded-lg cursor-pointer",
+                  theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/5"
+                )}
+                data-testid="mobile-menu-theme-toggle"
+              >
+                {theme === "dark" ? (
+                  <>
+                    <Sun className="h-4 w-4 mr-2 text-amber-400" weight="duotone" />
+                    <span className="text-white/80">Light Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="h-4 w-4 mr-2 text-violet-500" weight="duotone" />
+                    <span className="text-gray-700">Dark Mode</span>
+                  </>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className={theme === "light" ? "bg-gray-200" : "bg-white/10"} />
+              <DropdownMenuItem 
+                onClick={async () => {
+                  await logout();
+                  window.location.href = "/";
+                }}
+                className={cn(
+                  "rounded-lg cursor-pointer",
+                  theme === "light" ? "text-red-600 hover:bg-red-50" : "text-red-400 hover:bg-red-500/10"
+                )}
+                data-testid="mobile-menu-signout"
+              >
+                <SignOut className="h-4 w-4 mr-2" weight="duotone" />
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 

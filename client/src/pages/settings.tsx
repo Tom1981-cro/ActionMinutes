@@ -20,7 +20,6 @@ import WorkspaceSettingsPage from "./workspace-settings";
 import SettingsPrivacyPage from "./settings-privacy";
 import SettingsTermsPage from "./settings-terms";
 import { FeedbackModal } from "@/components/feedback-modal";
-import { useRestartTutorial } from "@/components/tutorial";
 import { cn } from "@/lib/utils";
 
 const ADMIN_EMAIL = "tomi.vida@gmail.com";
@@ -75,7 +74,6 @@ function ExpandableSection({ title, icon, defaultOpen = false, forceOpen, childr
 export default function SettingsPage() {
   const { user, updateUser: updateLocalUser, currentWorkspaceId } = useStore();
   const updateUser = useUpdateUser();
-  const restartTutorial = useRestartTutorial();
   const { geoData } = useGeoData();
   const search = useSearch();
   const tabParam = new URLSearchParams(search).get("tab");
@@ -568,15 +566,6 @@ export default function SettingsPage() {
                 Support
               </Button>
             </Link>
-            <Button
-              variant="outline"
-              onClick={restartTutorial}
-              className="w-full justify-start h-11 rounded-xl"
-              data-testid="button-restart-tutorial"
-            >
-              <Lifebuoy className="h-4 w-4 mr-3 text-fuchsia-400" weight="duotone" />
-              Take a Tour
-            </Button>
             <Button
               variant="outline"
               onClick={() => setFeedbackOpen(true)}
