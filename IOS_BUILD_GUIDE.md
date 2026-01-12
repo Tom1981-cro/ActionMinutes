@@ -1,6 +1,6 @@
 # ActionMinutes iOS Build Guide
 
-A complete step-by-step guide to build and publish ActionMinutes for iOS.
+Complete step-by-step guide to build and publish ActionMinutes for iOS.
 
 ## Table of Contents
 1. [Prerequisites](#prerequisites)
@@ -16,8 +16,8 @@ A complete step-by-step guide to build and publish ActionMinutes for iOS.
 ## Prerequisites
 
 ### Required Software
-- **macOS 12.0+** (Monterey or later)
-- **Xcode 14+** (download from App Store - ~12GB)
+- **macOS 13.0+** (Ventura or later recommended)
+- **Xcode 15+** (download from App Store - ~12GB)
 - **Node.js 18+** and npm
 - **CocoaPods** (Ruby gem for iOS dependencies)
 
@@ -50,48 +50,40 @@ npm install
 # Install CocoaPods (if not installed)
 sudo gem install cocoapods
 
+# Or with Homebrew:
+brew install cocoapods
+
 # Install iOS dependencies
 cd ios/App
-pod install
+pod install --repo-update
 cd ../..
 ```
 
 ### Step 3: Configure Environment
 
-Create a `.env` file in the root with your production settings:
-
-```bash
-# .env (example)
-DATABASE_URL="your_production_database_url"
-NODE_ENV="production"
-CLERK_SECRET_KEY="your_clerk_secret_key"
-OPENAI_API_KEY="your_openai_key"
-```
+Ensure your environment variables are set for production in your deployment.
 
 ---
 
 ## Build Process
 
-### Step 1: Build Web Assets
+### Quick Build (One Command)
 
 ```bash
-# Build the production web application
+# Run the build script
+./scripts/build-ios.sh
+```
+
+### Manual Build Steps
+
+```bash
+# Step 1: Build web assets
 npm run build
-```
 
-This creates the `dist/public` folder with your web assets.
-
-### Step 2: Sync to iOS
-
-```bash
-# Sync web assets to iOS project
+# Step 2: Sync to iOS
 npx cap sync ios
-```
 
-### Step 3: Open in Xcode
-
-```bash
-# Open the iOS project in Xcode
+# Step 3: Open in Xcode
 npx cap open ios
 ```
 
@@ -101,46 +93,38 @@ npx cap open ios
 
 ### 1. Select Development Team
 
-1. Click on "App" in the project navigator (left sidebar)
-2. Select "App" under TARGETS
+1. Click on **"App"** in the project navigator (left sidebar)
+2. Select **"App"** under TARGETS
 3. Go to **Signing & Capabilities** tab
-4. Under "Signing", select your **Team**
-5. The **Bundle Identifier** should be: `com.actionminutes.app`
+4. Under "Signing", select your **Team** from the dropdown
+5. Verify **Bundle Identifier** is: `com.actionminutes.app`
 
 ### 2. Update App Version
 
-1. In the same screen, update:
-   - **Version**: `1.0.0` (user-facing version)
-   - **Build**: `1` (increment for each build)
+In the same General tab:
+- **Version**: `1.0.0` (user-facing version)
+- **Build**: `1` (increment for each build)
 
-### 3. Configure Capabilities
+### 3. Configured Capabilities
 
-The following capabilities are pre-configured:
+The following are already configured:
 
-| Capability | Purpose |
-|------------|---------|
-| Camera | Scan handwritten notes |
-| Photo Library | Import images |
-| Push Notifications | Reminders and alerts |
-| Background Modes | Background refresh |
+| Capability | Purpose | Status |
+|------------|---------|--------|
+| Camera | Scan handwritten notes | ✅ Configured |
+| Photo Library | Import/save images | ✅ Configured |
+| Microphone | Voice notes (future) | ✅ Configured |
+| Face ID | Secure authentication | ✅ Configured |
+| Push Notifications | Reminders & alerts | ✅ Configured |
+| Background Modes | Background refresh | ✅ Configured |
+| Deep Linking | `actionminutes://` URL scheme | ✅ Configured |
 
-### 4. App Icons
+### 4. App Icons & Launch Screen
 
-App icons are located at: `ios/App/App/Assets.xcassets/AppIcon.appiconset/`
-
-**Required sizes:**
-- 1024x1024 (App Store)
-- Already configured in the project
-
-To update icons, replace the image in the asset catalog.
-
-### 5. Launch Screen
-
-The launch screen is configured at: `ios/App/App/Base.lproj/LaunchScreen.storyboard`
-
-Current configuration:
-- Background color: Violet (#6366f1)
-- Displays splash image during load
+- **App Icon**: Located at `ios/App/App/Assets.xcassets/AppIcon.appiconset/`
+  - 1024x1024 icon is included
+- **Launch Screen**: Configured with violet (#6366f1) background
+  - Storyboard at `ios/App/App/Base.lproj/LaunchScreen.storyboard`
 
 ---
 
@@ -148,26 +132,28 @@ Current configuration:
 
 ### Test on Simulator
 
-1. In Xcode, select an iPhone simulator from the device dropdown
+1. In Xcode, select an iPhone simulator from the device dropdown (top bar)
 2. Click the **Play** button (▶) or press `Cmd + R`
 3. The app will build and launch in the simulator
 
 ### Test on Physical Device
 
-1. Connect your iPhone via USB
+1. Connect your iPhone via USB cable
 2. Select your device from the device dropdown
-3. You may need to trust your Mac on the device
+3. On first connection, trust your Mac on the device:
+   - Go to **Settings > General > Device Management** on iPhone
 4. Click **Play** to build and install
 
-### Testing Features
+### Features to Test
 
-Test these key features:
-- [ ] User authentication (Clerk)
-- [ ] Meeting capture and notes
-- [ ] Camera for note scanning
-- [ ] Local notifications/reminders
+- [ ] User authentication (Clerk login)
+- [ ] Meeting capture and note creation
+- [ ] Camera for scanning handwritten notes
+- [ ] Photo gallery import
+- [ ] Local notifications / reminders
 - [ ] Share functionality
 - [ ] Deep links (`actionminutes://`)
+- [ ] App lifecycle (background/foreground)
 
 ---
 
@@ -182,22 +168,22 @@ Test these key features:
    - **Name**: ActionMinutes
    - **Primary Language**: English (US)
    - **Bundle ID**: com.actionminutes.app
-   - **SKU**: actionminutes-001
+   - **SKU**: actionminutes-001 (or your unique ID)
 
 ### Step 2: Archive the App
 
-1. In Xcode, select **Any iOS Device** as the build target
+1. In Xcode, select **Any iOS Device (arm64)** as the build target
 2. Go to **Product** → **Archive**
-3. Wait for the build to complete
-4. The Organizer window will open
+3. Wait for the build to complete (~2-5 minutes)
+4. The Organizer window will open automatically
 
 ### Step 3: Upload to App Store Connect
 
 1. In the Organizer, select your archive
 2. Click **Distribute App**
-3. Select **App Store Connect**
-4. Click **Upload**
-5. Follow the prompts to upload
+3. Select **App Store Connect** → **Upload**
+4. Follow the prompts (signing, entitlements review)
+5. Click **Upload**
 
 ### Step 4: Complete App Store Listing
 
@@ -206,49 +192,49 @@ In App Store Connect, fill in:
 #### App Information
 - **Subtitle**: Turn meetings into action items
 - **Category**: Productivity
-- **Content Rights**: No third-party content
-
-#### Pricing
-- Set your pricing (Free, Paid, or Freemium)
+- **Secondary Category**: Business (optional)
 
 #### Screenshots Required
-| Device | Sizes |
-|--------|-------|
-| iPhone 6.7" | 1290 x 2796 (iPhone 14 Pro Max) |
-| iPhone 6.5" | 1284 x 2778 (iPhone 11 Pro Max) |
-| iPhone 5.5" | 1242 x 2208 (iPhone 8 Plus) |
-| iPad Pro 12.9" | 2048 x 2732 |
 
-#### App Description (Example)
+| Device | Size | Count |
+|--------|------|-------|
+| iPhone 6.7" | 1290 x 2796 | 3-10 |
+| iPhone 6.5" | 1284 x 2778 | 3-10 |
+| iPhone 5.5" | 1242 x 2208 | 3-10 |
+| iPad Pro 12.9" | 2048 x 2732 | 3-10 |
+
+#### App Description
 ```
 ActionMinutes transforms your meetings from time-wasters into productivity powerhouses.
 
 KEY FEATURES:
-• Capture meeting notes with AI-powered action extraction
+• AI-powered action item extraction from meeting notes
 • Scan handwritten notes with your camera
-• Get smart reminders for your action items
-• Track meeting outcomes and deadlines
-• Export to your favorite tools
+• Smart reminders for deadlines and follow-ups
+• Organize meetings by project or team
+• Export and share meeting summaries
+• Secure authentication with Face ID
 
-Never leave a meeting without clear next steps again!
+Stop leaving meetings without clear next steps. ActionMinutes ensures every discussion leads to action.
 ```
 
-#### Keywords
-`meeting notes, action items, productivity, meetings, notes, todo, task management`
+#### Keywords (100 characters max)
+```
+meeting notes,action items,productivity,meetings,notes,todo,task,agenda,minutes,AI,OCR
+```
 
-#### Privacy Policy URL
-`https://your-domain.com/privacy-policy`
-
-#### Support URL
-`https://your-domain.com/support`
+#### Required URLs
+- **Privacy Policy**: Your privacy policy URL
+- **Support URL**: Your support/contact URL
 
 ### Step 5: Submit for Review
 
-1. Complete all required information
-2. Click **Add for Review**
-3. Click **Submit to App Review**
+1. Complete all required fields
+2. Add build from App Store Connect
+3. Click **Add for Review**
+4. Click **Submit to App Review**
 
-Review typically takes 24-48 hours.
+Review typically takes **24-48 hours** (sometimes faster).
 
 ---
 
@@ -257,53 +243,73 @@ Review typically takes 24-48 hours.
 ### Common Issues
 
 #### "Signing requires a development team"
-- Select your Apple Developer team in Signing & Capabilities
+1. Open Xcode → App target → Signing & Capabilities
+2. Select your Apple Developer team from dropdown
 
 #### Pod install fails
 ```bash
 cd ios/App
 pod repo update
+pod deintegrate
 pod install --repo-update
 ```
 
 #### Build fails with module errors
 ```bash
-# Clean and rebuild
+# Clean everything
 cd ios/App
 rm -rf Pods Podfile.lock
+rm -rf ~/Library/Developer/Xcode/DerivedData/*
 pod install
-# Then rebuild in Xcode: Product → Clean Build Folder
+
+# In Xcode: Product → Clean Build Folder (Cmd+Shift+K)
+# Then rebuild
 ```
 
 #### App crashes on launch
-- Check Xcode console for errors
-- Verify all permissions are in Info.plist
-- Ensure web assets are synced (`npx cap sync ios`)
+1. Check Xcode console (View → Debug Area → Activate Console)
+2. Look for crash logs
+3. Verify all permissions are in Info.plist
+4. Ensure web assets are synced: `npx cap sync ios`
 
-#### Push notifications not working
-- Enable Push Notifications capability in Xcode
-- Configure in Apple Developer portal
-- Add APNs key to your server
+#### Camera/Photo permissions not working
+Verify these keys exist in `ios/App/App/Info.plist`:
+- `NSCameraUsageDescription`
+- `NSPhotoLibraryUsageDescription`
+- `NSPhotoLibraryAddUsageDescription`
+
+#### White screen on app launch
+```bash
+# Rebuild and resync
+npm run build
+npx cap sync ios
+# Then rebuild in Xcode
+```
 
 ### Useful Commands
 
 ```bash
-# Rebuild everything from scratch
+# Full rebuild from scratch
+rm -rf node_modules dist ios/App/Pods
+npm install
 npm run build
-npx cap sync ios
 cd ios/App && pod install && cd ../..
+npx cap sync ios
 npx cap open ios
 
-# Check Capacitor configuration
+# Check Capacitor status
 npx cap doctor
 
 # Update Capacitor plugins
 npx cap update ios
+
+# Copy web assets only (faster than sync)
+npx cap copy ios
 ```
 
 ---
 
-## App Configuration Reference
+## Project Configuration Reference
 
 ### capacitor.config.ts
 ```typescript
@@ -311,66 +317,67 @@ npx cap update ios
   appId: 'com.actionminutes.app',
   appName: 'ActionMinutes',
   webDir: 'dist/public',
+  ios: {
+    contentInset: 'automatic',
+    preferredContentMode: 'mobile',
+    scheme: 'actionminutes',
+  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
       backgroundColor: '#6366f1',
-    },
-    LocalNotifications: {
-      smallIcon: 'ic_launcher_foreground',
-      iconColor: '#6366f1',
     },
     StatusBar: {
       style: 'light',
       backgroundColor: '#6366f1',
     },
   },
-  ios: {
-    contentInset: 'automatic',
-    preferredContentMode: 'mobile',
-    scheme: 'actionminutes',
-  },
 }
 ```
 
-### Permissions Configured
-| Permission | Usage Description |
-|------------|-------------------|
-| Camera | Scan and import handwritten notes |
-| Photo Library | Import images of notes |
-| Photo Library Add | Save captured images |
-| Microphone | Voice recording (future) |
-| Face ID | Secure app authentication |
-| Notifications | Reminders and alerts |
+### Capacitor Plugins Included
+| Plugin | Version | Purpose |
+|--------|---------|---------|
+| @capacitor/app | 8.0.0 | App lifecycle |
+| @capacitor/camera | 8.0.0 | Camera & photo access |
+| @capacitor/local-notifications | 8.0.0 | Local notifications |
+| @capacitor/share | 8.0.0 | Native share sheet |
+| @capacitor/splash-screen | 8.0.0 | Launch screen control |
+| @capacitor/status-bar | 8.0.0 | Status bar styling |
+
+### iOS Permissions (Info.plist)
+| Key | Description |
+|-----|-------------|
+| NSCameraUsageDescription | Camera for scanning notes |
+| NSPhotoLibraryUsageDescription | Photo library access |
+| NSPhotoLibraryAddUsageDescription | Save photos to library |
+| NSMicrophoneUsageDescription | Voice recording |
+| NSFaceIDUsageDescription | Biometric authentication |
 
 ---
 
-## Quick Reference Commands
+## Quick Reference
 
 ```bash
-# One-liner to build and sync
+# Quick build and open
 npm run build && npx cap sync ios && npx cap open ios
 
-# Update after code changes
+# After code changes only
 npm run build && npx cap copy ios
 
-# Full clean rebuild
-rm -rf node_modules dist ios/App/Pods
-npm install
-npm run build
-cd ios/App && pod install && cd ../..
-npx cap sync ios
+# Update after dependency changes
+npm install && npx cap sync ios
 ```
 
 ---
 
-## Support
+## Support Resources
 
-For issues with:
-- **Capacitor**: https://capacitorjs.com/docs
-- **Xcode**: https://developer.apple.com/documentation/xcode
+- **Capacitor Docs**: https://capacitorjs.com/docs
+- **Xcode Help**: https://developer.apple.com/documentation/xcode
 - **App Store Connect**: https://developer.apple.com/app-store-connect/
+- **Apple Developer Forums**: https://developer.apple.com/forums/
 
 ---
 
-*Last updated: August 2025*
+*Last updated: January 2025*
