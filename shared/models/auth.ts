@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, jsonb, pgTable, timestamp, varchar, text, boolean } from "drizzle-orm/pg-core";
+import { index, jsonb, pgTable, timestamp, varchar, text, boolean, integer } from "drizzle-orm/pg-core";
 
 // Session storage table (kept for backwards compatibility)
 export const sessions = pgTable(
@@ -63,7 +63,19 @@ export const passwordResetTokens = pgTable("password_reset_tokens", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+export const usageTracking = pgTable("usage_tracking", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  aiExtractions: integer("ai_extractions").notNull().default(0),
+  transcriptionMinutes: integer("transcription_minutes").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 export type RefreshToken = typeof refreshTokens.$inferSelect;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type UsageTracking = typeof usageTracking.$inferSelect;

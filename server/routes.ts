@@ -32,6 +32,14 @@ import bcrypt from "bcryptjs";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth";
 import { requireAuth, optionalAuth } from "./jwt";
+import { 
+  checkUsageLimit, 
+  incrementAiExtraction, 
+  incrementTranscriptionMinutes,
+  requireCapability,
+  getUserUsage
+} from "./middleware/planAccess";
+import { getEffectivePlan, getPlanConfig, getPlanLimit } from "@shared/plans";
 
 // ==================== RBAC HELPERS ====================
 type Permission = 'read' | 'write' | 'manage' | 'delete';
@@ -207,6 +215,33 @@ export async function registerRoutes(
     if (!user) return res.status(404).json({ error: "User not found" });
     const { password: _, ...userWithoutPassword } = user;
     res.json(userWithoutPassword);
+  });
+
+  app.get("/api/users/me/plan", requireAuth, async (req, res) => {
+    const user = await storage.getUser(req.userId!);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    
+    const effectivePlan = getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
+    const planConfig = getPlanConfig(effectivePlan);
+    const usage = await getUserUsage(req.userId!);
+    
+    res.json({
+      plan: effectivePlan,
+      planConfig,
+      usage: {
+        aiExtractions: {
+          used: usage.aiExtractions,
+          limit: planConfig.limits.aiExtractionsPerMonth,
+          unlimited: planConfig.limits.aiExtractionsPerMonth === -1
+        },
+        transcriptionMinutes: {
+          used: usage.transcriptionMinutes,
+          limit: planConfig.limits.transcriptionMinutesPerMonth,
+          unlimited: planConfig.limits.transcriptionMinutesPerMonth === -1
+        }
+      },
+      capabilities: planConfig.capabilities
+    });
   });
 
   // ==================== SEED DATA ROUTE ====================
@@ -1716,6 +1751,18 @@ Thanks!`,
     }
 
     try {
+      const estimatedMinutes = Math.ceil(req.file.size / (16000 * 60));
+      const usageCheck = await incrementTranscriptionMinutes(userId, estimatedMinutes);
+      if (!usageCheck.success) {
+        return res.status(403).json({
+          error: "Monthly transcription limit reached",
+          limitType: 'transcription',
+          current: usageCheck.current,
+          limit: usageCheck.limit,
+          upgradeUrl: '/app/settings?tab=subscription'
+        });
+      }
+
       const result = await transcribeAudio(req.file.buffer, req.file.mimetype);
       res.json(result);
     } catch (error) {
@@ -1759,6 +1806,19 @@ Thanks!`,
           error: "AI features disabled",
           message: "AI extraction is currently disabled. Enable AI_FEATURE_ENABLED to use this feature."
         });
+      }
+
+      if (userId) {
+        const usageCheck = await incrementAiExtraction(userId);
+        if (!usageCheck.success) {
+          return res.status(403).json({
+            error: "Monthly AI extraction limit reached",
+            limitType: 'aiExtractions',
+            current: usageCheck.current,
+            limit: usageCheck.limit,
+            upgradeUrl: '/app/settings?tab=subscription'
+          });
+        }
       }
 
       await storage.updateMeeting(meetingId, { parseState: "processing" });

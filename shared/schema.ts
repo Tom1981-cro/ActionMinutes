@@ -4,9 +4,9 @@ import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 // Import users for references in this file, then re-export everything from auth models
-import { users, sessions, refreshTokens, passwordResetTokens } from "./models/auth";
-export { users, sessions, refreshTokens, passwordResetTokens } from "./models/auth";
-export type { User, UpsertUser, RefreshToken, PasswordResetToken } from "./models/auth";
+import { users, sessions, refreshTokens, passwordResetTokens, usageTracking } from "./models/auth";
+export { users, sessions, refreshTokens, passwordResetTokens, usageTracking } from "./models/auth";
+export type { User, UpsertUser, RefreshToken, PasswordResetToken, UsageTracking } from "./models/auth";
 
 // ==================== WORKSPACES (Phase 2) ====================
 export const workspaces = pgTable("workspaces", {
