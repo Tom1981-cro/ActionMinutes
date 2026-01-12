@@ -160,7 +160,11 @@ function PricingSection() {
   const isEU = geoData?.isEU || false;
   const [isYearly, setIsYearly] = useState(false);
   
-  const prices = {
+  const prices = isEU ? {
+    starter: { monthly: 0, yearly: 0 },
+    pro: { monthly: 10, yearly: 8 },
+    team: { monthly: 25, yearly: 20 }
+  } : {
     starter: { monthly: 0, yearly: 0 },
     pro: { monthly: 12, yearly: Math.round(12 * 12 * 0.8 / 12) },
     team: { monthly: 29, yearly: Math.round(29 * 12 * 0.8 / 12) }
@@ -292,7 +296,7 @@ function PricingSection() {
               </li>
               <li className="flex items-center gap-3 text-white/80">
                 <Check className="h-5 w-5 text-violet-400 flex-shrink-0" weight="bold" />
-                <span>Notion Integration</span>
+                <span>Gmail and Outlook Integration</span>
               </li>
             </ul>
 
