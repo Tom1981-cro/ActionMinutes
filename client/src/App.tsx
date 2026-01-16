@@ -29,6 +29,7 @@ import TestingGuidePage from "@/pages/testing-guide";
 import InvitePage from "@/pages/invite";
 import AgendaPage from "@/pages/agenda";
 import GuidePage from "@/pages/guide";
+import CalendarPage from "@/pages/calendar";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -113,6 +114,11 @@ function Router() {
           <Layout><RemindersPage /></Layout>
         </ProtectedRoute>
       </Route>
+      <Route path="/app/calendar">
+        <ProtectedRoute>
+          <Layout><CalendarPage /></Layout>
+        </ProtectedRoute>
+      </Route>
       <Route path="/app/agenda">
         <ProtectedRoute>
           <Layout><AgendaPage /></Layout>
@@ -162,6 +168,9 @@ function Router() {
       </Route>
       <Route path="/reminders">
         <Redirect to="/app/reminders" />
+      </Route>
+      <Route path="/calendar">
+        <Redirect to="/app/calendar" />
       </Route>
       <Route path="/onboarding">
         <Redirect to="/app/onboarding" />

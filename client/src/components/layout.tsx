@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
-  Lifebuoy, BookOpenText, CaretDown, Robot, User 
+  Lifebuoy, BookOpenText, CaretDown, Robot, User, Calendar 
 } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -53,6 +53,7 @@ export default function Layout({ children }: LayoutProps) {
   const personalItems = [
     { href: "/app/reminders", label: "Reminders", icon: Bell },
     { href: "/app/journal", label: "Journal", icon: BookOpen },
+    { href: "/app/calendar", label: "Calendar", icon: Calendar },
   ];
 
   const showAssistant = !isPersonalMode;
@@ -120,13 +121,13 @@ export default function Layout({ children }: LayoutProps) {
             );
           })()}
 
-          {showAssistant && (
+          {showPersonal && (
             <div className="mb-4">
               <div className={cn("flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wider", theme === "light" ? "text-gray-500" : "text-white/40")}>
-                <Robot weight="duotone" className="h-3 w-3" />
-                Assistant
+                <User weight="duotone" className="h-3 w-3" />
+                Personal
               </div>
-              {assistantItems.map((item) => {
+              {personalItems.map((item) => {
                 const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
                 return (
                   <Link 
@@ -152,13 +153,13 @@ export default function Layout({ children }: LayoutProps) {
             </div>
           )}
 
-          {showPersonal && (
+          {showAssistant && (
             <div className="mb-4">
               <div className={cn("flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wider", theme === "light" ? "text-gray-500" : "text-white/40")}>
-                <User weight="duotone" className="h-3 w-3" />
-                Personal
+                <Robot weight="duotone" className="h-3 w-3" />
+                Assistant
               </div>
-              {personalItems.map((item) => {
+              {assistantItems.map((item) => {
                 const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
                 return (
                   <Link 
@@ -255,6 +256,17 @@ export default function Layout({ children }: LayoutProps) {
                   </>
                 )}
               </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setLocation("/app/settings")}
+                className={cn(
+                  "rounded-lg cursor-pointer",
+                  theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/5"
+                )}
+                data-testid="menu-settings"
+              >
+                <GearSix className={cn("h-4 w-4 mr-2", theme === "light" ? "text-gray-500" : "text-white/60")} weight="duotone" />
+                <span className={theme === "light" ? "text-gray-700" : "text-white/80"}>Settings</span>
+              </DropdownMenuItem>
               <DropdownMenuSeparator className={theme === "light" ? "bg-gray-200" : "bg-white/10"} />
               <DropdownMenuItem 
                 onClick={async () => {
@@ -349,6 +361,17 @@ export default function Layout({ children }: LayoutProps) {
                     <span className="text-gray-700">Dark Mode</span>
                   </>
                 )}
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setLocation("/app/settings")}
+                className={cn(
+                  "rounded-lg cursor-pointer",
+                  theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/5"
+                )}
+                data-testid="mobile-menu-settings"
+              >
+                <GearSix className={cn("h-4 w-4 mr-2", theme === "light" ? "text-gray-500" : "text-white/60")} weight="duotone" />
+                <span className={theme === "light" ? "text-gray-700" : "text-white/80"}>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator className={theme === "light" ? "bg-gray-200" : "bg-white/10"} />
               <DropdownMenuItem 
