@@ -2,7 +2,7 @@ import {
   users, meetings, attendees, decisions, risks, clarifyingQuestions,
   actionItems, followUpDrafts, personalEntries, personalReminders, journalPrompts, journalPromptShown,
   workspaces, workspaceMembers, workspaceInvites,
-  oauthConnections, calendarExports, aiAuditLogs, feedback,
+  oauthConnections, calendarExports, aiAuditLogs, feedback, transcripts,
   refreshTokens, passwordResetTokens,
   type User, type InsertUser,
   type Meeting, type InsertMeeting,
@@ -22,6 +22,7 @@ import {
   type CalendarExport, type InsertCalendarExport,
   type AiAuditLog, type InsertAiAuditLog,
   type Feedback, type InsertFeedback,
+  type Transcript, type InsertTranscript,
   type WorkspaceRole,
   type RefreshToken, type PasswordResetToken
 } from "@shared/schema";
@@ -161,6 +162,14 @@ export interface IStorage {
   getFeedback(id: string): Promise<Feedback | undefined>;
   createFeedback(fb: InsertFeedback): Promise<Feedback>;
   updateFeedback(id: string, updates: Partial<Feedback>): Promise<Feedback | undefined>;
+  
+  // Transcripts
+  getTranscripts(userId: string, workspaceId?: string): Promise<Transcript[]>;
+  getTranscript(id: string): Promise<Transcript | undefined>;
+  createTranscript(transcript: InsertTranscript): Promise<Transcript>;
+  updateTranscript(id: string, updates: Partial<Transcript>): Promise<Transcript | undefined>;
+  deleteTranscript(id: string): Promise<void>;
+  searchTranscripts(userId: string, query: string, workspaceId?: string): Promise<Transcript[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -690,6 +699,56 @@ export class DatabaseStorage implements IStorage {
   async updateFeedback(id: string, updates: Partial<Feedback>): Promise<Feedback | undefined> {
     const [fb] = await db.update(feedback).set(updates).where(eq(feedback.id, id)).returning();
     return fb || undefined;
+  }
+
+  // ==================== TRANSCRIPTS ====================
+  async getTranscripts(userId: string, workspaceId?: string): Promise<Transcript[]> {
+    if (workspaceId) {
+      return await db.select().from(transcripts)
+        .where(and(eq(transcripts.userId, userId), eq(transcripts.workspaceId, workspaceId)))
+        .orderBy(desc(transcripts.createdAt));
+    }
+    return await db.select().from(transcripts)
+      .where(eq(transcripts.userId, userId))
+      .orderBy(desc(transcripts.createdAt));
+  }
+
+  async getTranscript(id: string): Promise<Transcript | undefined> {
+    const [transcript] = await db.select().from(transcripts).where(eq(transcripts.id, id));
+    return transcript || undefined;
+  }
+
+  async createTranscript(transcript: InsertTranscript): Promise<Transcript> {
+    const [newTranscript] = await db.insert(transcripts).values(transcript).returning();
+    return newTranscript;
+  }
+
+  async updateTranscript(id: string, updates: Partial<Transcript>): Promise<Transcript | undefined> {
+    const [transcript] = await db.update(transcripts).set(updates).where(eq(transcripts.id, id)).returning();
+    return transcript || undefined;
+  }
+
+  async deleteTranscript(id: string): Promise<void> {
+    await db.delete(transcripts).where(eq(transcripts.id, id));
+  }
+
+  async searchTranscripts(userId: string, query: string, workspaceId?: string): Promise<Transcript[]> {
+    const searchPattern = `%${query}%`;
+    const conditions = [
+      eq(transcripts.userId, userId),
+      or(
+        ilike(transcripts.title, searchPattern),
+        ilike(transcripts.text, searchPattern)
+      )
+    ];
+    
+    if (workspaceId) {
+      conditions.push(eq(transcripts.workspaceId, workspaceId));
+    }
+    
+    return await db.select().from(transcripts)
+      .where(and(...conditions))
+      .orderBy(desc(transcripts.createdAt));
   }
 }
 

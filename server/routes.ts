@@ -15,7 +15,17 @@ import { getAppConfig, getAppConfigAsync, checkConnectorStatus } from "./config"
 import { extractMeetingNotes, generateFollowUpDrafts, mapConfidenceToStatus, PROMPT_VERSION, isValidActionStatus, VALID_ACTION_STATUSES } from "./ai";
 import multer from "multer";
 import { extractTextFromImage, validateImageFile, MAX_FILE_SIZE } from "./ocr";
-import { transcribeAudio, validateAudioFile, MAX_AUDIO_SIZE, SUPPORTED_AUDIO_TYPES } from "./transcription";
+import { 
+  transcribe, 
+  validateAudioFile, 
+  MAX_AUDIO_SIZE, 
+  SUPPORTED_AUDIO_TYPES, 
+  extractKeywords, 
+  generateSRT, 
+  generateTXT,
+  getAvailableProviders,
+  getSupportedLanguages
+} from "./transcription";
 import {
   exchangeGoogleCode,
   exchangeMicrosoftCode,
@@ -1730,8 +1740,24 @@ Thanks!`,
     limits: { fileSize: MAX_AUDIO_SIZE },
   });
 
+  app.get("/api/transcription/providers", async (req, res) => {
+    const providers = getAvailableProviders();
+    res.json(providers);
+  });
+
+  app.get("/api/transcription/languages", async (req, res) => {
+    const languages = getSupportedLanguages();
+    res.json(languages);
+  });
+
   app.post("/api/transcribe", audioUpload.single("audio"), async (req, res) => {
     const userId = req.query.userId as string;
+    const provider = (req.query.provider as any) || "gemini";
+    const language = req.query.language as string;
+    const modelSize = (req.query.modelSize as any) || "base";
+    const saveTranscript = req.query.save === "true";
+    const meetingId = req.query.meetingId as string;
+    const title = req.query.title as string;
     
     if (!userId) {
       return res.status(400).json({ error: "userId is required" });
@@ -1763,15 +1789,183 @@ Thanks!`,
         });
       }
 
-      const result = await transcribeAudio(req.file.buffer, req.file.mimetype);
-      res.json(result);
-    } catch (error) {
+      const result = await transcribe(req.file.buffer, req.file.mimetype, {
+        provider,
+        language,
+        modelSize,
+      });
+
+      const keywords = extractKeywords(result.text);
+
+      if (saveTranscript) {
+        const user = await storage.getUser(userId, undefined);
+        const transcript = await storage.createTranscript({
+          userId,
+          meetingId: meetingId || null,
+          workspaceId: user?.defaultWorkspaceId || null,
+          title: title || `Transcript ${new Date().toLocaleString()}`,
+          text: result.text,
+          language: result.language || language || "en",
+          duration: result.duration,
+          provider: result.provider,
+          modelSize: result.modelSize,
+          confidence: result.confidence,
+          keywords,
+          segments: result.segments || null,
+          sourceFileName: req.file.originalname,
+          sourceFileSize: req.file.size,
+          sourceMimeType: req.file.mimetype,
+        });
+        
+        res.json({ ...result, keywords, transcriptId: transcript.id });
+      } else {
+        res.json({ ...result, keywords });
+      }
+    } catch (error: any) {
       console.error("[Transcription Error]", error);
       res.status(500).json({ 
-        error: "Transcription failed. Try again or type notes manually.",
+        error: error.message || "Transcription failed. Try again or type notes manually.",
         text: "",
       });
     }
+  });
+
+  const transcriptUpdateSchema = z.object({
+    title: z.string().optional(),
+    text: z.string().optional(),
+    keywords: z.array(z.string()).optional(),
+  });
+
+  app.get("/api/transcripts", async (req, res) => {
+    const userId = req.query.userId as string;
+    const workspaceId = req.query.workspaceId as string;
+    const search = req.query.search as string;
+    
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+    
+    if (search) {
+      const results = await storage.searchTranscripts(userId, search, workspaceId || undefined);
+      return res.json(results);
+    }
+    
+    const transcripts = await storage.getTranscripts(userId, workspaceId || undefined);
+    res.json(transcripts);
+  });
+
+  app.get("/api/transcripts/:id", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+    
+    const transcript = await storage.getTranscript(req.params.id);
+    if (!transcript) {
+      return res.status(404).json({ error: "Transcript not found" });
+    }
+    
+    if (transcript.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    
+    res.json(transcript);
+  });
+
+  app.put("/api/transcripts/:id", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+    
+    const existing = await storage.getTranscript(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ error: "Transcript not found" });
+    }
+    
+    if (existing.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    
+    const parseResult = transcriptUpdateSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ error: "Invalid update data", details: parseResult.error.errors });
+    }
+    
+    const transcript = await storage.updateTranscript(req.params.id, parseResult.data);
+    res.json(transcript);
+  });
+
+  app.delete("/api/transcripts/:id", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+    
+    const existing = await storage.getTranscript(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ error: "Transcript not found" });
+    }
+    
+    if (existing.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    
+    await storage.deleteTranscript(req.params.id);
+    res.json({ success: true });
+  });
+
+  app.get("/api/transcripts/:id/export/srt", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+    
+    const transcript = await storage.getTranscript(req.params.id);
+    if (!transcript) {
+      return res.status(404).json({ error: "Transcript not found" });
+    }
+    
+    if (transcript.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    
+    const segments = transcript.segments as any[] | null;
+    if (!segments || segments.length === 0) {
+      return res.status(400).json({ error: "No segments available for SRT export" });
+    }
+    
+    const srt = generateSRT(segments);
+    res.setHeader("Content-Type", "text/plain");
+    res.setHeader("Content-Disposition", `attachment; filename="${transcript.title || "transcript"}.srt"`);
+    res.send(srt);
+  });
+
+  app.get("/api/transcripts/:id/export/txt", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+    
+    const transcript = await storage.getTranscript(req.params.id);
+    if (!transcript) {
+      return res.status(404).json({ error: "Transcript not found" });
+    }
+    
+    if (transcript.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    
+    const txt = generateTXT(transcript.text, {
+      title: transcript.title || undefined,
+      language: transcript.language || undefined,
+      duration: transcript.duration || undefined,
+      provider: transcript.provider || undefined,
+      keywords: transcript.keywords as string[] | undefined,
+    });
+    res.setHeader("Content-Type", "text/plain");
+    res.setHeader("Content-Disposition", `attachment; filename="${transcript.title || "transcript"}.txt"`);
+    res.send(txt);
   });
 
   // ==================== AI AUDIT LOGS ====================

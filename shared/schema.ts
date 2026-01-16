@@ -224,6 +224,28 @@ export const feedback = pgTable("feedback", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// ==================== TRANSCRIPTS ====================
+export const transcripts = pgTable("transcripts", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  meetingId: varchar("meeting_id", { length: 36 }).references(() => meetings.id, { onDelete: 'set null' }),
+  workspaceId: varchar("workspace_id", { length: 36 }).references(() => workspaces.id, { onDelete: 'set null' }),
+  title: text("title"),
+  text: text("text").notNull(),
+  language: text("language").notNull().default('en'),
+  duration: integer("duration"), // in seconds
+  provider: text("provider").notNull().default('gemini'), // gemini, whisper, whisper-self-hosted
+  modelSize: text("model_size").default('base'), // tiny, base, small, medium, large
+  confidence: real("confidence"),
+  keywords: text("keywords").array().notNull().default(sql`ARRAY[]::text[]`),
+  segments: jsonb("segments"), // Array of {start, end, text} for SRT generation
+  sourceFileName: text("source_file_name"),
+  sourceFileSize: integer("source_file_size"),
+  sourceMimeType: text("source_mime_type"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // ==================== INSERT SCHEMAS ====================
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -319,6 +341,12 @@ export const insertFeedbackSchema = createInsertSchema(feedback).omit({
   createdAt: true,
 });
 
+export const insertTranscriptSchema = createInsertSchema(transcripts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // ==================== TYPES ====================
 // Note: User and UpsertUser types are exported from ./models/auth
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -374,7 +402,18 @@ export type JournalPrompt = typeof journalPrompts.$inferSelect;
 export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
 export type Feedback = typeof feedback.$inferSelect;
 
+export type InsertTranscript = z.infer<typeof insertTranscriptSchema>;
+export type Transcript = typeof transcripts.$inferSelect;
+
 // ==================== ADDITIONAL TYPES ====================
+export type TranscriptionProvider = 'gemini' | 'whisper' | 'whisper-self-hosted';
+export type WhisperModelSize = 'tiny' | 'base' | 'small' | 'medium' | 'large';
+
+export interface TranscriptSegment {
+  start: number;
+  end: number;
+  text: string;
+}
 export type ReminderBucket = 'today' | 'tomorrow' | 'next_week' | 'next_month' | 'sometime';
 export type ReminderPriority = 'low' | 'normal' | 'high';
 export type JournalMood = 'good' | 'okay' | 'tough';
