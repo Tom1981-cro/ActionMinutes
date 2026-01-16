@@ -6,18 +6,32 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { 
   CheckCircle, Clock, AlertTriangle, Loader2, 
   Bell, MessageCircle, Pencil, User, Calendar,
-  Users
+  Users, Zap
 } from "lucide-react";
 import { format } from "date-fns";
 import { useActionItems, useUpdateActionItem } from "@/lib/hooks";
 import { useToast } from "@/hooks/use-toast";
 import { ActionEditSheet } from "@/components/action-edit-sheet";
 import { useStore } from "@/lib/store";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 type FilterType = "mine" | "workspace";
+type SourceType = "all" | "meetings" | "quickadd";
+
+interface UnifiedItem {
+  id: string;
+  text: string;
+  dueDate: string | null;
+  ownerName: string | null;
+  status: string;
+  source: 'meeting' | 'quickadd';
+  confidenceOwner?: number;
+  confidenceDueDate?: number;
+  originalItem: any;
+}
 
 interface ActionCardProps {
-  item: any;
+  item: UnifiedItem;
   onDone: () => void;
   onWaiting: () => void;
   onRemind: () => void;
@@ -28,7 +42,7 @@ interface ActionCardProps {
 }
 
 function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap, isReview }: ActionCardProps) {
-  const lowConfidence = item.confidenceOwner < 0.6 || item.confidenceDueDate < 0.6;
+  const lowConfidence = (item.confidenceOwner && item.confidenceOwner < 0.6) || (item.confidenceDueDate && item.confidenceDueDate < 0.6);
   const isOverdue = item.dueDate && new Date(item.dueDate) < new Date();
 
   return (
@@ -47,6 +61,12 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
               
               <div className="flex flex-wrap gap-2">
                 <StatusBadge status={item.status} size="sm" />
+                {item.source === 'quickadd' && (
+                  <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-violet-500/20 text-violet-400 border-violet-500/30">
+                    <Zap className="h-3 w-3" />
+                    Quick Add
+                  </span>
+                )}
                 {lowConfidence && (
                   <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-amber-500/20 text-amber-400 border-amber-500/30">
                     <AlertTriangle className="h-3 w-3" />
@@ -140,15 +160,44 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
 }
 
 export default function InboxPage() {
-  const { data: actionItems = [], isLoading } = useActionItems();
+  const { data: actionItems = [], isLoading: actionsLoading } = useActionItems();
   const updateActionItem = useUpdateActionItem();
   const { toast } = useToast();
   const [filter, setFilter] = useState<FilterType>("mine");
+  const [sourceFilter, setSourceFilter] = useState<SourceType>("all");
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const { user, currentWorkspaceId } = useStore();
+  const queryClient = useQueryClient();
 
   const isPersonalMode = currentWorkspaceId === null;
+
+  const { data: reminders = [], isLoading: remindersLoading } = useQuery({
+    queryKey: ["reminders", user.id],
+    queryFn: async () => {
+      const response = await fetch(`/api/personal/reminders?userId=${user.id}`);
+      if (!response.ok) throw new Error("Failed to fetch reminders");
+      return response.json();
+    },
+    enabled: !!user.id,
+  });
+
+  const updateReminder = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: any }) => {
+      const response = await fetch(`/api/personal/reminders/${id}?userId=${user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (!response.ok) throw new Error("Failed to update reminder");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["reminders"] });
+    },
+  });
+
+  const isLoading = actionsLoading || remindersLoading;
 
   if (isLoading) {
     return (
@@ -158,30 +207,65 @@ export default function InboxPage() {
     );
   }
 
-  const filteredItems = actionItems.filter((item: any) => {
+  const unifiedItems: UnifiedItem[] = [
+    ...actionItems.map((item: any) => ({
+      id: item.id,
+      text: item.text,
+      dueDate: item.dueDate,
+      ownerName: item.ownerName,
+      status: item.status,
+      source: 'meeting' as const,
+      confidenceOwner: item.confidenceOwner,
+      confidenceDueDate: item.confidenceDueDate,
+      originalItem: item,
+    })),
+    ...reminders
+      .filter((r: any) => !r.isCompleted)
+      .map((item: any) => ({
+        id: `reminder-${item.id}`,
+        text: item.text,
+        dueDate: item.dueDate,
+        ownerName: user.name,
+        status: 'open',
+        source: 'quickadd' as const,
+        originalItem: item,
+      })),
+  ];
+
+  const filteredItems = unifiedItems.filter((item) => {
+    if (sourceFilter === 'meetings' && item.source !== 'meeting') return false;
+    if (sourceFilter === 'quickadd' && item.source !== 'quickadd') return false;
+    
     if (isPersonalMode || filter === "mine") {
       return item.ownerName?.toLowerCase() === user.name?.toLowerCase() || 
-             item.ownerId === user.id ||
-             (!item.ownerName && !item.ownerId);
+             item.originalItem.ownerId === user.id ||
+             (!item.ownerName && !item.originalItem.ownerId) ||
+             item.source === 'quickadd';
     }
     return true;
   });
 
-  const needsReview = filteredItems.filter((i: any) => i.status === "needs_review");
-  const openItems = filteredItems.filter((i: any) => i.status === "open" || i.status === "pending" || i.status === "waiting").sort((a: any, b: any) => {
+  const needsReview = filteredItems.filter((i) => i.status === "needs_review");
+  const openItems = filteredItems.filter((i) => i.status === "open" || i.status === "pending" || i.status === "waiting").sort((a, b) => {
     if (!a.dueDate) return 1;
     if (!b.dueDate) return -1;
     return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
   });
 
-  const markDone = (id: string) => {
-    updateActionItem.mutate({ id, updates: { status: "done" } });
+  const markDone = (item: UnifiedItem) => {
+    if (item.source === 'meeting') {
+      updateActionItem.mutate({ id: item.originalItem.id, updates: { status: "done" } });
+    } else {
+      updateReminder.mutate({ id: item.originalItem.id, updates: { isCompleted: true } });
+    }
     toast({ title: "Marked as done" });
   };
 
-  const markWaiting = (id: string) => {
-    updateActionItem.mutate({ id, updates: { status: "waiting" } });
-    toast({ title: "Marked as waiting", description: "Waiting for a response." });
+  const markWaiting = (item: UnifiedItem) => {
+    if (item.source === 'meeting') {
+      updateActionItem.mutate({ id: item.originalItem.id, updates: { status: "waiting" } });
+      toast({ title: "Marked as waiting", description: "Waiting for a response." });
+    }
   };
   
   const handleRemind = (id: string) => {
@@ -192,17 +276,23 @@ export default function InboxPage() {
     toast({ title: "Nudge sent", description: "The owner has been notified." });
   };
   
-  const handleEdit = (item: any) => {
-    setEditingItem(item);
-    setEditSheetOpen(true);
+  const handleEdit = (item: UnifiedItem) => {
+    if (item.source === 'meeting') {
+      setEditingItem(item.originalItem);
+      setEditSheetOpen(true);
+    }
   };
 
-  const handleTap = (item: any) => {
-    setEditingItem(item);
-    setEditSheetOpen(true);
+  const handleTap = (item: UnifiedItem) => {
+    if (item.source === 'meeting') {
+      setEditingItem(item.originalItem);
+      setEditSheetOpen(true);
+    }
   };
 
   const totalItems = needsReview.length + openItems.length;
+  const meetingCount = unifiedItems.filter(i => i.source === 'meeting' && !['done', 'completed'].includes(i.status)).length;
+  const quickAddCount = unifiedItems.filter(i => i.source === 'quickadd').length;
 
   return (
     <div className="space-y-5 pb-6">
@@ -216,38 +306,82 @@ export default function InboxPage() {
           </div>
         </div>
 
-        {!isPersonalMode && (
-          <div className="flex gap-2 p-1 glass-panel rounded-xl">
+        <div className="flex flex-wrap gap-2">
+          {!isPersonalMode && (
+            <div className="flex gap-1 p-1 glass-panel rounded-xl">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFilter("mine")}
+                className={`h-8 rounded-lg text-xs transition-all duration-300 ${
+                  filter === "mine" 
+                    ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' 
+                    : 'text-white/60 hover:text-white/80'
+                }`}
+                data-testid="filter-mine"
+              >
+                <User className="h-3 w-3 mr-1" />
+                Mine
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFilter("workspace")}
+                className={`h-8 rounded-lg text-xs transition-all duration-300 ${
+                  filter === "workspace" 
+                    ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' 
+                    : 'text-white/60 hover:text-white/80'
+                }`}
+                data-testid="filter-workspace"
+              >
+                <Users className="h-3 w-3 mr-1" />
+                Team
+              </Button>
+            </div>
+          )}
+
+          <div className="flex gap-1 p-1 glass-panel rounded-xl">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setFilter("mine")}
-              className={`flex-1 h-10 rounded-xl transition-all duration-300 ${
-                filter === "mine" 
-                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30 shadow-glow-sm' 
-                  : 'text-white/60 hover:text-white/80 light:text-gray-700 light:hover:text-violet-700 light:hover:bg-gray-100'
+              onClick={() => setSourceFilter("all")}
+              className={`h-8 rounded-lg text-xs transition-all duration-300 ${
+                sourceFilter === "all" 
+                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' 
+                  : 'text-white/60 hover:text-white/80'
               }`}
-              data-testid="filter-mine"
+              data-testid="source-all"
             >
-              <User className="h-4 w-4 mr-2" />
-              Mine
+              All
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setFilter("workspace")}
-              className={`flex-1 h-10 rounded-xl transition-all duration-300 ${
-                filter === "workspace" 
-                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30 shadow-glow-sm' 
-                  : 'text-white/60 hover:text-white/80 light:text-gray-700 light:hover:text-violet-700 light:hover:bg-gray-100'
+              onClick={() => setSourceFilter("meetings")}
+              className={`h-8 rounded-lg text-xs transition-all duration-300 ${
+                sourceFilter === "meetings" 
+                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' 
+                  : 'text-white/60 hover:text-white/80'
               }`}
-              data-testid="filter-workspace"
+              data-testid="source-meetings"
             >
-              <Users className="h-4 w-4 mr-2" />
-              Workspace
+              Meetings ({meetingCount})
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSourceFilter("quickadd")}
+              className={`h-8 rounded-lg text-xs transition-all duration-300 ${
+                sourceFilter === "quickadd" 
+                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' 
+                  : 'text-white/60 hover:text-white/80'
+              }`}
+              data-testid="source-quickadd"
+            >
+              Quick Add ({quickAddCount})
             </Button>
           </div>
-        )}
+        </div>
       </div>
 
       {needsReview.length > 0 && (
@@ -263,12 +397,12 @@ export default function InboxPage() {
           </div>
           
           <div className="space-y-3">
-            {needsReview.map((item: any) => (
+            {needsReview.map((item) => (
               <ActionCard 
                 key={item.id} 
                 item={item} 
-                onDone={() => markDone(item.id)}
-                onWaiting={() => markWaiting(item.id)}
+                onDone={() => markDone(item)}
+                onWaiting={() => markWaiting(item)}
                 onRemind={() => handleRemind(item.id)}
                 onNudge={() => handleNudge(item.id)}
                 onEdit={() => handleEdit(item)}
@@ -299,7 +433,7 @@ export default function InboxPage() {
                </div>
                <div>
                  <p className="text-lg font-medium text-white">Inbox zero!</p>
-                 <p className="text-white/50 text-base mt-1">No open items. You're all caught up.</p>
+                 <p className="text-white/50 text-base mt-1">Press Q to quick-add a task.</p>
                </div>
              </CardContent>
            </Card>
@@ -311,12 +445,12 @@ export default function InboxPage() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {openItems.map((item: any) => (
+            {openItems.map((item) => (
               <ActionCard 
                 key={item.id} 
                 item={item} 
-                onDone={() => markDone(item.id)}
-                onWaiting={() => markWaiting(item.id)}
+                onDone={() => markDone(item)}
+                onWaiting={() => markWaiting(item)}
                 onRemind={() => handleRemind(item.id)}
                 onNudge={() => handleNudge(item.id)}
                 onEdit={() => handleEdit(item)}

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
-  Lifebuoy, BookOpenText, CaretDown 
+  Lifebuoy, BookOpenText, CaretDown, Robot, User 
 } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import { useRestartTutorial } from "@/components/tutorial";
+import { QuickAdd } from "@/components/quick-add";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,21 +42,21 @@ export default function Layout({ children }: LayoutProps) {
 
   const isPersonalMode = currentWorkspaceId === null && user.enablePersonal;
 
-  const personalNavItems = [
-    { href: "/app/reminders", label: "Reminders", icon: Bell, primary: true },
-    { href: "/app/journal", label: "Journal", icon: BookOpen },
-    { href: "/app/settings", label: "Settings", icon: GearSix },
-  ];
-
-  const teamNavItems = [
-    { href: "/app/inbox", label: "Inbox", icon: Tray },
-    { href: "/app/meetings", label: "Meetings", icon: CalendarBlank },
+  const inboxItem = { href: "/app/inbox", label: "Inbox", icon: Tray };
+  
+  const assistantItems = [
     { href: "/app/capture", label: "Capture", icon: PlusCircle, primary: true },
+    { href: "/app/meetings", label: "Meetings", icon: CalendarBlank },
     { href: "/app/drafts", label: "Drafts", icon: FileText },
-    { href: "/app/settings", label: "Settings", icon: GearSix },
   ];
 
-  const navItems = isPersonalMode ? personalNavItems : teamNavItems;
+  const personalItems = [
+    { href: "/app/reminders", label: "Reminders", icon: Bell },
+    { href: "/app/journal", label: "Journal", icon: BookOpen },
+  ];
+
+  const showAssistant = !isPersonalMode;
+  const showPersonal = isPersonalMode || user.enablePersonal;
 
   if (isLoading) {
     return (
@@ -95,17 +96,16 @@ export default function Layout({ children }: LayoutProps) {
           <WorkspaceSwitcher />
         </div>
 
-        <nav className="space-y-1 flex-1">
-          {navItems.map((item) => {
-            const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+        <nav className="space-y-1 flex-1 overflow-y-auto">
+          {(() => {
+            const isInboxActive = location === inboxItem.href || location.startsWith(inboxItem.href);
             return (
               <Link 
-                key={item.href} 
-                href={item.href}
-                data-testid={`nav-${item.label.toLowerCase()}`}
+                href={inboxItem.href}
+                data-testid={`nav-${inboxItem.label.toLowerCase()}`}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 cursor-pointer",
-                  isActive
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 cursor-pointer mb-4",
+                  isInboxActive
                     ? theme === "light"
                       ? "bg-violet-100 text-violet-700 font-semibold border border-violet-300/50"
                       : "bg-violet-500/20 text-violet-300 font-semibold border border-violet-500/30 shadow-glow-sm"
@@ -114,11 +114,75 @@ export default function Layout({ children }: LayoutProps) {
                       : "text-white/70 hover:bg-white/5 hover:text-violet-300"
                 )}
               >
-                <item.icon className={cn("h-4 w-4", isActive ? (theme === "light" ? "text-violet-600" : "text-violet-400") : (theme === "light" ? "text-gray-500" : "text-white/50"))} weight="duotone" />
-                {item.label}
+                <inboxItem.icon className={cn("h-4 w-4", isInboxActive ? (theme === "light" ? "text-violet-600" : "text-violet-400") : (theme === "light" ? "text-gray-500" : "text-white/50"))} weight="duotone" />
+                {inboxItem.label}
               </Link>
             );
-          })}
+          })()}
+
+          {showAssistant && (
+            <div className="mb-4">
+              <div className={cn("flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wider", theme === "light" ? "text-gray-500" : "text-white/40")}>
+                <Robot weight="duotone" className="h-3 w-3" />
+                Assistant
+              </div>
+              {assistantItems.map((item) => {
+                const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+                return (
+                  <Link 
+                    key={item.href} 
+                    href={item.href}
+                    data-testid={`nav-${item.label.toLowerCase()}`}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 cursor-pointer",
+                      isActive
+                        ? theme === "light"
+                          ? "bg-violet-100 text-violet-700 font-semibold border border-violet-300/50"
+                          : "bg-violet-500/20 text-violet-300 font-semibold border border-violet-500/30 shadow-glow-sm"
+                        : theme === "light"
+                          ? "text-gray-700 hover:bg-gray-100 hover:text-violet-700"
+                          : "text-white/70 hover:bg-white/5 hover:text-violet-300"
+                    )}
+                  >
+                    <item.icon className={cn("h-4 w-4", isActive ? (theme === "light" ? "text-violet-600" : "text-violet-400") : (theme === "light" ? "text-gray-500" : "text-white/50"))} weight="duotone" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          {showPersonal && (
+            <div className="mb-4">
+              <div className={cn("flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wider", theme === "light" ? "text-gray-500" : "text-white/40")}>
+                <User weight="duotone" className="h-3 w-3" />
+                Personal
+              </div>
+              {personalItems.map((item) => {
+                const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+                return (
+                  <Link 
+                    key={item.href} 
+                    href={item.href}
+                    data-testid={`nav-${item.label.toLowerCase()}`}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 cursor-pointer",
+                      isActive
+                        ? theme === "light"
+                          ? "bg-violet-100 text-violet-700 font-semibold border border-violet-300/50"
+                          : "bg-violet-500/20 text-violet-300 font-semibold border border-violet-500/30 shadow-glow-sm"
+                        : theme === "light"
+                          ? "text-gray-700 hover:bg-gray-100 hover:text-violet-700"
+                          : "text-white/70 hover:bg-white/5 hover:text-violet-300"
+                    )}
+                  >
+                    <item.icon className={cn("h-4 w-4", isActive ? (theme === "light" ? "text-violet-600" : "text-violet-400") : (theme === "light" ? "text-gray-500" : "text-white/50"))} weight="duotone" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </nav>
 
         <div className={cn("mt-auto pt-4 border-t", theme === "light" ? "border-gray-200" : "border-white/10")}>
@@ -319,9 +383,10 @@ export default function Layout({ children }: LayoutProps) {
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex items-center justify-around h-16">
-          {navItems.map((item) => {
+          {[inboxItem, ...assistantItems.slice(0, 1), ...(showPersonal ? personalItems.slice(0, 1) : [])].map((item) => {
             const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             const Icon = item.icon;
+            const isPrimary = (item as any).primary;
             
             return (
               <Link
@@ -333,7 +398,7 @@ export default function Layout({ children }: LayoutProps) {
                   isActive ? "text-violet-400" : "text-white/40"
                 )}
               >
-                {item.primary ? (
+                {isPrimary ? (
                   <div className="flex flex-col items-center -mt-4">
                     <div className={cn(
                       "flex items-center justify-center w-12 h-12 rounded-full transition-all btn-gradient",
@@ -359,7 +424,7 @@ export default function Layout({ children }: LayoutProps) {
                     </span>
                   </>
                 )}
-                {isActive && !item.primary && (
+                {isActive && !isPrimary && (
                   <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-violet-500 rounded-full shadow-glow-sm" />
                 )}
               </Link>
@@ -367,6 +432,8 @@ export default function Layout({ children }: LayoutProps) {
           })}
         </div>
       </nav>
+
+      <QuickAdd />
     </div>
   );
 }
