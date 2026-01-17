@@ -5,6 +5,7 @@ import {
   oauthConnections, calendarExports, aiAuditLogs, feedback, transcripts,
   transcriptSummaries, transcriptTasks, projects, tasks,
   refreshTokens, passwordResetTokens, calendarEvents, calendarWebhooks,
+  notes, noteTags, noteTagMap, noteLinks, noteAttachments,
   type User, type InsertUser,
   type Meeting, type InsertMeeting,
   type Attendee, type InsertAttendee,
@@ -31,7 +32,11 @@ import {
   type WorkspaceRole,
   type RefreshToken, type PasswordResetToken,
   type CalendarEvent, type InsertCalendarEvent,
-  type CalendarWebhook, type InsertCalendarWebhook
+  type CalendarWebhook, type InsertCalendarWebhook,
+  type Note, type InsertNote,
+  type NoteTag, type InsertNoteTag,
+  type NoteLink, type InsertNoteLink,
+  type NoteAttachment, type InsertNoteAttachment
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, or, isNull, ilike, gte, lte, inArray, lt } from "drizzle-orm";
@@ -233,6 +238,39 @@ export interface IStorage {
   createCalendarWebhook(webhook: InsertCalendarWebhook): Promise<CalendarWebhook>;
   deleteCalendarWebhook(id: string): Promise<void>;
   deleteExpiredWebhooks(): Promise<void>;
+  
+  // Notes
+  getNotes(userId: string, options?: { search?: string; tagId?: string; isJournal?: boolean; limit?: number }): Promise<Note[]>;
+  getNote(id: string): Promise<Note | undefined>;
+  createNote(note: InsertNote): Promise<Note>;
+  updateNote(id: string, updates: Partial<Note>): Promise<Note | undefined>;
+  deleteNote(id: string): Promise<void>;
+  searchNotes(userId: string, query: string): Promise<Note[]>;
+  
+  // Note Tags
+  getNoteTags(userId: string): Promise<NoteTag[]>;
+  getNoteTag(id: string): Promise<NoteTag | undefined>;
+  createNoteTag(tag: InsertNoteTag): Promise<NoteTag>;
+  updateNoteTag(id: string, updates: Partial<NoteTag>): Promise<NoteTag | undefined>;
+  deleteNoteTag(id: string): Promise<void>;
+  
+  // Note Tag Mappings
+  getNoteTagsForNote(noteId: string): Promise<NoteTag[]>;
+  addTagToNote(noteId: string, tagId: string): Promise<void>;
+  removeTagFromNote(noteId: string, tagId: string): Promise<void>;
+  
+  // Note Links
+  getNoteLinks(noteId: string): Promise<{ fromNote: Note; toNote: Note }[]>;
+  createNoteLink(fromNoteId: string, toNoteId: string): Promise<NoteLink>;
+  deleteNoteLink(fromNoteId: string, toNoteId: string): Promise<void>;
+  
+  // Note Attachments
+  getNoteAttachments(noteId: string): Promise<NoteAttachment[]>;
+  createNoteAttachment(attachment: InsertNoteAttachment): Promise<NoteAttachment>;
+  deleteNoteAttachment(id: string): Promise<void>;
+  
+  // Notes Feed
+  getNotesFeed(userId: string, limit?: number): Promise<Note[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1133,6 +1171,159 @@ export class DatabaseStorage implements IStorage {
 
   async deleteExpiredWebhooks(): Promise<void> {
     await db.delete(calendarWebhooks).where(lt(calendarWebhooks.expiresAt, new Date()));
+  }
+
+  // ==================== NOTES ====================
+  async getNotes(userId: string, options?: { search?: string; tagId?: string; isJournal?: boolean; limit?: number }): Promise<Note[]> {
+    const conditions = [eq(notes.userId, userId)];
+    if (options?.isJournal !== undefined) {
+      conditions.push(eq(notes.isJournal, options.isJournal));
+    }
+    if (options?.search) {
+      conditions.push(ilike(notes.searchVector, `%${options.search}%`));
+    }
+    
+    let query = db.select().from(notes)
+      .where(and(...conditions))
+      .orderBy(desc(notes.isPinned), desc(notes.updatedAt));
+    
+    if (options?.limit) {
+      query = query.limit(options.limit) as typeof query;
+    }
+    
+    return await query;
+  }
+
+  async getNote(id: string): Promise<Note | undefined> {
+    const [note] = await db.select().from(notes).where(eq(notes.id, id));
+    return note || undefined;
+  }
+
+  async createNote(note: InsertNote): Promise<Note> {
+    const [newNote] = await db.insert(notes).values(note).returning();
+    return newNote;
+  }
+
+  async updateNote(id: string, updates: Partial<Note>): Promise<Note | undefined> {
+    const [note] = await db.update(notes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(notes.id, id))
+      .returning();
+    return note || undefined;
+  }
+
+  async deleteNote(id: string): Promise<void> {
+    await db.delete(notes).where(eq(notes.id, id));
+  }
+
+  async searchNotes(userId: string, query: string): Promise<Note[]> {
+    return await db.select().from(notes)
+      .where(and(
+        eq(notes.userId, userId),
+        or(
+          ilike(notes.title, `%${query}%`),
+          ilike(notes.searchVector, `%${query}%`)
+        )
+      ))
+      .orderBy(desc(notes.updatedAt));
+  }
+
+  // ==================== NOTE TAGS ====================
+  async getNoteTags(userId: string): Promise<NoteTag[]> {
+    return await db.select().from(noteTags)
+      .where(eq(noteTags.userId, userId))
+      .orderBy(noteTags.name);
+  }
+
+  async getNoteTag(id: string): Promise<NoteTag | undefined> {
+    const [tag] = await db.select().from(noteTags).where(eq(noteTags.id, id));
+    return tag || undefined;
+  }
+
+  async createNoteTag(tag: InsertNoteTag): Promise<NoteTag> {
+    const [newTag] = await db.insert(noteTags).values(tag).returning();
+    return newTag;
+  }
+
+  async updateNoteTag(id: string, updates: Partial<NoteTag>): Promise<NoteTag | undefined> {
+    const [tag] = await db.update(noteTags)
+      .set(updates)
+      .where(eq(noteTags.id, id))
+      .returning();
+    return tag || undefined;
+  }
+
+  async deleteNoteTag(id: string): Promise<void> {
+    await db.delete(noteTags).where(eq(noteTags.id, id));
+  }
+
+  // ==================== NOTE TAG MAPPINGS ====================
+  async getNoteTagsForNote(noteId: string): Promise<NoteTag[]> {
+    const result = await db.select({ tag: noteTags })
+      .from(noteTagMap)
+      .innerJoin(noteTags, eq(noteTagMap.tagId, noteTags.id))
+      .where(eq(noteTagMap.noteId, noteId));
+    return result.map(r => r.tag);
+  }
+
+  async addTagToNote(noteId: string, tagId: string): Promise<void> {
+    await db.insert(noteTagMap).values({ noteId, tagId }).onConflictDoNothing();
+  }
+
+  async removeTagFromNote(noteId: string, tagId: string): Promise<void> {
+    await db.delete(noteTagMap)
+      .where(and(eq(noteTagMap.noteId, noteId), eq(noteTagMap.tagId, tagId)));
+  }
+
+  // ==================== NOTE LINKS ====================
+  async getNoteLinks(noteId: string): Promise<{ fromNote: Note; toNote: Note }[]> {
+    const linksFrom = await db.select()
+      .from(noteLinks)
+      .innerJoin(notes, eq(noteLinks.toNoteId, notes.id))
+      .where(eq(noteLinks.fromNoteId, noteId));
+    
+    const results: { fromNote: Note; toNote: Note }[] = [];
+    for (const link of linksFrom) {
+      const [fromNote] = await db.select().from(notes).where(eq(notes.id, noteId));
+      if (fromNote) {
+        results.push({ fromNote, toNote: link.notes });
+      }
+    }
+    return results;
+  }
+
+  async createNoteLink(fromNoteId: string, toNoteId: string): Promise<NoteLink> {
+    const [link] = await db.insert(noteLinks).values({ fromNoteId, toNoteId }).returning();
+    return link;
+  }
+
+  async deleteNoteLink(fromNoteId: string, toNoteId: string): Promise<void> {
+    await db.delete(noteLinks)
+      .where(and(eq(noteLinks.fromNoteId, fromNoteId), eq(noteLinks.toNoteId, toNoteId)));
+  }
+
+  // ==================== NOTE ATTACHMENTS ====================
+  async getNoteAttachments(noteId: string): Promise<NoteAttachment[]> {
+    return await db.select().from(noteAttachments)
+      .where(eq(noteAttachments.noteId, noteId))
+      .orderBy(desc(noteAttachments.createdAt));
+  }
+
+  async createNoteAttachment(attachment: InsertNoteAttachment): Promise<NoteAttachment> {
+    const [newAttachment] = await db.insert(noteAttachments).values(attachment).returning();
+    return newAttachment;
+  }
+
+  async deleteNoteAttachment(id: string): Promise<void> {
+    await db.delete(noteAttachments).where(eq(noteAttachments.id, id));
+  }
+
+  // ==================== NOTES FEED ====================
+  async getNotesFeed(userId: string, limit: number = 20): Promise<Note[]> {
+    return await db.select().from(notes)
+      .where(eq(notes.userId, userId))
+      .orderBy(desc(notes.createdAt))
+      .limit(limit);
   }
 }
 
