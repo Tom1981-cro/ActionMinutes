@@ -18,9 +18,9 @@ Key application flows include:
 - **AI Extraction**: Processing of notes to extract summaries, action items, decisions, and risks.
 - **Draft Generation**: Automated creation of follow-up emails.
 
-The system incorporates plan-based access control with Free, Pro, and Team tiers, managing features and usage limits. Admin access is available for demo purposes. A feedback system allows users to submit feedback with optional diagnostics.
+The system incorporates plan-based access control with Free and Pro tiers, managing features and usage limits. Admin access is available for demo purposes. A feedback system allows users to submit feedback with optional diagnostics.
 
-The UI/UX emphasizes a mode-based navigation structure, differentiating between Personal and Team/Work modes, each with tailored primary navigation.
+The UI/UX is designed as a personal productivity assistant with a streamlined sidebar navigation showing all features at once.
 
 ## External Dependencies
 

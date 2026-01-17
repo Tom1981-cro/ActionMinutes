@@ -71,18 +71,6 @@ export default function GuidePage() {
       ],
       screenshot: null,
     },
-    {
-      number: 6,
-      title: "Collaborate with Your Team",
-      icon: Users,
-      description: "Create workspaces to share meetings with your team. Everyone sees the same action items and can track progress together.",
-      tips: [
-        "Invite team members via email",
-        "Switch between Personal and Team modes",
-        "Each workspace has its own meetings and inbox"
-      ],
-      screenshot: null,
-    },
   ];
 
   const personalFeatures = [

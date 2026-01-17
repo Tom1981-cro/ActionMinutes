@@ -85,13 +85,14 @@ export default function SettingsPage() {
   const currencySymbol = geoData?.isEU ? "€" : "$";
   const openSubscription = tabParam === "subscription";
   
-  const isPro = user.subscriptionPlan === 'pro' || user.subscriptionPlan === 'team';
+  const isPro = user.subscriptionPlan === 'pro';
   const subscriptionStatus = user.subscriptionStatus || 'none';
   const isActive = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
   const isPastDue = subscriptionStatus === 'past_due';
   const hasExistingSubscription = user.stripeSubscriptionId && subscriptionStatus !== 'canceled';
 
-  const handleUpgrade = async (plan: 'pro' | 'team' = 'pro') => {
+  const handleUpgrade = async () => {
+    const plan = 'pro';
     if (hasExistingSubscription) {
       setSubscriptionError('You already have an active subscription. Use "Manage Subscription" to make changes.');
       return;
@@ -272,7 +273,7 @@ export default function SettingsPage() {
               )}
               <div>
                 <p className="font-semibold text-white" data-testid="text-current-plan">
-                  {isPro ? (user.subscriptionPlan === 'team' ? 'Team Plan' : 'Pro Plan') : 'Free Plan'}
+                  {isPro ? 'Pro Plan' : 'Free Plan'}
                 </p>
                 <div className="flex items-center gap-2">
                   {isPro && isActive && (

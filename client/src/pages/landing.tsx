@@ -215,7 +215,7 @@ function PricingSection() {
           </div>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 items-start">
+        <div className="grid md:grid-cols-2 gap-6 lg:gap-8 items-start max-w-3xl mx-auto">
           <motion.div 
             className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 hover:bg-white/[0.07] transition-all"
             variants={floatUpVariants}
@@ -311,52 +311,6 @@ function PricingSection() {
             </Link>
           </motion.div>
 
-          <motion.div 
-            className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 hover:bg-white/[0.07] transition-all"
-            variants={floatUpVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
-            custom={2}
-          >
-            <h3 className="text-xl font-bold text-white mb-2">Team</h3>
-            <p className="text-white/60 text-sm mb-6">Collaborate with your crew.</p>
-            
-            <div className="mb-6">
-              <span className="text-4xl font-bold text-white">
-                {currencySymbol}{isYearly ? prices.team.yearly : prices.team.monthly}
-              </span>
-              <span className="text-white/50 ml-2">/month</span>
-              {isYearly && (
-                <span className="block text-sm text-emerald-400 mt-1">
-                  Billed annually
-                </span>
-              )}
-            </div>
-
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-center gap-3 text-white/80">
-                <Check className="h-5 w-5 text-violet-400 flex-shrink-0" weight="bold" />
-                <span>5 Team seats</span>
-              </li>
-              <li className="flex items-center gap-3 text-white/80">
-                <Check className="h-5 w-5 text-violet-400 flex-shrink-0" weight="bold" />
-                <span>Shared Workspace</span>
-              </li>
-              <li className="flex items-center gap-3 text-white/80">
-                <Check className="h-5 w-5 text-violet-400 flex-shrink-0" weight="bold" />
-                <span>Priority Support</span>
-              </li>
-            </ul>
-
-            <Link
-              href="/login?plan=team"
-              className="block w-full text-center bg-white hover:bg-white/90 text-gray-900 py-3 rounded-xl font-semibold transition-all"
-              data-testid="pricing-team-cta"
-            >
-              Get Team
-            </Link>
-          </motion.div>
         </div>
       </div>
     </section>
