@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
-  BookOpenText, CaretDown, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X
+  BookOpenText, CaretDown, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X, DotsThree, Trash
 } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,15 @@ import { Button } from "@/components/ui/button";
 import { QuickAdd } from "@/components/quick-add";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +48,10 @@ export default function Layout({ children }: LayoutProps) {
   const queryClient = useQueryClient();
   const [editingListId, setEditingListId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [listToDelete, setListToDelete] = useState<CustomList | null>(null);
 
   const { data: customLists = [] } = useQuery<CustomList[]>({
     queryKey: ['custom-lists', user.id],
@@ -51,11 +64,11 @@ export default function Layout({ children }: LayoutProps) {
   });
 
   const createList = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (name: string) => {
       const res = await authenticatedFetch('/api/lists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: 'New List', position: customLists.length }),
+        body: JSON.stringify({ name, position: customLists.length }),
       });
       if (!res.ok) throw new Error('Failed to create list');
       return res.json();
@@ -63,6 +76,26 @@ export default function Layout({ children }: LayoutProps) {
     onSuccess: (newList) => {
       queryClient.invalidateQueries({ queryKey: ['custom-lists'] });
       setLocation(`/app/lists/${newList.id}`);
+      setCreateDialogOpen(false);
+      setNewListName("");
+    },
+  });
+
+  const deleteList = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await authenticatedFetch(`/api/lists/${id}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to delete list');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['custom-lists'] });
+      setDeleteDialogOpen(false);
+      setListToDelete(null);
+      if (location.startsWith('/app/lists/')) {
+        setLocation('/app/inbox');
+      }
     },
   });
 
@@ -172,19 +205,19 @@ export default function Layout({ children }: LayoutProps) {
                 Lists
               </div>
               <button
-                onClick={() => createList.mutate()}
+                onClick={() => setCreateDialogOpen(true)}
                 className={cn(
-                  "p-1 rounded-lg transition-colors",
+                  "p-1.5 rounded-full transition-colors",
                   theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/10"
                 )}
                 data-testid="button-add-list"
               >
-                <Plus className="h-3 w-3" weight="bold" />
+                <Plus className="h-4 w-4" weight="bold" />
               </button>
             </div>
             {customLists.length === 0 ? (
               <button
-                onClick={() => createList.mutate()}
+                onClick={() => setCreateDialogOpen(true)}
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 cursor-pointer w-full",
                   theme === "light"
@@ -241,20 +274,49 @@ export default function Layout({ children }: LayoutProps) {
                       >
                         <ListBullets className={cn("h-4 w-4", isActive ? (theme === "light" ? "text-violet-600" : "text-violet-400") : (theme === "light" ? "text-gray-500" : "text-white/50"))} weight="duotone" />
                         {list.name}
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setEditingListId(list.id);
-                            setEditingName(list.name);
-                          }}
-                          className={cn(
-                            "ml-auto opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity",
-                            theme === "light" ? "hover:bg-gray-200" : "hover:bg-white/10"
-                          )}
-                        >
-                          <PencilSimple className="h-3 w-3" />
-                        </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
+                              className={cn(
+                                "ml-auto opacity-0 group-hover:opacity-100 p-1.5 rounded-full transition-opacity",
+                                theme === "light" ? "hover:bg-gray-200" : "hover:bg-white/10"
+                              )}
+                              data-testid={`menu-list-${list.id}`}
+                            >
+                              <DotsThree className="h-4 w-4" weight="bold" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-32">
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setEditingListId(list.id);
+                                setEditingName(list.name);
+                              }}
+                            >
+                              <PencilSimple className="h-4 w-4 mr-2" />
+                              Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setListToDelete(list);
+                                setDeleteDialogOpen(true);
+                              }}
+                              className="text-red-500 focus:text-red-500"
+                            >
+                              <Trash className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </Link>
                     )}
                   </div>
@@ -573,6 +635,69 @@ export default function Layout({ children }: LayoutProps) {
       </nav>
 
       <QuickAdd />
+
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create new list</DialogTitle>
+            <DialogDescription>
+              Give your list a name to get started.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="list-name">List name</Label>
+              <Input
+                id="list-name"
+                placeholder="e.g., Shopping, Work, Projects..."
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && newListName.trim()) {
+                    createList.mutate(newListName.trim());
+                  }
+                }}
+                autoFocus
+                data-testid="input-new-list-name"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => { setCreateDialogOpen(false); setNewListName(""); }}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => newListName.trim() && createList.mutate(newListName.trim())} 
+              disabled={!newListName.trim()}
+              className="bg-violet-600 hover:bg-violet-700"
+            >
+              Create list
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete list?</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{listToDelete?.name}"? This will remove all items from the list.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => { setDeleteDialogOpen(false); setListToDelete(null); }}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => listToDelete && deleteList.mutate(listToDelete.id)}
+            >
+              Delete list
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

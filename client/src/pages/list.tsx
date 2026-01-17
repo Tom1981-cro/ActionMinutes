@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { authenticatedFetch } from "@/hooks/use-auth";
 
 type CustomList = {
   id: string;
@@ -43,11 +44,13 @@ export default function ListPage() {
   const { user, theme } = useStore();
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState("");
+  const [newTaskText, setNewTaskText] = useState("");
+  const [isAddingTask, setIsAddingTask] = useState(false);
 
   const { data: list, isLoading } = useQuery<CustomList>({
     queryKey: ['custom-list', listId],
     queryFn: async () => {
-      const res = await fetch(`/api/lists/${listId}`, { credentials: 'include' });
+      const res = await authenticatedFetch(`/api/lists/${listId}`);
       if (!res.ok) throw new Error('Failed to load list');
       return res.json();
     },
@@ -57,7 +60,7 @@ export default function ListPage() {
   const { data: inboxItems = [] } = useQuery({
     queryKey: ['reminders', user.id],
     queryFn: async () => {
-      const res = await fetch(`/api/personal/reminders?userId=${user.id}`);
+      const res = await authenticatedFetch(`/api/personal/reminders`);
       if (!res.ok) return [];
       return res.json();
     },
@@ -66,10 +69,9 @@ export default function ListPage() {
 
   const updateListName = useMutation({
     mutationFn: async (name: string) => {
-      const res = await fetch(`/api/lists/${listId}`, {
+      const res = await authenticatedFetch(`/api/lists/${listId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ name }),
       });
       if (!res.ok) throw new Error('Failed to update list');
@@ -83,12 +85,29 @@ export default function ListPage() {
     },
   });
 
-  const addItemToList = useMutation({
-    mutationFn: async (reminderId: string) => {
-      const res = await fetch(`/api/lists/${listId}/items`, {
+  const addNewTask = useMutation({
+    mutationFn: async (text: string) => {
+      const res = await authenticatedFetch(`/api/lists/${listId}/items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) throw new Error('Failed to add task');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['custom-list', listId] });
+      setNewTaskText("");
+      setIsAddingTask(false);
+      toast({ title: "Task added" });
+    },
+  });
+
+  const addItemToList = useMutation({
+    mutationFn: async (reminderId: string) => {
+      const res = await authenticatedFetch(`/api/lists/${listId}/items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ reminderId }),
       });
       if (!res.ok) throw new Error('Failed to add item');
@@ -102,9 +121,8 @@ export default function ListPage() {
 
   const removeItemFromList = useMutation({
     mutationFn: async (itemId: string) => {
-      const res = await fetch(`/api/lists/${listId}/items/${itemId}`, {
+      const res = await authenticatedFetch(`/api/lists/${listId}/items/${itemId}`, {
         method: 'DELETE',
-        credentials: 'include',
       });
       if (!res.ok) throw new Error('Failed to remove item');
       return res.json();
@@ -179,11 +197,61 @@ export default function ListPage() {
         "rounded-2xl backdrop-blur-xl border p-6",
         theme === "light" ? "bg-white/80 border-gray-200" : "bg-white/5 border-white/10"
       )}>
-        <h3 className={cn("text-sm font-semibold mb-4", theme === "light" ? "text-gray-900" : "text-white")}>
-          Items in this list
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className={cn("text-sm font-semibold", theme === "light" ? "text-gray-900" : "text-white")}>
+            Items in this list
+          </h3>
+          {!isAddingTask && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setIsAddingTask(true)}
+              className="h-8 gap-1"
+            >
+              <Plus className="h-4 w-4" />
+              Add task
+            </Button>
+          )}
+        </div>
+
+        {isAddingTask && (
+          <div className="flex items-center gap-2 mb-4">
+            <Input
+              value={newTaskText}
+              onChange={(e) => setNewTaskText(e.target.value)}
+              placeholder="Enter task..."
+              className={cn("flex-1", theme === "light" ? "bg-white" : "bg-white/10")}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newTaskText.trim()) {
+                  addNewTask.mutate(newTaskText.trim());
+                }
+                if (e.key === 'Escape') {
+                  setIsAddingTask(false);
+                  setNewTaskText("");
+                }
+              }}
+              data-testid="input-new-list-task"
+            />
+            <Button 
+              size="icon" 
+              onClick={() => newTaskText.trim() && addNewTask.mutate(newTaskText.trim())}
+              disabled={!newTaskText.trim()}
+              className="bg-violet-600 hover:bg-violet-700"
+            >
+              <Check className="h-4 w-4" />
+            </Button>
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              onClick={() => { setIsAddingTask(false); setNewTaskText(""); }}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
         
-        {(!list.items || list.items.length === 0) ? (
+        {(!list.items || list.items.length === 0) && !isAddingTask ? (
           <div className={cn(
             "text-center py-8 rounded-xl border border-dashed",
             theme === "light" ? "border-gray-200" : "border-white/20"
@@ -192,14 +260,20 @@ export default function ListPage() {
             <p className={cn("text-sm mb-2", theme === "light" ? "text-gray-600" : "text-white/60")}>
               This list is empty
             </p>
-            <p className={cn("text-xs", theme === "light" ? "text-gray-500" : "text-white/40")}>
-              Add tasks from your inbox to this list
-            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsAddingTask(true)}
+              className="mt-2"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Add your first task
+            </Button>
           </div>
         ) : (
           <div className="space-y-2">
             <AnimatePresence>
-              {list.items.map((item) => (
+              {list.items?.map((item) => (
                 <motion.div
                   key={item.id}
                   initial={{ opacity: 0, y: 10 }}

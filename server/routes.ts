@@ -1498,8 +1498,20 @@ Thanks!`,
     if (!list) return res.status(404).json({ error: "List not found" });
     if (list.userId !== userId) return res.status(403).json({ error: "Access denied" });
     
-    if (req.body.reminderId) {
-      const reminder = await storage.getPersonalReminder(req.body.reminderId);
+    let reminderId = req.body.reminderId;
+    
+    if (req.body.text && !reminderId) {
+      const reminder = await storage.createPersonalReminder({
+        userId,
+        text: req.body.text,
+        bucket: 'sometime',
+        priority: 'normal',
+      });
+      reminderId = reminder.id;
+    }
+    
+    if (reminderId) {
+      const reminder = await storage.getPersonalReminder(reminderId);
       if (!reminder || reminder.userId !== userId) {
         return res.status(403).json({ error: "Reminder access denied" });
       }
@@ -1514,7 +1526,7 @@ Thanks!`,
     try {
       const item = await storage.addItemToList({
         listId: req.params.id,
-        reminderId: req.body.reminderId,
+        reminderId,
         taskId: req.body.taskId,
         position: req.body.position || 0,
       });
