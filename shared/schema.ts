@@ -284,6 +284,45 @@ export const transcriptTasks = pgTable("transcript_tasks", {
   completedAt: timestamp("completed_at"),
 });
 
+// ==================== PROJECTS ====================
+export const projects = pgTable("projects", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  workspaceId: varchar("workspace_id", { length: 36 }).references(() => workspaces.id, { onDelete: 'set null' }),
+  name: text("name").notNull(),
+  description: text("description"),
+  color: text("color").notNull().default('#8B5CF6'),
+  icon: text("icon"),
+  keywords: text("keywords").array().notNull().default(sql`ARRAY[]::text[]`),
+  isArchived: boolean("is_archived").notNull().default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// ==================== TASKS ====================
+export const tasks = pgTable("tasks", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  workspaceId: varchar("workspace_id", { length: 36 }).references(() => workspaces.id, { onDelete: 'set null' }),
+  projectId: varchar("project_id", { length: 36 }).references(() => projects.id, { onDelete: 'set null' }),
+  title: text("title").notNull(),
+  description: text("description"),
+  dueDate: timestamp("due_date"),
+  priority: text("priority").notNull().default('medium'),
+  status: text("status").notNull().default('todo'),
+  recurrence: text("recurrence"),
+  recurrenceEndDate: timestamp("recurrence_end_date"),
+  nextOccurrence: timestamp("next_occurrence"),
+  sourceType: text("source_type"),
+  sourceId: varchar("source_id", { length: 36 }),
+  tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
+  estimatedMinutes: integer("estimated_minutes"),
+  position: integer("position").notNull().default(0),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // ==================== INSERT SCHEMAS ====================
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -396,6 +435,19 @@ export const insertTranscriptTaskSchema = createInsertSchema(transcriptTasks).om
   completedAt: true,
 });
 
+export const insertProjectSchema = createInsertSchema(projects).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTaskSchema = createInsertSchema(tasks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  completedAt: true,
+});
+
 // ==================== TYPES ====================
 // Note: User and UpsertUser types are exported from ./models/auth
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -460,7 +512,17 @@ export type TranscriptSummary = typeof transcriptSummaries.$inferSelect;
 export type InsertTranscriptTask = z.infer<typeof insertTranscriptTaskSchema>;
 export type TranscriptTask = typeof transcriptTasks.$inferSelect;
 
+export type InsertProject = z.infer<typeof insertProjectSchema>;
+export type Project = typeof projects.$inferSelect;
+
+export type InsertTask = z.infer<typeof insertTaskSchema>;
+export type Task = typeof tasks.$inferSelect;
+
 // ==================== ADDITIONAL TYPES ====================
+export type TaskStatus = 'todo' | 'in_progress' | 'done';
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type RecurrencePattern = 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
+export type TaskSourceType = 'manual' | 'meeting' | 'transcript' | 'email';
 export type TranscriptionProvider = 'gemini' | 'whisper' | 'whisper-self-hosted';
 export type WhisperModelSize = 'tiny' | 'base' | 'small' | 'medium' | 'large';
 
