@@ -311,7 +311,7 @@ export default function SettingsPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <span className="text-3xl font-bold text-white">{currencySymbol}{geoData?.isEU ? '10' : '12'}</span>
+                    <span className="text-3xl font-bold text-white">{currencySymbol}{geoData?.isEU ? '8' : '10'}</span>
                     <span className="text-white/50 ml-1">/month</span>
                   </div>
                   <ul className="space-y-2 text-sm text-white/80">
