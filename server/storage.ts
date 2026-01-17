@@ -4,7 +4,7 @@ import {
   workspaces, workspaceMembers, workspaceInvites,
   oauthConnections, calendarExports, aiAuditLogs, feedback, transcripts,
   transcriptSummaries, transcriptTasks, projects, tasks,
-  refreshTokens, passwordResetTokens,
+  refreshTokens, passwordResetTokens, calendarEvents, calendarWebhooks,
   type User, type InsertUser,
   type Meeting, type InsertMeeting,
   type Attendee, type InsertAttendee,
@@ -29,10 +29,12 @@ import {
   type Project, type InsertProject,
   type Task, type InsertTask,
   type WorkspaceRole,
-  type RefreshToken, type PasswordResetToken
+  type RefreshToken, type PasswordResetToken,
+  type CalendarEvent, type InsertCalendarEvent,
+  type CalendarWebhook, type InsertCalendarWebhook
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, or, isNull, ilike } from "drizzle-orm";
+import { eq, and, desc, or, isNull, ilike, gte, lte, inArray, lt } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -215,6 +217,22 @@ export interface IStorage {
     task: Task, 
     calculateNextOccurrence: (date: Date, recurrence: string) => Date
   ): Promise<{ completedTask: Task; nextTask?: Task }>;
+  
+  // Calendar Events
+  getCalendarEvents(userId: string, startTime?: Date, endTime?: Date): Promise<CalendarEvent[]>;
+  getCalendarEvent(id: string): Promise<CalendarEvent | undefined>;
+  getCalendarEventByProvider(userId: string, provider: string, providerEventId: string): Promise<CalendarEvent | undefined>;
+  createCalendarEvent(event: InsertCalendarEvent): Promise<CalendarEvent>;
+  updateCalendarEvent(id: string, updates: Partial<CalendarEvent>): Promise<CalendarEvent | undefined>;
+  deleteCalendarEvent(id: string): Promise<void>;
+  deleteCalendarEventsByProvider(connectionId: string, providerEventIds: string[]): Promise<void>;
+  upsertCalendarEvents(events: InsertCalendarEvent[]): Promise<CalendarEvent[]>;
+  
+  // Calendar Webhooks
+  getCalendarWebhook(connectionId: string): Promise<CalendarWebhook | undefined>;
+  createCalendarWebhook(webhook: InsertCalendarWebhook): Promise<CalendarWebhook>;
+  deleteCalendarWebhook(id: string): Promise<void>;
+  deleteExpiredWebhooks(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1021,6 +1039,100 @@ export class DatabaseStorage implements IStorage {
       
       return { completedTask, nextTask };
     });
+  }
+
+  // ==================== CALENDAR EVENTS ====================
+  async getCalendarEvents(userId: string, startTime?: Date, endTime?: Date): Promise<CalendarEvent[]> {
+    const conditions = [eq(calendarEvents.userId, userId)];
+    if (startTime) conditions.push(gte(calendarEvents.startTime, startTime));
+    if (endTime) conditions.push(lte(calendarEvents.endTime, endTime));
+    
+    return await db.select().from(calendarEvents)
+      .where(and(...conditions))
+      .orderBy(calendarEvents.startTime);
+  }
+
+  async getCalendarEvent(id: string): Promise<CalendarEvent | undefined> {
+    const [event] = await db.select().from(calendarEvents).where(eq(calendarEvents.id, id));
+    return event || undefined;
+  }
+
+  async getCalendarEventByProvider(userId: string, provider: string, providerEventId: string): Promise<CalendarEvent | undefined> {
+    const [event] = await db.select().from(calendarEvents)
+      .where(and(
+        eq(calendarEvents.userId, userId),
+        eq(calendarEvents.provider, provider),
+        eq(calendarEvents.providerEventId, providerEventId)
+      ));
+    return event || undefined;
+  }
+
+  async createCalendarEvent(event: InsertCalendarEvent): Promise<CalendarEvent> {
+    const [newEvent] = await db.insert(calendarEvents).values(event).returning();
+    return newEvent;
+  }
+
+  async updateCalendarEvent(id: string, updates: Partial<CalendarEvent>): Promise<CalendarEvent | undefined> {
+    const [event] = await db.update(calendarEvents)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(calendarEvents.id, id))
+      .returning();
+    return event || undefined;
+  }
+
+  async deleteCalendarEvent(id: string): Promise<void> {
+    await db.delete(calendarEvents).where(eq(calendarEvents.id, id));
+  }
+
+  async deleteCalendarEventsByProvider(connectionId: string, providerEventIds: string[]): Promise<void> {
+    if (providerEventIds.length === 0) return;
+    await db.delete(calendarEvents)
+      .where(and(
+        eq(calendarEvents.connectionId, connectionId),
+        inArray(calendarEvents.providerEventId, providerEventIds)
+      ));
+  }
+
+  async upsertCalendarEvents(events: InsertCalendarEvent[]): Promise<CalendarEvent[]> {
+    if (events.length === 0) return [];
+    
+    const results: CalendarEvent[] = [];
+    for (const event of events) {
+      if (event.providerEventId && event.userId && event.provider) {
+        const existing = await this.getCalendarEventByProvider(event.userId, event.provider, event.providerEventId);
+        if (existing) {
+          const updated = await this.updateCalendarEvent(existing.id, event);
+          if (updated) results.push(updated);
+        } else {
+          const created = await this.createCalendarEvent(event);
+          results.push(created);
+        }
+      } else {
+        const created = await this.createCalendarEvent(event);
+        results.push(created);
+      }
+    }
+    return results;
+  }
+
+  // ==================== CALENDAR WEBHOOKS ====================
+  async getCalendarWebhook(connectionId: string): Promise<CalendarWebhook | undefined> {
+    const [webhook] = await db.select().from(calendarWebhooks)
+      .where(eq(calendarWebhooks.connectionId, connectionId));
+    return webhook || undefined;
+  }
+
+  async createCalendarWebhook(webhook: InsertCalendarWebhook): Promise<CalendarWebhook> {
+    const [newWebhook] = await db.insert(calendarWebhooks).values(webhook).returning();
+    return newWebhook;
+  }
+
+  async deleteCalendarWebhook(id: string): Promise<void> {
+    await db.delete(calendarWebhooks).where(eq(calendarWebhooks.id, id));
+  }
+
+  async deleteExpiredWebhooks(): Promise<void> {
+    await db.delete(calendarWebhooks).where(lt(calendarWebhooks.expiresAt, new Date()));
   }
 }
 
