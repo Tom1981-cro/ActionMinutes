@@ -684,6 +684,42 @@ export type NoteLink = typeof noteLinks.$inferSelect;
 export type InsertNoteAttachment = z.infer<typeof insertNoteAttachmentSchema>;
 export type NoteAttachment = typeof noteAttachments.$inferSelect;
 
+// ==================== CUSTOM LISTS ====================
+export const customLists = pgTable("custom_lists", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text("name").notNull(),
+  color: text("color").default('#8B5CF6'),
+  icon: text("icon"),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const customListItems = pgTable("custom_list_items", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  listId: varchar("list_id", { length: 36 }).notNull().references(() => customLists.id, { onDelete: 'cascade' }),
+  reminderId: varchar("reminder_id", { length: 36 }).references(() => personalReminders.id, { onDelete: 'cascade' }),
+  taskId: varchar("task_id", { length: 36 }).references(() => tasks.id, { onDelete: 'cascade' }),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertCustomListSchema = createInsertSchema(customLists).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const insertCustomListItemSchema = createInsertSchema(customListItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCustomList = z.infer<typeof insertCustomListSchema>;
+export type CustomList = typeof customLists.$inferSelect;
+export type InsertCustomListItem = z.infer<typeof insertCustomListItemSchema>;
+export type CustomListItem = typeof customListItems.$inferSelect;
+
 // ==================== CHAT (AI Integration) ====================
 export const conversations = pgTable("conversations", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),

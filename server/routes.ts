@@ -1431,6 +1431,115 @@ Thanks!`,
     res.json(entries);
   });
 
+  // ==================== CUSTOM LISTS ====================
+  app.get("/api/lists", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const lists = await storage.getCustomLists(userId);
+    res.json(lists);
+  });
+
+  app.get("/api/lists/:id", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    
+    const list = await storage.getCustomList(req.params.id);
+    if (!list) return res.status(404).json({ error: "List not found" });
+    if (list.userId !== userId) return res.status(403).json({ error: "Access denied" });
+    
+    const items = await storage.getCustomListItemsWithDetails(req.params.id, userId);
+    res.json({ ...list, items });
+  });
+
+  app.post("/api/lists", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    
+    try {
+      const list = await storage.createCustomList({
+        userId,
+        name: req.body.name || 'My List',
+        color: req.body.color,
+        icon: req.body.icon,
+        position: req.body.position || 0,
+      });
+      res.json(list);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  app.patch("/api/lists/:id", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    
+    const list = await storage.getCustomList(req.params.id);
+    if (!list) return res.status(404).json({ error: "List not found" });
+    if (list.userId !== userId) return res.status(403).json({ error: "Access denied" });
+    
+    const updates: any = { ...req.body };
+    delete updates.userId;
+    
+    const updated = await storage.updateCustomList(req.params.id, updates);
+    res.json(updated);
+  });
+
+  app.delete("/api/lists/:id", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    
+    const list = await storage.getCustomList(req.params.id);
+    if (!list) return res.status(404).json({ error: "List not found" });
+    if (list.userId !== userId) return res.status(403).json({ error: "Access denied" });
+    
+    await storage.deleteCustomList(req.params.id);
+    res.json({ success: true });
+  });
+
+  app.post("/api/lists/:id/items", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    
+    const list = await storage.getCustomList(req.params.id);
+    if (!list) return res.status(404).json({ error: "List not found" });
+    if (list.userId !== userId) return res.status(403).json({ error: "Access denied" });
+    
+    if (req.body.reminderId) {
+      const reminder = await storage.getPersonalReminder(req.body.reminderId);
+      if (!reminder || reminder.userId !== userId) {
+        return res.status(403).json({ error: "Reminder access denied" });
+      }
+    }
+    if (req.body.taskId) {
+      const task = await storage.getTask(req.body.taskId);
+      if (!task || task.userId !== userId) {
+        return res.status(403).json({ error: "Task access denied" });
+      }
+    }
+    
+    try {
+      const item = await storage.addItemToList({
+        listId: req.params.id,
+        reminderId: req.body.reminderId,
+        taskId: req.body.taskId,
+        position: req.body.position || 0,
+      });
+      res.json(item);
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
+    }
+  });
+
+  app.delete("/api/lists/:listId/items/:itemId", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    
+    const list = await storage.getCustomList(req.params.listId);
+    if (!list) return res.status(404).json({ error: "List not found" });
+    if (list.userId !== userId) return res.status(403).json({ error: "Access denied" });
+    
+    const item = await storage.getCustomListItem(req.params.itemId);
+    if (!item || item.listId !== req.params.listId) {
+      return res.status(404).json({ error: "Item not found" });
+    }
+    
+    await storage.removeItemFromList(req.params.itemId, req.params.listId);
+    res.json({ success: true });
+  });
+
   // ==================== CALENDAR EXPORT ====================
   app.post("/api/meetings/:id/export-calendar", async (req, res) => {
     const userId = req.query.userId as string;

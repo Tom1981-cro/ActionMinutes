@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
-  BookOpenText, CaretDown, Robot, User, Calendar, Waveform, NotePencil
+  BookOpenText, CaretDown, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X
 } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,8 @@ import { useStore } from "@/lib/store";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { QuickAdd } from "@/components/quick-add";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,10 +25,63 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+type CustomList = {
+  id: string;
+  name: string;
+  color?: string;
+  position: number;
+};
+
 export default function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
   const { user, theme, toggleTheme } = useStore();
   const { logout, isAuthenticated, isLoading } = useAuth();
+  const queryClient = useQueryClient();
+  const [editingListId, setEditingListId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+
+  const { data: customLists = [] } = useQuery<CustomList[]>({
+    queryKey: ['custom-lists', user.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/lists`, { credentials: 'include' });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!user.id,
+  });
+
+  const createList = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/lists', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name: 'New List', position: customLists.length }),
+      });
+      if (!res.ok) throw new Error('Failed to create list');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['custom-lists'] });
+    },
+  });
+
+  const updateList = useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const res = await fetch(`/api/lists/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) throw new Error('Failed to update list');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['custom-lists'] });
+      setEditingListId(null);
+    },
+  });
 
   useEffect(() => {
     const root = document.documentElement;
@@ -110,6 +165,104 @@ export default function Layout({ children }: LayoutProps) {
               </Link>
             );
           })()}
+
+          <div className="mb-4">
+            <div className={cn("flex items-center justify-between px-4 py-2", theme === "light" ? "text-gray-500" : "text-white/40")}>
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
+                <ListBullets weight="duotone" className="h-3 w-3" />
+                Lists
+              </div>
+              <button
+                onClick={() => createList.mutate()}
+                className={cn(
+                  "p-1 rounded-lg transition-colors",
+                  theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/10"
+                )}
+                data-testid="button-add-list"
+              >
+                <Plus className="h-3 w-3" weight="bold" />
+              </button>
+            </div>
+            {customLists.length === 0 ? (
+              <button
+                onClick={() => createList.mutate()}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 cursor-pointer w-full",
+                  theme === "light"
+                    ? "text-gray-500 hover:bg-gray-100"
+                    : "text-white/50 hover:bg-white/5"
+                )}
+                data-testid="button-create-first-list"
+              >
+                <Plus className="h-4 w-4" weight="duotone" />
+                Create your first list
+              </button>
+            ) : (
+              customLists.map((list) => {
+                const isActive = location === `/app/lists/${list.id}`;
+                return (
+                  <div key={list.id} className="group relative">
+                    {editingListId === list.id ? (
+                      <div className="flex items-center gap-1 px-4 py-2">
+                        <Input
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          className={cn("h-8 text-sm", theme === "light" ? "bg-white" : "bg-white/10 border-white/20")}
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              updateList.mutate({ id: list.id, name: editingName });
+                            }
+                            if (e.key === 'Escape') {
+                              setEditingListId(null);
+                            }
+                          }}
+                        />
+                        <button onClick={() => updateList.mutate({ id: list.id, name: editingName })} className="p-1 text-green-500">
+                          <Check className="h-4 w-4" />
+                        </button>
+                        <button onClick={() => setEditingListId(null)} className="p-1 text-red-400">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <Link
+                        href={`/app/lists/${list.id}`}
+                        data-testid={`nav-list-${list.id}`}
+                        className={cn(
+                          "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 cursor-pointer",
+                          isActive
+                            ? theme === "light"
+                              ? "bg-violet-100 text-violet-700 font-semibold border border-violet-300/50"
+                              : "bg-violet-500/20 text-violet-300 font-semibold border border-violet-500/30 shadow-glow-sm"
+                            : theme === "light"
+                              ? "text-gray-700 hover:bg-gray-100 hover:text-violet-700"
+                              : "text-white/70 hover:bg-white/5 hover:text-violet-300"
+                        )}
+                      >
+                        <ListBullets className={cn("h-4 w-4", isActive ? (theme === "light" ? "text-violet-600" : "text-violet-400") : (theme === "light" ? "text-gray-500" : "text-white/50"))} weight="duotone" />
+                        {list.name}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setEditingListId(list.id);
+                            setEditingName(list.name);
+                          }}
+                          className={cn(
+                            "ml-auto opacity-0 group-hover:opacity-100 p-1 rounded transition-opacity",
+                            theme === "light" ? "hover:bg-gray-200" : "hover:bg-white/10"
+                          )}
+                        >
+                          <PencilSimple className="h-3 w-3" />
+                        </button>
+                      </Link>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
 
           <div className="mb-4">
             <div className={cn("flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wider", theme === "light" ? "text-gray-500" : "text-white/40")}>

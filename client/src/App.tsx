@@ -33,6 +33,7 @@ import CalendarPage from "@/pages/calendar";
 import TranscriptsPage from "@/pages/transcripts";
 import TasksPage from "@/pages/tasks";
 import NotesPage from "@/pages/notes";
+import ListPage from "@/pages/list";
 import NotFound from "@/pages/not-found";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -142,6 +143,11 @@ function Router() {
       <Route path="/app/notes">
         <ProtectedRoute>
           <Layout><NotesPage /></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/lists/:id">
+        <ProtectedRoute>
+          <Layout><ListPage /></Layout>
         </ProtectedRoute>
       </Route>
       <Route path="/app/agenda">

@@ -6,6 +6,7 @@ import {
   transcriptSummaries, transcriptTasks, projects, tasks,
   refreshTokens, passwordResetTokens, calendarEvents, calendarWebhooks,
   notes, noteTags, noteTagMap, noteLinks, noteAttachments,
+  customLists, customListItems,
   type User, type InsertUser,
   type Meeting, type InsertMeeting,
   type Attendee, type InsertAttendee,
@@ -36,7 +37,9 @@ import {
   type Note, type InsertNote,
   type NoteTag, type InsertNoteTag,
   type NoteLink, type InsertNoteLink,
-  type NoteAttachment, type InsertNoteAttachment
+  type NoteAttachment, type InsertNoteAttachment,
+  type CustomList, type InsertCustomList,
+  type CustomListItem, type InsertCustomListItem
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, or, isNull, ilike, gte, lte, inArray, lt } from "drizzle-orm";
@@ -271,6 +274,21 @@ export interface IStorage {
   
   // Notes Feed
   getNotesFeed(userId: string, limit?: number): Promise<Note[]>;
+  
+  // Custom Lists
+  getCustomLists(userId: string): Promise<CustomList[]>;
+  getCustomList(id: string): Promise<CustomList | undefined>;
+  createCustomList(list: InsertCustomList): Promise<CustomList>;
+  updateCustomList(id: string, updates: Partial<CustomList>): Promise<CustomList | undefined>;
+  deleteCustomList(id: string): Promise<void>;
+  
+  // Custom List Items
+  getCustomListItems(listId: string): Promise<CustomListItem[]>;
+  getCustomListItemsWithDetails(listId: string, userId: string): Promise<(CustomListItem & { reminder?: any; task?: any })[]>;
+  addItemToList(item: InsertCustomListItem): Promise<CustomListItem>;
+  getCustomListItem(id: string): Promise<CustomListItem | undefined>;
+  removeItemFromList(id: string, listId: string): Promise<void>;
+  updateListItemPosition(id: string, position: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1324,6 +1342,93 @@ export class DatabaseStorage implements IStorage {
       .where(eq(notes.userId, userId))
       .orderBy(desc(notes.createdAt))
       .limit(limit);
+  }
+
+  // ==================== CUSTOM LISTS ====================
+  async getCustomLists(userId: string): Promise<CustomList[]> {
+    return await db.select().from(customLists)
+      .where(eq(customLists.userId, userId))
+      .orderBy(customLists.position);
+  }
+
+  async getCustomList(id: string): Promise<CustomList | undefined> {
+    const [list] = await db.select().from(customLists).where(eq(customLists.id, id));
+    return list || undefined;
+  }
+
+  async createCustomList(list: InsertCustomList): Promise<CustomList> {
+    const [newList] = await db.insert(customLists).values(list).returning();
+    return newList;
+  }
+
+  async updateCustomList(id: string, updates: Partial<CustomList>): Promise<CustomList | undefined> {
+    const [updated] = await db.update(customLists)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(customLists.id, id))
+      .returning();
+    return updated || undefined;
+  }
+
+  async deleteCustomList(id: string): Promise<void> {
+    await db.delete(customLists).where(eq(customLists.id, id));
+  }
+
+  // ==================== CUSTOM LIST ITEMS ====================
+  async getCustomListItems(listId: string): Promise<CustomListItem[]> {
+    return await db.select().from(customListItems)
+      .where(eq(customListItems.listId, listId))
+      .orderBy(customListItems.position);
+  }
+
+  async addItemToList(item: InsertCustomListItem): Promise<CustomListItem> {
+    const [newItem] = await db.insert(customListItems).values(item).returning();
+    return newItem;
+  }
+
+  async getCustomListItem(id: string): Promise<CustomListItem | undefined> {
+    const [item] = await db.select().from(customListItems).where(eq(customListItems.id, id));
+    return item || undefined;
+  }
+
+  async removeItemFromList(id: string, listId: string): Promise<void> {
+    await db.delete(customListItems).where(
+      and(eq(customListItems.id, id), eq(customListItems.listId, listId))
+    );
+  }
+
+  async updateListItemPosition(id: string, position: number): Promise<void> {
+    await db.update(customListItems)
+      .set({ position })
+      .where(eq(customListItems.id, id));
+  }
+
+  async getCustomListItemsWithDetails(listId: string, userId: string): Promise<(CustomListItem & { reminder?: any; task?: any })[]> {
+    const items = await db.select().from(customListItems)
+      .where(eq(customListItems.listId, listId))
+      .orderBy(customListItems.position);
+    
+    const result = [];
+    for (const item of items) {
+      let reminder = undefined;
+      let task = undefined;
+      
+      if (item.reminderId) {
+        const r = await this.getPersonalReminder(item.reminderId);
+        if (r && r.userId === userId) {
+          reminder = r;
+        }
+      }
+      if (item.taskId) {
+        const t = await this.getTask(item.taskId);
+        if (t && t.userId === userId) {
+          task = t;
+        }
+      }
+      
+      result.push({ ...item, reminder, task });
+    }
+    
+    return result;
   }
 }
 
