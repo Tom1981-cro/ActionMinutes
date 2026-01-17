@@ -314,8 +314,8 @@ export default function NotesPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className={cn("text-2xl font-bold", theme === "light" ? "text-gray-900" : "text-white")}>Notes</h1>
-          <p className={cn("text-sm", theme === "light" ? "text-gray-600" : "text-white/60")}>Your personal notes and ideas</p>
+          <h1 className="text-2xl md:text-3xl font-black text-gradient-light">Notes</h1>
+          <p className={cn("text-sm mt-1", theme === "light" ? "text-gray-600" : "text-white/60")}>Your personal notes and ideas</p>
         </div>
         <Button 
           onClick={() => openEditor()} 

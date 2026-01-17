@@ -69,10 +69,11 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
   const createReminder = useMutation({
     mutationFn: async (data: { text: string; dueDate: Date | null }) => {
       const bucket = data.dueDate ? determineBucket(data.dueDate) : "sometime";
-      const response = await fetch(`/api/personal/reminders?userId=${user.id}`, {
+      const response = await fetch(`/api/personal/reminders`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          userId: user.id,
           text: data.text,
           bucket,
           dueDate: data.dueDate?.toISOString() || null,
