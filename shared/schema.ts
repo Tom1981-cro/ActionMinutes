@@ -45,9 +45,49 @@ export const oauthConnections = pgTable("oauth_connections", {
   refreshToken: text("refresh_token"),
   expiresAt: timestamp("expires_at"),
   scopes: text("scopes").array(),
+  calendarSyncToken: text("calendar_sync_token"), // Google syncToken or Microsoft deltaLink
+  calendarId: text("calendar_id"), // Primary calendar ID
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   lastUsedAt: timestamp("last_used_at"),
+  lastCalendarSync: timestamp("last_calendar_sync"),
+});
+
+// ==================== CALENDAR EVENTS (Provider Sync) ====================
+export const calendarEvents = pgTable("calendar_events", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  connectionId: varchar("connection_id", { length: 36 }).references(() => oauthConnections.id, { onDelete: 'cascade' }),
+  provider: text("provider").notNull(), // google, microsoft, local
+  providerEventId: text("provider_event_id"), // null for local events
+  calendarId: text("calendar_id"), // provider's calendar ID
+  title: text("title").notNull(),
+  description: text("description"),
+  location: text("location"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  allDay: boolean("all_day").notNull().default(false),
+  recurrenceRule: text("recurrence_rule"), // RRULE format
+  status: text("status").notNull().default('confirmed'), // confirmed, tentative, cancelled
+  transparency: text("transparency").default('opaque'), // opaque (busy) or transparent (free)
+  attendees: jsonb("attendees").$type<{ email: string; name?: string; status?: string }[]>(),
+  reminders: jsonb("reminders").$type<{ method: string; minutes: number }[]>(),
+  meetingId: varchar("meeting_id", { length: 36 }).references(() => meetings.id, { onDelete: 'set null' }),
+  color: text("color"),
+  isReadOnly: boolean("is_read_only").notNull().default(false),
+  syncedAt: timestamp("synced_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const calendarWebhooks = pgTable("calendar_webhooks", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  connectionId: varchar("connection_id", { length: 36 }).notNull().references(() => oauthConnections.id, { onDelete: 'cascade' }),
+  provider: text("provider").notNull(),
+  channelId: text("channel_id").notNull(), // Google: channel_id, Microsoft: subscription_id
+  resourceId: text("resource_id"), // Google's resource ID
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 // ==================== CALENDAR EXPORTS (Phase 2) ====================
@@ -543,6 +583,24 @@ export type JournalPromptShown = typeof journalPromptShown.$inferSelect;
 // ==================== ROLE TYPES ====================
 export type WorkspaceRole = 'owner' | 'admin' | 'member' | 'viewer';
 export type OAuthProvider = 'google' | 'microsoft';
+export type CalendarProvider = 'google' | 'microsoft' | 'local';
+export type CalendarEventStatus = 'confirmed' | 'tentative' | 'cancelled';
+
+// ==================== CALENDAR SCHEMAS & TYPES ====================
+export const insertCalendarEventSchema = createInsertSchema(calendarEvents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const insertCalendarWebhookSchema = createInsertSchema(calendarWebhooks).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCalendarEvent = z.infer<typeof insertCalendarEventSchema>;
+export type CalendarEvent = typeof calendarEvents.$inferSelect;
+export type InsertCalendarWebhook = z.infer<typeof insertCalendarWebhookSchema>;
+export type CalendarWebhook = typeof calendarWebhooks.$inferSelect;
 
 // ==================== CHAT (AI Integration) ====================
 export const conversations = pgTable("conversations", {
