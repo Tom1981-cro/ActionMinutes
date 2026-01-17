@@ -3,7 +3,7 @@ import {
   actionItems, followUpDrafts, personalEntries, personalReminders, journalPrompts, journalPromptShown,
   workspaces, workspaceMembers, workspaceInvites,
   oauthConnections, calendarExports, aiAuditLogs, feedback, transcripts,
-  transcriptSummaries, transcriptTasks,
+  transcriptSummaries, transcriptTasks, projects, tasks,
   refreshTokens, passwordResetTokens,
   type User, type InsertUser,
   type Meeting, type InsertMeeting,
@@ -26,6 +26,8 @@ import {
   type Transcript, type InsertTranscript,
   type TranscriptSummary, type InsertTranscriptSummary,
   type TranscriptTask, type InsertTranscriptTask,
+  type Project, type InsertProject,
+  type Task, type InsertTask,
   type WorkspaceRole,
   type RefreshToken, type PasswordResetToken
 } from "@shared/schema";
@@ -183,7 +185,7 @@ export interface IStorage {
   createSummaryWithTasks(
     transcriptId: string,
     summary: InsertTranscriptSummary,
-    tasks: InsertTranscriptTask[]
+    tasks: Omit<InsertTranscriptTask, 'summaryId'>[]
   ): Promise<{ summary: TranscriptSummary; tasks: TranscriptTask[] }>;
   
   // Transcript Tasks
@@ -193,6 +195,26 @@ export interface IStorage {
   createTranscriptTask(task: InsertTranscriptTask): Promise<TranscriptTask>;
   updateTranscriptTask(id: string, updates: Partial<TranscriptTask>): Promise<TranscriptTask | undefined>;
   deleteTranscriptTask(id: string): Promise<void>;
+  
+  // Projects
+  getProjects(userId: string, workspaceId?: string): Promise<Project[]>;
+  getProject(id: string): Promise<Project | undefined>;
+  createProject(project: InsertProject): Promise<Project>;
+  updateProject(id: string, updates: Partial<Project>): Promise<Project | undefined>;
+  deleteProject(id: string): Promise<void>;
+  
+  // Tasks
+  getTasks(userId: string, options?: { workspaceId?: string; projectId?: string; status?: string }): Promise<Task[]>;
+  getTask(id: string): Promise<Task | undefined>;
+  createTask(task: InsertTask): Promise<Task>;
+  updateTask(id: string, updates: Partial<Task>): Promise<Task | undefined>;
+  deleteTask(id: string): Promise<void>;
+  getTasksBySource(sourceType: string, sourceId: string): Promise<Task[]>;
+  completeTaskWithRecurrence(
+    id: string, 
+    task: Task, 
+    calculateNextOccurrence: (date: Date, recurrence: string) => Date
+  ): Promise<{ completedTask: Task; nextTask?: Task }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -805,7 +827,7 @@ export class DatabaseStorage implements IStorage {
   async createSummaryWithTasks(
     transcriptId: string,
     summary: InsertTranscriptSummary,
-    tasks: InsertTranscriptTask[]
+    tasks: Omit<InsertTranscriptTask, 'summaryId'>[]
   ): Promise<{ summary: TranscriptSummary; tasks: TranscriptTask[] }> {
     return await db.transaction(async (tx) => {
       await tx.delete(transcriptTasks).where(eq(transcriptTasks.transcriptId, transcriptId));
@@ -856,6 +878,149 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTranscriptTask(id: string): Promise<void> {
     await db.delete(transcriptTasks).where(eq(transcriptTasks.id, id));
+  }
+
+  // ==================== PROJECTS ====================
+  async getProjects(userId: string, workspaceId?: string): Promise<Project[]> {
+    if (workspaceId) {
+      return await db.select().from(projects)
+        .where(and(eq(projects.workspaceId, workspaceId), eq(projects.isArchived, false)))
+        .orderBy(desc(projects.createdAt));
+    }
+    return await db.select().from(projects)
+      .where(and(eq(projects.userId, userId), isNull(projects.workspaceId), eq(projects.isArchived, false)))
+      .orderBy(desc(projects.createdAt));
+  }
+
+  async getProject(id: string): Promise<Project | undefined> {
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    return project || undefined;
+  }
+
+  async createProject(project: InsertProject): Promise<Project> {
+    const [newProject] = await db.insert(projects).values(project).returning();
+    return newProject;
+  }
+
+  async updateProject(id: string, updates: Partial<Project>): Promise<Project | undefined> {
+    const [project] = await db.update(projects)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(projects.id, id))
+      .returning();
+    return project || undefined;
+  }
+
+  async deleteProject(id: string): Promise<void> {
+    await db.delete(projects).where(eq(projects.id, id));
+  }
+
+  // ==================== TASKS ====================
+  async getTasks(userId: string, options?: { workspaceId?: string; projectId?: string; status?: string }): Promise<Task[]> {
+    const conditions = [eq(tasks.userId, userId)];
+    
+    if (options?.workspaceId) {
+      conditions.push(eq(tasks.workspaceId, options.workspaceId));
+    } else {
+      conditions.push(isNull(tasks.workspaceId));
+    }
+    
+    if (options?.projectId) {
+      conditions.push(eq(tasks.projectId, options.projectId));
+    }
+    
+    if (options?.status) {
+      conditions.push(eq(tasks.status, options.status));
+    }
+    
+    return await db.select().from(tasks)
+      .where(and(...conditions))
+      .orderBy(tasks.position, desc(tasks.createdAt));
+  }
+
+  async getTask(id: string): Promise<Task | undefined> {
+    const [task] = await db.select().from(tasks).where(eq(tasks.id, id));
+    return task || undefined;
+  }
+
+  async createTask(task: InsertTask): Promise<Task> {
+    const [newTask] = await db.insert(tasks).values(task).returning();
+    return newTask;
+  }
+
+  async updateTask(id: string, updates: Partial<Task>): Promise<Task | undefined> {
+    const updateData: Partial<Task> = { ...updates, updatedAt: new Date() };
+    
+    if (updates.status === 'done' && !updates.completedAt) {
+      updateData.completedAt = new Date();
+    } else if (updates.status && updates.status !== 'done') {
+      updateData.completedAt = null;
+    }
+    
+    const [task] = await db.update(tasks)
+      .set(updateData)
+      .where(eq(tasks.id, id))
+      .returning();
+    return task || undefined;
+  }
+
+  async deleteTask(id: string): Promise<void> {
+    await db.delete(tasks).where(eq(tasks.id, id));
+  }
+
+  async getTasksBySource(sourceType: string, sourceId: string): Promise<Task[]> {
+    return await db.select().from(tasks)
+      .where(and(eq(tasks.sourceType, sourceType), eq(tasks.sourceId, sourceId)))
+      .orderBy(desc(tasks.createdAt));
+  }
+
+  async completeTaskWithRecurrence(
+    id: string, 
+    task: Task, 
+    calculateNextOccurrence: (date: Date, recurrence: string) => Date
+  ): Promise<{ completedTask: Task; nextTask?: Task }> {
+    return await db.transaction(async (tx) => {
+      const [completedTask] = await tx.update(tasks)
+        .set({ 
+          status: 'done', 
+          completedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(tasks.id, id))
+        .returning();
+      
+      let nextTask: Task | undefined;
+      
+      if (task.recurrence && task.dueDate) {
+        const currentDueDate = new Date(task.dueDate);
+        const newNextOccurrence = calculateNextOccurrence(currentDueDate, task.recurrence);
+        
+        const withinEndDate = !task.recurrenceEndDate || newNextOccurrence <= task.recurrenceEndDate;
+        
+        if (withinEndDate) {
+          const [createdTask] = await tx.insert(tasks).values({
+            userId: task.userId,
+            workspaceId: task.workspaceId,
+            projectId: task.projectId,
+            title: task.title,
+            description: task.description,
+            dueDate: newNextOccurrence,
+            priority: task.priority,
+            status: 'todo',
+            recurrence: task.recurrence,
+            recurrenceEndDate: task.recurrenceEndDate,
+            nextOccurrence: calculateNextOccurrence(newNextOccurrence, task.recurrence),
+            sourceType: task.sourceType,
+            sourceId: task.sourceId,
+            tags: task.tags,
+            estimatedMinutes: task.estimatedMinutes,
+            position: task.position,
+          }).returning();
+          nextTask = createdTask;
+        }
+      }
+      
+      return { completedTask, nextTask };
+    });
   }
 }
 

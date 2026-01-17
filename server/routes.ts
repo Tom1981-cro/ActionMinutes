@@ -2278,6 +2278,290 @@ Thanks!`,
     });
   });
 
+  // ==================== PROJECTS ====================
+  const { parseTaskInput, suggestProjectsForTask, calculateNextOccurrence } = await import("./tasks/nlp-parser");
+  
+  app.get("/api/projects", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const workspaceId = req.query.workspaceId as string;
+    
+    if (workspaceId) {
+      const hasAccess = await checkWorkspaceAccess(userId, workspaceId, 'workspace', 'read');
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied to workspace" });
+      }
+    }
+    
+    const projects = await storage.getProjects(userId, workspaceId || undefined);
+    res.json(projects);
+  });
+  
+  app.post("/api/projects", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const { workspaceId, name, description, color, icon, keywords } = req.body;
+    
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return res.status(400).json({ error: "name is required" });
+    }
+    
+    if (workspaceId) {
+      const hasAccess = await checkWorkspaceAccess(userId, workspaceId, 'workspace', 'write');
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied to workspace" });
+      }
+    }
+    
+    const project = await storage.createProject({
+      userId,
+      workspaceId: workspaceId || null,
+      name: name.trim(),
+      description: description || null,
+      color: color || '#8B5CF6',
+      icon: icon || null,
+      keywords: Array.isArray(keywords) ? keywords : [],
+    });
+    res.status(201).json(project);
+  });
+  
+  app.put("/api/projects/:id", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const { id } = req.params;
+    const updates = req.body;
+    
+    const existingProject = await storage.getProject(id);
+    if (!existingProject) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+    if (existingProject.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    
+    const project = await storage.updateProject(id, updates);
+    res.json(project);
+  });
+  
+  app.delete("/api/projects/:id", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const { id } = req.params;
+    
+    const existingProject = await storage.getProject(id);
+    if (!existingProject) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+    if (existingProject.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    
+    await storage.deleteProject(id);
+    res.status(204).send();
+  });
+
+  // ==================== TASKS ====================
+  app.get("/api/tasks", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const workspaceId = req.query.workspaceId as string;
+    const projectId = req.query.projectId as string;
+    const status = req.query.status as string;
+    
+    if (workspaceId) {
+      const hasAccess = await checkWorkspaceAccess(userId, workspaceId, 'workspace', 'read');
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied to workspace" });
+      }
+    }
+    
+    const tasks = await storage.getTasks(userId, {
+      workspaceId: workspaceId || undefined,
+      projectId: projectId || undefined,
+      status: status || undefined,
+    });
+    res.json(tasks);
+  });
+  
+  app.post("/api/tasks", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const { workspaceId, projectId, title, description, dueDate, priority, status, recurrence, recurrenceEndDate, sourceType, sourceId, tags, estimatedMinutes } = req.body;
+    
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return res.status(400).json({ error: "title is required" });
+    }
+    
+    if (workspaceId) {
+      const hasAccess = await checkWorkspaceAccess(userId, workspaceId, 'workspace', 'write');
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied to workspace" });
+      }
+    }
+    
+    if (projectId) {
+      const project = await storage.getProject(projectId);
+      if (!project || project.userId !== userId) {
+        return res.status(400).json({ error: "Invalid project" });
+      }
+      if (workspaceId && project.workspaceId !== workspaceId) {
+        return res.status(400).json({ error: "Project does not belong to this workspace" });
+      }
+    }
+    
+    let nextOccurrence = null;
+    if (recurrence && dueDate) {
+      nextOccurrence = calculateNextOccurrence(new Date(dueDate), recurrence);
+    }
+    
+    const task = await storage.createTask({
+      userId,
+      workspaceId: workspaceId || null,
+      projectId: projectId || null,
+      title: title.trim(),
+      description: description || null,
+      dueDate: dueDate ? new Date(dueDate) : null,
+      priority: priority || 'medium',
+      status: status || 'todo',
+      recurrence: recurrence || null,
+      recurrenceEndDate: recurrenceEndDate ? new Date(recurrenceEndDate) : null,
+      nextOccurrence,
+      sourceType: sourceType || null,
+      sourceId: sourceId || null,
+      tags: Array.isArray(tags) ? tags : [],
+      estimatedMinutes: typeof estimatedMinutes === 'number' ? estimatedMinutes : null,
+      position: 0,
+    });
+    res.status(201).json(task);
+  });
+  
+  app.post("/api/tasks/parse", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const { input, workspaceId } = req.body;
+    
+    if (!input || typeof input !== 'string') {
+      return res.status(400).json({ error: "input is required" });
+    }
+    
+    if (workspaceId) {
+      const hasAccess = await checkWorkspaceAccess(userId, workspaceId, 'workspace', 'read');
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied to workspace" });
+      }
+    }
+    
+    const parsed = parseTaskInput(input);
+    
+    let projectSuggestions: { projectId: string; name: string; score: number }[] = [];
+    if (parsed.suggestedProjectKeywords.length > 0) {
+      const userProjects = await storage.getProjects(userId, workspaceId || undefined);
+      projectSuggestions = suggestProjectsForTask(input, userProjects.map(p => ({
+        id: p.id,
+        name: p.name,
+        keywords: p.keywords || [],
+      })));
+    }
+    
+    res.json({
+      ...parsed,
+      projectSuggestions,
+    });
+  });
+  
+  app.put("/api/tasks/:id", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const { id } = req.params;
+    const updates = req.body;
+    
+    const existingTask = await storage.getTask(id);
+    if (!existingTask) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+    if (existingTask.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    
+    const targetWorkspaceId = updates.workspaceId !== undefined ? updates.workspaceId : existingTask.workspaceId;
+    const targetProjectId = updates.projectId !== undefined ? updates.projectId : existingTask.projectId;
+    
+    if (targetWorkspaceId) {
+      const hasAccess = await checkWorkspaceAccess(userId, targetWorkspaceId, 'workspace', 'write');
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied to workspace" });
+      }
+    }
+    
+    if (targetProjectId) {
+      const project = await storage.getProject(targetProjectId);
+      if (!project || project.userId !== userId) {
+        return res.status(400).json({ error: "Invalid project" });
+      }
+      if (targetWorkspaceId && project.workspaceId !== targetWorkspaceId) {
+        return res.status(400).json({ error: "Project does not belong to this workspace" });
+      }
+      if (!targetWorkspaceId && project.workspaceId) {
+        return res.status(400).json({ error: "Cannot assign workspace project to personal task" });
+      }
+    }
+    
+    if (updates.dueDate) {
+      updates.dueDate = new Date(updates.dueDate);
+    }
+    if (updates.recurrenceEndDate) {
+      updates.recurrenceEndDate = new Date(updates.recurrenceEndDate);
+    }
+    
+    const task = await storage.updateTask(id, updates);
+    res.json(task);
+  });
+  
+  app.post("/api/tasks/:id/complete", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const { id } = req.params;
+    
+    const task = await storage.getTask(id);
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+    if (task.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    
+    const result = await storage.completeTaskWithRecurrence(id, task, calculateNextOccurrence);
+    res.json(result.completedTask);
+  });
+  
+  app.delete("/api/tasks/:id", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const { id } = req.params;
+    
+    const existingTask = await storage.getTask(id);
+    if (!existingTask) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+    if (existingTask.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    
+    await storage.deleteTask(id);
+    res.status(204).send();
+  });
+  
+  app.get("/api/tasks/by-source/:sourceType/:sourceId", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const { sourceType, sourceId } = req.params;
+    
+    if (sourceType === 'meeting') {
+      const meeting = await storage.getMeeting(sourceId);
+      if (!meeting || meeting.userId !== userId) {
+        return res.status(403).json({ error: "Access denied to meeting" });
+      }
+    } else if (sourceType === 'transcript') {
+      const transcript = await storage.getTranscript(sourceId);
+      if (!transcript || transcript.userId !== userId) {
+        return res.status(403).json({ error: "Access denied to transcript" });
+      }
+    }
+    
+    const tasks = await storage.getTasksBySource(sourceType, sourceId);
+    const userTasks = tasks.filter(t => t.userId === userId);
+    res.json(userTasks);
+  });
+
   // ==================== AI AUDIT LOGS ====================
   app.get("/api/ai-audit-logs", async (req, res) => {
     const userId = req.query.userId as string;
