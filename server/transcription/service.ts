@@ -164,7 +164,14 @@ export function generateSRT(segments: TranscriptSegment[]): string {
     .join("\n");
 }
 
-export function generateTXT(text: string, metadata?: { title?: string; date?: Date; duration?: number }): string {
+export function generateTXT(text: string, metadata?: { 
+  title?: string; 
+  date?: Date; 
+  duration?: number;
+  language?: string;
+  provider?: string;
+  keywords?: string[];
+}): string {
   let output = "";
 
   if (metadata?.title) {
@@ -177,6 +184,15 @@ export function generateTXT(text: string, metadata?: { title?: string; date?: Da
     const mins = Math.floor(metadata.duration / 60);
     const secs = metadata.duration % 60;
     output += `Duration: ${mins}:${secs.toString().padStart(2, "0")}\n`;
+  }
+  if (metadata?.language) {
+    output += `Language: ${metadata.language}\n`;
+  }
+  if (metadata?.provider) {
+    output += `Provider: ${metadata.provider}\n`;
+  }
+  if (metadata?.keywords && metadata.keywords.length > 0) {
+    output += `Keywords: ${metadata.keywords.join(", ")}\n`;
   }
   if (output) {
     output += "\n---\n\n";

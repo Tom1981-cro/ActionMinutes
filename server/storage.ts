@@ -3,6 +3,7 @@ import {
   actionItems, followUpDrafts, personalEntries, personalReminders, journalPrompts, journalPromptShown,
   workspaces, workspaceMembers, workspaceInvites,
   oauthConnections, calendarExports, aiAuditLogs, feedback, transcripts,
+  transcriptSummaries, transcriptTasks,
   refreshTokens, passwordResetTokens,
   type User, type InsertUser,
   type Meeting, type InsertMeeting,
@@ -23,6 +24,8 @@ import {
   type AiAuditLog, type InsertAiAuditLog,
   type Feedback, type InsertFeedback,
   type Transcript, type InsertTranscript,
+  type TranscriptSummary, type InsertTranscriptSummary,
+  type TranscriptTask, type InsertTranscriptTask,
   type WorkspaceRole,
   type RefreshToken, type PasswordResetToken
 } from "@shared/schema";
@@ -170,6 +173,26 @@ export interface IStorage {
   updateTranscript(id: string, updates: Partial<Transcript>): Promise<Transcript | undefined>;
   deleteTranscript(id: string): Promise<void>;
   searchTranscripts(userId: string, query: string, workspaceId?: string): Promise<Transcript[]>;
+  
+  // Transcript Summaries
+  getTranscriptSummary(id: string): Promise<TranscriptSummary | undefined>;
+  getTranscriptSummaryByTranscriptId(transcriptId: string): Promise<TranscriptSummary | undefined>;
+  createTranscriptSummary(summary: InsertTranscriptSummary): Promise<TranscriptSummary>;
+  deleteTranscriptSummary(id: string): Promise<void>;
+  deleteSummariesForTranscript(transcriptId: string): Promise<void>;
+  createSummaryWithTasks(
+    transcriptId: string,
+    summary: InsertTranscriptSummary,
+    tasks: InsertTranscriptTask[]
+  ): Promise<{ summary: TranscriptSummary; tasks: TranscriptTask[] }>;
+  
+  // Transcript Tasks
+  getTranscriptTasks(summaryId: string): Promise<TranscriptTask[]>;
+  getTranscriptTasksByTranscriptId(transcriptId: string): Promise<TranscriptTask[]>;
+  getTranscriptTask(id: string): Promise<TranscriptTask | undefined>;
+  createTranscriptTask(task: InsertTranscriptTask): Promise<TranscriptTask>;
+  updateTranscriptTask(id: string, updates: Partial<TranscriptTask>): Promise<TranscriptTask | undefined>;
+  deleteTranscriptTask(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -749,6 +772,90 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(transcripts)
       .where(and(...conditions))
       .orderBy(desc(transcripts.createdAt));
+  }
+
+  // ==================== TRANSCRIPT SUMMARIES ====================
+  async getTranscriptSummary(id: string): Promise<TranscriptSummary | undefined> {
+    const [summary] = await db.select().from(transcriptSummaries).where(eq(transcriptSummaries.id, id));
+    return summary || undefined;
+  }
+
+  async getTranscriptSummaryByTranscriptId(transcriptId: string): Promise<TranscriptSummary | undefined> {
+    const [summary] = await db.select().from(transcriptSummaries)
+      .where(eq(transcriptSummaries.transcriptId, transcriptId))
+      .orderBy(desc(transcriptSummaries.createdAt))
+      .limit(1);
+    return summary || undefined;
+  }
+
+  async createTranscriptSummary(summary: InsertTranscriptSummary): Promise<TranscriptSummary> {
+    const [newSummary] = await db.insert(transcriptSummaries).values(summary).returning();
+    return newSummary;
+  }
+
+  async deleteTranscriptSummary(id: string): Promise<void> {
+    await db.delete(transcriptSummaries).where(eq(transcriptSummaries.id, id));
+  }
+  
+  async deleteSummariesForTranscript(transcriptId: string): Promise<void> {
+    await db.delete(transcriptTasks).where(eq(transcriptTasks.transcriptId, transcriptId));
+    await db.delete(transcriptSummaries).where(eq(transcriptSummaries.transcriptId, transcriptId));
+  }
+  
+  async createSummaryWithTasks(
+    transcriptId: string,
+    summary: InsertTranscriptSummary,
+    tasks: InsertTranscriptTask[]
+  ): Promise<{ summary: TranscriptSummary; tasks: TranscriptTask[] }> {
+    return await db.transaction(async (tx) => {
+      await tx.delete(transcriptTasks).where(eq(transcriptTasks.transcriptId, transcriptId));
+      await tx.delete(transcriptSummaries).where(eq(transcriptSummaries.transcriptId, transcriptId));
+      
+      const [newSummary] = await tx.insert(transcriptSummaries).values(summary).returning();
+      
+      const createdTasks: TranscriptTask[] = [];
+      for (const task of tasks) {
+        const [newTask] = await tx.insert(transcriptTasks).values({
+          ...task,
+          summaryId: newSummary.id,
+        }).returning();
+        createdTasks.push(newTask);
+      }
+      
+      return { summary: newSummary, tasks: createdTasks };
+    });
+  }
+
+  // ==================== TRANSCRIPT TASKS ====================
+  async getTranscriptTasks(summaryId: string): Promise<TranscriptTask[]> {
+    return await db.select().from(transcriptTasks)
+      .where(eq(transcriptTasks.summaryId, summaryId))
+      .orderBy(desc(transcriptTasks.createdAt));
+  }
+
+  async getTranscriptTasksByTranscriptId(transcriptId: string): Promise<TranscriptTask[]> {
+    return await db.select().from(transcriptTasks)
+      .where(eq(transcriptTasks.transcriptId, transcriptId))
+      .orderBy(desc(transcriptTasks.createdAt));
+  }
+
+  async getTranscriptTask(id: string): Promise<TranscriptTask | undefined> {
+    const [task] = await db.select().from(transcriptTasks).where(eq(transcriptTasks.id, id));
+    return task || undefined;
+  }
+
+  async createTranscriptTask(task: InsertTranscriptTask): Promise<TranscriptTask> {
+    const [newTask] = await db.insert(transcriptTasks).values(task).returning();
+    return newTask;
+  }
+
+  async updateTranscriptTask(id: string, updates: Partial<TranscriptTask>): Promise<TranscriptTask | undefined> {
+    const [task] = await db.update(transcriptTasks).set(updates).where(eq(transcriptTasks.id, id)).returning();
+    return task || undefined;
+  }
+
+  async deleteTranscriptTask(id: string): Promise<void> {
+    await db.delete(transcriptTasks).where(eq(transcriptTasks.id, id));
   }
 }
 

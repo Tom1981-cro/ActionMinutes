@@ -33,3 +33,36 @@ The UI/UX emphasizes a mode-based navigation structure, differentiating between 
 - **Frontend Libraries**: Chart.js (and `react-chartjs-2`), date-fns, zod.
 - **Email/Communication**: Nodemailer for sending emails.
 - **Authentication**: Passport.js, express-session, connect-pg-simple for session management.
+
+## Key Features
+
+### Audio Transcription (Voice-to-Text)
+- **Multi-Provider Support**: Gemini (fast), Whisper API (97+ languages), Self-hosted Whisper (privacy)
+- **Transcript Storage**: Full-text search, keyword extraction, SRT/TXT export
+- **Rate Limiting**: 5 requests/minute per user
+
+### AI Summarization Service
+- **Transcript Summarization** (`server/summarization/index.ts`): Converts transcripts into structured summaries
+  - Concise summary generation (2-4 sentences)
+  - Key decisions extraction with context
+  - Actionable tasks with assignees, due dates, priority, and keywords
+  - Sentiment analysis (positive/negative/neutral/mixed with -1 to 1 score)
+  - Top keywords extraction (up to 15)
+- **Database Tables**: 
+  - `transcript_summaries`: Stores summaries with sentiment analysis and AI metadata
+  - `transcript_tasks`: Stores extracted tasks with assignees, due dates, status, and keywords
+- **API Endpoints**:
+  - `POST /api/transcripts/:id/summarize`: Generate summary for a transcript
+  - `GET /api/transcripts/:id/summary`: Get existing summary and tasks
+  - `GET /api/transcripts/:id/tasks`: Get tasks for a transcript
+  - `PUT /api/transcript-tasks/:id`: Update task status, assignee, due date, etc.
+
+### Voice Command Activation
+- **Voice Command Service** (`server/summarization/voice-commands.ts`): Speech-to-action interface
+  - Supported commands: summarize, get_summary, list_tasks, list_decisions, show_keywords, analyze_sentiment
+  - Natural language patterns: "Summarize my meeting", "What are the action items?", "How did the meeting go?"
+  - Voice response generation for spoken feedback
+- **API Endpoints**:
+  - `GET /api/voice-commands`: List supported voice commands with examples
+  - `POST /api/voice-command`: Process voice audio and execute command
+  - `POST /api/voice-command/text`: Process text command (for testing/accessibility)

@@ -1798,11 +1798,11 @@ Thanks!`,
       const keywords = extractKeywords(result.text);
 
       if (saveTranscript) {
-        const user = await storage.getUser(userId, undefined);
+        const user = await storage.getUser(userId);
         const transcript = await storage.createTranscript({
           userId,
           meetingId: meetingId || null,
-          workspaceId: user?.defaultWorkspaceId || null,
+          workspaceId: null,
           title: title || `Transcript ${new Date().toLocaleString()}`,
           text: result.text,
           language: result.language || language || "en",
@@ -1966,6 +1966,316 @@ Thanks!`,
     res.setHeader("Content-Type", "text/plain");
     res.setHeader("Content-Disposition", `attachment; filename="${transcript.title || "transcript"}.txt"`);
     res.send(txt);
+  });
+
+  // ==================== TRANSCRIPT SUMMARIZATION ====================
+  const { summarizeTranscript, SUMMARIZATION_PROMPT_VERSION } = await import("./summarization");
+  const { parseVoiceCommand, processVoiceCommand, generateVoiceResponse, SUPPORTED_VOICE_COMMANDS } = await import("./summarization/voice-commands");
+
+  app.post("/api/transcripts/:id/summarize", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    const transcript = await storage.getTranscript(req.params.id);
+    if (!transcript) {
+      return res.status(404).json({ error: "Transcript not found" });
+    }
+
+    if (transcript.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    const config = getAppConfig();
+    if (!config.features.aiEnabled) {
+      return res.status(503).json({ 
+        error: "AI features disabled",
+        message: "AI summarization is currently disabled."
+      });
+    }
+
+    const usageCheck = await incrementAiExtraction(userId);
+    if (!usageCheck.success) {
+      return res.status(403).json({
+        error: "Monthly AI extraction limit reached",
+        limitType: 'aiExtractions',
+        current: usageCheck.current,
+        limit: usageCheck.limit,
+        upgradeUrl: '/app/settings?tab=subscription'
+      });
+    }
+
+    try {
+      const result = await summarizeTranscript(transcript.text, transcript.title || undefined);
+
+      const tasksToCreate = result.output.tasks.map(task => ({
+        transcriptId: transcript.id,
+        userId,
+        text: task.text,
+        assignee: task.assignee || null,
+        assigneeEmail: task.assigneeEmail || null,
+        dueDate: task.dueDate ? new Date(task.dueDate) : null,
+        dueDateConfidence: task.dueDateConfidence || null,
+        priority: task.priority || "medium",
+        status: "pending" as const,
+        keywords: task.keywords || [],
+        context: task.context || null,
+      }));
+
+      const { summary, tasks } = await storage.createSummaryWithTasks(
+        transcript.id,
+        {
+          transcriptId: transcript.id,
+          userId,
+          workspaceId: transcript.workspaceId,
+          summary: result.output.summary,
+          decisions: result.output.decisions,
+          sentiment: result.output.sentiment.overall,
+          sentimentScore: result.output.sentiment.score,
+          sentimentDetails: result.output.sentiment.details,
+          topKeywords: result.output.topKeywords,
+          aiProvider: result.provider,
+          aiModel: result.model,
+          promptVersion: SUMMARIZATION_PROMPT_VERSION,
+          processingTimeMs: result.processingTimeMs,
+        },
+        tasksToCreate
+      );
+
+      res.json({
+        summary,
+        tasks,
+        aiResult: result,
+      });
+    } catch (error: any) {
+      console.error("[Summarization Error]", error);
+      res.status(500).json({ 
+        error: error.message || "Summarization failed. Please try again."
+      });
+    }
+  });
+
+  app.get("/api/transcripts/:id/summary", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    const transcript = await storage.getTranscript(req.params.id);
+    if (!transcript) {
+      return res.status(404).json({ error: "Transcript not found" });
+    }
+
+    if (transcript.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    const summary = await storage.getTranscriptSummaryByTranscriptId(transcript.id);
+    if (!summary) {
+      return res.status(404).json({ error: "No summary found. Run summarization first." });
+    }
+
+    const tasks = await storage.getTranscriptTasks(summary.id);
+
+    res.json({ summary, tasks });
+  });
+
+  app.get("/api/transcripts/:id/tasks", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    const transcript = await storage.getTranscript(req.params.id);
+    if (!transcript) {
+      return res.status(404).json({ error: "Transcript not found" });
+    }
+
+    if (transcript.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    const tasks = await storage.getTranscriptTasksByTranscriptId(transcript.id);
+    res.json(tasks);
+  });
+
+  app.put("/api/transcript-tasks/:id", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    const task = await storage.getTranscriptTask(req.params.id);
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    if (task.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    const taskUpdateSchema = z.object({
+      text: z.string().optional(),
+      assignee: z.string().nullable().optional(),
+      dueDate: z.string().nullable().optional(),
+      priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
+      status: z.enum(["pending", "in_progress", "completed"]).optional(),
+    });
+
+    const parseResult = taskUpdateSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ error: "Invalid update data", details: parseResult.error.errors });
+    }
+
+    const updates: any = { ...parseResult.data };
+    if (parseResult.data.dueDate) {
+      updates.dueDate = new Date(parseResult.data.dueDate);
+    }
+    if (parseResult.data.status === "completed") {
+      updates.completedAt = new Date();
+    }
+
+    const updated = await storage.updateTranscriptTask(req.params.id, updates);
+    res.json(updated);
+  });
+
+  // ==================== VOICE COMMANDS ====================
+  app.get("/api/voice-commands", async (req, res) => {
+    res.json({ commands: SUPPORTED_VOICE_COMMANDS });
+  });
+
+  app.post("/api/voice-command", audioUpload.single("audio"), async (req, res) => {
+    const userId = req.query.userId as string;
+    const transcriptId = req.query.transcriptId as string;
+    
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No audio file provided" });
+    }
+
+    const validation = validateAudioFile(req.file.mimetype, req.file.size);
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.error });
+    }
+
+    if (!checkTranscriptionRateLimit(userId)) {
+      return res.status(429).json({ error: "Too many requests. Please wait a moment." });
+    }
+
+    const estimatedMinutes = Math.ceil(req.file.size / (16000 * 60));
+    const usageCheck = await incrementTranscriptionMinutes(userId, estimatedMinutes);
+    if (!usageCheck.success) {
+      return res.status(403).json({
+        error: "Monthly transcription limit reached",
+        limitType: 'transcription',
+        current: usageCheck.current,
+        limit: usageCheck.limit,
+        upgradeUrl: '/app/settings?tab=subscription'
+      });
+    }
+
+    try {
+      const commandResult = await processVoiceCommand(req.file.buffer, req.file.mimetype);
+
+      if (commandResult.command === "unknown") {
+        return res.json({
+          success: false,
+          command: commandResult,
+          response: generateVoiceResponse("unknown", false),
+        });
+      }
+
+      let data: any = null;
+      
+      if (transcriptId) {
+        const transcript = await storage.getTranscript(transcriptId);
+        if (transcript && transcript.userId === userId) {
+          const summary = await storage.getTranscriptSummaryByTranscriptId(transcriptId);
+          if (summary) {
+            const tasks = await storage.getTranscriptTasks(summary.id);
+            data = { 
+              summary: summary.summary, 
+              decisions: summary.decisions,
+              sentiment: { overall: summary.sentiment, score: summary.sentimentScore },
+              topKeywords: summary.topKeywords,
+              tasks 
+            };
+          }
+        }
+      }
+
+      const response = generateVoiceResponse(commandResult.command, !!data, data);
+
+      res.json({
+        success: true,
+        command: commandResult,
+        response,
+        data,
+      });
+    } catch (error: any) {
+      console.error("[Voice Command Error]", error);
+      res.status(500).json({
+        success: false,
+        error: error.message || "Voice command processing failed",
+        response: generateVoiceResponse("unknown", false),
+      });
+    }
+  });
+
+  app.post("/api/voice-command/text", async (req, res) => {
+    const userId = req.query.userId as string;
+    const transcriptId = req.query.transcriptId as string;
+    const { text } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    if (!text) {
+      return res.status(400).json({ error: "text is required" });
+    }
+
+    const commandResult = parseVoiceCommand(text);
+
+    if (commandResult.command === "unknown") {
+      return res.json({
+        success: false,
+        command: commandResult,
+        response: generateVoiceResponse("unknown", false),
+      });
+    }
+
+    let data: any = null;
+    
+    if (transcriptId) {
+      const transcript = await storage.getTranscript(transcriptId);
+      if (transcript && transcript.userId === userId) {
+        const summary = await storage.getTranscriptSummaryByTranscriptId(transcriptId);
+        if (summary) {
+          const tasks = await storage.getTranscriptTasks(summary.id);
+          data = { 
+            summary: summary.summary, 
+            decisions: summary.decisions,
+            sentiment: { overall: summary.sentiment, score: summary.sentimentScore },
+            topKeywords: summary.topKeywords,
+            tasks 
+          };
+        }
+      }
+    }
+
+    const response = generateVoiceResponse(commandResult.command, !!data, data);
+
+    res.json({
+      success: true,
+      command: commandResult,
+      response,
+      data,
+    });
   });
 
   // ==================== AI AUDIT LOGS ====================
