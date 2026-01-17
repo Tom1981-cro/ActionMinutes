@@ -2,14 +2,13 @@ import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
-  Lifebuoy, BookOpenText, CaretDown, Robot, User, Calendar, Waveform, NotePencil
+  BookOpenText, CaretDown, Robot, User, Calendar, Waveform, NotePencil
 } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { useRestartTutorial } from "@/components/tutorial";
 import { QuickAdd } from "@/components/quick-add";
 import {
   DropdownMenu,
@@ -28,7 +27,6 @@ export default function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
   const { user, theme, toggleTheme } = useStore();
   const { logout, isAuthenticated, isLoading } = useAuth();
-  const restartTutorial = useRestartTutorial();
 
   useEffect(() => {
     const root = document.documentElement;
@@ -144,6 +142,10 @@ export default function Layout({ children }: LayoutProps) {
           </div>
 
           <div className="mb-4">
+            <div className={cn("flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wider", theme === "light" ? "text-gray-500" : "text-white/40")}>
+              <User weight="duotone" className="h-3 w-3" />
+              Personal
+            </div>
             {personalItems.map((item) => {
               const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
               return (
@@ -197,17 +199,6 @@ export default function Layout({ children }: LayoutProps) {
                 theme === "light" ? "bg-white border-gray-200" : "bg-[#1a1a1a] border-white/10"
               )}
             >
-              <DropdownMenuItem 
-                onClick={restartTutorial}
-                className={cn(
-                  "rounded-lg cursor-pointer",
-                  theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/5"
-                )}
-                data-testid="menu-take-tour"
-              >
-                <Lifebuoy className={cn("h-4 w-4 mr-2", theme === "light" ? "text-fuchsia-500" : "text-fuchsia-400")} weight="duotone" />
-                <span className={theme === "light" ? "text-gray-700" : "text-white/80"}>Take a Tour</span>
-              </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => setLocation("/app/guide")}
                 className={cn(
@@ -303,17 +294,6 @@ export default function Layout({ children }: LayoutProps) {
                 <p className={cn("text-sm font-bold truncate", theme === "light" ? "text-gray-900" : "text-white")}>{user.name}</p>
                 <p className={cn("text-xs truncate", theme === "light" ? "text-gray-500" : "text-white/50")}>{user.email}</p>
               </div>
-              <DropdownMenuItem 
-                onClick={restartTutorial}
-                className={cn(
-                  "rounded-lg cursor-pointer",
-                  theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/5"
-                )}
-                data-testid="mobile-menu-take-tour"
-              >
-                <Lifebuoy className={cn("h-4 w-4 mr-2", theme === "light" ? "text-fuchsia-500" : "text-fuchsia-400")} weight="duotone" />
-                <span className={theme === "light" ? "text-gray-700" : "text-white/80"}>Take a Tour</span>
-              </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => setLocation("/app/guide")}
                 className={cn(
