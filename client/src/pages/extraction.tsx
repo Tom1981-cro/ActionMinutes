@@ -12,7 +12,7 @@ import {
   Warning, Question, Pencil, User, Clock, SpinnerGap 
 } from "@phosphor-icons/react";
 import { useToast } from "@/hooks/use-toast";
-import { useMeeting, useActionItemsForMeeting, useDecisionsForMeeting, useRisksForMeeting, useQuestionsForMeeting, useUpdateMeeting, useExportCalendar, useAppConfig, useGenerateDrafts, useDraftsForMeeting } from "@/lib/hooks";
+import { useMeeting, useActionItemsForMeeting, useDecisionsForMeeting, useRisksForMeeting, useQuestionsForMeeting, useUpdateMeeting, useExportCalendar, useAppConfig, useGenerateDrafts, useDraftsForMeeting, useTasksBySource, useCreateTasksFromMeeting } from "@/lib/hooks";
 import { ActionEditSheet } from "@/components/action-edit-sheet";
 import type { ActionItem } from "@shared/schema";
 
@@ -34,6 +34,8 @@ export default function ExtractionPage() {
   const exportCalendar = useExportCalendar();
   const generateDrafts = useGenerateDrafts();
   const { data: existingDrafts = [] } = useDraftsForMeeting(id);
+  const { data: linkedTasks = [], isLoading: tasksLoading } = useTasksBySource('meeting', id);
+  const createTasksFromMeeting = useCreateTasksFromMeeting();
 
   const aiEnabled = config?.features?.aiEnabled !== false;
   const hasDrafts = existingDrafts.length > 0;
@@ -128,6 +130,22 @@ export default function ExtractionPage() {
     setEditSheetOpen(true);
   };
 
+  const handleCreateTasks = async () => {
+    try {
+      const result = await createTasksFromMeeting.mutateAsync(meeting.id);
+      toast({ 
+        title: "Tasks created", 
+        description: `${result.tasksCreated} task${result.tasksCreated !== 1 ? 's' : ''} added to your task list.` 
+      });
+    } catch (error: any) {
+      toast({ 
+        title: "Could not create tasks", 
+        description: error?.message || "Please try again.", 
+        variant: "destructive" 
+      });
+    }
+  };
+
   const tabs: { id: TabType; label: string; count?: number }[] = [
     { id: 'summary', label: 'Summary' },
     { id: 'actions', label: 'Actions', count: actions.length },
@@ -195,12 +213,36 @@ export default function ExtractionPage() {
           <div className={`${activeTab === 'actions' ? 'block' : 'hidden md:block'}`}>
             <Card className="glass-panel rounded-2xl">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
-                <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
-                  Action Items
-                  {actions.length > 0 && (
-                    <Badge variant="outline" className="rounded-full bg-white/10 text-white/70 border-white/20">{actions.length}</Badge>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
+                    Action Items
+                    {actions.length > 0 && (
+                      <Badge variant="outline" className="rounded-full bg-white/10 text-white/70 border-white/20">{actions.length}</Badge>
+                    )}
+                    {linkedTasks.length > 0 && (
+                      <Badge variant="outline" className="rounded-full bg-violet-500/20 text-violet-300 border-violet-500/30">
+                        {linkedTasks.length} task{linkedTasks.length !== 1 ? 's' : ''}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  {actions.length > 0 && actions.length > linkedTasks.length && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleCreateTasks}
+                      disabled={createTasksFromMeeting.isPending}
+                      className="rounded-full text-xs text-violet-300 hover:bg-violet-500/20"
+                      data-testid="button-create-tasks"
+                    >
+                      {createTasksFromMeeting.isPending ? (
+                        <SpinnerGap className="mr-1.5 h-3.5 w-3.5 animate-spin" weight="bold" />
+                      ) : (
+                        <CheckCircle className="mr-1.5 h-3.5 w-3.5" weight="duotone" />
+                      )}
+                      Add to Tasks
+                    </Button>
                   )}
-                </CardTitle>
+                </div>
               </CardHeader>
               <CardContent className="px-4 pb-4 md:px-6 space-y-3">
                 {actions.length === 0 ? (

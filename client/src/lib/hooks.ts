@@ -378,6 +378,42 @@ export function useAiAuditLogsForMeeting(meetingId: string | undefined) {
   });
 }
 
+// ==================== TASKS ====================
+export function useTasksBySource(sourceType: string, sourceId: string | undefined) {
+  return useQuery({
+    queryKey: ['tasks', 'source', sourceType, sourceId],
+    queryFn: async () => {
+      const response = await fetch(`/api/tasks/by-source/${sourceType}/${sourceId}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to fetch tasks');
+      return response.json();
+    },
+    enabled: !!sourceId,
+  });
+}
+
+export function useCreateTasksFromMeeting() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (meetingId: string) => {
+      const response = await fetch(`/api/meetings/${meetingId}/create-tasks`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create tasks');
+      }
+      return response.json();
+    },
+    onSuccess: (_, meetingId) => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', 'source', 'meeting', meetingId] });
+    },
+  });
+}
+
 // ==================== APP CONFIG ====================
 export type FeatureFlags = {
   aiEnabled: boolean;

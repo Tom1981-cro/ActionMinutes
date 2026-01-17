@@ -1022,6 +1022,117 @@ Thanks!`,
     res.json({ success: true });
   });
 
+  app.post("/api/actions/:id/create-task", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const actionId = req.params.id;
+    
+    const action = await storage.getActionItem(actionId);
+    if (!action) {
+      return res.status(404).json({ error: "Action item not found" });
+    }
+    
+    const meeting = await storage.getMeeting(action.meetingId);
+    if (!meeting) {
+      return res.status(404).json({ error: "Meeting not found" });
+    }
+    
+    if (meeting.workspaceId) {
+      const hasAccess = await checkWorkspaceAccess(userId, meeting.workspaceId, 'workspace', 'write');
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+    } else if (meeting.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    
+    const existingTasks = await storage.getTasksBySource('meeting', meeting.id);
+    const alreadyLinked = existingTasks.some(t => 
+      t.userId === userId && t.title === action.text
+    );
+    
+    if (alreadyLinked) {
+      return res.status(400).json({ error: "Task already exists for this action item" });
+    }
+    
+    const taskPriority = (action.confidenceOwner || 0) >= 0.8 ? 'high' : 
+                         (action.confidenceOwner || 0) >= 0.5 ? 'medium' : 'low';
+    
+    const task = await storage.createTask({
+      userId,
+      workspaceId: meeting.workspaceId || null,
+      projectId: null,
+      title: action.text,
+      description: `From meeting: ${meeting.title}`,
+      status: action.status === 'needs_review' ? 'pending' : 'todo',
+      priority: taskPriority,
+      dueDate: action.dueDate || null,
+      recurrence: null,
+      recurrenceEndDate: null,
+      nextOccurrence: null,
+      sourceType: 'meeting',
+      sourceId: meeting.id,
+      tags: [],
+      estimatedMinutes: null,
+    });
+    
+    res.json(task);
+  });
+
+  app.post("/api/meetings/:id/create-tasks", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const meetingId = req.params.id;
+    
+    const meeting = await storage.getMeeting(meetingId);
+    if (!meeting) {
+      return res.status(404).json({ error: "Meeting not found" });
+    }
+    
+    if (meeting.workspaceId) {
+      const hasAccess = await checkWorkspaceAccess(userId, meeting.workspaceId, 'workspace', 'write');
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+    } else if (meeting.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    
+    const actions = await storage.getActionItemsForMeeting(meetingId);
+    const existingTasks = await storage.getTasksBySource('meeting', meetingId);
+    const existingTitles = new Set(existingTasks.filter(t => t.userId === userId).map(t => t.title));
+    
+    const createdTasks = [];
+    for (const action of actions) {
+      if (existingTitles.has(action.text)) continue;
+      
+      const taskPriority = (action.confidenceOwner || 0) >= 0.8 ? 'high' : 
+                           (action.confidenceOwner || 0) >= 0.5 ? 'medium' : 'low';
+      
+      const task = await storage.createTask({
+        userId,
+        workspaceId: meeting.workspaceId || null,
+        projectId: null,
+        title: action.text,
+        description: `From meeting: ${meeting.title}`,
+        status: action.status === 'needs_review' ? 'pending' : 'todo',
+        priority: taskPriority,
+        dueDate: action.dueDate || null,
+        recurrence: null,
+        recurrenceEndDate: null,
+        nextOccurrence: null,
+        sourceType: 'meeting',
+        sourceId: meetingId,
+        tags: [],
+        estimatedMinutes: null,
+      });
+      createdTasks.push(task);
+    }
+    
+    res.json({ 
+      tasksCreated: createdTasks.length,
+      tasks: createdTasks 
+    });
+  });
+
   // ==================== DRAFTS ====================
   app.get("/api/drafts", async (req, res) => {
     const userId = req.query.userId as string;
@@ -2646,9 +2757,13 @@ Thanks!`,
         summary: output.summary
       });
 
+      const existingTasks = userId ? await storage.getTasksBySource('meeting', meetingId) : [];
+      const existingTaskTitles = new Set(existingTasks.filter(t => t.userId === userId).map(t => t.title));
+      
+      const createdTasks = [];
       for (const item of output.actionItems) {
         const status = mapConfidenceToStatus(item.confidenceOwner, item.confidenceDueDate);
-        await storage.createActionItem({
+        const actionItem = await storage.createActionItem({
           meetingId,
           workspaceId: meeting.workspaceId,
           text: item.text,
@@ -2660,6 +2775,30 @@ Thanks!`,
           tags: [],
           dueDate: item.dueDate ? new Date(item.dueDate) : null
         });
+        
+        if (userId && !existingTaskTitles.has(item.text)) {
+          const taskPriority = item.confidenceOwner >= 0.8 ? 'high' : 
+                               item.confidenceOwner >= 0.5 ? 'medium' : 'low';
+          const task = await storage.createTask({
+            userId,
+            workspaceId: meeting.workspaceId || null,
+            projectId: null,
+            title: item.text,
+            description: `From meeting: ${meeting.title}`,
+            status: status === 'needs_review' ? 'pending' : 'todo',
+            priority: taskPriority,
+            dueDate: item.dueDate ? new Date(item.dueDate) : null,
+            recurrence: null,
+            recurrenceEndDate: null,
+            nextOccurrence: null,
+            sourceType: 'meeting',
+            sourceId: meetingId,
+            tags: [],
+            estimatedMinutes: null,
+          });
+          createdTasks.push(task);
+          existingTaskTitles.add(item.text);
+        }
       }
 
       for (const decision of output.decisions) {
@@ -2699,6 +2838,7 @@ Thanks!`,
         actionItemsCount: output.actionItems.length,
         decisionsCount: output.decisions.length,
         risksCount: output.risks.length,
+        tasksCreated: createdTasks.length,
         qualityFlags: output.qualityFlags
       });
     } catch (error) {
