@@ -602,6 +602,88 @@ export type CalendarEvent = typeof calendarEvents.$inferSelect;
 export type InsertCalendarWebhook = z.infer<typeof insertCalendarWebhookSchema>;
 export type CalendarWebhook = typeof calendarWebhooks.$inferSelect;
 
+// ==================== NOTES MODULE ====================
+export const notes = pgTable("notes", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  workspaceId: varchar("workspace_id", { length: 36 }).references(() => workspaces.id, { onDelete: 'set null' }),
+  title: text("title").notNull(),
+  contentEncrypted: text("content_encrypted").notNull(),
+  contentIv: text("content_iv").notNull(),
+  contentPlaintext: text("content_plaintext"),
+  searchVector: text("search_vector"),
+  isJournal: boolean("is_journal").notNull().default(false),
+  visibility: text("visibility").notNull().default('private'),
+  isPinned: boolean("is_pinned").notNull().default(false),
+  color: text("color"),
+  moodScore: integer("mood_score"),
+  moodLabel: text("mood_label"),
+  promptId: varchar("prompt_id", { length: 36 }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const noteTags = pgTable("note_tags", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text("name").notNull(),
+  color: text("color"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const noteTagMap = pgTable("note_tag_map", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  noteId: varchar("note_id", { length: 36 }).notNull().references(() => notes.id, { onDelete: 'cascade' }),
+  tagId: varchar("tag_id", { length: 36 }).notNull().references(() => noteTags.id, { onDelete: 'cascade' }),
+});
+
+export const noteLinks = pgTable("note_links", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  fromNoteId: varchar("from_note_id", { length: 36 }).notNull().references(() => notes.id, { onDelete: 'cascade' }),
+  toNoteId: varchar("to_note_id", { length: 36 }).notNull().references(() => notes.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const noteAttachments = pgTable("note_attachments", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  noteId: varchar("note_id", { length: 36 }).notNull().references(() => notes.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  fileUrl: text("file_url").notNull(),
+  fileName: text("file_name").notNull(),
+  fileType: text("file_type").notNull(),
+  fileSize: integer("file_size"),
+  transcriptId: varchar("transcript_id", { length: 36 }).references(() => transcripts.id, { onDelete: 'set null' }),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertNoteSchema = createInsertSchema(notes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+export const insertNoteTagSchema = createInsertSchema(noteTags).omit({
+  id: true,
+  createdAt: true,
+});
+export const insertNoteLinkSchema = createInsertSchema(noteLinks).omit({
+  id: true,
+  createdAt: true,
+});
+export const insertNoteAttachmentSchema = createInsertSchema(noteAttachments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertNote = z.infer<typeof insertNoteSchema>;
+export type Note = typeof notes.$inferSelect;
+export type InsertNoteTag = z.infer<typeof insertNoteTagSchema>;
+export type NoteTag = typeof noteTags.$inferSelect;
+export type InsertNoteLink = z.infer<typeof insertNoteLinkSchema>;
+export type NoteLink = typeof noteLinks.$inferSelect;
+export type InsertNoteAttachment = z.infer<typeof insertNoteAttachmentSchema>;
+export type NoteAttachment = typeof noteAttachments.$inferSelect;
+
 // ==================== CHAT (AI Integration) ====================
 export const conversations = pgTable("conversations", {
   id: integer("id").primaryKey().generatedAlwaysAsIdentity(),

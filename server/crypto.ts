@@ -72,3 +72,62 @@ export function isTokenEncrypted(token: string): boolean {
 export function isEncryptionConfigured(): boolean {
   return !!process.env.TOKEN_ENCRYPTION_KEY;
 }
+
+function getNotesEncryptionKey(): Buffer {
+  const keyEnv = process.env.NOTES_ENCRYPTION_KEY;
+  if (!keyEnv) {
+    const fallbackKey = crypto.createHash('sha256')
+      .update(process.env.DATABASE_URL || 'default-notes-key')
+      .digest();
+    return fallbackKey;
+  }
+  return crypto.scryptSync(keyEnv, 'actionminutes-notes-salt', 32);
+}
+
+export function encryptNoteContent(plaintext: string): { encrypted: string; iv: string } {
+  const key = getNotesEncryptionKey();
+  const iv = crypto.randomBytes(IV_LENGTH);
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+  
+  let encrypted = cipher.update(plaintext, 'utf8', 'base64');
+  encrypted += cipher.final('base64');
+  
+  const authTag = cipher.getAuthTag();
+  const combined = Buffer.concat([
+    Buffer.from(encrypted, 'base64'),
+    authTag
+  ]);
+  
+  return {
+    encrypted: combined.toString('base64'),
+    iv: iv.toString('base64')
+  };
+}
+
+export function decryptNoteContent(encrypted: string, iv: string): string {
+  const key = getNotesEncryptionKey();
+  const ivBuffer = Buffer.from(iv, 'base64');
+  const combined = Buffer.from(encrypted, 'base64');
+  
+  const authTag = combined.subarray(combined.length - AUTH_TAG_LENGTH);
+  const ciphertext = combined.subarray(0, combined.length - AUTH_TAG_LENGTH);
+  
+  const decipher = crypto.createDecipheriv(ALGORITHM, key, ivBuffer);
+  decipher.setAuthTag(authTag);
+  
+  let decrypted = decipher.update(ciphertext);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+  
+  return decrypted.toString('utf8');
+}
+
+export function generateSearchVector(text: string): string {
+  const words = text.toLowerCase()
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter(word => word.length > 2)
+    .slice(0, 100);
+  
+  return Array.from(new Set(words)).join(' ');
+}
