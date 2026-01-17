@@ -7,7 +7,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, authenticatedFetch } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { QuickAdd } from "@/components/quick-add";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -43,7 +43,7 @@ export default function Layout({ children }: LayoutProps) {
   const { data: customLists = [] } = useQuery<CustomList[]>({
     queryKey: ['custom-lists', user.id],
     queryFn: async () => {
-      const res = await fetch(`/api/lists`, { credentials: 'include' });
+      const res = await authenticatedFetch('/api/lists');
       if (!res.ok) return [];
       return res.json();
     },
@@ -52,26 +52,25 @@ export default function Layout({ children }: LayoutProps) {
 
   const createList = useMutation({
     mutationFn: async () => {
-      const res = await fetch('/api/lists', {
+      const res = await authenticatedFetch('/api/lists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ name: 'New List', position: customLists.length }),
       });
       if (!res.ok) throw new Error('Failed to create list');
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (newList) => {
       queryClient.invalidateQueries({ queryKey: ['custom-lists'] });
+      setLocation(`/app/lists/${newList.id}`);
     },
   });
 
   const updateList = useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      const res = await fetch(`/api/lists/${id}`, {
+      const res = await authenticatedFetch(`/api/lists/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ name }),
       });
       if (!res.ok) throw new Error('Failed to update list');
