@@ -80,9 +80,15 @@ export default function SettingsPage() {
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isManaging, setIsManaging] = useState(false);
   const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
 
   const isAdmin = user.email === ADMIN_EMAIL;
   const currencySymbol = geoData?.isEU ? "€" : "$";
+  const prices = geoData?.isEU 
+    ? { monthly: 8, yearly: 76 } 
+    : { monthly: 10, yearly: 96 };
+  const currentPrice = billingInterval === 'yearly' ? prices.yearly : prices.monthly;
+  const monthlyEquivalent = billingInterval === 'yearly' ? Math.round(prices.yearly / 12 * 10) / 10 : null;
   const openSubscription = tabParam === "subscription";
   
   const isPro = user.subscriptionPlan === 'pro';
@@ -104,7 +110,7 @@ export default function SettingsPage() {
       const response = await authenticatedFetch('/api/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan })
+        body: JSON.stringify({ plan, interval: billingInterval })
       });
       const data = await response.json();
       if (!response.ok) {
@@ -310,9 +316,37 @@ export default function SettingsPage() {
                   <CardDescription className="text-white/60">Unlock your full productivity</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <button
+                      onClick={() => setBillingInterval('monthly')}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                        billingInterval === 'monthly' 
+                          ? 'bg-violet-600 text-white' 
+                          : 'bg-white/10 text-white/60 hover:bg-white/15'
+                      }`}
+                      data-testid="settings-billing-monthly"
+                    >
+                      Monthly
+                    </button>
+                    <button
+                      onClick={() => setBillingInterval('yearly')}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                        billingInterval === 'yearly' 
+                          ? 'bg-violet-600 text-white' 
+                          : 'bg-white/10 text-white/60 hover:bg-white/15'
+                      }`}
+                      data-testid="settings-billing-yearly"
+                    >
+                      Yearly
+                      <span className="bg-emerald-500/20 text-emerald-400 text-xs px-1.5 py-0.5 rounded-full">-20%</span>
+                    </button>
+                  </div>
                   <div>
-                    <span className="text-3xl font-bold text-white">{currencySymbol}{geoData?.isEU ? '8' : '10'}</span>
-                    <span className="text-white/50 ml-1">/month</span>
+                    <span className="text-3xl font-bold text-white">{currencySymbol}{currentPrice}</span>
+                    <span className="text-white/50 ml-1">/{billingInterval === 'yearly' ? 'year' : 'month'}</span>
+                    {monthlyEquivalent && (
+                      <p className="text-sm text-violet-400 mt-1">{currencySymbol}{monthlyEquivalent}/month</p>
+                    )}
                   </div>
                   <ul className="space-y-2 text-sm text-white/80">
                     <li className="flex items-center gap-2">

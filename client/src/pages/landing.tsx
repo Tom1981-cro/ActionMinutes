@@ -154,16 +154,19 @@ function MouseGlow() {
 function PricingSection() {
   const { geoData } = useGeoData();
   const isEU = geoData?.isEU || false;
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
   
   const prices = isEU ? {
-    starter: { monthly: 0 },
-    pro: { monthly: 8 }
+    starter: { monthly: 0, yearly: 0 },
+    pro: { monthly: 8, yearly: 76 }
   } : {
-    starter: { monthly: 0 },
-    pro: { monthly: 10 }
+    starter: { monthly: 0, yearly: 0 },
+    pro: { monthly: 10, yearly: 96 }
   };
 
   const currencySymbol = isEU ? "€" : "$";
+  const currentPrice = billingInterval === 'yearly' ? prices.pro.yearly : prices.pro.monthly;
+  const monthlyEquivalent = billingInterval === 'yearly' ? Math.round(prices.pro.yearly / 12 * 10) / 10 : null;
 
   return (
     <section className="py-24 px-4 relative" id="pricing">
@@ -182,6 +185,32 @@ function PricingSection() {
             Start free, upgrade when you need more.
             {isEU && <span className="block text-sm text-violet-400 mt-2">Prices shown in EUR</span>}
           </p>
+          
+          <div className="flex items-center justify-center gap-3 mt-6">
+            <button
+              onClick={() => setBillingInterval('monthly')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                billingInterval === 'monthly' 
+                  ? 'bg-violet-600 text-white' 
+                  : 'bg-white/10 text-white/60 hover:bg-white/15'
+              }`}
+              data-testid="billing-toggle-monthly"
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBillingInterval('yearly')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                billingInterval === 'yearly' 
+                  ? 'bg-violet-600 text-white' 
+                  : 'bg-white/10 text-white/60 hover:bg-white/15'
+              }`}
+              data-testid="billing-toggle-yearly"
+            >
+              Yearly
+              <span className="bg-emerald-500/20 text-emerald-400 text-xs px-2 py-0.5 rounded-full">Save 20%</span>
+            </button>
+          </div>
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-6 lg:gap-8 items-start max-w-3xl mx-auto">
@@ -248,9 +277,14 @@ function PricingSection() {
             
             <div className="mb-6">
               <span className="text-4xl font-bold text-white">
-                {currencySymbol}{prices.pro.monthly}
+                {currencySymbol}{currentPrice}
               </span>
-              <span className="text-white/50 ml-2">/month</span>
+              <span className="text-white/50 ml-2">/{billingInterval === 'yearly' ? 'year' : 'month'}</span>
+              {monthlyEquivalent && (
+                <p className="text-sm text-violet-400 mt-1">
+                  {currencySymbol}{monthlyEquivalent}/month
+                </p>
+              )}
             </div>
 
             <ul className="space-y-3 mb-8">
@@ -277,7 +311,7 @@ function PricingSection() {
             </ul>
 
             <Link
-              href="/login?plan=pro"
+              href={`/login?plan=pro&interval=${billingInterval}`}
               className="group relative block w-full text-center text-white py-3 rounded-xl font-semibold transition-all overflow-hidden"
               data-testid="pricing-pro-cta"
             >
