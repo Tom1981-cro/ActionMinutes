@@ -15,7 +15,6 @@ import { ActionEditSheet } from "@/components/action-edit-sheet";
 import { useStore } from "@/lib/store";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-type FilterType = "mine" | "workspace";
 type SourceType = "all" | "meetings" | "quickadd";
 
 interface UnifiedItem {
@@ -163,14 +162,11 @@ export default function InboxPage() {
   const { data: actionItems = [], isLoading: actionsLoading } = useActionItems();
   const updateActionItem = useUpdateActionItem();
   const { toast } = useToast();
-  const [filter, setFilter] = useState<FilterType>("mine");
   const [sourceFilter, setSourceFilter] = useState<SourceType>("all");
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
-  const { user, currentWorkspaceId } = useStore();
+  const { user } = useStore();
   const queryClient = useQueryClient();
-
-  const isPersonalMode = currentWorkspaceId === null;
 
   const { data: reminders = [], isLoading: remindersLoading } = useQuery({
     queryKey: ["reminders", user.id],
@@ -235,13 +231,6 @@ export default function InboxPage() {
   const filteredItems = unifiedItems.filter((item) => {
     if (sourceFilter === 'meetings' && item.source !== 'meeting') return false;
     if (sourceFilter === 'quickadd' && item.source !== 'quickadd') return false;
-    
-    if (isPersonalMode || filter === "mine") {
-      return item.ownerName?.toLowerCase() === user.name?.toLowerCase() || 
-             item.originalItem.ownerId === user.id ||
-             (!item.ownerName && !item.originalItem.ownerId) ||
-             item.source === 'quickadd';
-    }
     return true;
   });
 
@@ -307,39 +296,6 @@ export default function InboxPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {!isPersonalMode && (
-            <div className="flex gap-1 p-1 glass-panel rounded-xl">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setFilter("mine")}
-                className={`h-8 rounded-lg text-xs transition-all duration-300 ${
-                  filter === "mine" 
-                    ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' 
-                    : 'text-white/60 hover:text-white/80'
-                }`}
-                data-testid="filter-mine"
-              >
-                <User className="h-3 w-3 mr-1" />
-                Mine
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setFilter("workspace")}
-                className={`h-8 rounded-lg text-xs transition-all duration-300 ${
-                  filter === "workspace" 
-                    ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' 
-                    : 'text-white/60 hover:text-white/80'
-                }`}
-                data-testid="filter-workspace"
-              >
-                <Users className="h-3 w-3 mr-1" />
-                Team
-              </Button>
-            </div>
-          )}
-
           <div className="flex gap-1 p-1 glass-panel rounded-xl">
             <Button
               variant="ghost"

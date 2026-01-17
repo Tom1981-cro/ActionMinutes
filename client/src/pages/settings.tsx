@@ -16,7 +16,6 @@ import { useGeoData } from "@/components/stripe-pricing-table";
 import { authenticatedFetch } from "@/hooks/use-auth";
 import SettingsIntegrationsPage from "./settings-integrations";
 import SettingsExportsPage from "./settings-exports";
-import WorkspaceSettingsPage from "./workspace-settings";
 import SettingsPrivacyPage from "./settings-privacy";
 import SettingsTermsPage from "./settings-terms";
 import { FeedbackModal } from "@/components/feedback-modal";
@@ -72,7 +71,7 @@ function ExpandableSection({ title, icon, defaultOpen = false, forceOpen, childr
 }
 
 export default function SettingsPage() {
-  const { user, updateUser: updateLocalUser, currentWorkspaceId } = useStore();
+  const { user, updateUser: updateLocalUser } = useStore();
   const updateUser = useUpdateUser();
   const { geoData } = useGeoData();
   const search = useSearch();
@@ -301,94 +300,53 @@ export default function SettingsPage() {
           {/* Upgrade Section - Show for Free users */}
           {!isPro && (
             <div className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-4">
-                <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-all">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg text-white">Pro</CardTitle>
-                      <span className="bg-violet-500/20 text-violet-300 text-xs font-medium px-2 py-1 rounded-full">Popular</span>
-                    </div>
-                    <CardDescription className="text-white/60">For serious productivity</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <span className="text-3xl font-bold text-white">{currencySymbol}{geoData?.isEU ? '10' : '12'}</span>
-                      <span className="text-white/50 ml-1">/month</span>
-                    </div>
-                    <ul className="space-y-2 text-sm text-white/80">
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
-                        Unlimited transcription
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
-                        Unlimited AI extractions
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
-                        Gmail and Outlook Integration
-                      </li>
-                    </ul>
-                    <Button
-                      onClick={() => handleUpgrade()}
-                      disabled={isUpgrading}
-                      className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white h-11 rounded-xl font-semibold"
-                      data-testid="button-upgrade-pro"
-                    >
-                      {isUpgrading ? (
-                        <span className="flex items-center gap-2">
-                          <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          Redirecting...
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-2">
-                          <Rocket className="h-4 w-4" weight="duotone" />
-                          Upgrade to Pro
-                        </span>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-all">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg text-white">Team</CardTitle>
-                    <CardDescription className="text-white/60">Collaborate with your crew</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <span className="text-3xl font-bold text-white">{currencySymbol}{geoData?.isEU ? '25' : '29'}</span>
-                      <span className="text-white/50 ml-1">/month</span>
-                    </div>
-                    <ul className="space-y-2 text-sm text-white/80">
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
-                        Everything in Pro
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
-                        5 Team seats
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
-                        Shared Workspace
-                      </li>
-                    </ul>
-                    <Button
-                      onClick={() => handleUpgrade('team')}
-                      disabled={isUpgrading}
-                      variant="outline"
-                      className="w-full h-11 rounded-xl text-white border-white/20 hover:bg-white/10"
-                      data-testid="button-upgrade-team"
-                    >
+              <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-all max-w-md">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg text-white">Pro</CardTitle>
+                    <span className="bg-violet-500/20 text-violet-300 text-xs font-medium px-2 py-1 rounded-full">Recommended</span>
+                  </div>
+                  <CardDescription className="text-white/60">Unlock your full productivity</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <span className="text-3xl font-bold text-white">{currencySymbol}{geoData?.isEU ? '10' : '12'}</span>
+                    <span className="text-white/50 ml-1">/month</span>
+                  </div>
+                  <ul className="space-y-2 text-sm text-white/80">
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
+                      Unlimited transcription
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
+                      Unlimited AI extractions
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
+                      Gmail and Outlook Integration
+                    </li>
+                  </ul>
+                  <Button
+                    onClick={() => handleUpgrade()}
+                    disabled={isUpgrading}
+                    className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white h-11 rounded-xl font-semibold"
+                    data-testid="button-upgrade-pro"
+                  >
+                    {isUpgrading ? (
                       <span className="flex items-center gap-2">
-                        <UsersThree className="h-4 w-4" weight="duotone" />
-                        Get Team
+                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Redirecting...
                       </span>
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Rocket className="h-4 w-4" weight="duotone" />
+                        Upgrade to Pro
+                      </span>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           )}
 
@@ -446,50 +404,6 @@ export default function SettingsPage() {
         testId="section-exports"
       >
         <SettingsExportsPage />
-      </ExpandableSection>
-
-      {/* Workspace Section - only show if in a workspace */}
-      {currentWorkspaceId && (
-        <ExpandableSection
-          title="Workspace"
-          icon={<UsersThree className="h-5 w-5 text-fuchsia-400" weight="duotone" />}
-          testId="section-workspace"
-        >
-          <WorkspaceSettingsPage workspaceId={currentWorkspaceId} />
-        </ExpandableSection>
-      )}
-
-      {/* Personal Section */}
-      <ExpandableSection
-        title="Personal"
-        icon={<User className="h-5 w-5 text-pink-400" weight="duotone" />}
-        testId="section-personal"
-      >
-        <div className="space-y-4">
-          <div className="p-4 bg-violet-500/10 rounded-xl text-sm border border-violet-500/30">
-            <h3 className="font-semibold text-violet-700 mb-1">Your Personal Space</h3>
-            <p className="text-violet-900/80">These features are private to you. No one else can see your personal meetings, journal entries, or reminders.</p>
-          </div>
-
-          <div className="space-y-3">
-            <Link href="/journal">
-              <Button variant="outline" className="w-full justify-start h-12 rounded-xl" data-testid="link-journal">
-                <BookOpen className="h-4 w-4 mr-3 text-fuchsia-400" weight="duotone" />
-                Open Journal
-              </Button>
-            </Link>
-            <Link href="/reminders">
-              <Button variant="outline" className="w-full justify-start h-12 rounded-xl" data-testid="link-reminders">
-                <Clock className="h-4 w-4 mr-3 text-violet-400" weight="duotone" />
-                Open Reminders
-              </Button>
-            </Link>
-          </div>
-
-          <div className="p-4 bg-white/5 rounded-xl text-sm text-white/60 border border-white/10">
-            <strong className="text-white/80">Personal vs Team:</strong> Personal meetings are only visible to you. When you join or create a workspace, you can save meetings to that workspace for team visibility.
-          </div>
-        </div>
       </ExpandableSection>
 
       {/* Support & Legal Section */}
