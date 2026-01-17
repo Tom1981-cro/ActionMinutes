@@ -3,12 +3,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { 
   CheckCircle, Clock, AlertTriangle, Loader2, 
-  Bell, MessageCircle, Pencil, User, Calendar,
-  Users, Zap
+  Bell, Pencil, User, Calendar,
+  Zap
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, addDays, addWeeks, addMonths } from "date-fns";
 import { useActionItems, useUpdateActionItem } from "@/lib/hooks";
 import { useToast } from "@/hooks/use-toast";
 import { ActionEditSheet } from "@/components/action-edit-sheet";
@@ -26,6 +38,9 @@ interface UnifiedItem {
   source: 'meeting' | 'quickadd';
   confidenceOwner?: number;
   confidenceDueDate?: number;
+  waitingFor?: string | null;
+  priority?: string;
+  notes?: string;
   originalItem: any;
 }
 
@@ -34,13 +49,12 @@ interface ActionCardProps {
   onDone: () => void;
   onWaiting: () => void;
   onRemind: () => void;
-  onNudge: () => void;
   onEdit: () => void;
   onTap: () => void;
   isReview?: boolean;
 }
 
-function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap, isReview }: ActionCardProps) {
+function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview }: ActionCardProps) {
   const lowConfidence = (item.confidenceOwner && item.confidenceOwner < 0.6) || (item.confidenceDueDate && item.confidenceDueDate < 0.6);
   const isOverdue = item.dueDate && new Date(item.dueDate) < new Date();
 
@@ -90,6 +104,12 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
                 {isOverdue && <span className="text-xs">(overdue)</span>}
               </span>
             )}
+            {item.waitingFor && (
+              <span className="flex items-center gap-1.5 text-amber-400">
+                <Clock className="h-4 w-4" />
+                <span>Waiting: {item.waitingFor}</span>
+              </span>
+            )}
           </div>
         </button>
 
@@ -133,17 +153,6 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onNudge, onEdit, onTap,
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={(e) => { e.stopPropagation(); onNudge(); }}
-              className="flex-1 h-11 rounded-xl text-white/50 hover:bg-white/10 hover:text-white/80 flex flex-col items-center gap-0.5 px-2"
-              data-testid={`button-nudge-${item.id}`}
-            >
-              <MessageCircle className="h-5 w-5" />
-              <span className="text-[10px] font-medium">Nudge</span>
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
               className="flex-1 h-11 rounded-xl text-white/50 hover:bg-white/10 hover:text-white/80 flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-edit-${item.id}`}
@@ -167,6 +176,16 @@ export default function InboxPage() {
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const { user } = useStore();
   const queryClient = useQueryClient();
+
+  const [doneModalOpen, setDoneModalOpen] = useState(false);
+  const [waitingModalOpen, setWaitingModalOpen] = useState(false);
+  const [remindModalOpen, setRemindModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<UnifiedItem | null>(null);
+  const [waitingNote, setWaitingNote] = useState("");
+  const [remindDate, setRemindDate] = useState<Date | undefined>(undefined);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [editForm, setEditForm] = useState<{ text: string; notes: string; priority: string }>({ text: "", notes: "", priority: "normal" });
 
   const { data: reminders = [], isLoading: remindersLoading } = useQuery({
     queryKey: ["reminders", user.id],
@@ -213,17 +232,23 @@ export default function InboxPage() {
       source: 'meeting' as const,
       confidenceOwner: item.confidenceOwner,
       confidenceDueDate: item.confidenceDueDate,
+      waitingFor: item.waitingFor,
+      priority: item.priority,
+      notes: item.notes,
       originalItem: item,
     })),
     ...reminders
-      .filter((r: any) => !r.isCompleted)
+      .filter((r: any) => !r.isCompleted && r.status !== 'done')
       .map((item: any) => ({
         id: `reminder-${item.id}`,
         text: item.text,
         dueDate: item.dueDate,
         ownerName: user.name,
-        status: 'open',
+        status: item.status || 'open',
         source: 'quickadd' as const,
+        waitingFor: item.waitingFor,
+        priority: item.priority,
+        notes: item.notes,
         originalItem: item,
       })),
   ];
@@ -241,42 +266,127 @@ export default function InboxPage() {
     return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
   });
 
-  const markDone = (item: UnifiedItem) => {
-    if (item.source === 'meeting') {
-      updateActionItem.mutate({ id: item.originalItem.id, updates: { status: "done" } });
-    } else {
-      updateReminder.mutate({ id: item.originalItem.id, updates: { isCompleted: true } });
-    }
-    toast({ title: "Marked as done" });
+  const openDoneModal = (item: UnifiedItem) => {
+    setSelectedItem(item);
+    setDoneModalOpen(true);
   };
 
-  const markWaiting = (item: UnifiedItem) => {
-    if (item.source === 'meeting') {
-      updateActionItem.mutate({ id: item.originalItem.id, updates: { status: "waiting" } });
-      toast({ title: "Marked as waiting", description: "Waiting for a response." });
+  const confirmDone = () => {
+    if (!selectedItem) return;
+    if (selectedItem.source === 'meeting') {
+      updateActionItem.mutate({ id: selectedItem.originalItem.id, updates: { status: "done" } });
+    } else {
+      updateReminder.mutate({ id: selectedItem.originalItem.id, updates: { isCompleted: true, status: 'done' } });
     }
+    toast({ title: "Task completed!" });
+    setDoneModalOpen(false);
+    setSelectedItem(null);
   };
-  
-  const handleRemind = (id: string) => {
-    toast({ title: "Reminder set", description: "You'll be reminded about this item." });
+
+  const openWaitingModal = (item: UnifiedItem) => {
+    setSelectedItem(item);
+    setWaitingNote(item.waitingFor || "");
+    setWaitingModalOpen(true);
   };
-  
-  const handleNudge = (id: string) => {
-    toast({ title: "Nudge sent", description: "The owner has been notified." });
+
+  const confirmWaiting = () => {
+    if (!selectedItem) return;
+    if (selectedItem.source === 'meeting') {
+      updateActionItem.mutate({ id: selectedItem.originalItem.id, updates: { status: "waiting", waitingFor: waitingNote } });
+    } else {
+      updateReminder.mutate({ id: selectedItem.originalItem.id, updates: { status: 'waiting', waitingFor: waitingNote } });
+    }
+    toast({ title: "Marked as waiting", description: waitingNote ? `Waiting for: ${waitingNote}` : "Waiting for a response." });
+    setWaitingModalOpen(false);
+    setSelectedItem(null);
+    setWaitingNote("");
   };
-  
-  const handleEdit = (item: UnifiedItem) => {
+
+  const openRemindModal = (item: UnifiedItem) => {
+    setSelectedItem(item);
+    setRemindDate(undefined);
+    setShowCalendar(false);
+    setRemindModalOpen(true);
+  };
+
+  const setRemindPreset = (preset: 'tomorrow' | 'next_week' | 'next_month') => {
+    const today = new Date();
+    let dueDate: Date;
+    let bucket: string;
+    
+    switch (preset) {
+      case 'tomorrow':
+        dueDate = addDays(today, 1);
+        bucket = 'tomorrow';
+        break;
+      case 'next_week':
+        dueDate = addWeeks(today, 1);
+        bucket = 'next_week';
+        break;
+      case 'next_month':
+        dueDate = addMonths(today, 1);
+        bucket = 'next_month';
+        break;
+    }
+    
+    confirmRemind(dueDate, bucket);
+  };
+
+  const confirmRemind = (date: Date, bucket: string) => {
+    if (!selectedItem) return;
+    
+    if (selectedItem.source === 'quickadd') {
+      updateReminder.mutate({ 
+        id: selectedItem.originalItem.id, 
+        updates: { dueDate: date.toISOString(), bucket } 
+      });
+      toast({ title: "Reminder set", description: `You'll be reminded on ${format(date, "MMM d, yyyy")}` });
+    } else {
+      updateActionItem.mutate({ 
+        id: selectedItem.originalItem.id, 
+        updates: { dueDate: date.toISOString() } 
+      });
+      toast({ title: "Due date updated", description: `Due on ${format(date, "MMM d, yyyy")}` });
+    }
+    
+    setRemindModalOpen(false);
+    setSelectedItem(null);
+    setRemindDate(undefined);
+    setShowCalendar(false);
+  };
+
+  const openEditModal = (item: UnifiedItem) => {
+    setSelectedItem(item);
+    setEditForm({
+      text: item.text || "",
+      notes: item.notes || "",
+      priority: item.priority || "normal",
+    });
     if (item.source === 'meeting') {
       setEditingItem(item.originalItem);
       setEditSheetOpen(true);
+    } else {
+      setEditModalOpen(true);
     }
+  };
+
+  const confirmEdit = () => {
+    if (!selectedItem) return;
+    
+    if (selectedItem.source === 'quickadd') {
+      updateReminder.mutate({ 
+        id: selectedItem.originalItem.id, 
+        updates: { text: editForm.text, notes: editForm.notes, priority: editForm.priority } 
+      });
+      toast({ title: "Task updated" });
+    }
+    
+    setEditModalOpen(false);
+    setSelectedItem(null);
   };
 
   const handleTap = (item: UnifiedItem) => {
-    if (item.source === 'meeting') {
-      setEditingItem(item.originalItem);
-      setEditSheetOpen(true);
-    }
+    openEditModal(item);
   };
 
   const totalItems = needsReview.length + openItems.length;
@@ -357,11 +467,10 @@ export default function InboxPage() {
               <ActionCard 
                 key={item.id} 
                 item={item} 
-                onDone={() => markDone(item)}
-                onWaiting={() => markWaiting(item)}
-                onRemind={() => handleRemind(item.id)}
-                onNudge={() => handleNudge(item.id)}
-                onEdit={() => handleEdit(item)}
+                onDone={() => openDoneModal(item)}
+                onWaiting={() => openWaitingModal(item)}
+                onRemind={() => openRemindModal(item)}
+                onEdit={() => openEditModal(item)}
                 onTap={() => handleTap(item)}
                 isReview
               />
@@ -405,11 +514,10 @@ export default function InboxPage() {
               <ActionCard 
                 key={item.id} 
                 item={item} 
-                onDone={() => markDone(item)}
-                onWaiting={() => markWaiting(item)}
-                onRemind={() => handleRemind(item.id)}
-                onNudge={() => handleNudge(item.id)}
-                onEdit={() => handleEdit(item)}
+                onDone={() => openDoneModal(item)}
+                onWaiting={() => openWaitingModal(item)}
+                onRemind={() => openRemindModal(item)}
+                onEdit={() => openEditModal(item)}
                 onTap={() => handleTap(item)}
               />
             ))}
@@ -422,6 +530,188 @@ export default function InboxPage() {
         open={editSheetOpen}
         onOpenChange={setEditSheetOpen}
       />
+
+      <Dialog open={doneModalOpen} onOpenChange={setDoneModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Task complete?</DialogTitle>
+            <DialogDescription>
+              Mark "{selectedItem?.text}" as done?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setDoneModalOpen(false)}>
+              No
+            </Button>
+            <Button onClick={confirmDone} className="bg-violet-600 hover:bg-violet-700">
+              Yes, complete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={waitingModalOpen} onOpenChange={setWaitingModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>What are you waiting for?</DialogTitle>
+            <DialogDescription>
+              Add a note about who or what you're waiting on.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="waiting-note">Waiting for</Label>
+              <Input
+                id="waiting-note"
+                placeholder="e.g., Response from John, Approval from manager..."
+                value={waitingNote}
+                onChange={(e) => setWaitingNote(e.target.value)}
+                data-testid="input-waiting-note"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setWaitingModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmWaiting} className="bg-amber-600 hover:bg-amber-700">
+              Mark as Waiting
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={remindModalOpen} onOpenChange={setRemindModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Set reminder</DialogTitle>
+            <DialogDescription>
+              When should we remind you about this task?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {!showCalendar ? (
+              <div className="grid grid-cols-1 gap-2">
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-12"
+                  onClick={() => setRemindPreset('tomorrow')}
+                  data-testid="remind-tomorrow"
+                >
+                  <Calendar className="h-4 w-4 mr-3" />
+                  Tomorrow
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-12"
+                  onClick={() => setRemindPreset('next_week')}
+                  data-testid="remind-next-week"
+                >
+                  <Calendar className="h-4 w-4 mr-3" />
+                  Next week
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-12"
+                  onClick={() => setRemindPreset('next_month')}
+                  data-testid="remind-next-month"
+                >
+                  <Calendar className="h-4 w-4 mr-3" />
+                  Next month
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="justify-start h-12"
+                  onClick={() => setShowCalendar(true)}
+                  data-testid="remind-custom"
+                >
+                  <Calendar className="h-4 w-4 mr-3" />
+                  Choose a date...
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <CalendarComponent
+                  mode="single"
+                  selected={remindDate}
+                  onSelect={setRemindDate}
+                  disabled={(date) => date < new Date()}
+                  className="rounded-md border"
+                />
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setShowCalendar(false)} className="flex-1">
+                    Back
+                  </Button>
+                  <Button 
+                    onClick={() => remindDate && confirmRemind(remindDate, 'custom')} 
+                    disabled={!remindDate}
+                    className="flex-1 bg-violet-600 hover:bg-violet-700"
+                  >
+                    Set reminder
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit task</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-text">Title</Label>
+              <Input
+                id="edit-text"
+                value={editForm.text}
+                onChange={(e) => setEditForm({ ...editForm, text: e.target.value })}
+                data-testid="input-edit-text"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-notes">Description</Label>
+              <Textarea
+                id="edit-notes"
+                value={editForm.notes}
+                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                rows={3}
+                placeholder="Add more details..."
+                data-testid="input-edit-notes"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-priority">Priority</Label>
+              <div className="flex gap-2">
+                {['low', 'normal', 'high'].map((p) => (
+                  <Button
+                    key={p}
+                    variant={editForm.priority === p ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setEditForm({ ...editForm, priority: p })}
+                    className={editForm.priority === p ? 
+                      (p === 'high' ? 'bg-red-600' : p === 'low' ? 'bg-gray-600' : 'bg-violet-600') : ''
+                    }
+                    data-testid={`priority-${p}`}
+                  >
+                    {p.charAt(0).toUpperCase() + p.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmEdit} className="bg-violet-600 hover:bg-violet-700">
+              Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

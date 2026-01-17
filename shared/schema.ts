@@ -227,6 +227,8 @@ export const personalReminders = pgTable("personal_reminders", {
   completedAt: timestamp("completed_at"),
   priority: text("priority").notNull().default('normal'), // low, normal, high
   notes: text("notes"),
+  status: text("status").notNull().default('open'), // open, waiting, done
+  waitingFor: text("waiting_for"), // note about who/what we're waiting for
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
