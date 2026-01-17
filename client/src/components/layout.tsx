@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
-  Lifebuoy, BookOpenText, CaretDown, Robot, User, Calendar 
+  Lifebuoy, BookOpenText, CaretDown, Robot, User, Calendar, Waveform 
 } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -47,6 +47,7 @@ export default function Layout({ children }: LayoutProps) {
   const assistantItems = [
     { href: "/app/capture", label: "Capture", icon: PlusCircle, primary: true },
     { href: "/app/meetings", label: "Meetings", icon: CalendarBlank },
+    { href: "/app/transcripts", label: "Transcripts", icon: Waveform },
     { href: "/app/drafts", label: "Drafts", icon: FileText },
   ];
 
