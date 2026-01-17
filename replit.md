@@ -66,3 +66,31 @@ The UI/UX emphasizes a mode-based navigation structure, differentiating between 
   - `GET /api/voice-commands`: List supported voice commands with examples
   - `POST /api/voice-command`: Process voice audio and execute command
   - `POST /api/voice-command/text`: Process text command (for testing/accessibility)
+
+### Calendar Synchronization
+- **Provider Adapters** (`server/calendar-providers.ts`): Google Calendar and Microsoft Outlook integration
+  - Event CRUD operations (create, update, delete)
+  - Calendar sync with incremental tokens (Google syncToken, Microsoft deltaLink)
+  - Free/busy queries and calendar listing
+- **Database Tables**:
+  - `calendar_events`: User calendar events with provider sync metadata
+  - `calendar_webhooks`: Webhook subscriptions for real-time sync
+  - `oauth_connections`: Extended with calendarSyncToken, calendarId, lastCalendarSync fields
+- **Security Features**:
+  - Per-user oauthConnection validation before external operations
+  - connectionId tracking on synced events
+  - Unique constraint on (user_id, provider, provider_event_id) prevents duplicates
+- **API Endpoints** (`server/calendar-routes.ts`):
+  - `GET /api/calendar/events`: List user's calendar events with date range filter
+  - `POST /api/calendar/events`: Create event (local or synced to provider)
+  - `PUT /api/calendar/events/:id`: Update event
+  - `DELETE /api/calendar/events/:id`: Delete event
+  - `POST /api/calendar/sync`: Sync events from provider
+  - `GET /api/calendar/providers`: List available calendar providers and connection status
+  - `GET /api/calendar/calendars`: List user's calendars from connected providers
+  - `GET /api/calendar/free-busy`: Query free/busy times
+- **Frontend** (`client/src/pages/calendar.tsx`):
+  - Day/week/month view toggle
+  - Event creation dialog with provider selection
+  - Sync buttons for connected providers
+  - Navigation for date range selection
