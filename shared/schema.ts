@@ -246,6 +246,44 @@ export const transcripts = pgTable("transcripts", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// ==================== TRANSCRIPT SUMMARIES ====================
+export const transcriptSummaries = pgTable("transcript_summaries", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  transcriptId: varchar("transcript_id", { length: 36 }).notNull().references(() => transcripts.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  workspaceId: varchar("workspace_id", { length: 36 }).references(() => workspaces.id, { onDelete: 'set null' }),
+  summary: text("summary").notNull(),
+  decisions: jsonb("decisions").notNull().default(sql`'[]'::jsonb`), // Array of {text, context}
+  sentiment: text("sentiment").notNull().default('neutral'), // positive, negative, neutral, mixed
+  sentimentScore: real("sentiment_score"), // -1.0 to 1.0
+  sentimentDetails: jsonb("sentiment_details"), // {positive: number, negative: number, neutral: number}
+  topKeywords: text("top_keywords").array().notNull().default(sql`ARRAY[]::text[]`),
+  aiProvider: text("ai_provider").notNull().default('openai'),
+  aiModel: text("ai_model").notNull().default('gpt-4o-mini'),
+  promptVersion: text("prompt_version"),
+  processingTimeMs: integer("processing_time_ms"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ==================== TRANSCRIPT TASKS ====================
+export const transcriptTasks = pgTable("transcript_tasks", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  summaryId: varchar("summary_id", { length: 36 }).notNull().references(() => transcriptSummaries.id, { onDelete: 'cascade' }),
+  transcriptId: varchar("transcript_id", { length: 36 }).notNull().references(() => transcripts.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  text: text("text").notNull(),
+  assignee: text("assignee"), // Name of person assigned
+  assigneeEmail: text("assignee_email"),
+  dueDate: timestamp("due_date"),
+  dueDateConfidence: real("due_date_confidence"), // 0.0 to 1.0
+  priority: text("priority").default('medium'), // low, medium, high, urgent
+  status: text("status").notNull().default('pending'), // pending, in_progress, completed
+  keywords: text("keywords").array().notNull().default(sql`ARRAY[]::text[]`),
+  context: text("context"), // Relevant portion of transcript
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
 // ==================== INSERT SCHEMAS ====================
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -347,6 +385,17 @@ export const insertTranscriptSchema = createInsertSchema(transcripts).omit({
   updatedAt: true,
 });
 
+export const insertTranscriptSummarySchema = createInsertSchema(transcriptSummaries).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTranscriptTaskSchema = createInsertSchema(transcriptTasks).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
 // ==================== TYPES ====================
 // Note: User and UpsertUser types are exported from ./models/auth
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -404,6 +453,12 @@ export type Feedback = typeof feedback.$inferSelect;
 
 export type InsertTranscript = z.infer<typeof insertTranscriptSchema>;
 export type Transcript = typeof transcripts.$inferSelect;
+
+export type InsertTranscriptSummary = z.infer<typeof insertTranscriptSummarySchema>;
+export type TranscriptSummary = typeof transcriptSummaries.$inferSelect;
+
+export type InsertTranscriptTask = z.infer<typeof insertTranscriptTaskSchema>;
+export type TranscriptTask = typeof transcriptTasks.$inferSelect;
 
 // ==================== ADDITIONAL TYPES ====================
 export type TranscriptionProvider = 'gemini' | 'whisper' | 'whisper-self-hosted';
