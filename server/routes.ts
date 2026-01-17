@@ -42,6 +42,7 @@ import bcrypt from "bcryptjs";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth";
 import calendarRoutes from "./calendar-routes";
+import notesRoutes from "./notes-routes";
 import { requireAuth, optionalAuth } from "./jwt";
 import { 
   checkUsageLimit, 
@@ -167,6 +168,9 @@ export async function registerRoutes(
   
   // Mount calendar routes
   app.use("/api/calendar", calendarRoutes);
+  
+  // Mount notes routes
+  app.use("/api/notes", notesRoutes);
   
   // ==================== GLOBAL ERROR HANDLER ====================
   const asyncHandler = (fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) => 
