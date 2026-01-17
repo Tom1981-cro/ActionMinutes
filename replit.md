@@ -2,7 +2,11 @@
 
 ## Overview
 
-ActionMinutes is a web application designed to streamline meeting workflows by converting raw meeting notes into actionable insights. It aims to generate concise summaries, assignable action items with due dates, and draft follow-up emails rapidly. The project's vision is to enhance productivity by transforming unstructured meeting data into structured, actionable tasks and communications.
+ActionMinutes is a personal productivity assistant that helps users organize their life with notes, reminders, journal, calendar, and custom lists. Features AI-powered meeting note extraction as a highlight tool. The app focuses on single-user personal productivity with 8 core features: Inbox (central hub), AI Extraction (meeting notes to tasks), Reminders (time-based task organization), Journal (daily reflection with AI prompts), Calendar (Google/Outlook sync), Notes (encrypted with tags and links), Custom Lists (user-created), and Quick Add (instant capture).
+
+**Pricing Structure:**
+- **Free**: Unlimited notes & lists, personal reminders, daily journal, 5 AI extractions/month
+- **Pro €8/$10/month**: Everything in Free + unlimited AI extractions, Gmail/Outlook sync, calendar integration, voice transcription
 
 ## User Preferences
 

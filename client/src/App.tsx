@@ -29,6 +29,7 @@ import TestingGuidePage from "@/pages/testing-guide";
 import InvitePage from "@/pages/invite";
 import AgendaPage from "@/pages/agenda";
 import GuidePage from "@/pages/guide";
+import AboutPage from "@/pages/about";
 import CalendarPage from "@/pages/calendar";
 import TranscriptsPage from "@/pages/transcripts";
 import TasksPage from "@/pages/tasks";
@@ -72,6 +73,8 @@ function Router() {
       <Route path="/privacy-policy" component={SettingsPrivacyPage} />
       <Route path="/terms" component={SettingsTermsPage} />
       <Route path="/support" component={SupportPage} />
+      <Route path="/about" component={AboutPage} />
+      <Route path="/guide" component={GuidePage} />
       <Route path="/store-screens" component={StoreScreensPage} />
       <Route path="/marketing" component={MarketingPage} />
       <Route path="/help/testing" component={TestingGuidePage} />
