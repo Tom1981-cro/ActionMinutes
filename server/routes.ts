@@ -51,7 +51,7 @@ import {
   requireCapability,
   getUserUsage
 } from "./middleware/planAccess";
-import { getEffectivePlan, getPlanConfig, getPlanLimit } from "@shared/plans";
+import { getEffectivePlan, getPlanConfig, getPlanLimit, hasCapability } from "@shared/plans";
 
 // ==================== RBAC HELPERS ====================
 type Permission = 'read' | 'write' | 'manage' | 'delete';
@@ -1637,6 +1637,17 @@ Thanks!`,
     const userId = req.query.userId as string;
     if (!userId) return res.status(400).json({ error: "userId is required" });
     
+    const user = await storage.getUser(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    
+    const effectivePlan = getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
+    if (!hasCapability(effectivePlan, 'emailIntegrations')) {
+      return res.status(403).json({ 
+        error: "Email integrations require Pro plan",
+        upgradeUrl: '/app/settings?tab=subscription'
+      });
+    }
+    
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
       return res.status(503).json({ error: "Google OAuth not configured" });
     }
@@ -1694,6 +1705,17 @@ Thanks!`,
   app.get("/api/oauth/microsoft/start", async (req, res) => {
     const userId = req.query.userId as string;
     if (!userId) return res.status(400).json({ error: "userId is required" });
+    
+    const user = await storage.getUser(userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    
+    const effectivePlan = getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
+    if (!hasCapability(effectivePlan, 'emailIntegrations')) {
+      return res.status(403).json({ 
+        error: "Email integrations require Pro plan",
+        upgradeUrl: '/app/settings?tab=subscription'
+      });
+    }
     
     if (!process.env.MICROSOFT_CLIENT_ID || !process.env.MICROSOFT_CLIENT_SECRET) {
       return res.status(503).json({ error: "Microsoft OAuth not configured" });

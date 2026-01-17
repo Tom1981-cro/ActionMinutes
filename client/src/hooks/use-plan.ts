@@ -26,7 +26,7 @@ export interface PlanCapabilities {
 }
 
 export interface PlanInfo {
-  plan: 'free' | 'pro' | 'team';
+  plan: 'free' | 'pro';
   planConfig: {
     name: string;
     tier: number;
@@ -66,8 +66,7 @@ export function usePlan() {
     refetchOnWindowFocus: false,
   });
   
-  const isPro = planInfo?.plan === 'pro' || planInfo?.plan === 'team';
-  const isTeam = planInfo?.plan === 'team';
+  const isPro = planInfo?.plan === 'pro';
   const isFree = planInfo?.plan === 'free' || !planInfo;
   
   const canUseAiExtraction = () => {
@@ -120,7 +119,6 @@ export function usePlan() {
     refetch,
     plan: planInfo?.plan ?? 'free',
     isPro,
-    isTeam,
     isFree,
     canUseAiExtraction,
     canUseTranscription,

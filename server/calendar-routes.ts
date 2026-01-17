@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { storage } from './storage';
 import { requireAuth } from './jwt';
+import { requireCapability } from './middleware/planAccess';
 import { z } from 'zod';
 import {
   createGoogleEvent,
@@ -342,7 +343,7 @@ router.get('/free-busy', requireAuth, async (req: Request, res: Response) => {
   }
 });
 
-router.post('/sync', requireAuth, async (req: Request, res: Response) => {
+router.post('/sync', requireAuth, requireCapability('emailIntegrations'), async (req: Request, res: Response) => {
   try {
     const userId = req.userId!;
     const provider = req.body.provider as string;

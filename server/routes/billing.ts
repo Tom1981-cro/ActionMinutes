@@ -8,7 +8,7 @@ import { requireAuth } from '../jwt';
 const router = Router();
 
 const createCheckoutSchema = z.object({
-  plan: z.enum(['pro', 'team']).default('pro'),
+  plan: z.enum(['pro']).default('pro'),
   interval: z.enum(['monthly', 'yearly']).default('monthly'),
 });
 

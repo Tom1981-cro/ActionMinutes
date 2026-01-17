@@ -1,4 +1,4 @@
-export type PlanType = 'free' | 'pro' | 'team';
+export type PlanType = 'free' | 'pro';
 export type SubscriptionStatus = 'none' | 'active' | 'trialing' | 'past_due' | 'canceled' | 'incomplete';
 
 export interface PlanLimits {
@@ -69,28 +69,6 @@ export const PLAN_CONFIGS: Record<PlanType, PlanConfig> = {
       emailIntegrations: true,
       workspaces: false,
       teamSeats: false,
-      prioritySupport: true,
-      personalMode: true,
-    },
-  },
-  team: {
-    name: 'team',
-    displayName: 'Team',
-    tier: 2,
-    limits: {
-      aiExtractionsPerMonth: -1,
-      transcriptionMinutesPerMonth: -1,
-      meetingHistoryDays: -1,
-      maxWorkspaces: 10,
-      maxTeamMembers: 5,
-    },
-    capabilities: {
-      unlimitedAiExtractions: true,
-      unlimitedTranscription: true,
-      unlimitedHistory: true,
-      emailIntegrations: true,
-      workspaces: true,
-      teamSeats: true,
       prioritySupport: true,
       personalMode: true,
     },

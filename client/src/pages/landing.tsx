@@ -3,7 +3,7 @@ import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useState, useEffect } from "react";
 import { 
   Brain, BookOpen, ArrowRight, Sparkle, Bell, Calendar, NotePencil, ListBullets,
-  TwitterLogo, Check, CheckCircle, Tray, Lightning
+  Check, CheckCircle, Tray, Lightning
 } from "@phosphor-icons/react";
 import logoIcon from "@assets/am_logo_1767300370565.png";
 import { useGeoData } from "@/components/stripe-pricing-table";
@@ -378,28 +378,14 @@ export default function LandingPage() {
                 <span className="text-violet-400">Minutes</span>
               </span>
             </div>
-            <div className="flex items-center gap-4">
-              <Link 
-                href="/about" 
-                className="hidden sm:block text-white/60 hover:text-white text-sm transition-colors"
-              >
-                About
-              </Link>
-              <Link 
-                href="/support" 
-                className="hidden sm:block text-white/60 hover:text-white text-sm transition-colors"
-              >
-                Support
-              </Link>
-              <Link 
-                href="/login" 
-                className="relative group bg-violet-600 hover:bg-violet-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
-                data-testid="nav-launch-app"
-              >
-                <span className="absolute inset-0 bg-violet-500 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
-                <span className="relative">Launch App</span>
-              </Link>
-            </div>
+            <Link 
+              href="/login" 
+              className="relative group bg-violet-600 hover:bg-violet-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+              data-testid="nav-launch-app"
+            >
+              <span className="absolute inset-0 bg-violet-500 rounded-xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
+              <span className="relative">Launch App</span>
+            </Link>
           </nav>
         </div>
       </header>
@@ -670,14 +656,6 @@ export default function LandingPage() {
               <Link href="/guide" className="hover:text-white transition-colors">
                 Guide
               </Link>
-              <a 
-                href="https://twitter.com/actionminutes" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors flex items-center gap-2"
-              >
-                <TwitterLogo className="h-4 w-4" weight="fill" />
-              </a>
               <Link href="/privacy-policy" className="hover:text-white transition-colors">
                 Privacy
               </Link>

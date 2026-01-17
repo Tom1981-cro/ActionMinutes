@@ -14,31 +14,26 @@ interface UpgradePromptProps {
   onUpgrade?: () => void;
 }
 
-const featureMessages: Record<string, { title: string; description: string; planRequired: 'pro' | 'team' }> = {
+const featureMessages: Record<string, { title: string; description: string }> = {
   ai_extraction: {
     title: "AI Extraction Limit Reached",
     description: "You've used all your AI extractions for this month. Upgrade to Pro for unlimited extractions.",
-    planRequired: 'pro'
   },
   transcription: {
     title: "Transcription Minutes Used Up",
-    description: "You've used all your transcription minutes this month. Upgrade to Pro for more minutes.",
-    planRequired: 'pro'
+    description: "You've used all your transcription minutes this month. Upgrade to Pro for unlimited transcription.",
   },
   email_integration: {
     title: "Email Integrations",
     description: "Connect Gmail and Outlook to send follow-up emails directly from ActionMinutes.",
-    planRequired: 'pro'
   },
   workspaces: {
-    title: "Team Workspaces",
-    description: "Create workspaces to collaborate with your team on meetings and action items.",
-    planRequired: 'team'
+    title: "Workspaces",
+    description: "Create workspaces to organize your meetings and action items.",
   },
   analytics: {
     title: "Advanced Analytics",
-    description: "Get insights into meeting patterns, action item completion rates, and team productivity.",
-    planRequired: 'pro'
+    description: "Get insights into meeting patterns, action item completion rates, and productivity.",
   }
 };
 
@@ -61,7 +56,7 @@ export function UpgradePrompt({
     }
   };
   
-  const PlanIcon = message.planRequired === 'team' ? Crown : Sparkle;
+  const PlanIcon = Sparkle;
   
   if (variant === 'inline') {
     return (
@@ -90,7 +85,7 @@ export function UpgradePrompt({
           <PlanIcon weight="duotone" className="w-5 h-5 text-violet-400" />
           <CardTitle className="text-lg">{message.title}</CardTitle>
           <Badge variant="secondary" className="ml-auto bg-violet-500/20 text-violet-300 border-violet-500/30">
-            {message.planRequired === 'team' ? 'Team' : 'Pro'}
+            Pro
           </Badge>
         </div>
         <CardDescription className="text-muted-foreground">
@@ -122,7 +117,7 @@ export function UpgradePrompt({
           data-testid="upgrade-button-card"
         >
           <Lightning weight="fill" className="w-4 h-4 mr-2" />
-          Upgrade to {message.planRequired === 'team' ? 'Team' : 'Pro'}
+          Upgrade to Pro
           <ArrowRight weight="bold" className="w-4 h-4 ml-2" />
         </Button>
       </CardFooter>
