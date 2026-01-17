@@ -94,3 +94,34 @@ The UI/UX emphasizes a mode-based navigation structure, differentiating between 
   - Event creation dialog with provider selection
   - Sync buttons for connected providers
   - Navigation for date range selection
+
+### Notes Module
+- **Encryption at Rest** (`server/crypto.ts`): AES-256-GCM encryption for note content
+  - `encryptNoteContent`: Encrypts plaintext with random IV
+  - `decryptNoteContent`: Decrypts using stored IV
+  - `generateSearchVector`: Creates searchable keyword index from content
+- **Database Tables**:
+  - `notes`: User notes with encrypted content, mood tracking, visibility settings
+  - `note_tags`: User-defined tags for organization
+  - `note_tag_map`: Many-to-many note-tag relationships
+  - `note_links`: Bi-directional links between notes
+  - `note_attachments`: File attachments with transcript integration
+- **API Endpoints** (`server/notes-routes.ts`):
+  - `GET /api/notes`: List notes with search, tag filter, journal filter
+  - `POST /api/notes`: Create encrypted note with tags
+  - `GET /api/notes/:id`: Get decrypted note with tags, attachments, links
+  - `PUT /api/notes/:id`: Update note
+  - `DELETE /api/notes/:id`: Delete note
+  - `GET /api/notes/feed`: Recent notes feed
+  - `GET /api/notes/search`: Full-text search
+  - `GET /api/notes/prompts/daily`: Get daily journal prompt
+  - `POST/DELETE /api/notes/:id/tags/:tagId`: Tag management
+  - `POST/DELETE /api/notes/:id/links/:targetId`: Note linking
+  - `POST /api/notes/:id/attachments`: Upload attachments
+- **Frontend** (`client/src/pages/notes.tsx`):
+  - Rich text editor with TipTap (bold, italic, lists, links, images)
+  - Note cards with color coding and mood indicators
+  - Tag-based filtering and full-text search
+  - Daily journal prompts with mood tracking
+  - Recent activity feed sidebar
+  - Pin notes for quick access
