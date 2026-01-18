@@ -1632,6 +1632,10 @@ Thanks!`,
     res.json({ success: true });
   });
 
+  // Admin emails that bypass subscription checks
+  const ADMIN_EMAILS = ['tomi.vida@gmail.com'];
+  const isAdminEmail = (email: string | null | undefined) => email && ADMIN_EMAILS.includes(email.toLowerCase());
+
   // ==================== OAUTH ROUTES ====================
   app.get("/api/oauth/google/start", async (req, res) => {
     const userId = req.query.userId as string;
@@ -1640,12 +1644,15 @@ Thanks!`,
     const user = await storage.getUser(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
     
-    const effectivePlan = getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
-    if (!hasCapability(effectivePlan, 'emailIntegrations')) {
-      return res.status(403).json({ 
-        error: "Email integrations require Pro plan",
-        upgradeUrl: '/app/settings?tab=subscription'
-      });
+    // Admins bypass Pro requirement
+    if (!isAdminEmail(user.email)) {
+      const effectivePlan = getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
+      if (!hasCapability(effectivePlan, 'emailIntegrations')) {
+        return res.status(403).json({ 
+          error: "Email integrations require Pro plan",
+          upgradeUrl: '/app/settings?tab=subscription'
+        });
+      }
     }
     
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
@@ -1709,12 +1716,15 @@ Thanks!`,
     const user = await storage.getUser(userId);
     if (!user) return res.status(404).json({ error: "User not found" });
     
-    const effectivePlan = getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
-    if (!hasCapability(effectivePlan, 'emailIntegrations')) {
-      return res.status(403).json({ 
-        error: "Email integrations require Pro plan",
-        upgradeUrl: '/app/settings?tab=subscription'
-      });
+    // Admins bypass Pro requirement
+    if (!isAdminEmail(user.email)) {
+      const effectivePlan = getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
+      if (!hasCapability(effectivePlan, 'emailIntegrations')) {
+        return res.status(403).json({ 
+          error: "Email integrations require Pro plan",
+          upgradeUrl: '/app/settings?tab=subscription'
+        });
+      }
     }
     
     if (!process.env.MICROSOFT_CLIENT_ID || !process.env.MICROSOFT_CLIENT_SECRET) {

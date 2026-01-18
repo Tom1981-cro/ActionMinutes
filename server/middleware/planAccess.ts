@@ -13,11 +13,19 @@ import {
   PlanLimits
 } from '@shared/plans';
 
+// Admin emails that bypass all subscription restrictions
+const ADMIN_EMAILS = ['tomi.vida@gmail.com'];
+
+function isAdminUser(user: any): boolean {
+  return user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
+}
+
 declare global {
   namespace Express {
     interface Request {
       userPlan?: PlanType;
       planConfig?: ReturnType<typeof getPlanConfig>;
+      isAdmin?: boolean;
     }
   }
 }
@@ -25,7 +33,9 @@ declare global {
 export function attachPlanInfo(req: Request, res: Response, next: NextFunction) {
   const user = (req as any).user;
   if (user) {
-    const effectivePlan = getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
+    req.isAdmin = isAdminUser(user);
+    // Admins get Pro plan access regardless of subscription
+    const effectivePlan = req.isAdmin ? 'pro' : getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
     req.userPlan = effectivePlan;
     req.planConfig = getPlanConfig(effectivePlan);
   }
@@ -37,6 +47,11 @@ export function requirePlan(minPlan: PlanType) {
     const user = (req as any).user;
     if (!user) {
       return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Admins bypass all plan restrictions
+    if (isAdminUser(user)) {
+      return next();
     }
 
     const effectivePlan = getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
@@ -61,6 +76,11 @@ export function requireCapability(capability: keyof PlanCapabilities) {
     const user = (req as any).user;
     if (!user) {
       return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Admins bypass all capability restrictions
+    if (isAdminUser(user)) {
+      return next();
     }
 
     const effectivePlan = getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
@@ -130,8 +150,10 @@ export async function incrementAiExtraction(userId: string): Promise<{ success: 
     throw new Error('User not found');
   }
 
-  const effectivePlan = getEffectivePlan(user[0].subscriptionPlan, user[0].subscriptionStatus);
-  const limit = getPlanLimit(effectivePlan, 'aiExtractionsPerMonth');
+  // Admins have unlimited usage
+  const isAdmin = isAdminUser(user[0]);
+  const effectivePlan = isAdmin ? 'pro' : getEffectivePlan(user[0].subscriptionPlan, user[0].subscriptionStatus);
+  const limit = isAdmin ? -1 : getPlanLimit(effectivePlan, 'aiExtractionsPerMonth');
   
   const usage = await getOrCreateUsageRecord(userId);
   
@@ -155,8 +177,10 @@ export async function incrementTranscriptionMinutes(userId: string, minutes: num
     throw new Error('User not found');
   }
 
-  const effectivePlan = getEffectivePlan(user[0].subscriptionPlan, user[0].subscriptionStatus);
-  const limit = getPlanLimit(effectivePlan, 'transcriptionMinutesPerMonth');
+  // Admins have unlimited usage
+  const isAdmin = isAdminUser(user[0]);
+  const effectivePlan = isAdmin ? 'pro' : getEffectivePlan(user[0].subscriptionPlan, user[0].subscriptionStatus);
+  const limit = isAdmin ? -1 : getPlanLimit(effectivePlan, 'transcriptionMinutesPerMonth');
   
   const usage = await getOrCreateUsageRecord(userId);
   
@@ -179,6 +203,11 @@ export function checkUsageLimit(limitType: 'aiExtractions' | 'transcription') {
     const user = (req as any).user;
     if (!user) {
       return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Admins bypass all usage limits
+    if (isAdminUser(user)) {
+      return next();
     }
 
     const effectivePlan = getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
