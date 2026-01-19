@@ -16,6 +16,14 @@ Preferred communication style: Simple, everyday language.
 
 ActionMinutes is a full-stack TypeScript application. The frontend uses React with Wouter for routing, Zustand for state management, and TanStack React Query for data fetching. UI components are built with shadcn/ui and styled using Tailwind CSS, adhering to a Vibrant Enterprise design system. Icons are primarily Phosphor Icons. The backend is an Express.js application, utilizing Drizzle ORM with PostgreSQL. Authentication is custom JWT-based, ensuring secure token handling.
 
+### Mobile App (Expo React Native)
+A separate React Native mobile app is available in `mobile-app/` directory:
+- **Tech Stack**: Expo, React Navigation, TanStack Query, Zustand, Expo SecureStore
+- **Features**: All core features (Inbox, Capture, Tasks, Notes, Journal, Calendar, Settings, AI Extraction)
+- **API**: Connects to the same backend API and PostgreSQL database
+- **Build**: Requires Expo CLI and EAS for building (external to Replit)
+- **Setup**: See `mobile-app/README.md` for detailed instructions
+
 Key application flows include:
 - **Authentication**: Secure JWT-based system with access and refresh tokens.
 - **Meeting Capture**: Functionality to create and manage meeting notes.
