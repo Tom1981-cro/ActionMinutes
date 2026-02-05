@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,14 +6,23 @@ import { Plus, CalendarBlank, CheckCircle, SpinnerGap, Users, ArrowRight } from 
 import { format } from "date-fns";
 import { useMeetings } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/empty-state";
+import { SkeletonList } from "@/components/skeleton-loader";
 
 export default function MeetingsPage() {
   const { data: meetings = [], isLoading } = useMeetings();
+  const [, navigate] = useLocation();
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <SpinnerGap className="h-8 w-8 animate-spin text-violet-500" weight="bold" />
+      <div className="space-y-6 md:space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <h1 className="text-4xl font-black tracking-tight text-gradient-light">Meetings</h1>
+            <p className="text-white/50 text-base">History of your captured minutes.</p>
+          </div>
+        </div>
+        <SkeletonList count={3} type="meeting" />
       </div>
     );
   }
@@ -35,13 +44,11 @@ export default function MeetingsPage() {
 
       <div className="grid gap-4">
         {meetings.length === 0 && (
-          <div className="py-12 text-center glass-panel rounded-2xl border-dashed border-white/20">
-            <div className="mx-auto h-16 w-16 bg-violet-500/20 rounded-2xl flex items-center justify-center mb-4">
-              <CalendarBlank className="h-8 w-8 text-violet-400" weight="duotone" />
-            </div>
-            <p className="text-white/70 text-base">No meetings recorded yet.</p>
-            <p className="text-white/40 text-sm mt-1">Start by capturing one.</p>
-          </div>
+          <EmptyState 
+            variant="meetings" 
+            onAction={() => navigate("/capture")}
+            showTutorial={false}
+          />
         )}
         
         {meetings.map((meeting: any) => (

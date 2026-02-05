@@ -26,6 +26,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ActionEditSheet } from "@/components/action-edit-sheet";
 import { useStore } from "@/lib/store";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { SkeletonList } from "@/components/skeleton-loader";
+import { GettingStarted } from "@/components/getting-started";
 
 type SourceType = "all" | "meetings" | "quickadd";
 
@@ -216,8 +218,16 @@ export default function InboxPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+      <div className="space-y-5 pb-6">
+        <div className="space-y-3">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="text-4xl font-black tracking-tight text-gradient-light light:text-charcoal-900">Inbox</h1>
+              <p className="text-white/50 text-base mt-1 light:text-gray-500">Loading...</p>
+            </div>
+          </div>
+        </div>
+        <SkeletonList count={4} type="action" />
       </div>
     );
   }
@@ -393,8 +403,17 @@ export default function InboxPage() {
   const meetingCount = unifiedItems.filter(i => i.source === 'meeting' && !['done', 'completed'].includes(i.status)).length;
   const quickAddCount = unifiedItems.filter(i => i.source === 'quickadd').length;
 
+  const showGettingStarted = totalItems === 0 && meetingCount === 0;
+
   return (
     <div className="space-y-5 pb-6">
+      {showGettingStarted && (
+        <GettingStarted 
+          hasMeetings={meetingCount > 0}
+          className="mb-2"
+        />
+      )}
+      
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>

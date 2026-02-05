@@ -14,6 +14,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { SkeletonList } from "@/components/skeleton-loader";
+import { EmptyState } from "@/components/empty-state";
 
 const MOOD_OPTIONS = [
   { value: "good", icon: Smiley, label: "Good", color: "text-emerald-400", bgSelected: "bg-emerald-500/20 border-emerald-500/50", bgHover: "hover:bg-emerald-500/10" },
@@ -196,8 +198,14 @@ export default function JournalPage() {
   
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <SpinnerGap className="h-8 w-8 animate-spin text-violet-500" weight="bold" />
+      <div className="space-y-5 pb-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-4xl font-black tracking-tight text-gradient-light">Journal</h1>
+            <p className="text-white/50 text-base mt-1">Private reflections and notes</p>
+          </div>
+        </div>
+        <SkeletonList count={3} type="journal" />
       </div>
     );
   }
@@ -220,24 +228,11 @@ export default function JournalPage() {
       </div>
       
       {entries.length === 0 ? (
-        <Card className="glass-panel border-dashed border-white/20 rounded-2xl">
-          <CardContent className="py-12 text-center space-y-3">
-            <div className="mx-auto h-16 w-16 bg-violet-500/20 rounded-2xl flex items-center justify-center">
-              <BookOpen className="h-8 w-8 text-violet-400" weight="duotone" />
-            </div>
-            <div>
-              <p className="text-lg font-medium text-white">Start your journal</p>
-              <p className="text-white/50 text-base mt-1">Capture your thoughts, reflections, and ideas</p>
-            </div>
-            <Button 
-              onClick={() => setShowNewEntry(true)}
-              variant="outline" 
-              className="rounded-xl mt-4"
-            >
-              Write your first entry
-            </Button>
-          </CardContent>
-        </Card>
+        <EmptyState 
+          variant="journal"
+          onAction={() => setShowNewEntry(true)}
+          showTutorial={false}
+        />
       ) : (
         <div className="space-y-3">
           {entries.map((entry: any) => (

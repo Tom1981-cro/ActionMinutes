@@ -17,6 +17,8 @@ import { authenticatedFetch } from "@/hooks/use-auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
+import { SkeletonList } from "@/components/skeleton-loader";
+import { EmptyState } from "@/components/empty-state";
 
 type Note = {
   id: string;
@@ -347,27 +349,14 @@ export default function NotesPage() {
           
           {isLoading ? (
             <div className="grid gap-4 md:grid-cols-2">
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} className={cn("rounded-2xl p-4 animate-pulse", theme === "light" ? "bg-gray-100" : "bg-white/5")}>
-                  <div className={cn("h-4 rounded w-3/4 mb-2", theme === "light" ? "bg-gray-200" : "bg-white/10")} />
-                  <div className={cn("h-3 rounded w-1/2", theme === "light" ? "bg-gray-200" : "bg-white/10")} />
-                </div>
-              ))}
+              <SkeletonList count={4} type="note" className="contents" />
             </div>
           ) : notes.length === 0 ? (
-            <div className={cn(
-              "rounded-2xl backdrop-blur-xl border border-dashed p-12 text-center",
-              theme === "light" ? "bg-white/50 border-gray-300" : "bg-white/5 border-white/20"
-            )}>
-              <NotePencil className={cn("h-12 w-12 mx-auto mb-4", theme === "light" ? "text-gray-400" : "text-white/30")} weight="duotone" />
-              <h3 className={cn("font-medium mb-1", theme === "light" ? "text-gray-900" : "text-white")}>No notes yet</h3>
-              <p className={cn("text-sm mb-4", theme === "light" ? "text-gray-600" : "text-white/60")}>
-                Create your first note to get started
-              </p>
-              <Button onClick={() => openEditor()} className="bg-violet-600 hover:bg-violet-700" data-testid="button-create-first-note">
-                <Plus className="h-4 w-4 mr-2" /> Create Note
-              </Button>
-            </div>
+            <EmptyState 
+              variant="notes"
+              onAction={() => openEditor()}
+              showTutorial={false}
+            />
           ) : (
             <div className="grid gap-4 md:grid-cols-2">
               <AnimatePresence>

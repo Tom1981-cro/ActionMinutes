@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import Layout from "@/components/layout";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
+import { ErrorBoundary, PageErrorFallback } from "@/components/error-boundary";
 
 import LandingPage from "@/pages/landing";
 import AuthPage from "@/pages/auth";
@@ -30,12 +31,21 @@ import InvitePage from "@/pages/invite";
 import AgendaPage from "@/pages/agenda";
 import GuidePage from "@/pages/guide";
 import AboutPage from "@/pages/about";
-import CalendarPage from "@/pages/calendar";
-import TranscriptsPage from "@/pages/transcripts";
 import TasksPage from "@/pages/tasks";
 import NotesPage from "@/pages/notes";
 import ListPage from "@/pages/list";
 import NotFound from "@/pages/not-found";
+
+const CalendarPage = React.lazy(() => import("@/pages/calendar"));
+const TranscriptsPage = React.lazy(() => import("@/pages/transcripts"));
+
+function PageLoader() {
+  return (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+    </div>
+  );
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
@@ -130,12 +140,24 @@ function Router() {
       </Route>
       <Route path="/app/calendar">
         <ProtectedRoute>
-          <Layout><CalendarPage /></Layout>
+          <Layout>
+            <ErrorBoundary fallback={<PageErrorFallback message="Couldn't load calendar" />}>
+              <Suspense fallback={<PageLoader />}>
+                <CalendarPage />
+              </Suspense>
+            </ErrorBoundary>
+          </Layout>
         </ProtectedRoute>
       </Route>
       <Route path="/app/transcripts">
         <ProtectedRoute>
-          <Layout><TranscriptsPage /></Layout>
+          <Layout>
+            <ErrorBoundary fallback={<PageErrorFallback message="Couldn't load transcripts" />}>
+              <Suspense fallback={<PageLoader />}>
+                <TranscriptsPage />
+              </Suspense>
+            </ErrorBoundary>
+          </Layout>
         </ProtectedRoute>
       </Route>
       <Route path="/app/tasks">
