@@ -1,0 +1,33 @@
+You are tasked with upgrading the existing ActionMinutes web application to address critical user‑experience and functionality gaps. The project uses React (with TypeScript), a backend API for data, and AI services for action extraction. Implement the following enhancements:
+
+1. **Contextual Onboarding & Guidance**
+   • Design an onboarding flow that triggers when a user enters an empty section (Inbox, Meetings, Transcripts, Drafts, Journal, Calendar, Notes). Use modals/tooltips to explain each feature and demonstrate how to create a sample entry.
+   • Provide sample meeting notes and auto‑generated drafts in demo mode so new users immediately see the value.
+   • Implement a dismissible “Getting Started” sidebar that highlights the top three actions new users should perform.
+
+2. **Performance & Feedback**
+   • Audit page‑load times and identify sluggish API calls. Implement lazy loading for heavy components (calendar, transcript viewer) and throttle expensive operations.
+   • Add visual feedback for all network calls: show spinners or skeleton loaders while data is loading, and toast notifications or inline messages when actions succeed or fail.
+   • Introduce error boundaries and centralized error handling to capture unhandled exceptions and display friendly error messages.
+
+3. **AI Accuracy & Control**
+   • Extend the “Extract actions” function to allow users to highlight parts of the text that should be treated as action items. Provide a side‑by‑side view where users can edit extracted tasks before saving them to the Inbox.
+   • Add settings for AI extraction: choice of language, tone (formal/informal), and summary length. Persist user preferences and use them to parameterize AI calls.
+   • Surface confidence scores from the AI and allow users to accept or reject ambiguous suggestions.
+
+4. **Collaboration Features**
+   • Implement optional shared lists and meetings: users can invite collaborators via email, assign tasks to them, and set due dates. Shared items should show the assignee, status, and allow comments.
+   • Add the ability to @mention team members in notes or meeting summaries. When mentioned, collaborators receive an email and/or in‑app notification.
+   • Provide basic workspace management (create/delete workspace, manage members, assign roles) for teams that want to collaborate.
+
+5. **Integration & Export Options**
+   • Build integrations with at least two external tools (Asana, Jira, Slack, Notion, Google Tasks, or Trello). Users should be able to push extracted action items to these platforms and sync status back to ActionMinutes.
+   • Expose a webhook or public API for exporting meeting summaries and task lists in JSON format so users can create custom automations.
+   • Enable calendar sync via OAuth with Google Calendar and Microsoft Outlook. Ensure imported events show up in the calendar view and that new events created in ActionMinutes can be pushed to the connected calendar.
+
+6. **Code Quality & Documentation**
+   • Refactor any monolithic components into smaller, testable units. Increase test coverage for the new features (both unit and integration tests).
+   • Update the README and internal documentation to explain the new onboarding flow, AI settings, collaboration features, and integrations. Include screenshots or GIFs where helpful.
+   • Provide migration scripts for any database or API changes required to support shared lists and integration tokens.
+
+Deliverables: PRs implementing each area above, with clear commit messages and updated tests. Include a short changelog summarizing the improvements for the next release.
