@@ -418,6 +418,10 @@
 
   /* ========== STATUS PILLS – semantic token variants ========== */
   
+  [class*="pill-"] {
+    border-radius: 0.375rem;
+  }
+
   .pill-violet {
     background: color-mix(in srgb, var(--primary), transparent 80%);
     color: var(--accent-foreground);

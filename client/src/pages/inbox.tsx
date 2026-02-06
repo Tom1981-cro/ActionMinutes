@@ -109,7 +109,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
         <div className="flex items-center gap-1.5 pt-1">
           <button
             onClick={(e) => { e.stopPropagation(); onDone(); }}
-            className="pill-secondary text-[11px] py-0.5 px-2.5 rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="pill-secondary text-[11px] py-0.5 px-2.5 hover:bg-primary hover:text-primary-foreground transition-colors"
             data-testid={`button-done-${item.id}`}
           >
             Done
@@ -117,7 +117,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
           {item.status !== 'waiting' && (
             <button
               onClick={(e) => { e.stopPropagation(); onWaiting(); }}
-              className="pill-secondary text-[11px] py-0.5 px-2.5 rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
+              className="pill-secondary text-[11px] py-0.5 px-2.5 hover:bg-primary hover:text-primary-foreground transition-colors"
               data-testid={`button-waiting-${item.id}`}
             >
               Waiting
@@ -125,14 +125,14 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
           )}
           <button
             onClick={(e) => { e.stopPropagation(); onRemind(); }}
-            className="pill-secondary text-[11px] py-0.5 px-2.5 rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="pill-secondary text-[11px] py-0.5 px-2.5 hover:bg-primary hover:text-primary-foreground transition-colors"
             data-testid={`button-remind-${item.id}`}
           >
             Remind
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className="pill-secondary text-[11px] py-0.5 px-2.5 rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="pill-secondary text-[11px] py-0.5 px-2.5 hover:bg-primary hover:text-primary-foreground transition-colors"
             data-testid={`button-edit-${item.id}`}
           >
             Edit
