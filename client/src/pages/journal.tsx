@@ -202,7 +202,7 @@ export default function JournalPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-4xl font-black tracking-tight text-gradient-light">Journal</h1>
-            <p className="text-white/50 text-base mt-1">Private reflections and notes</p>
+            <p className="text-muted-foreground text-base mt-1">Private reflections and notes</p>
           </div>
         </div>
         <SkeletonList count={3} type="journal" />
@@ -215,7 +215,7 @@ export default function JournalPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-4xl font-black tracking-tight text-gradient-light">Journal</h1>
-          <p className="text-white/50 text-base mt-1">Private reflections and notes</p>
+          <p className="text-muted-foreground text-base mt-1">Private reflections and notes</p>
         </div>
         <Button 
           onClick={() => setShowNewEntry(true)}
@@ -238,18 +238,18 @@ export default function JournalPage() {
           {entries.map((entry: any) => (
             <Card 
               key={entry.id} 
-              className="glass-panel rounded-2xl overflow-hidden cursor-pointer hover:bg-white/10 transition-all"
+              className="glass-panel rounded-2xl overflow-hidden cursor-pointer hover:bg-accent transition-all"
               onClick={() => openEntry(entry)}
               data-testid={`card-entry-${entry.id}`}
             >
               <CardContent className="p-4 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-white/50">
+                  <span className="text-sm text-muted-foreground">
                     {format(new Date(entry.date), "EEEE, MMM d")}
                   </span>
                   <div className="flex items-center gap-2">
                     {entry.aiProcessed && (
-                      <span className="text-xs bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span className="text-xs bg-accent text-primary px-2 py-0.5 rounded-full flex items-center gap-1">
                         <Sparkle className="h-3 w-3" weight="fill" />
                         AI
                       </span>
@@ -267,7 +267,7 @@ export default function JournalPage() {
                     )}
                   </div>
                 </div>
-                <p className="text-white/80 whitespace-pre-wrap line-clamp-3">
+                <p className="text-foreground whitespace-pre-wrap line-clamp-3">
                   {entry.rawText}
                 </p>
                 {entry.detectedSignals && entry.detectedSignals.length > 0 && (
@@ -277,7 +277,7 @@ export default function JournalPage() {
                       return (
                         <span 
                           key={signal}
-                          className="text-xs bg-white/10 text-white/60 px-2 py-0.5 rounded-full flex items-center gap-1"
+                          className="text-xs bg-accent text-muted-foreground px-2 py-0.5 rounded-full flex items-center gap-1"
                         >
                           <Icon className="h-3 w-3" weight="duotone" />
                           {SIGNAL_LABELS[signal] || signal}
@@ -294,9 +294,9 @@ export default function JournalPage() {
       
       {/* New Entry Modal with Glass Panel */}
       <Dialog open={showNewEntry} onOpenChange={setShowNewEntry}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto glass-panel border-white/20 text-white">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto glass-panel border-border text-foreground">
           <DialogHeader>
-            <DialogTitle className="text-white text-lg font-semibold">New Journal Entry</DialogTitle>
+            <DialogTitle className="text-foreground text-lg font-semibold">New Journal Entry</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
@@ -320,7 +320,7 @@ export default function JournalPage() {
 
             {/* Mood Selection with Framer Motion */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-white/60">How are you feeling?</label>
+              <label className="text-sm font-medium text-muted-foreground">How are you feeling?</label>
               <div className="flex gap-3">
                 {MOOD_OPTIONS.map((mood) => {
                   const isSelected = selectedMood === mood.value;
@@ -334,7 +334,7 @@ export default function JournalPage() {
                         "flex-1 py-4 rounded-xl border-2 transition-colors",
                         isSelected 
                           ? mood.bgSelected
-                          : `border-white/10 ${mood.bgHover}`
+                          : `border-border ${mood.bgHover}`
                       )}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
@@ -353,7 +353,7 @@ export default function JournalPage() {
                       </motion.div>
                       <span className={cn(
                         "text-xs mt-2 block transition-colors",
-                        isSelected ? "text-white" : "text-white/50"
+                        isSelected ? "text-foreground" : "text-muted-foreground"
                       )}>{mood.label}</span>
                     </motion.button>
                   );
@@ -362,17 +362,17 @@ export default function JournalPage() {
             </div>
 
             {detectedSignals.length > 0 && (
-              <div className="p-3 bg-white/5 rounded-xl border border-white/10">
-                <p className="text-xs text-white/40 mb-2">I noticed:</p>
+              <div className="p-3 bg-accent rounded-xl border border-border">
+                <p className="text-xs text-muted-foreground mb-2">I noticed:</p>
                 <div className="flex flex-wrap gap-2">
                   {detectedSignals.map((signal) => {
                     const Icon = SIGNAL_ICONS[signal] || Warning;
                     return (
                       <span 
                         key={signal}
-                        className="text-xs bg-white/10 text-white/70 px-2 py-1 rounded-lg border border-white/10 flex items-center gap-1"
+                        className="text-xs bg-accent text-foreground px-2 py-1 rounded-lg border border-border flex items-center gap-1"
                       >
-                        <Icon className="h-3 w-3 text-violet-400" weight="duotone" />
+                        <Icon className="h-3 w-3 text-primary" weight="duotone" />
                         {SIGNAL_LABELS[signal] || signal}
                       </span>
                     );
@@ -383,8 +383,8 @@ export default function JournalPage() {
             
             {suggestedPrompts.length > 0 && (
               <div className="space-y-2">
-                <label className="text-sm font-medium text-white/60 flex items-center gap-2">
-                  <Sparkle className="h-4 w-4 text-violet-400" weight="fill" />
+                <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Sparkle className="h-4 w-4 text-primary" weight="fill" />
                   Suggested prompts
                 </label>
                 <div className="grid gap-2">
@@ -392,10 +392,10 @@ export default function JournalPage() {
                     <button
                       key={prompt.id}
                       onClick={() => selectPrompt(prompt)}
-                      className="text-left p-3 rounded-xl bg-violet-500/10 hover:bg-violet-500/20 text-sm text-white/80 transition-colors border border-violet-500/20"
+                      className="text-left p-3 rounded-xl bg-accent hover:bg-accent text-sm text-foreground transition-colors border border-border"
                       data-testid={`prompt-${prompt.id}`}
                     >
-                      <CaretRight className="h-3 w-3 inline mr-2 text-violet-400" weight="bold" />
+                      <CaretRight className="h-3 w-3 inline mr-2 text-primary" weight="bold" />
                       {prompt.text}
                     </button>
                   ))}
@@ -404,12 +404,12 @@ export default function JournalPage() {
             )}
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-white/60">Your thoughts</label>
+              <label className="text-sm font-medium text-muted-foreground">Your thoughts</label>
               <Textarea
                 value={newText}
                 onChange={(e) => setNewText(e.target.value)}
                 placeholder="Write whatever's on your mind..."
-                className="min-h-[200px] bg-white/5 border-white/10 rounded-xl text-white placeholder:text-white/30 focus:bg-white/8 focus:border-violet-500/50"
+                className="min-h-[200px] bg-accent border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-border"
                 data-testid="input-journal-text"
               />
             </div>
@@ -465,11 +465,11 @@ export default function JournalPage() {
 
       {/* View Entry Modal with Glass Panel */}
       <Dialog open={!!viewingEntry} onOpenChange={() => setViewingEntry(null)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto glass-panel border-white/20 text-white">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto glass-panel border-border text-foreground">
           {viewingEntry && (
             <>
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-2 text-white">
+                <DialogTitle className="flex items-center gap-2 text-foreground">
                   {format(new Date(viewingEntry.date), "EEEE, MMMM d, yyyy")}
                   {viewingEntry.mood && (
                     <span className={cn(
@@ -486,27 +486,27 @@ export default function JournalPage() {
               </DialogHeader>
 
               <div className="space-y-4">
-                <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                  <p className="text-white/80 whitespace-pre-wrap">{viewingEntry.rawText}</p>
+                <div className="p-4 bg-accent rounded-xl border border-border">
+                  <p className="text-foreground whitespace-pre-wrap">{viewingEntry.rawText}</p>
                 </div>
 
                 {entryAnalysis?.summary && (
                   <div className="space-y-3">
-                    <div className="p-4 bg-violet-500/10 rounded-xl border border-violet-500/20">
+                    <div className="p-4 bg-accent rounded-xl border border-border">
                       <div className="flex items-center gap-2 mb-2">
-                        <Sparkle className="h-4 w-4 text-violet-400" weight="fill" />
-                        <span className="text-sm font-medium text-white">AI Summary</span>
+                        <Sparkle className="h-4 w-4 text-primary" weight="fill" />
+                        <span className="text-sm font-medium text-foreground">AI Summary</span>
                       </div>
-                      <p className="text-white/70 text-sm">{entryAnalysis.summary.summary}</p>
+                      <p className="text-foreground text-sm">{entryAnalysis.summary.summary}</p>
                     </div>
 
                     {entryAnalysis.summary.top3 && entryAnalysis.summary.top3.length > 0 && (
-                      <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                        <p className="text-sm font-medium text-white mb-2">Top 3 Points</p>
+                      <div className="p-4 bg-accent rounded-xl border border-border">
+                        <p className="text-sm font-medium text-foreground mb-2">Top 3 Points</p>
                         <ul className="space-y-1">
                           {entryAnalysis.summary.top3.map((point, i) => (
-                            <li key={i} className="text-sm text-white/70 flex items-start gap-2">
-                              <span className="text-violet-400 font-medium">{i + 1}.</span>
+                            <li key={i} className="text-sm text-foreground flex items-start gap-2">
+                              <span className="text-primary font-medium">{i + 1}.</span>
                               {point}
                             </li>
                           ))}
@@ -515,11 +515,11 @@ export default function JournalPage() {
                     )}
 
                     {entryAnalysis.summary.nextSteps && entryAnalysis.summary.nextSteps.length > 0 && (
-                      <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                        <p className="text-sm font-medium text-white mb-2">Suggested Next Steps</p>
+                      <div className="p-4 bg-accent rounded-xl border border-border">
+                        <p className="text-sm font-medium text-foreground mb-2">Suggested Next Steps</p>
                         <ul className="space-y-1">
                           {entryAnalysis.summary.nextSteps.map((step, i) => (
-                            <li key={i} className="text-sm text-white/70 flex items-start gap-2">
+                            <li key={i} className="text-sm text-foreground flex items-start gap-2">
                               <CheckCircle className="h-4 w-4 text-emerald-400 flex-shrink-0 mt-0.5" weight="fill" />
                               {step}
                             </li>
@@ -537,7 +537,7 @@ export default function JournalPage() {
                       return (
                         <span 
                           key={signal}
-                          className="text-xs bg-white/10 text-white/60 px-2 py-1 rounded-full flex items-center gap-1"
+                          className="text-xs bg-accent text-muted-foreground px-2 py-1 rounded-full flex items-center gap-1"
                         >
                           <Icon className="h-3 w-3" weight="duotone" />
                           {SIGNAL_LABELS[signal] || signal}
@@ -558,7 +558,7 @@ export default function JournalPage() {
                     {analyzeEntry.isPending ? (
                       <SpinnerGap className="h-4 w-4 animate-spin mr-2" weight="bold" />
                     ) : (
-                      <Sparkle className="h-4 w-4 mr-2 text-violet-400" weight="fill" />
+                      <Sparkle className="h-4 w-4 mr-2 text-primary" weight="fill" />
                     )}
                     Get AI Insights
                   </Button>

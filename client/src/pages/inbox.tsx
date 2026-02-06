@@ -70,14 +70,14 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
         >
           <div className="flex items-start gap-3">
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-base leading-relaxed text-white mb-2 light:text-gray-900">
+              <p className="font-medium text-base leading-relaxed text-foreground mb-2">
                 {item.text}
               </p>
               
               <div className="flex flex-wrap gap-2">
                 <StatusBadge status={item.status} size="sm" />
                 {item.source === 'quickadd' && (
-                  <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-violet-500/20 text-violet-400 border-violet-500/30">
+                  <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-accent text-primary border-border">
                     <Zap className="h-3 w-3" />
                     Quick Add
                   </span>
@@ -92,10 +92,10 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-white/60 light:text-gray-500">
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
             {item.ownerName && (
               <span className="flex items-center gap-1.5">
-                <User className="h-4 w-4 text-white/40 light:text-gray-400" />
+                <User className="h-4 w-4 text-muted-foreground" />
                 <span>{item.ownerName}</span>
               </span>
             )}
@@ -115,13 +115,13 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
           </div>
         </button>
 
-        <div className="border-t border-white/10 bg-white/5 px-2 py-2">
+        <div className="border-t border-border bg-accent px-2 py-2">
           <div className="flex items-center justify-between gap-1">
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={(e) => { e.stopPropagation(); onDone(); }}
-              className="flex-1 h-11 rounded-xl text-violet-400 hover:bg-violet-500/20 hover:text-violet-300 flex flex-col items-center gap-0.5 px-2"
+              className="flex-1 h-11 rounded-xl text-primary hover:bg-accent hover:text-primary flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-done-${item.id}`}
             >
               <CheckCircle className="h-5 w-5" />
@@ -145,7 +145,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
               variant="ghost" 
               size="sm" 
               onClick={(e) => { e.stopPropagation(); onRemind(); }}
-              className="flex-1 h-11 rounded-xl text-white/50 hover:bg-white/10 hover:text-white/80 flex flex-col items-center gap-0.5 px-2"
+              className="flex-1 h-11 rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-remind-${item.id}`}
             >
               <Bell className="h-5 w-5" />
@@ -156,7 +156,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
               variant="ghost" 
               size="sm" 
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
-              className="flex-1 h-11 rounded-xl text-white/50 hover:bg-white/10 hover:text-white/80 flex flex-col items-center gap-0.5 px-2"
+              className="flex-1 h-11 rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground flex flex-col items-center gap-0.5 px-2"
               data-testid={`button-edit-${item.id}`}
             >
               <Pencil className="h-5 w-5" />
@@ -225,8 +225,8 @@ export default function InboxPage() {
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-black tracking-tight text-gradient-light light:text-charcoal-900">Inbox</h1>
-              <p className="text-white/50 text-base mt-1 light:text-gray-500">Loading...</p>
+              <h1 className="text-4xl font-black tracking-tight text-gradient-light">Inbox</h1>
+              <p className="text-muted-foreground text-base mt-1">Loading...</p>
             </div>
           </div>
         </div>
@@ -420,8 +420,8 @@ export default function InboxPage() {
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-black tracking-tight text-gradient-light light:text-charcoal-900">Inbox</h1>
-            <p className="text-white/50 text-base mt-1 light:text-gray-500">
+            <h1 className="text-4xl font-black tracking-tight text-gradient-light">Inbox</h1>
+            <p className="text-muted-foreground text-base mt-1">
               {totalItems === 0 ? "All clear" : `${totalItems} open ${totalItems === 1 ? 'item' : 'items'}`}
             </p>
           </div>
@@ -435,8 +435,8 @@ export default function InboxPage() {
               onClick={() => setSourceFilter("all")}
               className={`h-8 rounded-lg text-xs transition-all duration-300 ${
                 sourceFilter === "all" 
-                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' 
-                  : 'text-white/60 hover:text-white/80'
+                  ? 'bg-accent text-primary border border-border' 
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
               data-testid="source-all"
             >
@@ -448,8 +448,8 @@ export default function InboxPage() {
               onClick={() => setSourceFilter("meetings")}
               className={`h-8 rounded-lg text-xs transition-all duration-300 ${
                 sourceFilter === "meetings" 
-                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' 
-                  : 'text-white/60 hover:text-white/80'
+                  ? 'bg-accent text-primary border border-border' 
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
               data-testid="source-meetings"
             >
@@ -461,8 +461,8 @@ export default function InboxPage() {
               onClick={() => setSourceFilter("quickadd")}
               className={`h-8 rounded-lg text-xs transition-all duration-300 ${
                 sourceFilter === "quickadd" 
-                  ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' 
-                  : 'text-white/60 hover:text-white/80'
+                  ? 'bg-accent text-primary border border-border' 
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
               data-testid="source-quickadd"
             >
@@ -475,8 +475,8 @@ export default function InboxPage() {
       {needsReview.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-1 bg-amber-400 rounded-full shadow-glow-sm" />
-            <h2 className="text-base font-semibold text-white light:text-gray-900">
+            <div className="h-6 w-1 bg-amber-400 rounded-full shadow-token" />
+            <h2 className="text-base font-semibold text-foreground">
               Needs Review
             </h2>
             <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full ml-auto light:bg-amber-100 light:text-amber-700 light:border-amber-200">
@@ -503,30 +503,30 @@ export default function InboxPage() {
 
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <div className="h-6 w-1 bg-violet-500 rounded-full shadow-glow-sm" />
-          <h2 className="text-base font-semibold text-white light:text-gray-900">
+          <div className="h-6 w-1 bg-primary rounded-full shadow-token" />
+          <h2 className="text-base font-semibold text-foreground">
             Open Items
           </h2>
-          <Badge variant="secondary" className="bg-violet-500/20 text-violet-300 border border-violet-500/30 rounded-full ml-auto light:bg-violet-100 light:text-violet-700 light:border-violet-200">
+          <Badge variant="secondary" className="bg-accent text-primary border border-border rounded-full ml-auto">
             {openItems.length}
           </Badge>
         </div>
 
         {openItems.length === 0 && needsReview.length === 0 ? (
-          <Card className="border-dashed border-white/20">
+          <Card className="border-dashed border-border">
              <CardContent className="py-12 text-center space-y-3">
-               <div className="mx-auto h-16 w-16 bg-violet-500/20 rounded-full flex items-center justify-center shadow-glow-sm">
-                 <CheckCircle className="h-8 w-8 text-violet-400" />
+               <div className="mx-auto h-16 w-16 bg-accent rounded-full flex items-center justify-center shadow-token">
+                 <CheckCircle className="h-8 w-8 text-primary" />
                </div>
                <div>
-                 <p className="text-lg font-medium text-white">Inbox zero!</p>
-                 <p className="text-white/50 text-base mt-1">Press Q to quick-add a task.</p>
+                 <p className="text-lg font-medium text-foreground">Inbox zero!</p>
+                 <p className="text-muted-foreground text-base mt-1">Press Q to quick-add a task.</p>
                </div>
              </CardContent>
            </Card>
         ) : openItems.length === 0 ? (
-          <Card className="border-dashed border-white/20">
-            <CardContent className="py-8 text-center text-white/50 text-base">
+          <Card className="border-dashed border-border">
+            <CardContent className="py-8 text-center text-muted-foreground text-base">
               No open items. Review the items above to move forward.
             </CardContent>
           </Card>
@@ -565,7 +565,7 @@ export default function InboxPage() {
             <Button variant="outline" onClick={() => setDoneModalOpen(false)}>
               No
             </Button>
-            <Button onClick={confirmDone} className="bg-violet-600 hover:bg-violet-700">
+            <Button onClick={confirmDone} className="bg-primary hover:bg-primary/90">
               Yes, complete
             </Button>
           </DialogFooter>
@@ -667,7 +667,7 @@ export default function InboxPage() {
                   <Button 
                     onClick={() => remindDate && confirmRemind(remindDate, 'custom')} 
                     disabled={!remindDate}
-                    className="flex-1 bg-violet-600 hover:bg-violet-700"
+                    className="flex-1 bg-primary hover:bg-primary/90"
                   >
                     Set reminder
                   </Button>
@@ -714,7 +714,7 @@ export default function InboxPage() {
                     size="sm"
                     onClick={() => setEditForm({ ...editForm, priority: p })}
                     className={editForm.priority === p ? 
-                      (p === 'high' ? 'bg-red-600' : p === 'low' ? 'bg-gray-600' : 'bg-violet-600') : ''
+                      (p === 'high' ? 'bg-red-600' : p === 'low' ? 'bg-secondary' : 'bg-primary') : ''
                     }
                     data-testid={`priority-${p}`}
                   >
@@ -728,7 +728,7 @@ export default function InboxPage() {
             <Button variant="outline" onClick={() => setEditModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={confirmEdit} className="bg-violet-600 hover:bg-violet-700">
+            <Button onClick={confirmEdit} className="bg-primary hover:bg-primary/90">
               Save changes
             </Button>
           </DialogFooter>

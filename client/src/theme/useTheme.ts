@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { type ThemeId, type Mode, DEFAULT_THEME, STORAGE_KEYS } from "./theme-types";
+import { applyTheme } from "./theme";
 
 interface ThemeState {
   theme: ThemeId;
@@ -33,18 +34,6 @@ function getSavedMode(): Mode {
   return "dark";
 }
 
-function applyThemeToDOM(theme: ThemeId, mode: Mode) {
-  const root = document.documentElement;
-  root.dataset.theme = theme;
-  if (mode === "light") {
-    root.classList.add("light");
-    root.style.colorScheme = "light";
-  } else {
-    root.classList.remove("light");
-    root.style.colorScheme = "dark";
-  }
-}
-
 export const useThemeStore = create<ThemeState>()((set) => ({
   theme: getSavedTheme(),
   mode: getSavedMode(),
@@ -53,14 +42,14 @@ export const useThemeStore = create<ThemeState>()((set) => ({
     localStorage.setItem(STORAGE_KEYS.theme, theme);
     set({ theme });
     const currentMode = useThemeStore.getState().mode;
-    applyThemeToDOM(theme, currentMode);
+    applyTheme(theme, currentMode);
   },
 
   setMode: (mode) => {
     localStorage.setItem(STORAGE_KEYS.mode, mode);
     set({ mode });
     const currentTheme = useThemeStore.getState().theme;
-    applyThemeToDOM(currentTheme, mode);
+    applyTheme(currentTheme, mode);
   },
 
   toggleMode: () => {
@@ -68,7 +57,7 @@ export const useThemeStore = create<ThemeState>()((set) => ({
     const newMode = current.mode === "dark" ? "light" : "dark";
     localStorage.setItem(STORAGE_KEYS.mode, newMode);
     set({ mode: newMode });
-    applyThemeToDOM(current.theme, newMode);
+    applyTheme(current.theme, newMode);
   },
 
   resetTheme: () => {
@@ -79,7 +68,7 @@ export const useThemeStore = create<ThemeState>()((set) => ({
     localStorage.setItem(STORAGE_KEYS.theme, DEFAULT_THEME);
     localStorage.setItem(STORAGE_KEYS.mode, defaultMode);
     set({ theme: DEFAULT_THEME, mode: defaultMode });
-    applyThemeToDOM(DEFAULT_THEME, defaultMode);
+    applyTheme(DEFAULT_THEME, defaultMode);
   },
 }));
 

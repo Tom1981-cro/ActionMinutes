@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { useStore } from "@/lib/store";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authenticatedFetch } from "@/hooks/use-auth";
 import { 
@@ -69,7 +68,6 @@ interface CalendarEvent {
 }
 
 export default function CalendarPage() {
-  const { theme } = useStore();
   const queryClient = useQueryClient();
   
   const [viewMode, setViewMode] = useState<ViewMode>('month');
@@ -240,7 +238,7 @@ export default function CalendarPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -249,19 +247,19 @@ export default function CalendarPage() {
     <div className="space-y-6 pb-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-gradient-light light:text-charcoal-900">Calendar</h1>
-          <p className="text-white/50 text-base mt-1 light:text-gray-500">
+          <h1 className="text-4xl font-black tracking-tight text-gradient-light">Calendar</h1>
+          <p className="text-muted-foreground text-base mt-1">
             Your unified schedule and events
           </p>
         </div>
         
         <div className="flex items-center gap-2">
-          <div className={cn("flex rounded-lg p-1", theme === "light" ? "bg-gray-100" : "bg-white/10")}>
+          <div className="flex rounded-lg p-1 bg-muted">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setViewMode('day')}
-              className={cn("h-8 px-3", viewMode === 'day' && (theme === "light" ? "bg-white shadow-sm" : "bg-white/20"))}
+              className={cn("h-8 px-3", viewMode === 'day' && "bg-card shadow-sm")}
               data-testid="button-view-day"
             >
               <CalendarBlank className="h-4 w-4" weight="duotone" />
@@ -270,7 +268,7 @@ export default function CalendarPage() {
               variant="ghost"
               size="sm"
               onClick={() => setViewMode('week')}
-              className={cn("h-8 px-3", viewMode === 'week' && (theme === "light" ? "bg-white shadow-sm" : "bg-white/20"))}
+              className={cn("h-8 px-3", viewMode === 'week' && "bg-card shadow-sm")}
               data-testid="button-view-week"
             >
               <Rows className="h-4 w-4" weight="duotone" />
@@ -279,7 +277,7 @@ export default function CalendarPage() {
               variant="ghost"
               size="sm"
               onClick={() => setViewMode('month')}
-              className={cn("h-8 px-3", viewMode === 'month' && (theme === "light" ? "bg-white shadow-sm" : "bg-white/20"))}
+              className={cn("h-8 px-3", viewMode === 'month' && "bg-card shadow-sm")}
               data-testid="button-view-month"
             >
               <ListBullets className="h-4 w-4" weight="duotone" />
@@ -407,7 +405,7 @@ export default function CalendarPage() {
                 >
                   <CaretLeft className="h-4 w-4" weight="bold" />
                 </Button>
-                <h2 className={cn("text-lg font-bold min-w-[200px] text-center", theme === "light" ? "text-gray-900" : "text-white")}>
+                <h2 className="text-lg font-bold min-w-[200px] text-center text-foreground">
                   {getViewTitle()}
                 </h2>
                 <Button
@@ -436,7 +434,7 @@ export default function CalendarPage() {
               <>
                 <div className="grid grid-cols-7 gap-1 mb-2">
                   {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className={cn("text-center text-xs font-medium py-2", theme === "light" ? "text-gray-500" : "text-white/50")}>
+                    <div key={day} className="text-center text-xs font-medium py-2 text-muted-foreground">
                       {day}
                     </div>
                   ))}
@@ -458,19 +456,15 @@ export default function CalendarPage() {
                           "relative aspect-square p-1 rounded-lg transition-all flex flex-col items-center justify-start",
                           isCurrentMonth ? "" : "opacity-30",
                           isSelected
-                            ? theme === "light"
-                              ? "bg-violet-100 border-2 border-violet-500"
-                              : "bg-violet-500/20 border-2 border-violet-500"
-                            : theme === "light"
-                              ? "hover:bg-gray-100"
-                              : "hover:bg-white/5",
-                          isTodayDate && !isSelected && (theme === "light" ? "bg-violet-50" : "bg-violet-500/10")
+                            ? "bg-accent border-2 border-primary"
+                            : "hover:bg-accent",
+                          isTodayDate && !isSelected && "bg-accent"
                         )}
                       >
                         <span className={cn(
                           "text-sm font-medium",
-                          isTodayDate && "text-violet-500 font-bold",
-                          !isTodayDate && (theme === "light" ? "text-gray-900" : "text-white")
+                          isTodayDate && "text-primary font-bold",
+                          !isTodayDate && "text-foreground"
                         )}>
                           {format(day, 'd')}
                         </span>
@@ -483,7 +477,7 @@ export default function CalendarPage() {
                                   "w-1.5 h-1.5 rounded-full",
                                   event.provider === 'google' ? "bg-red-400" :
                                   event.provider === 'microsoft' ? "bg-blue-400" :
-                                  "bg-violet-500"
+                                  "bg-primary"
                                 )}
                               />
                             ))}
@@ -511,18 +505,18 @@ export default function CalendarPage() {
                           className={cn(
                             "w-full text-center py-2 rounded-lg transition-colors",
                             isSelected
-                              ? theme === "light" ? "bg-violet-100" : "bg-violet-500/20"
-                              : theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/5",
-                            isTodayDate && "border-2 border-violet-500"
+                              ? "bg-accent"
+                              : "hover:bg-accent",
+                            isTodayDate && "border-2 border-primary"
                           )}
                           data-testid={`week-day-${format(day, 'yyyy-MM-dd')}`}
                         >
-                          <div className={cn("text-xs", theme === "light" ? "text-gray-500" : "text-white/50")}>
+                          <div className="text-xs text-muted-foreground">
                             {format(day, 'EEE')}
                           </div>
                           <div className={cn(
                             "text-lg font-bold",
-                            isTodayDate ? "text-violet-500" : (theme === "light" ? "text-gray-900" : "text-white")
+                            isTodayDate ? "text-primary" : "text-foreground"
                           )}>
                             {format(day, 'd')}
                           </div>
@@ -537,7 +531,7 @@ export default function CalendarPage() {
                                   ? "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300" 
                                   : event.provider === 'microsoft'
                                   ? "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300"
-                                  : "bg-violet-100 text-violet-800 dark:bg-violet-500/20 dark:text-violet-300"
+                                  : "bg-accent text-primary"
                               )}
                               data-testid={`week-event-${event.id}`}
                             >
@@ -558,13 +552,10 @@ export default function CalendarPage() {
                   const hourEvents = getEventsForHour(hour);
                   return (
                     <div key={index} className="flex gap-2 min-h-[50px]">
-                      <div className={cn("w-16 text-xs text-right pr-2 py-1", theme === "light" ? "text-gray-500" : "text-white/50")}>
+                      <div className="w-16 text-xs text-right pr-2 py-1 text-muted-foreground">
                         {format(hour, 'h:mm a')}
                       </div>
-                      <div className={cn(
-                        "flex-1 border-t py-1 space-y-1",
-                        theme === "light" ? "border-gray-200" : "border-white/10"
-                      )}>
+                      <div className="flex-1 border-t border-border py-1 space-y-1">
                         {hourEvents.map((event: CalendarEvent) => (
                           <div
                             key={event.id}
@@ -574,7 +565,7 @@ export default function CalendarPage() {
                                 ? "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300" 
                                 : event.provider === 'microsoft'
                                 ? "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300"
-                                : "bg-violet-100 text-violet-800 dark:bg-violet-500/20 dark:text-violet-300"
+                                : "bg-accent text-primary"
                             )}
                             data-testid={`day-event-${event.id}`}
                           >
@@ -607,7 +598,7 @@ export default function CalendarPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               {selectedEvents.length === 0 ? (
-                <div className={cn("text-center py-8", theme === "light" ? "text-gray-400" : "text-white/40")}>
+                <div className="text-center py-8 text-muted-foreground">
                   <CalendarIcon className="h-12 w-12 mx-auto mb-2 opacity-50" weight="duotone" />
                   <p className="text-sm">No events for this day</p>
                 </div>
@@ -615,29 +606,26 @@ export default function CalendarPage() {
                 selectedEvents.map((event: CalendarEvent) => (
                   <div
                     key={event.id}
-                    className={cn(
-                      "flex items-start gap-3 p-3 rounded-lg border",
-                      theme === "light" ? "bg-white border-gray-200" : "bg-white/5 border-white/10"
-                    )}
+                    className="flex items-start gap-3 p-3 rounded-lg border bg-card border-border"
                     data-testid={`event-${event.id}`}
                   >
                     <div className={cn(
                       "mt-0.5 flex-shrink-0",
                       event.provider === 'google' ? "text-red-500" :
                       event.provider === 'microsoft' ? "text-blue-500" :
-                      "text-violet-500"
+                      "text-primary"
                     )}>
                       <Clock className="h-5 w-5" weight="duotone" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={cn("text-sm font-medium", theme === "light" ? "text-gray-900" : "text-white")}>
+                      <p className="text-sm font-medium text-foreground">
                         {event.title}
                       </p>
-                      <p className={cn("text-xs mt-0.5", theme === "light" ? "text-gray-500" : "text-white/50")}>
+                      <p className="text-xs mt-0.5 text-muted-foreground">
                         {event.allDay ? 'All day' : `${format(parseISO(event.startTime), 'h:mm a')} - ${format(parseISO(event.endTime), 'h:mm a')}`}
                       </p>
                       {event.location && (
-                        <p className={cn("text-xs mt-0.5", theme === "light" ? "text-gray-400" : "text-white/40")}>
+                        <p className="text-xs mt-0.5 text-muted-foreground">
                           {event.location}
                         </p>
                       )}
@@ -668,16 +656,16 @@ export default function CalendarPage() {
                 className={cn(
                   "w-full flex items-center gap-3 p-3 rounded-lg border transition-colors",
                   googleProvider?.connected
-                    ? theme === "light" ? "bg-green-50 border-green-200" : "bg-green-500/10 border-green-500/30"
-                    : theme === "light" ? "bg-white border-gray-200" : "bg-white/5 border-white/10"
+                    ? "bg-green-500/10 border-green-500/30"
+                    : "bg-card border-border"
                 )}
               >
-                <GoogleLogo className={cn("h-5 w-5", googleProvider?.connected ? "text-green-500" : (theme === "light" ? "text-gray-500" : "text-white/60"))} weight="duotone" />
+                <GoogleLogo className={cn("h-5 w-5", googleProvider?.connected ? "text-green-500" : "text-muted-foreground")} weight="duotone" />
                 <div className="flex-1 text-left">
-                  <p className={cn("text-sm font-medium", theme === "light" ? "text-gray-900" : "text-white")}>
+                  <p className="text-sm font-medium text-foreground">
                     Google Calendar
                   </p>
-                  <p className={cn("text-xs", theme === "light" ? "text-gray-500" : "text-white/50")}>
+                  <p className="text-xs text-muted-foreground">
                     {googleProvider?.connected ? "Connected" : "Not connected"}
                   </p>
                 </div>
@@ -692,7 +680,7 @@ export default function CalendarPage() {
                     {syncMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowsClockwise className="h-4 w-4" />}
                   </Button>
                 ) : (
-                  <CheckCircle className="h-5 w-5 text-gray-300" />
+                  <CheckCircle className="h-5 w-5 text-muted-foreground" />
                 )}
               </div>
 
@@ -700,16 +688,16 @@ export default function CalendarPage() {
                 className={cn(
                   "w-full flex items-center gap-3 p-3 rounded-lg border transition-colors",
                   microsoftProvider?.connected
-                    ? theme === "light" ? "bg-green-50 border-green-200" : "bg-green-500/10 border-green-500/30"
-                    : theme === "light" ? "bg-white border-gray-200" : "bg-white/5 border-white/10"
+                    ? "bg-green-500/10 border-green-500/30"
+                    : "bg-card border-border"
                 )}
               >
-                <MicrosoftOutlookLogo className={cn("h-5 w-5", microsoftProvider?.connected ? "text-green-500" : (theme === "light" ? "text-gray-500" : "text-white/60"))} weight="duotone" />
+                <MicrosoftOutlookLogo className={cn("h-5 w-5", microsoftProvider?.connected ? "text-green-500" : "text-muted-foreground")} weight="duotone" />
                 <div className="flex-1 text-left">
-                  <p className={cn("text-sm font-medium", theme === "light" ? "text-gray-900" : "text-white")}>
+                  <p className="text-sm font-medium text-foreground">
                     Outlook Calendar
                   </p>
-                  <p className={cn("text-xs", theme === "light" ? "text-gray-500" : "text-white/50")}>
+                  <p className="text-xs text-muted-foreground">
                     {microsoftProvider?.connected ? "Connected" : "Not connected"}
                   </p>
                 </div>
@@ -724,11 +712,11 @@ export default function CalendarPage() {
                     {syncMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowsClockwise className="h-4 w-4" />}
                   </Button>
                 ) : (
-                  <CheckCircle className="h-5 w-5 text-gray-300" />
+                  <CheckCircle className="h-5 w-5 text-muted-foreground" />
                 )}
               </div>
 
-              <p className={cn("text-xs text-center pt-2", theme === "light" ? "text-gray-400" : "text-white/40")}>
+              <p className="text-xs text-center pt-2 text-muted-foreground">
                 Connect calendars via Settings &rarr; Integrations
               </p>
             </CardContent>

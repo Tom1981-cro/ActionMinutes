@@ -1,0 +1,123 @@
+/* ============================================================
+   Demo Utility Classes – matches Theme Gallery demo exactly
+   ============================================================ */
+
+/* Shadow tokens */
+.shadow-token {
+  box-shadow: var(--shadow-1);
+}
+
+.shadow-token-2 {
+  box-shadow: var(--shadow-2);
+}
+
+/* Meta text */
+.meta {
+  color: var(--muted-foreground);
+}
+
+/* Nav item – inactive */
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  transition: background 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.navItem:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.navItem .nav-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  color: var(--muted-foreground);
+  transition: color 0.15s ease;
+}
+
+.navItem:hover .nav-icon {
+  color: var(--primary);
+}
+
+/* Nav item – active */
+.navItemActive {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: var(--shadow-1);
+}
+
+.navItemActive .nav-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  color: var(--primary);
+}
+
+/* Focus ring token */
+.ring-token:focus,
+.ring-token:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Card token – composable with bg-card */
+.card-token {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-1);
+}
+
+/* Badge / pill variants */
+.pill-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.pill-accent {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+/* Section header (like sidebar group labels) */
+.section-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  padding: 0.5rem 0.75rem;
+}

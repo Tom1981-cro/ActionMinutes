@@ -67,7 +67,7 @@ export default function DraftsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <SpinnerGap className="h-8 w-8 animate-spin text-violet-500" weight="bold" />
+        <SpinnerGap className="h-8 w-8 animate-spin text-primary" weight="bold" />
       </div>
     );
   }
@@ -80,14 +80,14 @@ export default function DraftsPage() {
       <div className="space-y-6">
         <div className="space-y-1">
           <h1 className="text-4xl font-black tracking-tight text-gradient-light">Drafts</h1>
-          <p className="text-white/50 text-base">Ready-to-send follow-up emails.</p>
+          <p className="text-muted-foreground text-base">Ready-to-send follow-up emails.</p>
         </div>
-        <div className="glass-panel rounded-2xl border-dashed border-white/20 py-12 text-center">
-          <div className="mx-auto h-16 w-16 bg-violet-500/20 rounded-2xl flex items-center justify-center mb-4">
-            <EnvelopeSimple className="h-8 w-8 text-violet-400" weight="duotone" />
+        <div className="glass-panel rounded-2xl border-dashed border-border py-12 text-center">
+          <div className="mx-auto h-16 w-16 bg-accent rounded-2xl flex items-center justify-center mb-4">
+            <EnvelopeSimple className="h-8 w-8 text-primary" weight="duotone" />
           </div>
-          <p className="text-white/70 text-base">No drafts yet.</p>
-          <p className="text-white/40 text-sm mt-1">Process a meeting to generate follow-up emails.</p>
+          <p className="text-foreground text-base">No drafts yet.</p>
+          <p className="text-muted-foreground text-sm mt-1">Process a meeting to generate follow-up emails.</p>
         </div>
       </div>
     );
@@ -102,7 +102,7 @@ export default function DraftsPage() {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h1 className="text-4xl font-black tracking-tight text-gradient-light">Drafts</h1>
-              <p className="text-white/50 text-sm">Ready-to-send emails</p>
+              <p className="text-muted-foreground text-sm">Ready-to-send emails</p>
             </div>
             
             {drafts.length > 1 && (
@@ -112,13 +112,13 @@ export default function DraftsPage() {
                   size="icon"
                   onClick={() => setActiveDraftIndex(Math.max(0, activeDraftIndex - 1))}
                   disabled={activeDraftIndex === 0}
-                  className="h-10 w-10 rounded-full text-white/60 hover:text-white hover:bg-white/10"
+                  className="h-10 w-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
                   data-testid="button-prev-draft"
                   aria-label="Previous draft"
                 >
                   <CaretLeft className="h-5 w-5" weight="bold" />
                 </Button>
-                <span className="text-sm text-white/60 min-w-[3rem] text-center">
+                <span className="text-sm text-muted-foreground min-w-[3rem] text-center">
                   {activeDraftIndex + 1} / {drafts.length}
                 </span>
                 <Button
@@ -126,7 +126,7 @@ export default function DraftsPage() {
                   size="icon"
                   onClick={() => setActiveDraftIndex(Math.min(drafts.length - 1, activeDraftIndex + 1))}
                   disabled={activeDraftIndex === drafts.length - 1}
-                  className="h-10 w-10 rounded-full text-white/60 hover:text-white hover:bg-white/10"
+                  className="h-10 w-10 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
                   data-testid="button-next-draft"
                   aria-label="Next draft"
                 >
@@ -158,32 +158,32 @@ export default function DraftsPage() {
               <Card className="glass-panel rounded-2xl overflow-hidden" data-testid={`card-draft-${activeDraft.id}`}>
                 <CardHeader className="space-y-4 px-4 pt-4 pb-3">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-white/60">Subject</Label>
+                    <Label className="text-sm font-medium text-muted-foreground">Subject</Label>
                     <Input 
                       value={activeDraft.subject} 
                       onChange={(e) => updateDraft.mutate({ id: activeDraft.id, updates: { subject: e.target.value } })}
-                      className="bg-white/5 border-white/10 rounded-xl h-12 text-base text-white placeholder:text-white/40 focus:bg-white/10 focus:border-violet-500/50"
+                      className="bg-muted border-border rounded-xl h-12 text-base text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
                       data-testid={`input-subject-${activeDraft.id}`}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-white/60">To</Label>
+                    <Label className="text-sm font-medium text-muted-foreground">To</Label>
                     <Input 
                       value={activeDraft.recipientEmail || ""} 
                       placeholder="recipient@email.com"
                       onChange={(e) => updateDraft.mutate({ id: activeDraft.id, updates: { recipientEmail: e.target.value } })}
-                      className="bg-white/5 border-white/10 rounded-xl h-12 text-base text-white placeholder:text-white/40 focus:bg-white/10 focus:border-violet-500/50"
+                      className="bg-muted border-border rounded-xl h-12 text-base text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
                       data-testid={`input-recipient-${activeDraft.id}`}
                     />
                   </div>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-white/60">Message</Label>
+                    <Label className="text-sm font-medium text-muted-foreground">Message</Label>
                     <Textarea 
                       value={activeDraft.body} 
                       onChange={(e) => updateDraft.mutate({ id: activeDraft.id, updates: { body: e.target.value } })}
-                      className="min-h-[280px] text-base leading-relaxed bg-white/5 border-white/10 rounded-xl p-4 text-white placeholder:text-white/40 focus:bg-white/10 focus:border-violet-500/50"
+                      className="min-h-[280px] text-base leading-relaxed bg-muted border-border rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
                       data-testid={`textarea-body-${activeDraft.id}`}
                     />
                   </div>
@@ -195,24 +195,24 @@ export default function DraftsPage() {
           <div className="hidden md:grid gap-5">
             {drafts.map((draft: any) => (
               <Card key={draft.id} className="glass-panel rounded-2xl overflow-hidden" data-testid={`card-draft-${draft.id}`}>
-                <CardHeader className="bg-white/5 pb-4 border-b border-white/10 space-y-4 px-6 pt-5">
+                <CardHeader className="bg-muted pb-4 border-b border-border space-y-4 px-6 pt-5">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-white/60">Subject</Label>
+                      <Label className="text-sm font-medium text-muted-foreground">Subject</Label>
                       <Input 
                         value={draft.subject} 
                         onChange={(e) => updateDraft.mutate({ id: draft.id, updates: { subject: e.target.value } })}
-                        className="bg-white/5 border-white/10 rounded-xl h-12 text-base text-white placeholder:text-white/40 focus:bg-white/10 focus:border-violet-500/50"
+                        className="bg-muted border-border rounded-xl h-12 text-base text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
                         data-testid={`input-subject-${draft.id}`}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium text-white/60">To</Label>
+                      <Label className="text-sm font-medium text-muted-foreground">To</Label>
                       <Input 
                         value={draft.recipientEmail || ""} 
                         placeholder="Recipient email..."
                         onChange={(e) => updateDraft.mutate({ id: draft.id, updates: { recipientEmail: e.target.value } })}
-                        className="bg-white/5 border-white/10 rounded-xl h-12 text-base text-white placeholder:text-white/40 focus:bg-white/10 focus:border-violet-500/50"
+                        className="bg-muted border-border rounded-xl h-12 text-base text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
                         data-testid={`input-recipient-${draft.id}`}
                       />
                     </div>
@@ -220,21 +220,21 @@ export default function DraftsPage() {
                 </CardHeader>
                 <CardContent className="pt-4 pb-4 px-6">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-white/60">Message</Label>
+                    <Label className="text-sm font-medium text-muted-foreground">Message</Label>
                     <Textarea 
                       value={draft.body} 
                       onChange={(e) => updateDraft.mutate({ id: draft.id, updates: { body: e.target.value } })}
-                      className="min-h-[300px] text-base leading-relaxed bg-white/5 border-white/10 rounded-xl p-4 text-white placeholder:text-white/40 focus:bg-white/10 focus:border-violet-500/50"
+                      className="min-h-[300px] text-base leading-relaxed bg-muted border-border rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
                       data-testid={`textarea-body-${draft.id}`}
                     />
                   </div>
                 </CardContent>
-                <div className="bg-white/5 border-t border-white/10 flex gap-3 py-4 px-6 items-center">
+                <div className="bg-muted border-t border-border flex gap-3 py-4 px-6 items-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button 
                         variant="outline" 
-                        className="rounded-full border-white/20 text-white/80 hover:bg-white/10 hover:text-white h-11"
+                        className="rounded-full border-border text-foreground hover:bg-accent hover:text-foreground h-11"
                         data-testid={`button-copy-${draft.id}`}
                       >
                         {copiedType?.startsWith('body-' + draft.id) || copiedType?.startsWith('all-' + draft.id) ? (
@@ -246,10 +246,10 @@ export default function DraftsPage() {
                         <CaretDown className="ml-2 h-4 w-4" weight="bold" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="rounded-xl glass-panel border-white/10">
+                    <DropdownMenuContent align="start" className="rounded-xl glass-panel border-border">
                       <DropdownMenuItem 
                         onClick={() => handleCopyBody(draft.body, draft.id)}
-                        className="py-3 text-white/80 focus:bg-white/10 focus:text-white"
+                        className="py-3 text-foreground focus:bg-accent focus:text-foreground"
                         data-testid={`menu-copy-body-${draft.id}`}
                       >
                         <Copy className="mr-2 h-4 w-4" weight="duotone" />
@@ -257,7 +257,7 @@ export default function DraftsPage() {
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => handleCopyAll(draft.subject, draft.body, draft.id)}
-                        className="py-3 text-white/80 focus:bg-white/10 focus:text-white"
+                        className="py-3 text-foreground focus:bg-accent focus:text-foreground"
                         data-testid={`menu-copy-all-${draft.id}`}
                       >
                         <Copy className="mr-2 h-4 w-4" weight="duotone" />
@@ -316,13 +316,13 @@ export default function DraftsPage() {
       </div>
 
       {activeDraft && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-white/10 p-4 pb-safe z-50">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-border p-4 pb-safe z-50">
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
                   variant="outline" 
-                  className="h-12 px-4 rounded-xl border-white/20 text-white/80 hover:bg-white/10"
+                  className="h-12 px-4 rounded-xl border-border text-foreground hover:bg-accent"
                   data-testid="button-copy-mobile"
                 >
                   {copiedType ? (
@@ -332,10 +332,10 @@ export default function DraftsPage() {
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="rounded-xl glass-panel border-white/10 w-48">
+              <DropdownMenuContent align="start" className="rounded-xl glass-panel border-border w-48">
                 <DropdownMenuItem 
                   onClick={() => handleCopyBody(activeDraft.body, activeDraft.id)}
-                  className="py-3 text-white/80 focus:bg-white/10 focus:text-white"
+                  className="py-3 text-foreground focus:bg-accent focus:text-foreground"
                   data-testid="menu-copy-body-mobile"
                 >
                   <Copy className="mr-2 h-4 w-4" weight="duotone" />
@@ -343,7 +343,7 @@ export default function DraftsPage() {
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={() => handleCopyAll(activeDraft.subject, activeDraft.body, activeDraft.id)}
-                  className="py-3 text-white/80 focus:bg-white/10 focus:text-white"
+                  className="py-3 text-foreground focus:bg-accent focus:text-foreground"
                   data-testid="menu-copy-all-mobile"
                 >
                   <Copy className="mr-2 h-4 w-4" weight="duotone" />

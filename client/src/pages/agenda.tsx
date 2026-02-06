@@ -41,9 +41,9 @@ function AgendaSection({
     <section className="space-y-3">
       <div className="flex items-center gap-2">
         <div className={`h-6 w-1 ${accentColor} rounded-full`} />
-        <Icon className="h-4 w-4 text-white/60" weight="duotone" />
-        <h2 className="text-base font-semibold text-white">{title}</h2>
-        <Badge variant="outline" className="bg-white/10 text-white/70 border-white/20 rounded-full ml-auto">
+        <Icon className="h-4 w-4 text-muted-foreground" weight="duotone" />
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        <Badge variant="outline" className="bg-accent text-foreground border-border rounded-full ml-auto">
           {items.length}
         </Badge>
       </div>
@@ -52,7 +52,7 @@ function AgendaSection({
         {items.map((item) => (
           <Card
             key={item.id}
-            className="glass-panel rounded-xl hover:bg-white/10 transition-all cursor-pointer"
+            className="glass-panel rounded-xl hover:bg-accent transition-all cursor-pointer"
             onClick={() => onTap(item)}
             data-testid={`agenda-item-${item.id}`}
           >
@@ -60,7 +60,7 @@ function AgendaSection({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 rounded-full shrink-0 mt-0.5 text-white/40 hover:text-emerald-400 hover:bg-emerald-500/20"
+                className="h-6 w-6 rounded-full shrink-0 mt-0.5 text-muted-foreground hover:text-emerald-400 hover:bg-emerald-500/20"
                 onClick={(e) => {
                   e.stopPropagation();
                   onMarkDone(item.id);
@@ -70,8 +70,8 @@ function AgendaSection({
                 <CheckCircle className="h-5 w-5" weight="duotone" />
               </Button>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-white font-medium line-clamp-2">{item.description}</p>
-                <div className="flex items-center gap-2 mt-1.5 text-xs text-white/50">
+                <p className="text-sm text-foreground font-medium line-clamp-2">{item.description}</p>
+                <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
                   {item.ownerName && <span>{item.ownerName}</span>}
                   {item.ownerName && item.meetingTitle && <span>•</span>}
                   {item.meetingTitle && (
@@ -79,7 +79,7 @@ function AgendaSection({
                   )}
                 </div>
               </div>
-              <CaretRight className="h-4 w-4 text-white/40 shrink-0" weight="bold" />
+              <CaretRight className="h-4 w-4 text-muted-foreground shrink-0" weight="bold" />
             </CardContent>
           </Card>
         ))}
@@ -153,7 +153,7 @@ export default function AgendaPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <SpinnerGap className="h-8 w-8 animate-spin text-violet-500" weight="bold" />
+        <SpinnerGap className="h-8 w-8 animate-spin text-primary" weight="bold" />
       </div>
     );
   }
@@ -166,7 +166,7 @@ export default function AgendaPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-4xl font-black tracking-tight text-gradient-light">Agenda</h1>
-            <p className="text-white/50 text-base mt-1">
+            <p className="text-muted-foreground text-base mt-1">
               {totalItems === 0 ? "All clear" : `${totalItems} upcoming ${totalItems === 1 ? 'item' : 'items'}`}
             </p>
           </div>
@@ -174,13 +174,13 @@ export default function AgendaPage() {
       </div>
 
       {totalItems === 0 ? (
-        <div className="glass-panel rounded-2xl border-dashed border-white/20 py-12 text-center space-y-3">
-          <div className="mx-auto h-16 w-16 bg-violet-500/20 rounded-2xl flex items-center justify-center">
-            <CalendarBlank className="h-8 w-8 text-violet-400" weight="duotone" />
+        <div className="glass-panel rounded-2xl border-dashed border-border py-12 text-center space-y-3">
+          <div className="mx-auto h-16 w-16 bg-accent rounded-2xl flex items-center justify-center">
+            <CalendarBlank className="h-8 w-8 text-primary" weight="duotone" />
           </div>
           <div>
-            <p className="text-lg font-medium text-white">All caught up!</p>
-            <p className="text-white/50 text-base mt-1">No upcoming tasks on your agenda.</p>
+            <p className="text-lg font-medium text-foreground">All caught up!</p>
+            <p className="text-muted-foreground text-base mt-1">No upcoming tasks on your agenda.</p>
           </div>
         </div>
       ) : (
@@ -213,7 +213,7 @@ export default function AgendaPage() {
             title="Next 7 Days"
             icon={CalendarBlank}
             items={nextWeekItems}
-            accentColor="bg-violet-500"
+            accentColor="bg-primary"
             onMarkDone={handleMarkDone}
             onTap={handleTap}
           />
@@ -222,7 +222,7 @@ export default function AgendaPage() {
               title="No Due Date"
               icon={Clock}
               items={noDueDate}
-              accentColor="bg-white/40"
+              accentColor="bg-muted-foreground"
               onMarkDone={handleMarkDone}
               onTap={handleTap}
             />

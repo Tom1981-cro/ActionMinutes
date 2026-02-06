@@ -54,14 +54,14 @@ export default function ExtractionPage() {
   if (meetingLoading || actionsLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <SpinnerGap className="h-8 w-8 animate-spin text-violet-500" weight="bold" />
+        <SpinnerGap className="h-8 w-8 animate-spin text-primary" weight="bold" />
       </div>
     );
   }
 
   if (!meeting) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-white/50 text-base">
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground text-base">
         Meeting not found
       </div>
     );
@@ -74,11 +74,11 @@ export default function ExtractionPage() {
           <div className="h-16 w-16 bg-amber-500/20 rounded-2xl flex items-center justify-center">
             <Warning className="h-8 w-8 text-amber-400" weight="duotone" />
           </div>
-          <h2 className="text-xl font-semibold text-white text-center">AI Extraction Unavailable</h2>
-          <p className="text-white/50 text-base text-center max-w-md">
+          <h2 className="text-xl font-semibold text-foreground text-center">AI Extraction Unavailable</h2>
+          <p className="text-muted-foreground text-base text-center max-w-md">
             AI features are currently disabled. This meeting cannot be processed until AI is re-enabled.
           </p>
-          <Button variant="outline" onClick={() => setLocation("/meetings")} className="rounded-xl border-white/20 text-white/80 hover:bg-white/10">
+          <Button variant="outline" onClick={() => setLocation("/meetings")} className="rounded-xl border-border text-foreground hover:bg-accent">
             <ArrowLeft className="mr-2 h-4 w-4" weight="bold" />
             Back to Meetings
           </Button>
@@ -87,9 +87,9 @@ export default function ExtractionPage() {
     }
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 px-4">
-        <SpinnerGap className="h-12 w-12 animate-spin text-violet-500" weight="bold" />
-        <h2 className="text-xl font-semibold text-white text-center">AI is analyzing your notes...</h2>
-        <p className="text-white/50 text-base text-center">Extracting decisions, actions, and risks.</p>
+        <SpinnerGap className="h-12 w-12 animate-spin text-primary" weight="bold" />
+        <h2 className="text-xl font-semibold text-foreground text-center">AI is analyzing your notes...</h2>
+        <p className="text-muted-foreground text-base text-center">Extracting decisions, actions, and risks.</p>
       </div>
     );
   }
@@ -202,14 +202,14 @@ export default function ExtractionPage() {
   return (
     <div className="flex flex-col h-full pb-safe">
       <div className="flex-1 overflow-y-auto pb-24 md:pb-6">
-        <div className="sticky top-0 glass-panel backdrop-blur z-10 -mx-4 px-4 md:-mx-8 md:px-8 border-b border-white/10">
+        <div className="sticky top-0 glass-panel backdrop-blur z-10 -mx-4 px-4 md:-mx-8 md:px-8 border-b border-border">
           <div className="flex items-center gap-3 py-3">
-            <Button variant="ghost" size="icon" onClick={() => setLocation("/meetings")} className="rounded-full h-11 w-11 shrink-0 text-white/60 hover:text-white hover:bg-white/10" data-testid="button-back" aria-label="Go back to meetings">
+            <Button variant="ghost" size="icon" onClick={() => setLocation("/meetings")} className="rounded-full h-11 w-11 shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent" data-testid="button-back" aria-label="Go back to meetings">
               <ArrowLeft className="h-5 w-5" weight="bold" />
             </Button>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg font-bold truncate text-white">{meeting.title}</h1>
-              <div className="flex items-center gap-2 text-sm text-white/50">
+              <h1 className="text-lg font-bold truncate text-foreground">{meeting.title}</h1>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <StatusBadge status={meeting.parseState} size="sm" />
                 {meeting.date && <span>{new Date(meeting.date).toLocaleDateString()}</span>}
               </div>
@@ -224,14 +224,14 @@ export default function ExtractionPage() {
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                   activeTab === tab.id
                     ? 'btn-gradient text-white'
-                    : 'bg-white/5 text-white/60 border border-white/10'
+                    : 'bg-muted text-muted-foreground border border-border'
                 }`}
                 data-testid={`tab-${tab.id}`}
               >
                 {tab.label}
                 {tab.count !== undefined && tab.count > 0 && (
                   <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                    activeTab === tab.id ? 'bg-white/20' : 'bg-white/10'
+                    activeTab === tab.id ? 'bg-white/20' : 'bg-accent'
                   }`}>
                     {tab.count}
                   </span>
@@ -245,10 +245,10 @@ export default function ExtractionPage() {
           <div className={`${activeTab === 'summary' ? 'block' : 'hidden md:block'}`}>
             <Card className="glass-panel rounded-2xl">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
-                <CardTitle className="text-base font-semibold text-white">Summary</CardTitle>
+                <CardTitle className="text-base font-semibold text-foreground">Summary</CardTitle>
               </CardHeader>
               <CardContent className="px-4 pb-4 md:px-6">
-                <div className="bg-white/5 p-4 rounded-xl text-base leading-relaxed text-white/80">
+                <div className="bg-muted p-4 rounded-xl text-base leading-relaxed text-foreground">
                   {meeting.summary || "No summary generated yet."}
                 </div>
               </CardContent>
@@ -259,13 +259,13 @@ export default function ExtractionPage() {
             <Card className="glass-panel rounded-2xl">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
+                  <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
                     Action Items
                     {actions.length > 0 && (
-                      <Badge variant="outline" className="rounded-full bg-white/10 text-white/70 border-white/20">{actions.length}</Badge>
+                      <Badge variant="outline" className="rounded-full bg-accent text-foreground border-border">{actions.length}</Badge>
                     )}
                     {linkedTasks.length > 0 && (
-                      <Badge variant="outline" className="rounded-full bg-violet-500/20 text-violet-300 border-violet-500/30">
+                      <Badge variant="outline" className="rounded-full bg-accent text-primary border-border">
                         {linkedTasks.length} task{linkedTasks.length !== 1 ? 's' : ''}
                       </Badge>
                     )}
@@ -276,7 +276,7 @@ export default function ExtractionPage() {
                       size="sm"
                       onClick={handleCreateTasks}
                       disabled={createTasksFromMeeting.isPending}
-                      className="rounded-full text-xs text-violet-300 hover:bg-violet-500/20"
+                      className="rounded-full text-xs text-primary hover:bg-accent"
                       data-testid="button-create-tasks"
                     >
                       {createTasksFromMeeting.isPending ? (
@@ -291,28 +291,28 @@ export default function ExtractionPage() {
               </CardHeader>
               <CardContent className="px-4 pb-4 md:px-6 space-y-3">
                 {actions.length === 0 ? (
-                  <p className="text-center py-6 text-white/50 text-base">No action items extracted yet.</p>
+                  <p className="text-center py-6 text-muted-foreground text-base">No action items extracted yet.</p>
                 ) : (
                   actions.map((item: ActionItem) => (
                     <button
                       key={item.id}
                       onClick={() => handleActionTap(item)}
-                      className="w-full text-left bg-white/5 hover:bg-white/10 rounded-xl p-4 space-y-3 transition-colors"
+                      className="w-full text-left bg-muted hover:bg-accent rounded-xl p-4 space-y-3 transition-colors"
                       data-testid={`action-card-${item.id}`}
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <p className="font-medium text-base leading-relaxed text-white flex-1">{item.text}</p>
-                        <Pencil className="h-4 w-4 text-white/40 shrink-0 mt-1" weight="duotone" />
+                        <p className="font-medium text-base leading-relaxed text-foreground flex-1">{item.text}</p>
+                        <Pencil className="h-4 w-4 text-muted-foreground shrink-0 mt-1" weight="duotone" />
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         {item.ownerName && (
-                          <div className="flex items-center gap-1.5 text-sm text-white/60">
+                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                             <User className="h-3.5 w-3.5" weight="duotone" />
                             <span>{item.ownerName}</span>
                           </div>
                         )}
                         {item.dueDate && (
-                          <div className="flex items-center gap-1.5 text-sm text-white/60">
+                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                             <Clock className="h-3.5 w-3.5" weight="duotone" />
                             <span>{new Date(item.dueDate).toLocaleDateString()}</span>
                           </div>
@@ -335,17 +335,17 @@ export default function ExtractionPage() {
           <div className={`${activeTab === 'decisions' ? 'block' : 'hidden md:block'}`}>
             <Card className="glass-panel rounded-2xl">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
-                <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-violet-400" weight="duotone" />
+                <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-primary" weight="duotone" />
                   Decisions
                   {decisions.length > 0 && (
-                    <Badge variant="outline" className="rounded-full bg-white/10 text-white/70 border-white/20">{decisions.length}</Badge>
+                    <Badge variant="outline" className="rounded-full bg-accent text-foreground border-border">{decisions.length}</Badge>
                   )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-4 pb-4 md:px-6 space-y-3">
                 {decisions.length === 0 ? (
-                  <p className="text-center py-6 text-white/50 text-base">No decisions extracted.</p>
+                  <p className="text-center py-6 text-muted-foreground text-base">No decisions extracted.</p>
                 ) : (
                   decisions.map((decision: any) => (
                     <div 
@@ -353,7 +353,7 @@ export default function ExtractionPage() {
                       className="border border-emerald-500/30 rounded-xl p-4 bg-emerald-500/10"
                       data-testid={`decision-${decision.id}`}
                     >
-                      <p className="text-base text-white">{decision.text}</p>
+                      <p className="text-base text-foreground">{decision.text}</p>
                     </div>
                   ))
                 )}
@@ -364,17 +364,17 @@ export default function ExtractionPage() {
           <div className={`${activeTab === 'risks' ? 'block' : 'hidden md:block'}`}>
             <Card className="glass-panel rounded-2xl">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
-                <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
+                <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
                   <Warning className="h-4 w-4 text-amber-400" weight="duotone" />
                   Risks
                   {risks.length > 0 && (
-                    <Badge variant="outline" className="rounded-full bg-white/10 text-white/70 border-white/20">{risks.length}</Badge>
+                    <Badge variant="outline" className="rounded-full bg-accent text-foreground border-border">{risks.length}</Badge>
                   )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-4 pb-4 md:px-6 space-y-3">
                 {risks.length === 0 ? (
-                  <p className="text-center py-6 text-white/50 text-base">No risks identified.</p>
+                  <p className="text-center py-6 text-muted-foreground text-base">No risks identified.</p>
                 ) : (
                   risks.map((risk: any) => (
                     <div 
@@ -382,12 +382,12 @@ export default function ExtractionPage() {
                       className={`border rounded-xl p-4 transition-colors ${
                         risk.severity === 'high' ? 'bg-red-500/10 border-red-500/30' :
                         risk.severity === 'medium' ? 'bg-amber-500/10 border-amber-500/30' :
-                        'bg-white/5 border-white/10'
+                        'bg-muted border-border'
                       }`}
                       data-testid={`risk-${risk.id}`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-base text-white flex-1">{risk.text}</p>
+                        <p className="text-base text-foreground flex-1">{risk.text}</p>
                         <SeverityBadge severity={risk.severity} />
                       </div>
                     </div>
@@ -400,17 +400,17 @@ export default function ExtractionPage() {
           <div className={`${activeTab === 'clarify' ? 'block' : 'hidden md:block'}`}>
             <Card className="glass-panel rounded-2xl">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
-                <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
+                <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
                   <Question className="h-4 w-4 text-sky-400" weight="duotone" />
                   Clarifying Questions
                   {questions.length > 0 && (
-                    <Badge variant="outline" className="rounded-full bg-white/10 text-white/70 border-white/20">{questions.length}</Badge>
+                    <Badge variant="outline" className="rounded-full bg-accent text-foreground border-border">{questions.length}</Badge>
                   )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-4 pb-4 md:px-6 space-y-3">
                 {questions.length === 0 ? (
-                  <p className="text-center py-6 text-white/50 text-base">No clarifying questions needed.</p>
+                  <p className="text-center py-6 text-muted-foreground text-base">No clarifying questions needed.</p>
                 ) : (
                   questions.map((question: any) => (
                     <div 
@@ -418,13 +418,13 @@ export default function ExtractionPage() {
                       className="border border-sky-500/30 rounded-xl p-4 bg-sky-500/10 space-y-3"
                       data-testid={`question-${question.id}`}
                     >
-                      <p className="text-base text-white">{question.text}</p>
+                      <p className="text-base text-foreground">{question.text}</p>
                       {question.options && question.options.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                           {question.options.map((option: string, idx: number) => (
                             <button
                               key={idx}
-                              className="px-4 py-2 rounded-full text-sm font-medium bg-white/10 border border-sky-500/30 text-sky-300 hover:bg-sky-500/20 active:bg-sky-500/30 transition-colors"
+                              className="px-4 py-2 rounded-full text-sm font-medium bg-accent border border-sky-500/30 text-sky-300 hover:bg-sky-500/20 active:bg-sky-500/30 transition-colors"
                               data-testid={`question-option-${question.id}-${idx}`}
                             >
                               {option}
@@ -443,8 +443,8 @@ export default function ExtractionPage() {
             <div className={`${activeTab === 'highlight' ? 'block' : 'hidden md:block'}`}>
               <Card className="glass-panel rounded-2xl">
                 <CardHeader className="px-4 pt-4 pb-2 md:px-6">
-                  <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
-                    <HighlighterCircle className="h-4 w-4 text-violet-400" weight="duotone" />
+                  <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+                    <HighlighterCircle className="h-4 w-4 text-primary" weight="duotone" />
                     Manual Highlight
                   </CardTitle>
                 </CardHeader>
@@ -463,24 +463,24 @@ export default function ExtractionPage() {
           <div className="hidden md:flex gap-3 pt-2 flex-wrap">
             <Dialog open={exportOpen} onOpenChange={setExportOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="rounded-full border-white/20 text-white/80 hover:bg-white/10 h-11" data-testid="button-export-calendar">
+                <Button variant="outline" className="rounded-full border-border text-foreground hover:bg-accent h-11" data-testid="button-export-calendar">
                   <CalendarBlank className="mr-2 h-4 w-4" weight="duotone" />
                   Export .ics
                 </Button>
               </DialogTrigger>
-              <DialogContent className="glass-panel sm:max-w-md rounded-3xl border-white/10">
+              <DialogContent className="glass-panel sm:max-w-md rounded-3xl border-border">
                 <DialogHeader>
-                  <DialogTitle className="text-white text-lg">Export to Calendar</DialogTitle>
+                  <DialogTitle className="text-foreground text-lg">Export to Calendar</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-6 mt-4">
-                  <p className="text-base text-white/60">
+                  <p className="text-base text-muted-foreground">
                     Export this meeting as an .ics file that you can import into any calendar app.
                   </p>
                   
-                  <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl gap-4">
+                  <div className="flex items-center justify-between p-4 bg-muted rounded-xl gap-4">
                     <div className="flex-1">
-                      <Label className="text-base text-white">Include action items as tasks</Label>
-                      <p className="text-sm text-white/50 mt-1">Action items with due dates will be added as separate calendar tasks</p>
+                      <Label className="text-base text-foreground">Include action items as tasks</Label>
+                      <p className="text-sm text-muted-foreground mt-1">Action items with due dates will be added as separate calendar tasks</p>
                     </div>
                     <Switch 
                       checked={includeActionItems} 
@@ -513,7 +513,7 @@ export default function ExtractionPage() {
               </Button>
             )}
             {hasDrafts ? (
-              <Button variant="outline" onClick={handleViewDrafts} className="rounded-full border-white/20 text-white/80 hover:bg-white/10 h-11" data-testid="button-view-drafts">
+              <Button variant="outline" onClick={handleViewDrafts} className="rounded-full border-border text-foreground hover:bg-accent h-11" data-testid="button-view-drafts">
                 <FileText className="mr-2 h-4 w-4" weight="duotone" />
                 View Drafts
               </Button>
@@ -536,27 +536,27 @@ export default function ExtractionPage() {
         </div>
       </div>
 
-      <div className="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-white/10 p-4 pb-safe z-50">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-border p-4 pb-safe z-50">
         <div className="flex items-center gap-3">
           <Dialog open={exportOpen} onOpenChange={setExportOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="h-12 px-4 rounded-xl border-white/20 text-white/80 hover:bg-white/10" data-testid="button-export-mobile">
+              <Button variant="outline" className="h-12 px-4 rounded-xl border-border text-foreground hover:bg-accent" data-testid="button-export-mobile">
                 <CalendarBlank className="h-5 w-5" weight="duotone" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="glass-panel sm:max-w-md rounded-t-3xl sm:rounded-3xl fixed bottom-0 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 left-0 right-0 sm:left-1/2 sm:-translate-x-1/2 max-h-[85vh] overflow-y-auto border-white/10">
+            <DialogContent className="glass-panel sm:max-w-md rounded-t-3xl sm:rounded-3xl fixed bottom-0 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 left-0 right-0 sm:left-1/2 sm:-translate-x-1/2 max-h-[85vh] overflow-y-auto border-border">
               <DialogHeader>
-                <DialogTitle className="text-white text-lg">Export to Calendar</DialogTitle>
+                <DialogTitle className="text-foreground text-lg">Export to Calendar</DialogTitle>
               </DialogHeader>
               <div className="space-y-6 mt-4">
-                <p className="text-base text-white/60">
+                <p className="text-base text-muted-foreground">
                   Export this meeting as an .ics file.
                 </p>
                 
-                <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl gap-4">
+                <div className="flex items-center justify-between p-4 bg-muted rounded-xl gap-4">
                   <div className="flex-1">
-                    <Label className="text-base text-white">Include action items</Label>
-                    <p className="text-sm text-white/50 mt-1">Add tasks with due dates</p>
+                    <Label className="text-base text-foreground">Include action items</Label>
+                    <p className="text-sm text-muted-foreground mt-1">Add tasks with due dates</p>
                   </div>
                   <Switch 
                     checked={includeActionItems} 

@@ -41,7 +41,7 @@ export default function ListPage() {
   const listId = params?.id;
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user, theme } = useStore();
+  const { user } = useStore();
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState("");
   const [newTaskText, setNewTaskText] = useState("");
@@ -148,8 +148,8 @@ export default function ListPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className={cn("h-10 rounded-lg animate-pulse", theme === "light" ? "bg-gray-100" : "bg-white/5")} />
-        <div className={cn("h-40 rounded-2xl animate-pulse", theme === "light" ? "bg-gray-100" : "bg-white/5")} />
+        <div className="h-10 rounded-lg animate-pulse bg-muted" />
+        <div className="h-40 rounded-2xl animate-pulse bg-muted" />
       </div>
     );
   }
@@ -157,8 +157,8 @@ export default function ListPage() {
   if (!list) {
     return (
       <div className="space-y-6 text-center py-12">
-        <ListBullets className={cn("h-12 w-12 mx-auto", theme === "light" ? "text-gray-400" : "text-white/30")} weight="duotone" />
-        <p className={cn("text-lg", theme === "light" ? "text-gray-600" : "text-white/60")}>List not found</p>
+        <ListBullets className="h-12 w-12 mx-auto text-muted-foreground" weight="duotone" />
+        <p className="text-lg text-muted-foreground">List not found</p>
       </div>
     );
   }
@@ -172,7 +172,7 @@ export default function ListPage() {
               <Input
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className={cn("text-2xl font-black h-12", theme === "light" ? "bg-white" : "bg-white/10")}
+                className="text-2xl font-black h-12 bg-card"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') updateListName.mutate(editName);
@@ -193,24 +193,21 @@ export default function ListPage() {
                 size="icon" 
                 variant="ghost" 
                 onClick={() => { setEditName(list.name); setIsEditingName(true); }}
-                className={cn("h-8 w-8", theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/10")}
+                className="h-8 w-8 hover:bg-accent"
               >
                 <PencilSimple className="h-4 w-4" />
               </Button>
             </div>
           )}
-          <p className={cn("text-sm mt-1", theme === "light" ? "text-gray-600" : "text-white/60")}>
+          <p className="text-sm mt-1 text-muted-foreground">
             {list.items?.length || 0} items in this list
           </p>
         </div>
       </div>
 
-      <div className={cn(
-        "rounded-2xl backdrop-blur-xl border p-6",
-        theme === "light" ? "bg-white/80 border-gray-200" : "bg-white/5 border-white/10"
-      )}>
+      <div className="rounded-2xl backdrop-blur-xl border p-6 bg-card border-border">
         <div className="flex items-center justify-between mb-4">
-          <h3 className={cn("text-sm font-semibold", theme === "light" ? "text-gray-900" : "text-white")}>
+          <h3 className="text-sm font-semibold text-foreground">
             Items in this list
           </h3>
           {!isAddingTask && (
@@ -232,7 +229,7 @@ export default function ListPage() {
               value={newTaskText}
               onChange={(e) => setNewTaskText(e.target.value)}
               placeholder="Enter task..."
-              className={cn("flex-1", theme === "light" ? "bg-white" : "bg-white/10")}
+              className="flex-1 bg-card"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && newTaskText.trim()) {
@@ -249,7 +246,7 @@ export default function ListPage() {
               size="icon" 
               onClick={() => newTaskText.trim() && addNewTask.mutate(newTaskText.trim())}
               disabled={!newTaskText.trim()}
-              className="bg-violet-600 hover:bg-violet-700"
+              className="bg-primary hover:bg-primary/90"
             >
               <Check className="h-4 w-4" />
             </Button>
@@ -264,12 +261,9 @@ export default function ListPage() {
         )}
         
         {(!list.items || list.items.length === 0) && !isAddingTask ? (
-          <div className={cn(
-            "text-center py-8 rounded-xl border border-dashed",
-            theme === "light" ? "border-gray-200" : "border-white/20"
-          )}>
-            <ListBullets className={cn("h-10 w-10 mx-auto mb-3", theme === "light" ? "text-gray-400" : "text-white/30")} weight="duotone" />
-            <p className={cn("text-sm mb-2", theme === "light" ? "text-gray-600" : "text-white/60")}>
+          <div className="text-center py-8 rounded-xl border border-dashed border-border">
+            <ListBullets className="h-10 w-10 mx-auto mb-3 text-muted-foreground" weight="duotone" />
+            <p className="text-sm mb-2 text-muted-foreground">
               This list is empty
             </p>
             <Button
@@ -291,13 +285,10 @@ export default function ListPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, x: -10 }}
-                  className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl transition-colors",
-                    theme === "light" ? "bg-gray-50 hover:bg-gray-100" : "bg-white/5 hover:bg-white/10"
-                  )}
+                  className="flex items-center gap-3 p-3 rounded-xl transition-colors bg-muted hover:bg-accent"
                 >
-                  <CheckCircle className={cn("h-5 w-5", theme === "light" ? "text-gray-400" : "text-white/40")} weight="duotone" />
-                  <span className={cn("flex-1", theme === "light" ? "text-gray-900" : "text-white")}>
+                  <CheckCircle className="h-5 w-5 text-muted-foreground" weight="duotone" />
+                  <span className="flex-1 text-foreground">
                     {item.reminder?.text || `Item ${item.id.slice(0, 8)}`}
                   </span>
                   <Button
@@ -315,16 +306,13 @@ export default function ListPage() {
         )}
       </div>
 
-      <div className={cn(
-        "rounded-2xl backdrop-blur-xl border p-6",
-        theme === "light" ? "bg-white/80 border-gray-200" : "bg-white/5 border-white/10"
-      )}>
-        <h3 className={cn("text-sm font-semibold mb-4", theme === "light" ? "text-gray-900" : "text-white")}>
+      <div className="rounded-2xl backdrop-blur-xl border p-6 bg-card border-border">
+        <h3 className="text-sm font-semibold mb-4 text-foreground">
           Add from Inbox
         </h3>
         
         {inboxItems.length === 0 ? (
-          <p className={cn("text-sm text-center py-4", theme === "light" ? "text-gray-500" : "text-white/40")}>
+          <p className="text-sm text-center py-4 text-muted-foreground">
             No items in your inbox
           </p>
         ) : (
@@ -332,14 +320,11 @@ export default function ListPage() {
             {inboxItems.filter((item: any) => !item.isCompleted).slice(0, 10).map((item: any) => (
               <div
                 key={item.id}
-                className={cn(
-                  "flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors",
-                  theme === "light" ? "bg-gray-50 hover:bg-violet-50" : "bg-white/5 hover:bg-violet-500/10"
-                )}
+                className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors bg-muted hover:bg-accent"
                 onClick={() => addItemToList.mutate(item.id)}
               >
-                <Plus className={cn("h-4 w-4", theme === "light" ? "text-violet-600" : "text-violet-400")} weight="bold" />
-                <span className={cn("flex-1 text-sm", theme === "light" ? "text-gray-900" : "text-white")}>
+                <Plus className="h-4 w-4 text-primary" weight="bold" />
+                <span className="flex-1 text-sm text-foreground">
                   {item.text}
                 </span>
                 {item.dueDate && (

@@ -16,7 +16,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authenticatedFetch } from "@/hooks/use-auth";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useStore } from "@/lib/store";
 import { SkeletonList } from "@/components/skeleton-loader";
 import { EmptyState } from "@/components/empty-state";
 
@@ -43,8 +42,8 @@ type NoteTag = {
 };
 
 const NOTE_COLORS = [
-  { value: "default", bg: "bg-white/5", border: "border-white/10" },
-  { value: "violet", bg: "bg-violet-500/10", border: "border-violet-500/30" },
+  { value: "default", bg: "bg-muted", border: "border-border" },
+  { value: "violet", bg: "bg-accent", border: "border-border" },
   { value: "blue", bg: "bg-blue-500/10", border: "border-blue-500/30" },
   { value: "green", bg: "bg-emerald-500/10", border: "border-emerald-500/30" },
   { value: "amber", bg: "bg-amber-500/10", border: "border-amber-500/30" },
@@ -54,7 +53,6 @@ const NOTE_COLORS = [
 export default function NotesPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { theme } = useStore();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [showEditor, setShowEditor] = useState(false);
@@ -264,43 +262,42 @@ export default function NotesPage() {
             "cursor-pointer transition-all rounded-2xl backdrop-blur-xl border p-4",
             "hover:shadow-lg hover:scale-[1.01]",
             colors.bg, colors.border,
-            note.isPinned && "ring-1 ring-violet-500/50",
-            theme === "light" ? "bg-white/80 border-gray-200/50" : ""
+            note.isPinned && "ring-1 ring-ring"
           )}
           onClick={() => setSelectedNote(note)}
         >
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                {note.isPinned && <PushPin className="h-3 w-3 text-violet-400 shrink-0" weight="fill" />}
-                <h3 className={cn("font-medium text-sm truncate", theme === "light" ? "text-gray-900" : "text-white")}>{note.title}</h3>
+                {note.isPinned && <PushPin className="h-3 w-3 text-primary shrink-0" weight="fill" />}
+                <h3 className="font-medium text-sm truncate text-foreground">{note.title}</h3>
               </div>
               {!compact && note.content && (
-                <p className={cn("text-xs line-clamp-2 mb-2", theme === "light" ? "text-gray-600" : "text-white/60")}>
+                <p className="text-xs line-clamp-2 mb-2 text-muted-foreground">
                   {note.content.replace(/<[^>]*>/g, '').slice(0, 150)}
                 </p>
               )}
               <div className="flex items-center gap-2 flex-wrap">
-                <span className={cn("text-xs", theme === "light" ? "text-gray-500" : "text-white/40")}>
+                <span className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true })}
                 </span>
                 {note.tags?.slice(0, 2).map(tag => (
-                  <Badge key={tag.id} variant="secondary" className={cn("text-xs py-0", theme === "light" ? "bg-violet-100 text-violet-700" : "bg-violet-500/20 text-violet-300")}>
+                  <Badge key={tag.id} variant="secondary" className="text-xs py-0 bg-accent text-primary">
                     {tag.name}
                   </Badge>
                 ))}
                 {(note.tags?.length || 0) > 2 && (
-                  <span className={cn("text-xs", theme === "light" ? "text-gray-500" : "text-white/40")}>+{note.tags!.length - 2}</span>
+                  <span className="text-xs text-muted-foreground">+{note.tags!.length - 2}</span>
                 )}
               </div>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className={cn("h-7 w-7 shrink-0", theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/10")}>
-                  <DotsThree className={cn("h-4 w-4", theme === "light" ? "text-gray-500" : "text-white/60")} />
+                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 hover:bg-accent">
+                  <DotsThree className="h-4 w-4 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className={cn("rounded-xl", theme === "light" ? "bg-white border-gray-200" : "bg-[#1a1a1a] border-white/10")}>
+              <DropdownMenuContent align="end" className="rounded-xl bg-card border-border">
                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openEditor(note); }} className="cursor-pointer">
                   <PencilSimple className="h-4 w-4 mr-2" /> Edit
                 </DropdownMenuItem>
@@ -327,11 +324,11 @@ export default function NotesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-gradient-light">Notes</h1>
-          <p className={cn("text-sm mt-1", theme === "light" ? "text-gray-600" : "text-white/60")}>Your personal notes and ideas</p>
+          <p className="text-sm mt-1 text-muted-foreground">Your personal notes and ideas</p>
         </div>
         <Button 
           onClick={() => openEditor()} 
-          className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white shadow-lg"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
           data-testid="button-new-note"
         >
           <Plus className="h-4 w-4 mr-2" /> New Note
@@ -340,19 +337,13 @@ export default function NotesPage() {
       
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="flex-1">
-          <div className={cn(
-            "relative mb-4 rounded-xl backdrop-blur-xl border",
-            theme === "light" ? "bg-white/80 border-gray-200" : "bg-white/5 border-white/10"
-          )}>
-            <MagnifyingGlass className={cn("absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4", theme === "light" ? "text-gray-400" : "text-white/40")} />
+          <div className="relative mb-4 rounded-xl backdrop-blur-xl border bg-card border-border">
+            <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder="Search notes..." 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className={cn(
-                "pl-10 border-0 bg-transparent h-12",
-                theme === "light" ? "text-gray-900 placeholder:text-gray-400" : "text-white placeholder:text-white/40"
-              )}
+              className="pl-10 border-0 bg-transparent h-12 text-foreground placeholder:text-muted-foreground"
               data-testid="input-search-notes"
             />
           </div>
@@ -379,11 +370,8 @@ export default function NotesPage() {
         </div>
         
         <div className="w-full lg:w-80 shrink-0 space-y-4">
-          <div className={cn(
-            "rounded-2xl backdrop-blur-xl border p-4",
-            theme === "light" ? "bg-white/80 border-gray-200" : "bg-white/5 border-white/10"
-          )}>
-            <h3 className={cn("text-sm font-semibold flex items-center gap-2 mb-3", theme === "light" ? "text-gray-900" : "text-white")}>
+          <div className="rounded-2xl backdrop-blur-xl border p-4 bg-card border-border">
+            <h3 className="text-sm font-semibold flex items-center gap-2 mb-3 text-foreground">
               <Tag className="h-4 w-4" weight="duotone" /> Tags
             </h3>
             <div className="flex flex-wrap gap-2 mb-3">
@@ -391,19 +379,14 @@ export default function NotesPage() {
                 <Badge 
                   key={tag.id} 
                   variant="secondary" 
-                  className={cn(
-                    "cursor-pointer transition-colors",
-                    theme === "light" 
-                      ? "bg-violet-100 text-violet-700 hover:bg-violet-200" 
-                      : "bg-violet-500/20 text-violet-300 hover:bg-violet-500/30"
-                  )}
+                  className="cursor-pointer transition-colors bg-accent text-primary hover:bg-accent/80"
                   onClick={() => setSearchQuery(tag.name)}
                 >
                   {tag.name}
                 </Badge>
               ))}
               {tags.length === 0 && (
-                <p className={cn("text-xs", theme === "light" ? "text-gray-500" : "text-white/40")}>No tags yet</p>
+                <p className="text-xs text-muted-foreground">No tags yet</p>
               )}
             </div>
             <div className="flex gap-2">
@@ -411,10 +394,7 @@ export default function NotesPage() {
                 placeholder="New tag..." 
                 value={newTagName}
                 onChange={e => setNewTagName(e.target.value)}
-                className={cn(
-                  "text-xs h-8 border-0",
-                  theme === "light" ? "bg-gray-100" : "bg-white/5"
-                )}
+                className="text-xs h-8 border-0 bg-muted"
                 data-testid="input-new-tag"
               />
               <Button 
@@ -422,7 +402,7 @@ export default function NotesPage() {
                 variant="secondary"
                 onClick={() => newTagName && createTag.mutate(newTagName)}
                 disabled={!newTagName}
-                className={cn(theme === "light" ? "bg-violet-100 hover:bg-violet-200 text-violet-700" : "bg-violet-500/20 hover:bg-violet-500/30")}
+                className="bg-accent hover:bg-accent/80 text-primary"
                 data-testid="button-create-tag"
               >
                 <Plus className="h-3 w-3" />
@@ -430,11 +410,8 @@ export default function NotesPage() {
             </div>
           </div>
           
-          <div className={cn(
-            "rounded-2xl backdrop-blur-xl border p-4",
-            theme === "light" ? "bg-white/80 border-gray-200" : "bg-white/5 border-white/10"
-          )}>
-            <h3 className={cn("text-sm font-semibold flex items-center gap-2 mb-3", theme === "light" ? "text-gray-900" : "text-white")}>
+          <div className="rounded-2xl backdrop-blur-xl border p-4 bg-card border-border">
+            <h3 className="text-sm font-semibold flex items-center gap-2 mb-3 text-foreground">
               <FileText className="h-4 w-4" weight="duotone" /> Recent Activity
             </h3>
             <ScrollArea className="h-64">
@@ -442,23 +419,20 @@ export default function NotesPage() {
                 {feedNotes.map(note => (
                   <div 
                     key={note.id}
-                    className={cn(
-                      "p-2 rounded-xl cursor-pointer transition-colors",
-                      theme === "light" ? "hover:bg-gray-100" : "hover:bg-white/5"
-                    )}
+                    className="p-2 rounded-xl cursor-pointer transition-colors hover:bg-accent"
                     onClick={() => setSelectedNote(note)}
                   >
                     <div className="flex items-center gap-2">
-                      <FileText className={cn("h-3 w-3", theme === "light" ? "text-violet-600" : "text-violet-400")} />
-                      <span className={cn("text-sm font-medium truncate", theme === "light" ? "text-gray-900" : "text-white")}>{note.title}</span>
+                      <FileText className="h-3 w-3 text-primary" />
+                      <span className="text-sm font-medium truncate text-foreground">{note.title}</span>
                     </div>
-                    <p className={cn("text-xs ml-5", theme === "light" ? "text-gray-500" : "text-white/40")}>
+                    <p className="text-xs ml-5 text-muted-foreground">
                       {formatDistanceToNow(new Date(note.createdAt), { addSuffix: true })}
                     </p>
                   </div>
                 ))}
                 {feedNotes.length === 0 && (
-                  <p className={cn("text-xs text-center py-4", theme === "light" ? "text-gray-500" : "text-white/40")}>No recent activity</p>
+                  <p className="text-xs text-center py-4 text-muted-foreground">No recent activity</p>
                 )}
               </div>
             </ScrollArea>
@@ -467,12 +441,9 @@ export default function NotesPage() {
       </div>
       
       <Dialog open={showEditor} onOpenChange={setShowEditor}>
-        <DialogContent className={cn(
-          "max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl",
-          theme === "light" ? "bg-white border-gray-200" : "bg-[#0f0f0f] border-white/10"
-        )}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-card border-border">
           <DialogHeader>
-            <DialogTitle className={theme === "light" ? "text-gray-900" : "text-white"}>
+            <DialogTitle className="text-foreground">
               {editingNote ? "Edit Note" : "New Note"}
             </DialogTitle>
           </DialogHeader>
@@ -482,10 +453,7 @@ export default function NotesPage() {
               placeholder="Title" 
               value={title}
               onChange={e => setTitle(e.target.value)}
-              className={cn(
-                "text-lg font-medium border-0 px-0",
-                theme === "light" ? "bg-transparent text-gray-900" : "bg-transparent text-white"
-              )}
+              className="text-lg font-medium border-0 px-0 bg-transparent text-foreground"
               data-testid="input-note-title"
             />
             
@@ -497,7 +465,7 @@ export default function NotesPage() {
             />
             
             <div>
-              <p className={cn("text-sm font-medium mb-2", theme === "light" ? "text-gray-700" : "text-white/80")}>Color</p>
+              <p className="text-sm font-medium mb-2 text-foreground">Color</p>
               <div className="flex gap-2">
                 {NOTE_COLORS.map(color => (
                   <button
@@ -506,7 +474,7 @@ export default function NotesPage() {
                     className={cn(
                       "w-8 h-8 rounded-full border-2 transition-all",
                       color.bg,
-                      selectedColor === color.value ? "border-violet-500 scale-110" : "border-transparent"
+                      selectedColor === color.value ? "border-primary scale-110" : "border-transparent"
                     )}
                     data-testid={`button-color-${color.value}`}
                   />
@@ -516,7 +484,7 @@ export default function NotesPage() {
             
             {tags.length > 0 && (
               <div>
-                <p className={cn("text-sm font-medium mb-2", theme === "light" ? "text-gray-700" : "text-white/80")}>Tags</p>
+                <p className="text-sm font-medium mb-2 text-foreground">Tags</p>
                 <div className="flex flex-wrap gap-2">
                   {tags.map(tag => (
                     <Badge
@@ -525,10 +493,8 @@ export default function NotesPage() {
                       className={cn(
                         "cursor-pointer transition-all",
                         selectedTagIds.includes(tag.id) 
-                          ? "bg-violet-600 text-white" 
-                          : theme === "light" 
-                            ? "bg-gray-100 text-gray-700 hover:bg-gray-200" 
-                            : "bg-white/10 text-white/70 hover:bg-white/20"
+                          ? "bg-primary text-primary-foreground" 
+                          : "bg-muted text-foreground hover:bg-accent"
                       )}
                       onClick={() => {
                         setSelectedTagIds(prev => 
@@ -547,13 +513,13 @@ export default function NotesPage() {
           </div>
           
           <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={resetEditor} className={theme === "light" ? "" : "border-white/10"}>
+            <Button variant="outline" onClick={resetEditor} className="border-border">
               Cancel
             </Button>
             <Button 
               onClick={handleSave} 
               disabled={createNote.isPending || updateNote.isPending}
-              className="bg-violet-600 hover:bg-violet-700"
+              className="bg-primary hover:bg-primary/90"
               data-testid="button-save-note"
             >
               {createNote.isPending || updateNote.isPending ? "Saving..." : "Save Note"}
@@ -563,16 +529,13 @@ export default function NotesPage() {
       </Dialog>
       
       <Dialog open={!!selectedNote} onOpenChange={() => setSelectedNote(null)}>
-        <DialogContent className={cn(
-          "max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl",
-          theme === "light" ? "bg-white border-gray-200" : "bg-[#0f0f0f] border-white/10"
-        )}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-card border-border">
           {selectedNote && (
             <>
               <DialogHeader>
                 <div className="flex items-center justify-between">
-                  <DialogTitle className={cn("flex items-center gap-2", theme === "light" ? "text-gray-900" : "text-white")}>
-                    {selectedNote.isPinned && <PushPin className="h-4 w-4 text-violet-400" weight="fill" />}
+                  <DialogTitle className="flex items-center gap-2 text-foreground">
+                    {selectedNote.isPinned && <PushPin className="h-4 w-4 text-primary" weight="fill" />}
                     {selectedNote.title}
                   </DialogTitle>
                   <div className="flex gap-2">
@@ -584,19 +547,19 @@ export default function NotesPage() {
                     </Button>
                   </div>
                 </div>
-                <p className={cn("text-xs", theme === "light" ? "text-gray-500" : "text-white/40")}>
+                <p className="text-xs text-muted-foreground">
                   Last updated {format(new Date(selectedNote.updatedAt), "PPp")}
                 </p>
               </DialogHeader>
               
-              <div className={cn("prose prose-sm max-w-none mt-4", theme === "light" ? "" : "prose-invert")}>
+              <div className="prose prose-sm max-w-none mt-4 text-foreground prose-headings:text-foreground prose-strong:text-foreground">
                 <div dangerouslySetInnerHTML={{ __html: selectedNote.content || "<p>No content</p>" }} />
               </div>
               
               {selectedNote.tags && selectedNote.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-white/10">
+                <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t border-border">
                   {selectedNote.tags.map(tag => (
-                    <Badge key={tag.id} variant="secondary" className={theme === "light" ? "bg-violet-100 text-violet-700" : "bg-violet-500/20 text-violet-300"}>
+                    <Badge key={tag.id} variant="secondary" className="bg-accent text-primary">
                       {tag.name}
                     </Badge>
                   ))}

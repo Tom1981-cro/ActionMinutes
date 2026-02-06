@@ -130,7 +130,7 @@ export default function TranscriptsPage() {
       case "positive": return "text-emerald-400 bg-emerald-500/20 border-emerald-500/30";
       case "negative": return "text-red-400 bg-red-500/20 border-red-500/30";
       case "mixed": return "text-amber-400 bg-amber-500/20 border-amber-500/30";
-      default: return "text-white/60 bg-white/10 border-white/20";
+      default: return "text-muted-foreground bg-accent border-border";
     }
   };
 
@@ -139,14 +139,14 @@ export default function TranscriptsPage() {
       case "urgent": return "bg-red-500/20 text-red-300 border-red-500/30";
       case "high": return "bg-orange-500/20 text-orange-300 border-orange-500/30";
       case "medium": return "bg-amber-500/20 text-amber-300 border-amber-500/30";
-      default: return "bg-white/10 text-white/60 border-white/20";
+      default: return "bg-accent text-muted-foreground border-border";
     }
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <SpinnerGap className="h-8 w-8 animate-spin text-violet-500" weight="bold" />
+        <SpinnerGap className="h-8 w-8 animate-spin text-primary" weight="bold" />
       </div>
     );
   }
@@ -155,28 +155,28 @@ export default function TranscriptsPage() {
     <div className="space-y-6 md:space-y-8">
       <div className="space-y-1">
         <h1 className="text-4xl font-black tracking-tight text-gradient-light">Transcripts</h1>
-        <p className="text-white/50 text-base">Audio transcriptions with AI-powered summaries.</p>
+        <p className="text-muted-foreground text-base">Audio transcriptions with AI-powered summaries.</p>
       </div>
 
       {transcripts.length === 0 ? (
-        <div className="py-12 text-center glass-panel rounded-2xl border-dashed border-white/20">
-          <div className="mx-auto h-16 w-16 bg-violet-500/20 rounded-2xl flex items-center justify-center mb-4">
-            <Waveform className="h-8 w-8 text-violet-400" weight="duotone" />
+        <div className="py-12 text-center glass-panel rounded-2xl border-dashed border-border">
+          <div className="mx-auto h-16 w-16 bg-accent rounded-2xl flex items-center justify-center mb-4">
+            <Waveform className="h-8 w-8 text-primary" weight="duotone" />
           </div>
-          <p className="text-white/70 text-base">No transcripts yet.</p>
-          <p className="text-white/40 text-sm mt-1">Record audio in the Capture page to create transcripts.</p>
+          <p className="text-foreground text-base">No transcripts yet.</p>
+          <p className="text-muted-foreground text-sm mt-1">Record audio in the Capture page to create transcripts.</p>
         </div>
       ) : (
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-white/80">Your Transcripts</h2>
+            <h2 className="text-lg font-semibold text-foreground">Your Transcripts</h2>
             {transcripts.map((transcript) => (
               <Card 
                 key={transcript.id}
                 className={cn(
                   "glass-panel cursor-pointer transition-all rounded-2xl",
                   selectedTranscript === transcript.id 
-                    ? "ring-2 ring-violet-500 shadow-lg shadow-violet-500/20" 
+                    ? "ring-2 ring-ring shadow-token" 
                     : "hover:translate-y-[-2px] hover:shadow-lg"
                 )}
                 onClick={() => setSelectedTranscript(transcript.id)}
@@ -184,14 +184,14 @@ export default function TranscriptsPage() {
               >
                 <CardHeader className="pb-2 px-4 pt-4">
                   <div className="flex justify-between items-start gap-2">
-                    <CardTitle className="text-lg text-white">
+                    <CardTitle className="text-lg text-foreground">
                       {transcript.title || "Untitled Recording"}
                     </CardTitle>
-                    <Badge variant="outline" className="shrink-0 bg-violet-500/20 text-violet-300 border-violet-500/30 rounded-full">
+                    <Badge variant="outline" className="shrink-0 bg-accent text-primary border-border rounded-full">
                       {transcript.provider || "audio"}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-white/50">
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <CalendarBlank className="h-4 w-4" />
                       {format(new Date(transcript.createdAt), "MMM d, yyyy")}
@@ -206,7 +206,7 @@ export default function TranscriptsPage() {
                 </CardHeader>
                 <CardContent className="pb-4 px-4">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-white/60 line-clamp-2 flex-1">
+                    <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
                       {transcript.text.slice(0, 150)}...
                     </p>
                     <Button
@@ -227,8 +227,8 @@ export default function TranscriptsPage() {
                     </Button>
                   </div>
                   {expandedTranscript === transcript.id && (
-                    <div className="mt-3 pt-3 border-t border-white/10">
-                      <p className="text-sm text-white/70 whitespace-pre-wrap max-h-48 overflow-y-auto">
+                    <div className="mt-3 pt-3 border-t border-border">
+                      <p className="text-sm text-foreground whitespace-pre-wrap max-h-48 overflow-y-auto">
                         {transcript.text}
                       </p>
                       {transcript.keywords && transcript.keywords.length > 0 && (
@@ -248,21 +248,21 @@ export default function TranscriptsPage() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-white/80">AI Summary</h2>
+            <h2 className="text-lg font-semibold text-foreground">AI Summary</h2>
             {!selectedTranscript ? (
               <div className="glass-panel rounded-2xl p-8 text-center">
-                <MagicWand className="h-12 w-12 text-violet-400/50 mx-auto mb-3" weight="duotone" />
-                <p className="text-white/50">Select a transcript to view or generate its AI summary.</p>
+                <MagicWand className="h-12 w-12 text-primary mx-auto mb-3" weight="duotone" />
+                <p className="text-muted-foreground">Select a transcript to view or generate its AI summary.</p>
               </div>
             ) : summaryLoading ? (
               <div className="glass-panel rounded-2xl p-8 text-center">
-                <SpinnerGap className="h-8 w-8 animate-spin text-violet-500 mx-auto" weight="bold" />
-                <p className="text-white/50 mt-3">Loading summary...</p>
+                <SpinnerGap className="h-8 w-8 animate-spin text-primary mx-auto" weight="bold" />
+                <p className="text-muted-foreground mt-3">Loading summary...</p>
               </div>
             ) : !summaryData?.summary ? (
               <div className="glass-panel rounded-2xl p-8 text-center">
-                <MagicWand className="h-12 w-12 text-violet-400/50 mx-auto mb-3" weight="duotone" />
-                <p className="text-white/60 mb-4">No summary generated yet.</p>
+                <MagicWand className="h-12 w-12 text-primary mx-auto mb-3" weight="duotone" />
+                <p className="text-muted-foreground mb-4">No summary generated yet.</p>
                 <Button
                   onClick={() => summarizeMutation.mutate(selectedTranscript)}
                   disabled={summarizeMutation.isPending}
@@ -284,16 +284,16 @@ export default function TranscriptsPage() {
               </div>
             ) : (
               <Tabs defaultValue="summary" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 bg-white/5 rounded-xl p-1" data-testid="summary-tabs">
-                  <TabsTrigger value="summary" className="rounded-lg data-[state=active]:bg-violet-500/20" data-testid="tab-summary">
+                <TabsList className="grid w-full grid-cols-3 bg-muted rounded-xl p-1" data-testid="summary-tabs">
+                  <TabsTrigger value="summary" className="rounded-lg data-[state=active]:bg-accent" data-testid="tab-summary">
                     <ChatTeardropDots className="mr-2 h-4 w-4" />
                     Summary
                   </TabsTrigger>
-                  <TabsTrigger value="tasks" className="rounded-lg data-[state=active]:bg-violet-500/20" data-testid="tab-tasks">
+                  <TabsTrigger value="tasks" className="rounded-lg data-[state=active]:bg-accent" data-testid="tab-tasks">
                     <ListChecks className="mr-2 h-4 w-4" />
                     Tasks
                   </TabsTrigger>
-                  <TabsTrigger value="insights" className="rounded-lg data-[state=active]:bg-violet-500/20" data-testid="tab-insights">
+                  <TabsTrigger value="insights" className="rounded-lg data-[state=active]:bg-accent" data-testid="tab-insights">
                     <Tag className="mr-2 h-4 w-4" />
                     Insights
                   </TabsTrigger>
@@ -310,17 +310,17 @@ export default function TranscriptsPage() {
                               {summaryData.summary.sentiment} ({(summaryData.summary.sentimentScore * 100).toFixed(0)}%)
                             </Badge>
                           </div>
-                          <p className="text-white/80 leading-relaxed" data-testid="text-summary">{summaryData.summary.summary}</p>
+                          <p className="text-foreground leading-relaxed" data-testid="text-summary">{summaryData.summary.summary}</p>
                         </div>
                       </div>
 
                       {summaryData.summary.decisions && summaryData.summary.decisions.length > 0 && (
-                        <div className="pt-4 border-t border-white/10">
-                          <h4 className="text-sm font-semibold text-white/70 mb-2">Key Decisions</h4>
+                        <div className="pt-4 border-t border-border">
+                          <h4 className="text-sm font-semibold text-foreground mb-2">Key Decisions</h4>
                           <ul className="space-y-2">
                             {summaryData.summary.decisions.map((decision: string, i: number) => (
-                              <li key={i} className="flex items-start gap-2 text-sm text-white/60">
-                                <ArrowRight className="h-4 w-4 text-violet-400 mt-0.5 shrink-0" />
+                              <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                <ArrowRight className="h-4 w-4 text-primary mt-0.5 shrink-0" />
                                 {decision}
                               </li>
                             ))}
@@ -353,14 +353,14 @@ export default function TranscriptsPage() {
                   <Card className="glass-panel rounded-2xl">
                     <CardContent className="p-5">
                       {(!summaryData.tasks || summaryData.tasks.length === 0) ? (
-                        <p className="text-white/50 text-center py-4">No action items extracted.</p>
+                        <p className="text-muted-foreground text-center py-4">No action items extracted.</p>
                       ) : (
                         <ul className="space-y-3">
                           {summaryData.tasks.map((task: TranscriptTask) => (
                             <li 
                               key={task.id} 
                               className={cn(
-                                "p-3 rounded-xl bg-white/5 border border-white/10",
+                                "p-3 rounded-xl bg-muted border border-border",
                                 task.status === "completed" && "opacity-60"
                               )}
                               data-testid={`task-item-${task.id}`}
@@ -379,7 +379,7 @@ export default function TranscriptsPage() {
                                 />
                                 <div className="flex-1 min-w-0">
                                   <p className={cn(
-                                    "text-sm text-white/80",
+                                    "text-sm text-foreground",
                                     task.status === "completed" && "line-through"
                                   )}>
                                     {task.text}
@@ -389,13 +389,13 @@ export default function TranscriptsPage() {
                                       {task.priority}
                                     </Badge>
                                     {task.assignee && (
-                                      <span className="flex items-center gap-1 text-xs text-white/50">
+                                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
                                         <User className="h-3 w-3" />
                                         {task.assignee}
                                       </span>
                                     )}
                                     {task.dueDate && (
-                                      <span className="flex items-center gap-1 text-xs text-white/50">
+                                      <span className="flex items-center gap-1 text-xs text-muted-foreground">
                                         <CalendarBlank className="h-3 w-3" />
                                         {format(new Date(task.dueDate), "MMM d")}
                                       </span>
@@ -433,13 +433,13 @@ export default function TranscriptsPage() {
                   <Card className="glass-panel rounded-2xl">
                     <CardContent className="p-5 space-y-4">
                       <div>
-                        <h4 className="text-sm font-semibold text-white/70 mb-3">Top Keywords</h4>
+                        <h4 className="text-sm font-semibold text-foreground mb-3">Top Keywords</h4>
                         <div className="flex flex-wrap gap-2">
                           {summaryData.summary.topKeywords?.map((keyword: string, i: number) => (
                             <Badge 
                               key={i} 
                               variant="outline" 
-                              className="rounded-full bg-violet-500/10 text-violet-300 border-violet-500/30"
+                              className="rounded-full bg-accent text-primary border-border"
                             >
                               <Tag className="mr-1 h-3 w-3" />
                               {keyword}
@@ -448,20 +448,20 @@ export default function TranscriptsPage() {
                         </div>
                       </div>
 
-                      <div className="pt-4 border-t border-white/10">
-                        <h4 className="text-sm font-semibold text-white/70 mb-3">Sentiment Analysis</h4>
+                      <div className="pt-4 border-t border-border">
+                        <h4 className="text-sm font-semibold text-foreground mb-3">Sentiment Analysis</h4>
                         <div className="flex items-center gap-4">
                           {getSentimentIcon(summaryData.summary.sentiment)}
                           <div className="flex-1">
                             <div className="flex justify-between text-sm mb-1">
-                              <span className="text-white/60">Overall Tone</span>
-                              <span className="text-white/80 capitalize">{summaryData.summary.sentiment}</span>
+                              <span className="text-muted-foreground">Overall Tone</span>
+                              <span className="text-foreground capitalize">{summaryData.summary.sentiment}</span>
                             </div>
                             <Progress 
                               value={(summaryData.summary.sentimentScore + 1) * 50} 
-                              className="h-2 bg-white/10"
+                              className="h-2 bg-muted"
                             />
-                            <div className="flex justify-between text-xs text-white/40 mt-1">
+                            <div className="flex justify-between text-xs text-muted-foreground mt-1">
                               <span>Negative</span>
                               <span>Neutral</span>
                               <span>Positive</span>
@@ -470,8 +470,8 @@ export default function TranscriptsPage() {
                         </div>
                       </div>
 
-                      <div className="pt-4 border-t border-white/10">
-                        <h4 className="text-sm font-semibold text-white/70 mb-2">Export Options</h4>
+                      <div className="pt-4 border-t border-border">
+                        <h4 className="text-sm font-semibold text-foreground mb-2">Export Options</h4>
                         <div className="flex gap-2">
                           <Button
                             variant="outline"

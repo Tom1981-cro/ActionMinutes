@@ -80,12 +80,12 @@ const PRIORITY_CONFIG = {
   urgent: { label: "Urgent", color: "bg-red-500/20 text-red-400 border-red-500/30", order: 0 },
   high: { label: "High", color: "bg-orange-500/20 text-orange-400 border-orange-500/30", order: 1 },
   medium: { label: "Medium", color: "bg-amber-500/20 text-amber-400 border-amber-500/30", order: 2 },
-  low: { label: "Low", color: "bg-slate-500/20 text-slate-400 border-slate-500/30", order: 3 },
+  low: { label: "Low", color: "bg-muted text-muted-foreground border-border", order: 3 },
 };
 
 const STATUS_CONFIG = {
-  todo: { label: "To Do", color: "bg-slate-500/20 text-slate-300" },
-  in_progress: { label: "In Progress", color: "bg-violet-500/20 text-violet-300" },
+  todo: { label: "To Do", color: "bg-muted text-muted-foreground" },
+  in_progress: { label: "In Progress", color: "bg-accent text-primary" },
   done: { label: "Done", color: "bg-emerald-500/20 text-emerald-300" },
 };
 
@@ -106,12 +106,12 @@ function formatDueDate(dateStr: string | null): string {
 }
 
 function getDueDateColor(dateStr: string | null): string {
-  if (!dateStr) return "text-white/40";
+  if (!dateStr) return "text-muted-foreground";
   const date = new Date(dateStr);
   if (isPast(date) && !isToday(date)) return "text-red-400";
   if (isToday(date)) return "text-amber-400";
   if (isTomorrow(date)) return "text-orange-400";
-  return "text-white/60";
+  return "text-muted-foreground";
 }
 
 export default function TasksPage() {
@@ -354,7 +354,7 @@ export default function TasksPage() {
   if (!user) {
     return (
       <div className="flex items-center justify-center h-[50vh]">
-        <SpinnerGap className="h-8 w-8 animate-spin text-violet-500" />
+        <SpinnerGap className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -363,12 +363,12 @@ export default function TasksPage() {
     <div className="container max-w-6xl mx-auto p-4 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Tasks</h1>
-          <p className="text-white/60 text-sm">Manage your tasks with natural language input</p>
+          <h1 className="text-2xl font-bold text-foreground">Tasks</h1>
+          <p className="text-muted-foreground text-sm">Manage your tasks with natural language input</p>
         </div>
         <div className="flex items-center gap-2">
           <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "list" | "kanban")}>
-            <TabsList className="bg-white/5">
+            <TabsList className="bg-accent">
               <TabsTrigger value="list" className="gap-1.5" data-testid="view-list">
                 <ListBullets className="h-4 w-4" />
                 List
@@ -382,7 +382,7 @@ export default function TasksPage() {
         </div>
       </div>
 
-      <Card className="bg-white/[0.03] border-white/10 backdrop-blur-sm">
+      <Card className="bg-accent border-border backdrop-blur-sm">
         <CardContent className="p-4">
           <div className="flex gap-3">
             <div className="flex-1 relative">
@@ -392,14 +392,14 @@ export default function TasksPage() {
                 onChange={(e) => setQuickAddInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Add a task... Try 'Call client tomorrow at 2pm !high' or 'Review docs every week'"
-                className="bg-white/5 border-white/10 h-11 pr-10"
+                className="bg-accent border-border h-11 pr-10"
                 data-testid="quick-add-input"
               />
               {isParsingTask && (
-                <SpinnerGap className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-violet-400" />
+                <SpinnerGap className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-primary" />
               )}
               {parsedTask && !isParsingTask && (
-                <MagicWand className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-violet-400" />
+                <MagicWand className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
               )}
             </div>
             <Button 
@@ -418,10 +418,10 @@ export default function TasksPage() {
           </div>
           
           {parsedTask && (
-            <div className="mt-3 p-3 bg-violet-500/10 border border-violet-500/20 rounded-lg space-y-2">
+            <div className="mt-3 p-3 bg-accent border border-border rounded-lg space-y-2">
               <div className="flex items-center gap-2 text-sm">
-                <MagicWand className="h-4 w-4 text-violet-400" />
-                <span className="text-violet-300 font-medium">AI Preview</span>
+                <MagicWand className="h-4 w-4 text-primary" />
+                <span className="text-primary font-medium">AI Preview</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {parsedTask.dueDate && (
@@ -455,7 +455,7 @@ export default function TasksPage() {
                   </Badge>
                 ))}
                 {parsedTask.projectSuggestions.slice(0, 1).map(ps => (
-                  <Badge key={ps.projectId} variant="outline" className="bg-violet-500/10 text-violet-300 border-violet-500/30 gap-1">
+                  <Badge key={ps.projectId} variant="outline" className="bg-accent text-primary border-border gap-1">
                     <FolderSimple className="h-3 w-3" />
                     {ps.name}
                   </Badge>
@@ -470,7 +470,7 @@ export default function TasksPage() {
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1.5 h-8 bg-white/5 border-white/10">
+              <Button variant="outline" size="sm" className="gap-1.5 h-8 bg-accent border-border">
                 <FunnelSimple className="h-4 w-4" />
                 Status: {filterStatus === "all" ? "All" : STATUS_CONFIG[filterStatus as keyof typeof STATUS_CONFIG]?.label}
                 <CaretDown className="h-3 w-3" />
@@ -489,7 +489,7 @@ export default function TasksPage() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1.5 h-8 bg-white/5 border-white/10">
+              <Button variant="outline" size="sm" className="gap-1.5 h-8 bg-accent border-border">
                 <FolderSimple className="h-4 w-4" />
                 Project: {filterProject === "all" ? "All" : getProjectById(filterProject)?.name || "None"}
                 <CaretDown className="h-3 w-3" />
@@ -510,7 +510,7 @@ export default function TasksPage() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5 h-8 bg-white/5 border-white/10">
+            <Button variant="outline" size="sm" className="gap-1.5 h-8 bg-accent border-border">
               <ArrowsDownUp className="h-4 w-4" />
               Sort: {sortBy === "dueDate" ? "Due Date" : sortBy === "priority" ? "Priority" : "Created"}
               <CaretDown className="h-3 w-3" />
@@ -526,21 +526,21 @@ export default function TasksPage() {
 
       {tasksLoading ? (
         <div className="flex items-center justify-center h-40">
-          <SpinnerGap className="h-8 w-8 animate-spin text-violet-500" />
+          <SpinnerGap className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : viewMode === "list" ? (
-        <Card className="bg-white/[0.03] border-white/10 backdrop-blur-sm">
+        <Card className="bg-accent border-border backdrop-blur-sm">
           <CardContent className="p-0">
             {sortedTasks.length === 0 ? (
               <div className="p-8 text-center">
-                <div className="w-16 h-16 rounded-full bg-violet-500/10 flex items-center justify-center mx-auto mb-4">
-                  <ListBullets className="h-8 w-8 text-violet-400" />
+                <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto mb-4">
+                  <ListBullets className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-medium text-white mb-1">No tasks yet</h3>
-                <p className="text-white/60 text-sm">Add your first task using natural language above</p>
+                <h3 className="text-lg font-medium text-foreground mb-1">No tasks yet</h3>
+                <p className="text-muted-foreground text-sm">Add your first task using natural language above</p>
               </div>
             ) : (
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-border">
                 {sortedTasks.map(task => (
                   <TaskRow
                     key={task.id}
@@ -559,18 +559,18 @@ export default function TasksPage() {
       ) : (
         <div className="grid grid-cols-3 gap-4">
           {Object.entries(tasksByStatus).map(([status, statusTasks]) => (
-            <Card key={status} className="bg-white/[0.03] border-white/10 backdrop-blur-sm">
+            <Card key={status} className="bg-accent border-border backdrop-blur-sm">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <Badge className={cn(STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.color)}>
                     {STATUS_CONFIG[status as keyof typeof STATUS_CONFIG]?.label}
                   </Badge>
-                  <span className="text-white/40 text-sm">{statusTasks.length}</span>
+                  <span className="text-muted-foreground text-sm">{statusTasks.length}</span>
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">
                 {statusTasks.length === 0 ? (
-                  <div className="p-4 text-center text-white/40 text-sm border-2 border-dashed border-white/10 rounded-lg">
+                  <div className="p-4 text-center text-muted-foreground text-sm border-2 border-dashed border-border rounded-lg">
                     No tasks
                   </div>
                 ) : (
@@ -592,7 +592,7 @@ export default function TasksPage() {
       )}
 
       <Dialog open={!!selectedTask} onOpenChange={(open) => !open && setSelectedTask(null)}>
-        <DialogContent className="max-w-md bg-slate-900 border-white/10">
+        <DialogContent className="max-w-md bg-card border-border">
           <DialogHeader>
             <DialogTitle>Edit Task</DialogTitle>
             <DialogDescription>Update task details</DialogDescription>
@@ -634,14 +634,14 @@ function TaskRow({
   return (
     <div 
       className={cn(
-        "flex items-center gap-3 p-3 hover:bg-white/[0.02] transition-colors group",
+        "flex items-center gap-3 p-3 hover:bg-accent transition-colors group",
         isDone && "opacity-50"
       )}
     >
       <button
         onClick={isDone ? undefined : onComplete}
         className={cn(
-          "flex-shrink-0 text-white/40 hover:text-violet-400 transition-colors",
+          "flex-shrink-0 text-muted-foreground hover:text-primary transition-colors",
           isDone && "cursor-default"
         )}
         data-testid={`task-checkbox-${task.id}`}
@@ -654,7 +654,7 @@ function TaskRow({
       </button>
       
       <div className="flex-1 min-w-0" onClick={onSelect}>
-        <div className={cn("text-sm font-medium cursor-pointer", isDone && "line-through text-white/40")}>
+        <div className={cn("text-sm font-medium cursor-pointer", isDone && "line-through text-muted-foreground")}>
           {task.title}
         </div>
         <div className="flex items-center gap-2 mt-1">
@@ -665,7 +665,7 @@ function TaskRow({
             </span>
           )}
           {project && (
-            <span className="text-xs flex items-center gap-1 text-white/50">
+            <span className="text-xs flex items-center gap-1 text-muted-foreground">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: project.color }} />
               {project.name}
             </span>
@@ -727,14 +727,14 @@ function TaskCard({
   
   return (
     <div className={cn(
-      "p-3 bg-white/[0.03] border border-white/10 rounded-lg space-y-2",
+      "p-3 bg-accent border border-border rounded-lg space-y-2",
       isDone && "opacity-50"
     )}>
       <div className="flex items-start gap-2">
         <button
           onClick={isDone ? undefined : onComplete}
           className={cn(
-            "flex-shrink-0 mt-0.5 text-white/40 hover:text-violet-400 transition-colors",
+            "flex-shrink-0 mt-0.5 text-muted-foreground hover:text-primary transition-colors",
             isDone && "cursor-default"
           )}
         >
@@ -744,7 +744,7 @@ function TaskCard({
             <Circle className="h-4 w-4" />
           )}
         </button>
-        <span className={cn("text-sm font-medium flex-1", isDone && "line-through text-white/40")}>
+        <span className={cn("text-sm font-medium flex-1", isDone && "line-through text-muted-foreground")}>
           {task.title}
         </span>
       </div>
@@ -756,7 +756,7 @@ function TaskCard({
           </Badge>
         )}
         {project && (
-          <Badge variant="outline" className="text-xs py-0.5 bg-white/5 border-white/10">
+          <Badge variant="outline" className="text-xs py-0.5 bg-accent border-border">
             <span className="w-1.5 h-1.5 rounded-full mr-1" style={{ backgroundColor: project.color }} />
             {project.name}
           </Badge>
@@ -810,37 +810,37 @@ function TaskEditForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm text-white/60 mb-1 block">Title</label>
+        <label className="text-sm text-muted-foreground mb-1 block">Title</label>
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="bg-white/5 border-white/10"
+          className="bg-accent border-border"
         />
       </div>
       
       <div>
-        <label className="text-sm text-white/60 mb-1 block">Description</label>
+        <label className="text-sm text-muted-foreground mb-1 block">Description</label>
         <Input
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="bg-white/5 border-white/10"
+          className="bg-accent border-border"
         />
       </div>
       
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-sm text-white/60 mb-1 block">Due Date</label>
+          <label className="text-sm text-muted-foreground mb-1 block">Due Date</label>
           <Input
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
-            className="bg-white/5 border-white/10"
+            className="bg-accent border-border"
           />
         </div>
         <div>
-          <label className="text-sm text-white/60 mb-1 block">Priority</label>
+          <label className="text-sm text-muted-foreground mb-1 block">Priority</label>
           <Select value={priority} onValueChange={setPriority}>
-            <SelectTrigger className="bg-white/5 border-white/10">
+            <SelectTrigger className="bg-accent border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -854,9 +854,9 @@ function TaskEditForm({
       
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-sm text-white/60 mb-1 block">Status</label>
+          <label className="text-sm text-muted-foreground mb-1 block">Status</label>
           <Select value={status} onValueChange={setStatus}>
-            <SelectTrigger className="bg-white/5 border-white/10">
+            <SelectTrigger className="bg-accent border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -867,9 +867,9 @@ function TaskEditForm({
           </Select>
         </div>
         <div>
-          <label className="text-sm text-white/60 mb-1 block">Project</label>
+          <label className="text-sm text-muted-foreground mb-1 block">Project</label>
           <Select value={projectId} onValueChange={setProjectId}>
-            <SelectTrigger className="bg-white/5 border-white/10">
+            <SelectTrigger className="bg-accent border-border">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -883,9 +883,9 @@ function TaskEditForm({
       </div>
       
       <div>
-        <label className="text-sm text-white/60 mb-1 block">Recurrence</label>
+        <label className="text-sm text-muted-foreground mb-1 block">Recurrence</label>
         <Select value={recurrence} onValueChange={setRecurrence}>
-          <SelectTrigger className="bg-white/5 border-white/10">
+          <SelectTrigger className="bg-accent border-border">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

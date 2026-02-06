@@ -22,7 +22,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { usePlan } from "@/hooks/use-plan";
 import { UsageBadge, UpgradePrompt } from "@/components/upgrade-prompt";
 
-// Hook to track virtual keyboard visibility and height
 function useVirtualKeyboard() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -37,7 +36,6 @@ function useVirtualKeyboard() {
       const viewportHeight = viewport.height;
       const heightDiff = windowHeight - viewportHeight;
       
-      // If height difference is significant, keyboard is likely open
       if (heightDiff > 100) {
         setKeyboardHeight(heightDiff);
         setIsKeyboardVisible(true);
@@ -94,7 +92,6 @@ export default function CapturePage() {
   const headerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // OCR state
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrProgress, setOcrProgress] = useState(0);
   const [ocrResult, setOcrResult] = useState<{ text: string; confidence?: number; warnings?: string[] } | null>(null);
@@ -103,7 +100,6 @@ export default function CapturePage() {
   const [insertMode, setInsertMode] = useState<"replace" | "append">("append");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Audio transcription state
   const [transcriptionLoading, setTranscriptionLoading] = useState(false);
   const [transcriptionProgress, setTranscriptionProgress] = useState(0);
   const [transcriptionResult, setTranscriptionResult] = useState<{ text: string; confidence?: number } | null>(null);
@@ -116,16 +112,13 @@ export default function CapturePage() {
   const { keyboardHeight, isKeyboardVisible } = useVirtualKeyboard();
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
 
-  // Action detection state
   const [showReviewActions, setShowReviewActions] = useState(false);
   const [selectedActions, setSelectedActions] = useState<Set<number>>(new Set());
   const [isAddingToReminders, setIsAddingToReminders] = useState(false);
   
-  // Detect actions in notes
   const detectedActions = useMemo(() => extractActionsFromText(notes), [notes]);
   const hasDetectedActions = detectedActions.length > 0;
 
-  // Auto-resize textarea
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -134,7 +127,6 @@ export default function CapturePage() {
     }
   }, [notes]);
 
-  // Sticky header on scroll
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -345,7 +337,6 @@ export default function CapturePage() {
     }
   };
 
-  // Audio transcription handlers
   const runTranscription = async (file: File) => {
     setTranscriptionLoading(true);
     setTranscriptionError(null);
@@ -445,12 +436,11 @@ export default function CapturePage() {
 
   return (
     <div ref={containerRef} className="flex flex-col h-[calc(100vh-4rem)] md:h-screen overflow-y-auto">
-      {/* Sticky Header */}
       <div 
         ref={headerRef}
         className={cn(
           "sticky top-0 z-40 transition-all duration-300 px-4 py-3",
-          isHeaderSticky ? "glass-panel border-b border-white/10" : "bg-transparent"
+          isHeaderSticky ? "glass-panel border-b border-border" : "bg-transparent"
         )}
       >
         <div className="max-w-3xl mx-auto">
@@ -468,12 +458,11 @@ export default function CapturePage() {
             <h1 className="text-2xl md:text-3xl font-black text-gradient-light">Capture</h1>
           </div>
 
-          {/* Compact Title & Date Row */}
           <div className="flex gap-3">
             <Input 
               value={title} 
               onChange={(e) => setTitle(e.target.value)} 
-              className="flex-1 bg-white/5 border-white/10 rounded-xl h-11 text-base px-4 text-white placeholder:text-white/40 light:placeholder:text-gray-400 focus:bg-white/10 focus:border-violet-500/50"
+              className="flex-1 bg-muted border-border rounded-xl h-11 text-base px-4 text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
               placeholder="Meeting title..."
               data-testid="input-title"
             />
@@ -481,26 +470,24 @@ export default function CapturePage() {
               type="date" 
               value={date} 
               onChange={(e) => setDate(e.target.value)} 
-              className="w-36 bg-white/5 border-white/10 rounded-xl h-11 text-base px-3 text-white focus:bg-white/10 focus:border-violet-500/50"
+              className="w-36 bg-muted border-border rounded-xl h-11 text-base px-3 text-foreground focus:bg-accent focus:border-ring"
               data-testid="input-date"
             />
           </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div className="flex-1 px-4 pb-32">
         <div className="max-w-3xl mx-auto space-y-4">
-          {/* Optional Details - Collapsible */}
           <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
             <CollapsibleTrigger asChild>
               <button 
-                className="flex items-center gap-2 text-xs text-white/50 hover:text-white/70 transition-colors"
+                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 data-testid="button-toggle-details"
               >
                 {detailsOpen ? <CaretUp className="h-3.5 w-3.5" weight="bold" /> : <CaretDown className="h-3.5 w-3.5" weight="bold" />}
                 {hasDetails ? (
-                  <span className="text-violet-400">Details added</span>
+                  <span className="text-primary">Details added</span>
                 ) : (
                   <span>Add attendees, time, location</span>
                 )}
@@ -509,7 +496,7 @@ export default function CapturePage() {
             <CollapsibleContent className="pt-3 space-y-3">
               <div className="glass-panel rounded-xl p-4 space-y-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-white/60 flex items-center gap-1.5">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <Users className="h-3.5 w-3.5" weight="duotone" />
                     Attendees (comma separated)
                   </Label>
@@ -517,13 +504,13 @@ export default function CapturePage() {
                     placeholder="Alice, Bob, Charlie..." 
                     value={attendees}
                     onChange={(e) => setAttendees(e.target.value)}
-                    className="bg-white/5 border-white/10 rounded-xl h-10 text-sm px-3 text-white placeholder:text-white/30 light:placeholder:text-gray-400 focus:bg-white/10"
+                    className="bg-muted border-border rounded-xl h-10 text-sm px-3 text-foreground placeholder:text-muted-foreground focus:bg-accent"
                     data-testid="input-attendees"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-white/60 flex items-center gap-1.5">
+                    <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5" weight="duotone" />
                       Time
                     </Label>
@@ -531,12 +518,12 @@ export default function CapturePage() {
                       type="time"
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
-                      className="bg-white/5 border-white/10 rounded-xl h-10 text-sm px-3 text-white focus:bg-white/10"
+                      className="bg-muted border-border rounded-xl h-10 text-sm px-3 text-foreground focus:bg-accent"
                       data-testid="input-time"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-white/60 flex items-center gap-1.5">
+                    <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                       <MapPin className="h-3.5 w-3.5" weight="duotone" />
                       Location
                     </Label>
@@ -544,7 +531,7 @@ export default function CapturePage() {
                       placeholder="Room / Link"
                       value={location}
                       onChange={(e) => setLocationValue(e.target.value)}
-                      className="bg-white/5 border-white/10 rounded-xl h-10 text-sm px-3 text-white placeholder:text-white/30 light:placeholder:text-gray-400 focus:bg-white/10"
+                      className="bg-muted border-border rounded-xl h-10 text-sm px-3 text-foreground placeholder:text-muted-foreground focus:bg-accent"
                       data-testid="input-location"
                     />
                   </div>
@@ -553,7 +540,6 @@ export default function CapturePage() {
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Hidden file inputs */}
           <input
             ref={fileInputRef}
             type="file"
@@ -571,23 +557,22 @@ export default function CapturePage() {
             data-testid="input-audio-file"
           />
 
-          {/* Compact Import Toolbar - becomes fixed when keyboard visible */}
           <div 
             className={cn(
               "flex items-center gap-2 transition-all duration-200",
               isKeyboardVisible && isTextareaFocused 
-                ? "fixed left-0 right-0 z-50 px-4 py-2 glass-panel border-t border-white/10" 
+                ? "fixed left-0 right-0 z-50 px-4 py-2 glass-panel border-t border-border" 
                 : ""
             )}
             style={isKeyboardVisible && isTextareaFocused ? { bottom: keyboardHeight } : {}}
           >
-            <span className="text-xs text-white/50">Import:</span>
+            <span className="text-xs text-muted-foreground">Import:</span>
 
             {isCapacitorAvailable && (
               <button
                 onClick={handleTakePhoto}
                 disabled={isLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white/60 border border-white/10 hover:border-violet-500/30 hover:text-violet-300 hover:bg-violet-500/10 transition-all disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground border border-border hover:border-primary hover:text-primary hover:bg-accent transition-all disabled:opacity-50"
                 data-testid="button-take-photo"
                 title="Take photo of handwritten notes"
               >
@@ -599,7 +584,7 @@ export default function CapturePage() {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white/60 border border-white/10 hover:border-violet-500/30 hover:text-violet-300 hover:bg-violet-500/10 transition-all disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground border border-border hover:border-primary hover:text-primary hover:bg-accent transition-all disabled:opacity-50"
               data-testid="button-upload-photo"
               title="Upload photo of handwritten notes"
             >
@@ -610,7 +595,7 @@ export default function CapturePage() {
             <button
               onClick={() => audioInputRef.current?.click()}
               disabled={isLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white/60 border border-white/10 hover:border-fuchsia-500/30 hover:text-fuchsia-300 hover:bg-fuchsia-500/10 transition-all disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground border border-border hover:border-primary hover:text-primary hover:bg-accent transition-all disabled:opacity-50"
               data-testid="button-upload-audio"
               title="Upload audio recording"
             >
@@ -619,19 +604,17 @@ export default function CapturePage() {
             </button>
 
             {isLoading && (
-              <div className="flex items-center gap-2 text-xs text-violet-400">
+              <div className="flex items-center gap-2 text-xs text-primary">
                 <ArrowsClockwise className="h-4 w-4 animate-spin" weight="bold" />
                 <span>{ocrLoading ? 'Reading...' : 'Transcribing...'}</span>
               </div>
             )}
           </div>
 
-          {/* Progress Bar */}
           {(ocrLoading || transcriptionLoading) && (
             <Progress value={ocrLoading ? ocrProgress : transcriptionProgress} className="h-1" />
           )}
 
-          {/* Error Messages */}
           {(ocrError || transcriptionError) && (
             <div className="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-sm text-red-400">
               <WarningCircle className="h-4 w-4 shrink-0 mt-0.5" weight="duotone" />
@@ -647,9 +630,7 @@ export default function CapturePage() {
             </div>
           )}
 
-          {/* Main Notes Textarea - Expanding with Action Highlighting */}
           <div className="relative">
-            {/* Background highlight layer for detected actions */}
             <div 
               className="absolute inset-0 p-4 pointer-events-none overflow-hidden rounded-2xl"
               style={{ lineHeight: '1.75' }}
@@ -684,7 +665,7 @@ export default function CapturePage() {
 • Who is responsible for what?
 
 Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
-              className="w-full min-h-[300px] p-4 bg-white/5 border border-white/10 rounded-2xl text-base text-white placeholder:text-white/30 resize-none focus:outline-none focus:border-violet-500/50 focus:bg-white/8 transition-all relative"
+              className="w-full min-h-[300px] p-4 bg-muted border border-border rounded-2xl text-base text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:border-ring focus:bg-accent transition-all relative"
               style={{ lineHeight: '1.75', background: 'transparent' }}
               data-testid="input-notes"
               onFocus={() => setIsTextareaFocused(true)}
@@ -692,7 +673,6 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
             />
           </div>
 
-          {/* Review Actions Button - appears when actions are detected */}
           {hasDetectedActions && (
             <button
               onClick={() => {
@@ -709,9 +689,8 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
         </div>
       </div>
 
-      {/* Fixed Bottom Action Bar */}
       <div 
-        className="fixed bottom-16 md:bottom-0 left-0 right-0 z-40 glass-panel border-t border-white/10 px-4 py-3"
+        className="fixed bottom-16 md:bottom-0 left-0 right-0 z-40 glass-panel border-t border-border px-4 py-3"
         style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 12px)' }}
       >
         <div className="max-w-3xl mx-auto flex gap-3">
@@ -742,23 +721,22 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
         </div>
       </div>
 
-      {/* OCR Preview Dialog */}
       <Dialog open={showOcrPreview} onOpenChange={setShowOcrPreview}>
-        <DialogContent className="glass-panel border-white/20 text-white max-w-lg">
+        <DialogContent className="glass-panel border-border text-foreground max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-white">Extracted Text</DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogTitle className="text-foreground">Extracted Text</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Review the text extracted from your handwritten notes
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="max-h-64 overflow-y-auto p-3 bg-white/5 rounded-xl border border-white/10 text-sm text-white/80 whitespace-pre-wrap">
+            <div className="max-h-64 overflow-y-auto p-3 bg-muted rounded-xl border border-border text-sm text-foreground whitespace-pre-wrap">
               {ocrResult?.text}
             </div>
             
             {ocrResult?.confidence && (
-              <p className="text-xs text-white/50">
+              <p className="text-xs text-muted-foreground">
                 Confidence: {Math.round(ocrResult.confidence)}%
               </p>
             )}
@@ -769,8 +747,8 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                 className={cn(
                   "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all",
                   insertMode === "append" 
-                    ? "bg-violet-500/20 text-violet-300 border border-violet-500/30" 
-                    : "text-white/50 border border-white/10"
+                    ? "bg-accent text-primary border border-primary" 
+                    : "text-muted-foreground border border-border"
                 )}
               >
                 Append to notes
@@ -780,8 +758,8 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                 className={cn(
                   "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all",
                   insertMode === "replace" 
-                    ? "bg-violet-500/20 text-violet-300 border border-violet-500/30" 
-                    : "text-white/50 border border-white/10"
+                    ? "bg-accent text-primary border border-primary" 
+                    : "text-muted-foreground border border-border"
                 )}
               >
                 Replace notes
@@ -806,18 +784,17 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
         </DialogContent>
       </Dialog>
 
-      {/* Transcription Preview Dialog */}
       <Dialog open={showTranscriptionPreview} onOpenChange={setShowTranscriptionPreview}>
-        <DialogContent className="glass-panel border-white/20 text-white max-w-lg">
+        <DialogContent className="glass-panel border-border text-foreground max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-white">Transcribed Audio</DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogTitle className="text-foreground">Transcribed Audio</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Review the transcription from your audio recording
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="max-h-64 overflow-y-auto p-3 bg-white/5 rounded-xl border border-white/10 text-sm text-white/80 whitespace-pre-wrap">
+            <div className="max-h-64 overflow-y-auto p-3 bg-muted rounded-xl border border-border text-sm text-foreground whitespace-pre-wrap">
               {transcriptionResult?.text}
             </div>
 
@@ -827,8 +804,8 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                 className={cn(
                   "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all",
                   transcriptionInsertMode === "append" 
-                    ? "bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30" 
-                    : "text-white/50 border border-white/10"
+                    ? "bg-accent text-primary border border-primary" 
+                    : "text-muted-foreground border border-border"
                 )}
               >
                 Append to notes
@@ -838,8 +815,8 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                 className={cn(
                   "flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all",
                   transcriptionInsertMode === "replace" 
-                    ? "bg-fuchsia-500/20 text-fuchsia-300 border border-fuchsia-500/30" 
-                    : "text-white/50 border border-white/10"
+                    ? "bg-accent text-primary border border-primary" 
+                    : "text-muted-foreground border border-border"
                 )}
               >
                 Replace notes
@@ -864,15 +841,14 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
         </DialogContent>
       </Dialog>
 
-      {/* Review Actions Dialog */}
       <Dialog open={showReviewActions} onOpenChange={setShowReviewActions}>
-        <DialogContent className="glass-panel border-white/20 text-white max-w-lg">
+        <DialogContent className="glass-panel border-border text-foreground max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-white flex items-center gap-2">
+            <DialogTitle className="text-foreground flex items-center gap-2">
               <ListChecks className="h-5 w-5 text-amber-400" weight="duotone" />
               Review Detected Actions
             </DialogTitle>
-            <DialogDescription className="text-white/60">
+            <DialogDescription className="text-muted-foreground">
               Select the actions you want to add to your Reminders list
             </DialogDescription>
           </DialogHeader>
@@ -886,7 +862,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                     "flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer",
                     selectedActions.has(index)
                       ? "bg-amber-500/20 border-amber-500/30"
-                      : "bg-white/5 border-white/10 hover:bg-white/10"
+                      : "bg-muted border-border hover:bg-accent"
                   )}
                   onClick={() => {
                     const newSelected = new Set(selectedActions);
@@ -915,31 +891,31 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                     <div className="flex items-center gap-2 mb-1">
                       <span className={cn(
                         "text-xs px-2 py-0.5 rounded-full font-medium",
-                        action.keyword === 'Action' && "bg-violet-500/20 text-violet-300",
+                        action.keyword === 'Action' && "bg-accent text-primary",
                         action.keyword === 'TODO' && "bg-sky-500/20 text-sky-300",
                         action.keyword === 'Task' && "bg-emerald-500/20 text-emerald-300"
                       )}>
                         {action.keyword}
                       </span>
-                      <span className="text-xs text-white/40">Line {action.lineNumber}</span>
+                      <span className="text-xs text-muted-foreground">Line {action.lineNumber}</span>
                     </div>
-                    <p className="text-sm text-white/80">{action.text}</p>
+                    <p className="text-sm text-foreground">{action.text}</p>
                   </div>
                 </div>
               ))}
             </div>
             
-            <div className="flex items-center justify-between text-xs text-white/50">
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
               <button
                 onClick={() => setSelectedActions(new Set(detectedActions.map((_, i) => i)))}
-                className="hover:text-white/70 transition-colors"
+                className="hover:text-foreground transition-colors"
               >
                 Select all
               </button>
               <span>{selectedActions.size} of {detectedActions.length} selected</span>
               <button
                 onClick={() => setSelectedActions(new Set())}
-                className="hover:text-white/70 transition-colors"
+                className="hover:text-foreground transition-colors"
               >
                 Clear all
               </button>
@@ -962,7 +938,6 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                   
                   setIsAddingToReminders(true);
                   
-                  // Mock functionality - in real implementation, this would call the API
                   try {
                     const actionsToAdd = detectedActions.filter((_, i) => selectedActions.has(i));
                     
