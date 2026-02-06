@@ -162,12 +162,14 @@ The UI/UX is designed as a personal productivity assistant with a streamlined si
 - **5 Themes**: Aurora (violet glassmorphism, default), Studio Paper (warm editorial), Monochrome Grid (enterprise), Warm Clay (earth tones), Terminal Luxe (graphite + neon)
 - **Light/Dark Modes**: Each theme supports both light and dark modes (10 total configurations)
 - **Architecture** (`client/src/theme/`):
-  - `theme-types.ts`: Theme definitions, IDs, preview colors, descriptions
-  - `useTheme.ts`: React hook for theme/mode state with localStorage persistence (keys: `am.theme`, `am.mode`)
-  - `ThemeProvider.tsx`: Context provider wrapping app root, handles DOM updates via `useLayoutEffect`
-  - `themes.css`: CSS custom properties for all theme+mode combinations using `[data-theme="X"]` selectors
+  - `theme-types.ts`: Theme definitions, IDs, preview colors, descriptions, bestFor field
+  - `theme.ts`: Single theme manager with `initTheme()` and `applyTheme()` functions. Called before React render in main.tsx.
+  - `useTheme.ts`: Zustand store for theme/mode state with localStorage persistence (keys: `am.theme`, `am.mode`). Uses shared `applyTheme()` from theme.ts.
+  - `ThemeProvider.tsx`: Context provider wrapping app root, handles DOM updates via `useLayoutEffect` using shared `applyTheme()`.
+  - `themes.css`: CSS custom properties for all theme+mode combinations using `html[data-theme="X"]` selectors. Includes shadow tokens, Aurora/Terminal gradient backgrounds.
+  - `demo-utilities.css`: Utility classes matching Theme Gallery demo — `.shadow-token`, `.shadow-token-2`, `.navItem`, `.navItemActive`, `.meta`, `.ring-token`, `.card-token`, `.pill-secondary`, `.pill-accent`, `.section-label`.
   - `ThemePreview.tsx`: Live preview component showing buttons, badges, inputs, and text colors
-- **DOM Convention**: `data-theme="aurora|paper|grid|clay|terminal"` attribute + `.light` class on `<html>` element
+- **DOM Convention**: `data-theme="aurora|paper|grid|clay|terminal"` attribute + `.light` class on `<html>` element. Dark mode also adds `.dark` class.
 - **Settings UI**: Appearance section in Settings page with theme cards, mode toggle, reset button, and live preview
-- **Integration**: Body background uses `var(--theme-body-bg)` CSS variable; old Zustand theme toggle replaced by `useTheme` hook
-- **Token System**: HSL-based shadcn/ui tokens (space-separated format) converted to hsl() in themes.css. All utilities use semantic variables (--primary, --foreground, --border, etc.). Shadow tokens (--shadow-1, --shadow-2) shared across themes. Legacy palette definitions kept in @theme inline block for Tailwind compatibility only.
+- **Integration**: Body background uses theme-specific CSS in themes.css (Aurora/Terminal have radial gradient backgrounds). Single `initTheme()` call in main.tsx before React render ensures no flash of unstyled content.
+- **Token System**: HSL-based shadcn/ui tokens (space-separated format) converted to hsl() in themes.css. ALL components use semantic variables exclusively (--primary, --foreground, --border, --card, --muted, --accent, etc.). Zero hardcoded text-white/text-gray/bg-slate classes in components. Shadow tokens (--shadow-1, --shadow-2) shared across themes. Legacy palette definitions kept in @theme inline block for Tailwind compatibility only. Sidebar uses `.navItem`/`.navItemActive` CSS classes from demo-utilities.css.

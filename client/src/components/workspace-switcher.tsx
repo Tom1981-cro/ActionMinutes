@@ -34,30 +34,30 @@ export function WorkspaceSwitcher() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="flex items-center gap-2 text-left h-auto py-2 px-3 rounded-xl hover:bg-violet-500/20 hover:border-violet-500/30 border border-transparent transition-all" data-testid="button-workspace-switcher">
+        <Button variant="ghost" className="flex items-center gap-2 text-left h-auto py-2 px-3 rounded-xl hover:bg-accent hover:border-border border border-transparent transition-all" data-testid="button-workspace-switcher">
           <div className="flex items-center gap-2">
             {currentWorkspaceId ? (
-              <Users className="h-4 w-4 text-indigo-500" />
+              <Users className="h-4 w-4 text-primary" />
             ) : (
-              <User className="h-4 w-4 text-slate-500" />
+              <User className="h-4 w-4 text-muted-foreground" />
             )}
-            <span className="text-sm font-medium text-slate-700">
+            <span className="text-sm font-medium text-foreground">
               {currentWorkspace ? (
-                <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">
+                <span className="text-primary font-black px-1 rounded">
                   {currentWorkspace.name}
                 </span>
               ) : (user.enablePersonal ? (
-                <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Personal</span>
+                <span className="text-primary font-black px-1 rounded">Personal</span>
               ) : "Select workspace")}
             </span>
           </div>
-          <ChevronDown className="h-4 w-4 text-gray-400" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md rounded-3xl">
         <DialogHeader>
-          <DialogTitle className="text-slate-800">
-            Switch <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Workspace</span>
+          <DialogTitle className="text-foreground">
+            Switch <span className="text-primary font-black px-1 rounded">Workspace</span>
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-2 mt-4">
@@ -65,20 +65,20 @@ export function WorkspaceSwitcher() {
             <button
               onClick={() => handleSelect(null)}
               className={`w-full flex items-center justify-between p-3 rounded-xl transition-colors ${
-                !currentWorkspaceId ? 'bg-indigo-50 border-2 border-indigo-200' : 'hover:bg-gray-50 border-2 border-transparent'
+                !currentWorkspaceId ? 'bg-accent border-2 border-primary' : 'hover:bg-accent border-2 border-transparent'
               }`}
               data-testid="button-workspace-personal"
             >
               <div className="flex items-center gap-3">
-                <User className="h-5 w-5 text-slate-500" />
+                <User className="h-5 w-5 text-muted-foreground" />
                 <div className="text-left">
-                  <p className="font-medium text-slate-700">
-                    <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Personal</span>
+                  <p className="font-medium text-foreground">
+                    <span className="text-primary font-black px-1 rounded">Personal</span>
                   </p>
-                  <p className="text-xs text-gray-500">Your private meetings</p>
+                  <p className="text-xs text-muted-foreground">Your private meetings</p>
                 </div>
               </div>
-              {!currentWorkspaceId && <Check className="h-5 w-5 text-indigo-500" />}
+              {!currentWorkspaceId && <Check className="h-5 w-5 text-primary" />}
             </button>
           )}
 
@@ -87,53 +87,53 @@ export function WorkspaceSwitcher() {
               key={workspace.id}
               onClick={() => handleSelect(workspace.id)}
               className={`w-full flex items-center justify-between p-3 rounded-xl transition-colors ${
-                currentWorkspaceId === workspace.id ? 'bg-indigo-50 border-2 border-indigo-200' : 'hover:bg-gray-50 border-2 border-transparent'
+                currentWorkspaceId === workspace.id ? 'bg-accent border-2 border-primary' : 'hover:bg-accent border-2 border-transparent'
               }`}
               data-testid={`button-workspace-${workspace.id}`}
             >
               <div className="flex items-center gap-3">
-                <Users className="h-5 w-5 text-indigo-500" />
+                <Users className="h-5 w-5 text-primary" />
                 <div className="text-left">
-                  <p className="font-medium text-slate-700">
-                    <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">{workspace.name}</span>
+                  <p className="font-medium text-foreground">
+                    <span className="text-primary font-black px-1 rounded">{workspace.name}</span>
                   </p>
-                  <p className="text-xs text-gray-500">Team workspace</p>
+                  <p className="text-xs text-muted-foreground">Team workspace</p>
                 </div>
               </div>
-              {currentWorkspaceId === workspace.id && <Check className="h-5 w-5 text-indigo-500" />}
+              {currentWorkspaceId === workspace.id && <Check className="h-5 w-5 text-primary" />}
             </button>
           ))}
 
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
-              <button className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 border-2 border-dashed border-gray-200 text-gray-500" data-testid="button-create-workspace">
+              <button className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent border-2 border-dashed border-border text-muted-foreground" data-testid="button-create-workspace">
                 <Plus className="h-5 w-5" />
-                <span className="font-medium">Create <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Workspace</span></span>
+                <span className="font-medium">Create <span className="text-primary font-black px-1 rounded">Workspace</span></span>
               </button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md rounded-3xl">
             <DialogHeader>
-              <DialogTitle className="text-slate-800">
-                Create <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Workspace</span>
+              <DialogTitle className="text-foreground">
+                Create <span className="text-primary font-black px-1 rounded">Workspace</span>
               </DialogTitle>
             </DialogHeader>
               <div className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-700">
-                    <span className="text-gradient font-black shadow-glow-violet-sm px-1 rounded">Workspace</span> Name
+                  <Label className="text-foreground">
+                    <span className="text-primary font-black px-1 rounded">Workspace</span> Name
                   </Label>
                   <Input
                     placeholder="e.g., Engineering Team"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="rounded-xl border-gray-200"
+                    className="rounded-xl border-border"
                     data-testid="input-workspace-name"
                   />
                 </div>
                 <Button 
                   onClick={handleCreate} 
                   disabled={!newName.trim() || createWorkspace.isPending}
-                  className="w-full rounded-xl bg-indigo-500 hover:bg-indigo-600 btn-gradient"
+                  className="w-full rounded-xl bg-primary hover:bg-primary/90 btn-gradient"
                   data-testid="button-confirm-create-workspace"
                 >
                   {createWorkspace.isPending ? "Creating..." : (

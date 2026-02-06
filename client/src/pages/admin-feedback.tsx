@@ -61,7 +61,7 @@ const typeColors: Record<string, string> = {
   bug: "text-red-500 bg-red-50",
   feature: "text-amber-500 bg-amber-50",
   ux: "text-purple-500 bg-purple-50",
-  other: "text-stone-500 bg-stone-100",
+  other: "text-muted-foreground bg-muted",
 };
 
 const statusColors: Record<string, string> = {
@@ -123,7 +123,7 @@ export default function AdminFeedbackPage() {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50/50 p-4 md:p-8">
+    <div className="min-h-screen bg-muted p-4 md:p-8">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center gap-3">
           <Link href="/settings">
@@ -132,25 +132,25 @@ export default function AdminFeedbackPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-800">Feedback</h1>
-            <p className="text-stone-500">User feedback submissions</p>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Feedback</h1>
+            <p className="text-muted-foreground">User feedback submissions</p>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Search feedback..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-11 rounded-xl border-stone-200"
+              className="pl-10 h-11 rounded-xl border-border"
               data-testid="input-search-feedback"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[160px] h-11 rounded-xl border-stone-200" data-testid="select-status-filter">
+            <SelectTrigger className="w-full sm:w-[160px] h-11 rounded-xl border-border" data-testid="select-status-filter">
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -163,20 +163,20 @@ export default function AdminFeedbackPage() {
         </div>
 
         {error ? (
-          <Card className="bg-white border-stone-200 rounded-2xl">
+          <Card className="bg-card border-border rounded-2xl">
             <CardContent className="py-12 text-center">
               <ShieldAlert className="h-12 w-12 text-red-400 mx-auto mb-4" />
-              <p className="text-slate-700 font-medium mb-1">Access Denied</p>
-              <p className="text-stone-500 text-sm">{(error as Error).message}</p>
+              <p className="text-foreground font-medium mb-1">Access Denied</p>
+              <p className="text-muted-foreground text-sm">{(error as Error).message}</p>
             </CardContent>
           </Card>
         ) : isLoading ? (
-          <div className="text-center py-12 text-stone-500">Loading...</div>
+          <div className="text-center py-12 text-muted-foreground">Loading...</div>
         ) : feedbackList.length === 0 ? (
-          <Card className="bg-white border-stone-200 rounded-2xl">
+          <Card className="bg-card border-border rounded-2xl">
             <CardContent className="py-12 text-center">
-              <HelpCircle className="h-12 w-12 text-stone-300 mx-auto mb-4" />
-              <p className="text-stone-500">No feedback found</p>
+              <HelpCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No feedback found</p>
             </CardContent>
           </Card>
         ) : (
@@ -186,7 +186,7 @@ export default function AdminFeedbackPage() {
               return (
                 <Card 
                   key={fb.id} 
-                  className="bg-white border-stone-200 rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
+                  className="bg-card border-border rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
                   onClick={() => setSelectedFeedback(fb)}
                   data-testid={`card-feedback-${fb.id}`}
                 >
@@ -196,13 +196,13 @@ export default function AdminFeedbackPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className="font-medium text-slate-800 capitalize">{fb.type}</span>
+                        <span className="font-medium text-foreground capitalize">{fb.type}</span>
                         <Badge className={cn("text-xs", statusColors[fb.status])}>
                           {fb.status === "in_progress" ? "In Progress" : fb.status.charAt(0).toUpperCase() + fb.status.slice(1)}
                         </Badge>
                       </div>
-                      <p className="text-stone-600 text-sm line-clamp-2">{fb.message}</p>
-                      <div className="flex items-center gap-3 mt-2 text-xs text-stone-400">
+                      <p className="text-foreground text-sm line-clamp-2">{fb.message}</p>
+                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {format(new Date(fb.createdAt), "MMM d, yyyy h:mm a")}
@@ -227,7 +227,7 @@ export default function AdminFeedbackPage() {
         <SheetContent className="sm:max-w-lg overflow-y-auto">
           {selectedFeedback && (
             <>
-              <SheetHeader className="pb-4 border-b border-stone-100">
+              <SheetHeader className="pb-4 border-b border-border">
                 <div className="flex items-center gap-3">
                   <div className={cn("p-2 rounded-xl", typeColors[selectedFeedback.type])}>
                     {(() => {
@@ -236,8 +236,8 @@ export default function AdminFeedbackPage() {
                     })()}
                   </div>
                   <div>
-                    <SheetTitle className="text-lg text-slate-800 capitalize">{selectedFeedback.type} Report</SheetTitle>
-                    <SheetDescription className="text-stone-500">
+                    <SheetTitle className="text-lg text-foreground capitalize">{selectedFeedback.type} Report</SheetTitle>
+                    <SheetDescription className="text-muted-foreground">
                       {format(new Date(selectedFeedback.createdAt), "MMMM d, yyyy h:mm a")}
                     </SheetDescription>
                   </div>
@@ -246,12 +246,12 @@ export default function AdminFeedbackPage() {
 
               <div className="py-6 space-y-6">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Status</label>
+                  <label className="text-sm font-medium text-foreground">Status</label>
                   <Select 
                     value={selectedFeedback.status} 
                     onValueChange={(value) => handleStatusChange(selectedFeedback.id, value)}
                   >
-                    <SelectTrigger className="w-full h-11 rounded-xl border-stone-200" data-testid="select-detail-status">
+                    <SelectTrigger className="w-full h-11 rounded-xl border-border" data-testid="select-detail-status">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -263,19 +263,19 @@ export default function AdminFeedbackPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Message</label>
-                  <div className="bg-stone-50 p-4 rounded-2xl text-slate-700 text-base whitespace-pre-wrap">
+                  <label className="text-sm font-medium text-foreground">Message</label>
+                  <div className="bg-muted p-4 rounded-2xl text-foreground text-base whitespace-pre-wrap">
                     {selectedFeedback.message}
                   </div>
                 </div>
 
                 {selectedFeedback.email && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-stone-400" />
+                    <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-muted-foreground" />
                       Contact Email
                     </label>
-                    <div className="bg-stone-50 p-3 rounded-xl text-slate-700">
+                    <div className="bg-muted p-3 rounded-xl text-foreground">
                       {selectedFeedback.email}
                     </div>
                   </div>
@@ -283,32 +283,32 @@ export default function AdminFeedbackPage() {
 
                 {(selectedFeedback.route || selectedFeedback.viewport || selectedFeedback.userAgent) && (
                   <div className="space-y-3">
-                    <label className="text-sm font-medium text-slate-700">Diagnostics</label>
-                    <div className="bg-stone-50 p-4 rounded-2xl space-y-3">
+                    <label className="text-sm font-medium text-foreground">Diagnostics</label>
+                    <div className="bg-muted p-4 rounded-2xl space-y-3">
                       {selectedFeedback.route && (
                         <div className="flex items-start gap-2">
-                          <Globe className="h-4 w-4 text-stone-400 mt-0.5" />
+                          <Globe className="h-4 w-4 text-muted-foreground mt-0.5" />
                           <div>
-                            <div className="text-xs text-stone-400">Route</div>
-                            <div className="text-sm text-slate-700">{selectedFeedback.route}</div>
+                            <div className="text-xs text-muted-foreground">Route</div>
+                            <div className="text-sm text-foreground">{selectedFeedback.route}</div>
                           </div>
                         </div>
                       )}
                       {selectedFeedback.viewport && (
                         <div className="flex items-start gap-2">
-                          <Monitor className="h-4 w-4 text-stone-400 mt-0.5" />
+                          <Monitor className="h-4 w-4 text-muted-foreground mt-0.5" />
                           <div>
-                            <div className="text-xs text-stone-400">Viewport</div>
-                            <div className="text-sm text-slate-700">{selectedFeedback.viewport}</div>
+                            <div className="text-xs text-muted-foreground">Viewport</div>
+                            <div className="text-sm text-foreground">{selectedFeedback.viewport}</div>
                           </div>
                         </div>
                       )}
                       {selectedFeedback.userAgent && (
                         <div className="flex items-start gap-2">
-                          <Globe className="h-4 w-4 text-stone-400 mt-0.5" />
+                          <Globe className="h-4 w-4 text-muted-foreground mt-0.5" />
                           <div>
-                            <div className="text-xs text-stone-400">User Agent</div>
-                            <div className="text-xs text-slate-700 break-all">{selectedFeedback.userAgent}</div>
+                            <div className="text-xs text-muted-foreground">User Agent</div>
+                            <div className="text-xs text-foreground break-all">{selectedFeedback.userAgent}</div>
                           </div>
                         </div>
                       )}
@@ -318,8 +318,8 @@ export default function AdminFeedbackPage() {
 
                 {selectedFeedback.userId && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">User ID</label>
-                    <div className="bg-stone-50 p-3 rounded-xl text-xs text-stone-500 font-mono">
+                    <label className="text-sm font-medium text-foreground">User ID</label>
+                    <div className="bg-muted p-3 rounded-xl text-xs text-muted-foreground font-mono">
                       {selectedFeedback.userId}
                     </div>
                   </div>

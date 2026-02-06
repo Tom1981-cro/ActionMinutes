@@ -73,24 +73,24 @@ export default function SupportPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white" data-testid="page-support">
+    <div className="min-h-screen bg-background text-foreground" data-testid="page-support">
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[150px] -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-fuchsia-500/10 rounded-full blur-[120px] translate-x-1/3 translate-y-1/3" />
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[150px] -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[120px] translate-x-1/3 translate-y-1/3" />
       </div>
 
-      <header className="relative z-10 border-b border-white/5">
+      <header className="relative z-10 border-b border-border">
         <div className="max-w-3xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <img src={logoIcon} alt="ActionMinutes" className="w-8 h-8 rounded-lg" />
               <span className="text-lg font-semibold">
-                <span className="text-white">Action</span>
-                <span className="text-violet-400">Minutes</span>
+                <span className="text-foreground">Action</span>
+                <span className="text-primary">Minutes</span>
               </span>
             </Link>
             <Link href="/">
-              <Button variant="ghost" size="sm" className="text-white/60 hover:text-white hover:bg-white/10 rounded-xl">
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl">
                 <ArrowLeft className="h-4 w-4 mr-2" weight="duotone" />
                 Back
               </Button>
@@ -102,35 +102,35 @@ export default function SupportPage() {
       <main className="relative z-10 max-w-3xl mx-auto px-6 py-12 space-y-8">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold" data-testid="text-support-title">Support</h1>
-          <p className="text-white/60">Get help with ActionMinutes</p>
+          <p className="text-muted-foreground">Get help with ActionMinutes</p>
         </div>
 
-        <Card className="bg-white/5 border-white/10 rounded-2xl overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 border-b border-white/10">
-            <CardTitle className="text-lg text-white flex items-center gap-2">
-              <Envelope className="h-5 w-5 text-violet-400" weight="duotone" />
+        <Card className="bg-card border-border rounded-2xl overflow-hidden">
+          <CardHeader className="bg-accent border-b border-border">
+            <CardTitle className="text-lg text-foreground flex items-center gap-2">
+              <Envelope className="h-5 w-5 text-primary" weight="duotone" />
               Contact Us
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-white/80 p-6 space-y-4">
+          <CardContent className="text-foreground p-6 space-y-4">
             <p>
               Have a question, found a bug, or need help with your account? We're here to help.
             </p>
-            <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-              <p className="text-sm text-white/60 mb-2">Email us at:</p>
-              <a href="mailto:support@actionminutes.com" className="text-violet-400 hover:text-violet-300 font-medium" data-testid="link-support-email">
+            <div className="p-4 bg-muted rounded-xl border border-border">
+              <p className="text-sm text-muted-foreground mb-2">Email us at:</p>
+              <a href="mailto:support@actionminutes.com" className="text-primary hover:text-primary font-medium" data-testid="link-support-email">
                 support@actionminutes.com
               </a>
             </div>
-            <p className="text-sm text-white/60">
+            <p className="text-sm text-muted-foreground">
               We typically respond within 24 hours during business days.
             </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 border-white/10 rounded-2xl overflow-hidden">
-          <CardHeader className="bg-white/5 border-b border-white/10">
-            <CardTitle className="text-lg text-white flex items-center gap-2">
+        <Card className="bg-card border-border rounded-2xl overflow-hidden">
+          <CardHeader className="bg-muted border-b border-border">
+            <CardTitle className="text-lg text-foreground flex items-center gap-2">
               <Question className="h-5 w-5 text-amber-400" weight="duotone" />
               Frequently Asked Questions
             </CardTitle>
@@ -138,16 +138,16 @@ export default function SupportPage() {
           <CardContent className="p-6 space-y-6">
             {faqs.map((faq, index) => (
               <div key={index} className="space-y-2">
-                <h3 className="font-semibold text-white">{faq.question}</h3>
-                <p className="text-sm text-white/70">{faq.answer}</p>
+                <h3 className="font-semibold text-foreground">{faq.question}</h3>
+                <p className="text-sm text-muted-foreground">{faq.answer}</p>
               </div>
             ))}
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 border-white/10 rounded-2xl overflow-hidden">
-          <CardHeader className="bg-white/5 border-b border-white/10">
-            <CardTitle className="text-lg text-white flex items-center gap-2">
+        <Card className="bg-card border-border rounded-2xl overflow-hidden">
+          <CardHeader className="bg-muted border-b border-border">
+            <CardTitle className="text-lg text-foreground flex items-center gap-2">
               <Lifebuoy className="h-5 w-5 text-fuchsia-400" weight="duotone" />
               Quick Tips
             </CardTitle>
@@ -157,7 +157,7 @@ export default function SupportPage() {
               {tips.map((tip, index) => (
                 <li key={index} className="flex items-start gap-3">
                   <tip.icon className={`h-5 w-5 mt-0.5 flex-shrink-0 ${tip.color}`} weight="duotone" />
-                  <span className="text-sm text-white/80">{tip.text}</span>
+                  <span className="text-sm text-foreground">{tip.text}</span>
                 </li>
               ))}
             </ul>
@@ -165,17 +165,17 @@ export default function SupportPage() {
         </Card>
 
         <div className="text-center space-y-4 pt-4">
-          <p className="text-white/50 text-sm">
+          <p className="text-muted-foreground text-sm">
             Want to learn more about using ActionMinutes?
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link href="/guide">
-              <Button className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white rounded-xl">
+              <Button className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl">
                 Read the Guide
               </Button>
             </Link>
             <Link href="/about">
-              <Button variant="outline" className="rounded-xl border-white/20 text-white hover:bg-white/10">
+              <Button variant="outline" className="rounded-xl border-border text-foreground hover:bg-accent">
                 About ActionMinutes
               </Button>
             </Link>
@@ -183,23 +183,23 @@ export default function SupportPage() {
         </div>
       </main>
 
-      <footer className="relative z-10 border-t border-white/5 py-8">
+      <footer className="relative z-10 border-t border-border py-8">
         <div className="max-w-3xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-white/40">
+          <p className="text-sm text-muted-foreground">
             ActionMinutes by{" "}
             <a 
               href="https://relay-labs.app" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-violet-400 hover:text-violet-300"
+              className="text-primary hover:text-primary"
             >
               Relay Labs
             </a>
           </p>
-          <div className="flex items-center gap-6 text-sm text-white/40">
-            <Link href="/about" className="hover:text-white transition-colors">About</Link>
-            <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <Link href="/about" className="hover:text-foreground transition-colors">About</Link>
+            <Link href="/privacy-policy" className="hover:text-foreground transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">Terms</Link>
           </div>
         </div>
       </footer>

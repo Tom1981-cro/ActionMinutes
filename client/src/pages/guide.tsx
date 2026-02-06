@@ -7,12 +7,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { useStore } from "@/lib/store";
 
 export default function GuidePage() {
-  const { theme } = useStore();
-  const isDark = theme === "dark";
-
   const features = [
     {
       icon: Tray,
@@ -117,49 +113,40 @@ export default function GuidePage() {
   };
 
   return (
-    <div className={cn(
-      "min-h-screen p-6",
-      isDark ? "bg-[#0a0a0a] text-white" : "bg-gray-50 text-gray-900"
-    )} data-testid="page-guide">
+    <div className="min-h-screen p-6 bg-background text-foreground" data-testid="page-guide">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex items-center gap-4">
           <Link href="/app/inbox">
             <Button 
               variant="ghost" 
               size="icon" 
-              className={cn(
-                "rounded-full",
-                isDark ? "text-white/70 hover:text-white hover:bg-white/10" : "text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-              )}
+              className="rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
               data-testid="button-back"
             >
               <ArrowLeft className="h-5 w-5" weight="duotone" />
             </Button>
           </Link>
           <div className="space-y-1">
-            <h1 className={cn("text-2xl font-bold", isDark ? "text-white" : "text-gray-900")} data-testid="text-guide-title">
+            <h1 className="text-2xl font-bold text-foreground" data-testid="text-guide-title">
               Getting Started
             </h1>
-            <p className={cn("text-sm", isDark ? "text-white/60" : "text-gray-500")}>
+            <p className="text-sm text-muted-foreground">
               Your guide to personal productivity with ActionMinutes
             </p>
           </div>
         </div>
 
-        <Card className={cn(
-          "overflow-hidden rounded-2xl",
-          isDark ? "bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 border-violet-500/30" : "bg-gradient-to-br from-violet-50 to-fuchsia-50 border-violet-200"
-        )} data-testid="card-overview">
+        <Card className="overflow-hidden rounded-2xl bg-accent border-border" data-testid="card-overview">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500">
-                <Sparkle className="h-6 w-6 text-white" weight="fill" />
+              <div className="p-3 rounded-xl bg-primary">
+                <Sparkle className="h-6 w-6 text-primary-foreground" weight="fill" />
               </div>
               <div>
-                <h2 className={cn("text-lg font-bold mb-2", isDark ? "text-white" : "text-gray-900")}>
+                <h2 className="text-lg font-bold mb-2 text-foreground">
                   Your Personal Productivity Assistant
                 </h2>
-                <p className={cn("text-sm", isDark ? "text-white/70" : "text-gray-600")}>
+                <p className="text-sm text-muted-foreground">
                   ActionMinutes brings together everything you need to stay organized: notes, reminders, journal, calendar, and custom lists—all in one place. 
                   Plus, powerful AI that turns messy meeting notes into clear action items.
                 </p>
@@ -169,65 +156,47 @@ export default function GuidePage() {
         </Card>
 
         <div className="space-y-4">
-          <h2 className={cn("text-xl font-bold", isDark ? "text-white" : "text-gray-900")}>
+          <h2 className="text-xl font-bold text-foreground">
             Quick Start
           </h2>
           <div className="grid md:grid-cols-3 gap-4">
-            <Card className={cn(
-              "rounded-2xl",
-              isDark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"
-            )}>
+            <Card className="rounded-2xl bg-card border-border">
               <CardContent className="p-5 text-center space-y-3">
-                <div className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center mx-auto font-bold",
-                  isDark ? "bg-violet-500/20 text-violet-400" : "bg-violet-100 text-violet-600"
-                )}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto font-bold bg-accent text-primary">
                   1
                 </div>
-                <h3 className={cn("font-semibold", isDark ? "text-white" : "text-gray-900")}>
+                <h3 className="font-semibold text-foreground">
                   Capture
                 </h3>
-                <p className={cn("text-sm", isDark ? "text-white/60" : "text-gray-500")}>
+                <p className="text-sm text-muted-foreground">
                   Quick-add thoughts, notes, or paste meeting content into your Inbox.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className={cn(
-              "rounded-2xl",
-              isDark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"
-            )}>
+            <Card className="rounded-2xl bg-card border-border">
               <CardContent className="p-5 text-center space-y-3">
-                <div className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center mx-auto font-bold",
-                  isDark ? "bg-fuchsia-500/20 text-fuchsia-400" : "bg-fuchsia-100 text-fuchsia-600"
-                )}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto font-bold bg-fuchsia-500/20 text-fuchsia-500">
                   2
                 </div>
-                <h3 className={cn("font-semibold", isDark ? "text-white" : "text-gray-900")}>
+                <h3 className="font-semibold text-foreground">
                   Organize
                 </h3>
-                <p className={cn("text-sm", isDark ? "text-white/60" : "text-gray-500")}>
+                <p className="text-sm text-muted-foreground">
                   Move items to reminders, lists, or let AI extract tasks from notes.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className={cn(
-              "rounded-2xl",
-              isDark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"
-            )}>
+            <Card className="rounded-2xl bg-card border-border">
               <CardContent className="p-5 text-center space-y-3">
-                <div className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center mx-auto font-bold",
-                  isDark ? "bg-emerald-500/20 text-emerald-400" : "bg-emerald-100 text-emerald-600"
-                )}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center mx-auto font-bold bg-emerald-500/20 text-emerald-500">
                   3
                 </div>
-                <h3 className={cn("font-semibold", isDark ? "text-white" : "text-gray-900")}>
+                <h3 className="font-semibold text-foreground">
                   Execute
                 </h3>
-                <p className={cn("text-sm", isDark ? "text-white/60" : "text-gray-500")}>
+                <p className="text-sm text-muted-foreground">
                   Complete tasks, reflect in your journal, and reach inbox zero.
                 </p>
               </CardContent>
@@ -236,7 +205,7 @@ export default function GuidePage() {
         </div>
 
         <div className="space-y-4">
-          <h2 className={cn("text-xl font-bold", isDark ? "text-white" : "text-gray-900")}>
+          <h2 className="text-xl font-bold text-foreground">
             Features
           </h2>
 
@@ -249,21 +218,17 @@ export default function GuidePage() {
                 <Card 
                   key={feature.title}
                   className={cn(
-                    "overflow-hidden rounded-2xl",
-                    isDark ? "bg-white/5 border-white/10" : "bg-white border-gray-200",
-                    feature.highlight && (isDark ? "border-fuchsia-500/30 ring-1 ring-fuchsia-500/20" : "border-fuchsia-300")
+                    "overflow-hidden rounded-2xl bg-card border-border",
+                    feature.highlight && "border-fuchsia-500/30 ring-1 ring-fuchsia-500/20"
                   )}
                   data-testid={`card-feature-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
                 >
-                  <CardHeader className={cn(
-                    "border-b pb-4",
-                    isDark ? "border-white/10" : "border-gray-100"
-                  )}>
+                  <CardHeader className="border-b pb-4 border-border">
                     <div className="flex items-center gap-3">
                       <div className={cn("p-2 rounded-xl", colors.bg)}>
                         <Icon className={cn("h-5 w-5", colors.text)} weight="duotone" />
                       </div>
-                      <CardTitle className={cn("text-lg flex items-center gap-2", isDark ? "text-white" : "text-gray-900")}>
+                      <CardTitle className="text-lg flex items-center gap-2 text-foreground">
                         {feature.title}
                         {feature.highlight && (
                           <span className="text-xs bg-fuchsia-500/20 text-fuchsia-400 px-2 py-0.5 rounded-full">
@@ -274,13 +239,10 @@ export default function GuidePage() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-5 space-y-4">
-                    <p className={cn("text-sm", isDark ? "text-white/80" : "text-gray-600")}>
+                    <p className="text-sm text-muted-foreground">
                       {feature.description}
                     </p>
-                    <div className={cn(
-                      "p-4 rounded-xl space-y-2",
-                      isDark ? "bg-white/5" : "bg-gray-50"
-                    )}>
+                    <div className="p-4 rounded-xl space-y-2 bg-muted">
                       <p className={cn("text-xs font-semibold uppercase tracking-wider", colors.text)}>
                         Tips
                       </p>
@@ -288,7 +250,7 @@ export default function GuidePage() {
                         {feature.tips.map((tip, i) => (
                           <li key={i} className="flex items-start gap-2">
                             <CheckCircle className={cn("h-4 w-4 mt-0.5 flex-shrink-0", colors.text)} weight="fill" />
-                            <span className={cn("text-sm", isDark ? "text-white/70" : "text-gray-600")}>{tip}</span>
+                            <span className="text-sm text-muted-foreground">{tip}</span>
                           </li>
                         ))}
                       </ul>
@@ -300,18 +262,15 @@ export default function GuidePage() {
           </div>
         </div>
 
-        <Card className={cn(
-          "overflow-hidden rounded-2xl",
-          isDark ? "bg-white/5 border-white/10" : "bg-white border-gray-200"
-        )} data-testid="card-quick-actions">
+        <Card className="overflow-hidden rounded-2xl bg-card border-border" data-testid="card-quick-actions">
           <CardContent className="p-6">
-            <h3 className={cn("font-semibold mb-4", isDark ? "text-white" : "text-gray-900")}>
+            <h3 className="font-semibold mb-4 text-foreground">
               Get Started Now
             </h3>
             <div className="flex flex-wrap gap-3">
               <Link href="/app/inbox">
                 <Button 
-                  className="bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white rounded-xl"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
                   data-testid="button-go-inbox"
                 >
                   <Tray className="h-4 w-4 mr-2" weight="duotone" />
@@ -321,10 +280,7 @@ export default function GuidePage() {
               <Link href="/app/capture">
                 <Button 
                   variant="outline"
-                  className={cn(
-                    "rounded-xl",
-                    isDark ? "border-white/20 text-white hover:bg-white/10" : "border-gray-200"
-                  )}
+                  className="rounded-xl border-border text-foreground hover:bg-accent"
                   data-testid="button-ai-extraction"
                 >
                   <Brain className="h-4 w-4 mr-2" weight="duotone" />
@@ -334,10 +290,7 @@ export default function GuidePage() {
               <Link href="/app/journal">
                 <Button 
                   variant="outline"
-                  className={cn(
-                    "rounded-xl",
-                    isDark ? "border-white/20 text-white hover:bg-white/10" : "border-gray-200"
-                  )}
+                  className="rounded-xl border-border text-foreground hover:bg-accent"
                   data-testid="button-journal"
                 >
                   <BookOpen className="h-4 w-4 mr-2" weight="duotone" />
@@ -348,12 +301,9 @@ export default function GuidePage() {
           </CardContent>
         </Card>
 
-        <div className={cn(
-          "text-center py-6 border-t",
-          isDark ? "border-white/10" : "border-gray-200"
-        )}>
-          <p className={cn("text-sm", isDark ? "text-white/50" : "text-gray-400")}>
-            Need help? Visit our <Link href="/support" className="text-violet-400 hover:text-violet-300">Support page</Link> or send feedback from Settings.
+        <div className="text-center py-6 border-t border-border">
+          <p className="text-sm text-muted-foreground">
+            Need help? Visit our <Link href="/support" className="text-primary hover:text-primary">Support page</Link> or send feedback from Settings.
           </p>
         </div>
       </div>

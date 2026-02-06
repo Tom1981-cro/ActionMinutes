@@ -14,14 +14,14 @@ type AuthMode = "login" | "register" | "forgot" | "reset";
 function BrandingPanel() {
   return (
     <div className="hidden lg:flex flex-col justify-between h-full p-12 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-violet-900/40 via-[#0a0a0a] to-fuchsia-900/30" />
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-fuchsia-600/20 rounded-full blur-3xl" />
+      <div className="absolute inset-0 bg-background" />
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
       
       <div className="relative z-10">
         <Link href="/" className="flex items-center gap-3 group">
           <img src={logoIcon} alt="ActionMinutes" className="h-10 w-auto" />
-          <span className="text-xl font-bold text-white group-hover:text-violet-300 transition-colors">ActionMinutes</span>
+          <span className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">ActionMinutes</span>
         </Link>
       </div>
 
@@ -31,13 +31,13 @@ function BrandingPanel() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight">
+          <h1 className="text-4xl xl:text-5xl font-bold text-foreground leading-tight">
             Turn messy meetings into{" "}
-            <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+            <span className="text-primary">
               clear actions
             </span>
           </h1>
-          <p className="mt-4 text-lg text-white/60 max-w-md">
+          <p className="mt-4 text-lg text-muted-foreground max-w-md">
             AI-powered meeting notes that extract action items, decisions, and follow-ups in under 60 seconds.
           </p>
         </motion.div>
@@ -48,19 +48,19 @@ function BrandingPanel() {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <div className="flex items-center gap-3 text-white/70">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-violet-500/20 border border-violet-500/30">
-              <Brain className="h-4 w-4 text-violet-400" weight="duotone" />
+          <div className="flex items-center gap-3 text-foreground">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-accent border border-primary/30">
+              <Brain className="h-4 w-4 text-primary" weight="duotone" />
             </div>
             <span>AI extracts action items automatically</span>
           </div>
-          <div className="flex items-center gap-3 text-white/70">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-fuchsia-500/20 border border-fuchsia-500/30">
-              <Lightning className="h-4 w-4 text-fuchsia-400" weight="duotone" />
+          <div className="flex items-center gap-3 text-foreground">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-accent border border-primary/30">
+              <Lightning className="h-4 w-4 text-primary" weight="duotone" />
             </div>
             <span>Generate follow-up emails instantly</span>
           </div>
-          <div className="flex items-center gap-3 text-white/70">
+          <div className="flex items-center gap-3 text-foreground">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-500/30">
               <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
             </div>
@@ -80,14 +80,14 @@ function BrandingPanel() {
             {[1, 2, 3, 4].map((i) => (
               <div 
                 key={i} 
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-fuchsia-500 border-2 border-[#0a0a0a] flex items-center justify-center text-xs font-medium text-white"
+                className="w-8 h-8 rounded-full bg-primary border-2 border-background flex items-center justify-center text-xs font-medium text-primary-foreground"
               >
                 {String.fromCharCode(64 + i)}
               </div>
             ))}
           </div>
-          <div className="text-sm text-white/50">
-            <span className="text-white font-medium">2,000+</span> teams ship faster with ActionMinutes
+          <div className="text-sm text-muted-foreground">
+            <span className="text-foreground font-medium">2,000+</span> teams ship faster with ActionMinutes
           </div>
         </div>
       </motion.div>
@@ -132,16 +132,16 @@ export default function AuthPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (isAuthenticated && user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -194,16 +194,16 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#0a0a0a]">
+    <div className="min-h-screen flex bg-background">
       <div className="flex-1 lg:w-1/2">
         <BrandingPanel />
       </div>
 
-      <div className="w-full lg:w-1/2 flex flex-col justify-between p-8 lg:p-12 bg-[#0f0f0f]">
+      <div className="w-full lg:w-1/2 flex flex-col justify-between p-8 lg:p-12 bg-card">
         <div className="lg:hidden flex items-center justify-center mb-8">
           <Link href="/" className="flex items-center gap-3">
             <img src={logoIcon} alt="ActionMinutes" className="h-8 w-auto" />
-            <span className="text-lg font-bold text-white">ActionMinutes</span>
+            <span className="text-lg font-bold text-foreground">ActionMinutes</span>
           </Link>
         </div>
 
@@ -213,13 +213,13 @@ export default function AuthPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <h2 className="text-2xl font-bold text-white mb-2">
+            <h2 className="text-2xl font-bold text-foreground mb-2">
               {mode === "login" && "Welcome back"}
               {mode === "register" && "Create your account"}
               {mode === "forgot" && "Reset your password"}
               {mode === "reset" && "Set new password"}
             </h2>
-            <p className="text-gray-400 mb-8">
+            <p className="text-muted-foreground mb-8">
               {mode === "login" && "Sign in to continue to ActionMinutes"}
               {mode === "register" && "Get started with ActionMinutes for free"}
               {mode === "forgot" && "Enter your email to receive a reset link"}
@@ -230,16 +230,16 @@ export default function AuthPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {mode === "register" && (
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-gray-300 text-sm">Full name</Label>
+                <Label htmlFor="name" className="text-muted-foreground text-sm">Full name</Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="name"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your name"
-                    className="pl-10 h-11 bg-[#1a1a1a] border-white/10 text-white placeholder:text-gray-500 focus:border-violet-500/50 focus:ring-violet-500/20"
+                    className="pl-10 h-11 bg-card border-border text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-ring/20"
                     required
                     data-testid="input-name"
                   />
@@ -249,16 +249,16 @@ export default function AuthPage() {
 
             {(mode === "login" || mode === "register" || mode === "forgot") && (
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-300 text-sm">Email address</Label>
+                <Label htmlFor="email" className="text-muted-foreground text-sm">Email address</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    className="pl-10 h-11 bg-[#1a1a1a] border-white/10 text-white placeholder:text-gray-500 focus:border-violet-500/50 focus:ring-violet-500/20"
+                    className="pl-10 h-11 bg-card border-border text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-ring/20"
                     required
                     data-testid="input-email"
                   />
@@ -269,12 +269,12 @@ export default function AuthPage() {
             {(mode === "login" || mode === "register" || mode === "reset") && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-gray-300 text-sm">Password</Label>
+                  <Label htmlFor="password" className="text-muted-foreground text-sm">Password</Label>
                   {mode === "login" && (
                     <button
                       type="button"
                       onClick={() => { setMode("forgot"); setError(""); setSuccess(""); }}
-                      className="text-xs text-violet-400 hover:text-violet-300"
+                      className="text-xs text-primary hover:text-primary/80"
                       data-testid="link-forgot-password"
                     >
                       Forgot password?
@@ -282,14 +282,14 @@ export default function AuthPage() {
                   )}
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="pl-10 pr-10 h-11 bg-[#1a1a1a] border-white/10 text-white placeholder:text-gray-500 focus:border-violet-500/50 focus:ring-violet-500/20"
+                    className="pl-10 pr-10 h-11 bg-card border-border text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-ring/20"
                     required
                     minLength={mode === "login" ? 1 : 8}
                     data-testid="input-password"
@@ -297,29 +297,29 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
                 {(mode === "register" || mode === "reset") && (
-                  <p className="text-xs text-gray-500">Must be at least 8 characters with a letter and number</p>
+                  <p className="text-xs text-muted-foreground">Must be at least 8 characters with a letter and number</p>
                 )}
               </div>
             )}
 
             {(mode === "register" || mode === "reset") && (
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-gray-300 text-sm">Confirm password</Label>
+                <Label htmlFor="confirmPassword" className="text-muted-foreground text-sm">Confirm password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     type={showPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="pl-10 h-11 bg-[#1a1a1a] border-white/10 text-white placeholder:text-gray-500 focus:border-violet-500/50 focus:ring-violet-500/20"
+                    className="pl-10 h-11 bg-card border-border text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:ring-ring/20"
                     required
                     data-testid="input-confirm-password"
                   />
@@ -341,7 +341,7 @@ export default function AuthPage() {
 
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-medium shadow-lg shadow-violet-500/25"
+              className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-token"
               disabled={submitting}
               data-testid="button-submit"
             >
@@ -358,22 +358,22 @@ export default function AuthPage() {
             </Button>
 
             {mode === "register" && (
-              <p className="text-xs text-gray-500 text-center">
+              <p className="text-xs text-muted-foreground text-center">
                 By creating an account, you agree to our{" "}
-                <Link href="/terms" className="text-violet-400 hover:text-violet-300">Terms of Service</Link>
+                <Link href="/terms" className="text-primary hover:text-primary/80">Terms of Service</Link>
                 {" "}and{" "}
-                <Link href="/privacy" className="text-violet-400 hover:text-violet-300">Privacy Policy</Link>
+                <Link href="/privacy" className="text-primary hover:text-primary/80">Privacy Policy</Link>
               </p>
             )}
           </form>
 
-          <div className="mt-8 text-center text-sm text-gray-400">
+          <div className="mt-8 text-center text-sm text-muted-foreground">
             {mode === "login" && (
               <span>
                 Don't have an account?{" "}
                 <button
                   onClick={() => { setMode("register"); setError(""); setSuccess(""); }}
-                  className="text-violet-400 hover:text-violet-300 font-medium"
+                  className="text-primary hover:text-primary/80 font-medium"
                   data-testid="link-register"
                 >
                   Sign up for free
@@ -385,7 +385,7 @@ export default function AuthPage() {
                 Already have an account?{" "}
                 <button
                   onClick={() => { setMode("login"); setError(""); setSuccess(""); }}
-                  className="text-violet-400 hover:text-violet-300 font-medium"
+                  className="text-primary hover:text-primary/80 font-medium"
                   data-testid="link-login"
                 >
                   Sign in
@@ -395,7 +395,7 @@ export default function AuthPage() {
             {mode === "forgot" && (
               <button
                 onClick={() => { setMode("login"); setError(""); setSuccess(""); }}
-                className="text-violet-400 hover:text-violet-300 font-medium"
+                className="text-primary hover:text-primary/80 font-medium"
                 data-testid="link-back-to-login"
               >
                 Back to sign in
@@ -404,7 +404,7 @@ export default function AuthPage() {
             {mode === "reset" && (
               <button
                 onClick={() => { setMode("login"); setError(""); setSuccess(""); setLocation("/login"); }}
-                className="text-violet-400 hover:text-violet-300 font-medium"
+                className="text-primary hover:text-primary/80 font-medium"
                 data-testid="link-back-to-login"
               >
                 Back to sign in
@@ -413,12 +413,12 @@ export default function AuthPage() {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-white/5 mt-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
+        <div className="pt-8 border-t border-border mt-8">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-4">
-              <Link href="/privacy" className="hover:text-gray-400 transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-gray-400 transition-colors">Terms of Service</Link>
-              <Link href="/support" className="hover:text-gray-400 transition-colors">Support</Link>
+              <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+              <Link href="/support" className="hover:text-foreground transition-colors">Support</Link>
             </div>
             <div>
               © {new Date().getFullYear()} ActionMinutes. All rights reserved.

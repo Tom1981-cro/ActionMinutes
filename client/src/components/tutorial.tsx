@@ -65,8 +65,6 @@ export function Tutorial() {
   const { user: authUser, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    // Use backend user data to check tutorial completion status
-    // This ensures tutorial only shows for users who haven't completed it in the database
     if (isAuthenticated && authUser?.hasCompletedOnboarding && !authUser?.hasCompletedTutorial) {
       setCurrentStep(0);
       const timer = setTimeout(() => setIsVisible(true), 500);
@@ -75,11 +73,9 @@ export function Tutorial() {
   }, [isAuthenticated, authUser?.hasCompletedOnboarding, authUser?.hasCompletedTutorial]);
 
   const completeTutorial = useCallback(async () => {
-    // Always hide the tutorial immediately for good UX
     setIsVisible(false);
     updateUser({ hasCompletedTutorial: true });
     
-    // Then try to persist to the server (don't block on this)
     try {
       await apiRequest("PATCH", "/api/users/me", { hasCompletedTutorial: true });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
@@ -130,8 +126,8 @@ export function Tutorial() {
 
       <div
         className={cn(
-          "fixed z-50 w-[90vw] max-w-md bg-white rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.15)] border border-gray-100 p-6 transition-all duration-300",
-          "after:content-[''] after:absolute after:-inset-4 after:bg-white/40 after:backdrop-blur-md after:-z-10 after:rounded-[2rem]",
+          "fixed z-50 w-[90vw] max-w-md bg-card rounded-2xl shadow-token border border-border p-6 transition-all duration-300",
+          "after:content-[''] after:absolute after:-inset-4 after:bg-card/40 after:backdrop-blur-md after:-z-10 after:rounded-[2rem]",
           step.position === "center" && "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
           step.position === "bottom" && "bottom-24 left-1/2 -translate-x-1/2 md:bottom-8",
           step.position === "top" && "top-24 left-1/2 -translate-x-1/2"
@@ -140,15 +136,15 @@ export function Tutorial() {
       >
         <button
           onClick={handleSkip}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
           data-testid="tutorial-skip-button"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-            <Sparkle className="w-5 h-5 text-white" weight="duotone" />
+          <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+            <Sparkle className="w-5 h-5 text-primary-foreground" weight="duotone" />
           </div>
           <div className="flex gap-1.5">
             {tutorialSteps.map((_, index) => (
@@ -156,17 +152,17 @@ export function Tutorial() {
                 key={index}
                 className={cn(
                   "w-2 h-2 rounded-full transition-colors duration-200",
-                  index === currentStep ? "bg-indigo-600" : index < currentStep ? "bg-indigo-300" : "bg-gray-200"
+                  index === currentStep ? "bg-primary" : index < currentStep ? "bg-primary/50" : "bg-muted"
                 )}
               />
             ))}
           </div>
         </div>
 
-        <h2 className="text-xl font-bold text-gray-900 mb-2" data-testid="tutorial-title">
+        <h2 className="text-xl font-bold text-foreground mb-2" data-testid="tutorial-title">
           {step.title}
         </h2>
-        <p className="text-gray-600 mb-6 leading-relaxed" data-testid="tutorial-description">
+        <p className="text-muted-foreground mb-6 leading-relaxed" data-testid="tutorial-description">
           {step.description}
         </p>
 
@@ -174,7 +170,7 @@ export function Tutorial() {
           <Button
             variant="ghost"
             onClick={handleSkip}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-muted-foreground hover:text-foreground"
             data-testid="tutorial-skip"
           >
             Skip tour
@@ -194,7 +190,7 @@ export function Tutorial() {
             )}
             <Button
               onClick={handleNext}
-              className="gap-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+              className="gap-1 bg-primary hover:bg-primary/90"
               data-testid="tutorial-next"
             >
               {isLastStep ? (

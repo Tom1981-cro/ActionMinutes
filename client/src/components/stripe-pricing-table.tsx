@@ -88,14 +88,14 @@ export function StripePricingTable({ className, clientReferenceId }: StripePrici
   if (loading) {
     return (
       <div className={`flex items-center justify-center py-12 ${className || ""}`}>
-        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (!geoData?.pricingTableId || !geoData?.publishableKey) {
     return (
-      <div className={`text-center py-8 text-white/50 ${className || ""}`}>
+      <div className={`text-center py-8 text-muted-foreground ${className || ""}`}>
         <p>Pricing information is currently unavailable.</p>
         <p className="text-sm mt-2">Please try again later or contact support.</p>
       </div>

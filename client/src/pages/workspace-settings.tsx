@@ -22,7 +22,7 @@ const roleColors: Record<string, string> = {
   owner: "bg-amber-50 text-amber-700 border-amber-200",
   admin: "bg-purple-50 text-purple-700 border-purple-200",
   member: "bg-indigo-50 text-indigo-700 border-indigo-200",
-  viewer: "bg-gray-50 text-gray-600 border-gray-200",
+  viewer: "bg-muted text-muted-foreground border-border",
 };
 
 export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: string }) {
@@ -75,7 +75,7 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
   if (workspaceLoading || membersLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -83,44 +83,44 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold text-slate-800">{workspace?.name}</h2>
-        <p className="text-gray-500">Manage workspace members and permissions.</p>
+        <h2 className="text-xl font-semibold text-foreground">{workspace?.name}</h2>
+        <p className="text-muted-foreground">Manage workspace members and permissions.</p>
       </div>
 
-      <Card className="bg-white border-gray-200 rounded-xl">
+      <Card className="bg-card border-border rounded-xl">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg text-slate-800">Members</CardTitle>
-            <CardDescription className="text-gray-500">{members.length} members</CardDescription>
+            <CardTitle className="text-lg text-foreground">Members</CardTitle>
+            <CardDescription className="text-muted-foreground">{members.length} members</CardDescription>
           </div>
           {canManageMembers && (
             <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
               <DialogTrigger asChild>
-                <Button className="rounded-full btn-gradient text-white font-semibold" data-testid="button-invite-member">
+                <Button className="rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary/90" data-testid="button-invite-member">
                   <UserPlus className="h-4 w-4 mr-2" />
                   Invite member
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md rounded-xl">
                 <DialogHeader>
-                  <DialogTitle className="text-slate-800">Invite Member</DialogTitle>
+                  <DialogTitle className="text-foreground">Invite Member</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 mt-4">
                   <div className="space-y-2">
-                    <Label className="text-slate-700">Email</Label>
+                    <Label className="text-foreground">Email</Label>
                     <Input
                       type="email"
                       placeholder="colleague@company.com"
                       value={inviteEmail}
                       onChange={(e) => setInviteEmail(e.target.value)}
-                      className="rounded-xl border-gray-200"
+                      className="rounded-xl border-border"
                       data-testid="input-invite-email"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-slate-700">Role</Label>
+                    <Label className="text-foreground">Role</Label>
                     <Select value={inviteRole} onValueChange={setInviteRole}>
-                      <SelectTrigger className="rounded-xl border-gray-200" data-testid="select-invite-role">
+                      <SelectTrigger className="rounded-xl border-border" data-testid="select-invite-role">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -133,7 +133,7 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
                   <Button 
                     onClick={handleInvite} 
                     disabled={!inviteEmail.trim() || inviteMember.isPending}
-                    className="w-full rounded-xl btn-gradient text-white font-semibold"
+                    className="w-full rounded-xl bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
                     data-testid="button-send-invite"
                   >
                     {inviteMember.isPending ? "Sending..." : "Send Invite"}
@@ -152,19 +152,19 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
             return (
               <div 
                 key={member.id} 
-                className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100"
+                className="flex items-center justify-between p-3 rounded-xl bg-muted border border-border"
                 data-testid={`member-${member.id}`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium">
+                  <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center text-muted-foreground font-medium">
                     {member.user?.name?.charAt(0) || '?'}
                   </div>
                   <div>
-                    <p className="font-medium text-slate-800">
+                    <p className="font-medium text-foreground">
                       {member.user?.name || member.user?.email}
-                      {isCurrentUser && <span className="text-gray-500 text-sm ml-2">(you)</span>}
+                      {isCurrentUser && <span className="text-muted-foreground text-sm ml-2">(you)</span>}
                     </p>
-                    <p className="text-sm text-gray-500">{member.user?.email}</p>
+                    <p className="text-sm text-muted-foreground">{member.user?.email}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -190,7 +190,7 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="text-gray-400 hover:text-red-500"
+                      className="text-muted-foreground hover:text-red-500"
                       onClick={() => handleRemove(member.id)}
                       data-testid={`button-remove-${member.id}`}
                     >
@@ -205,9 +205,9 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
       </Card>
 
       {invites.filter((i: any) => !i.acceptedAt).length > 0 && (
-        <Card className="bg-white border-gray-200 rounded-xl">
+        <Card className="bg-card border-border rounded-xl">
           <CardHeader>
-            <CardTitle className="text-lg text-slate-800">Pending Invites</CardTitle>
+            <CardTitle className="text-lg text-foreground">Pending Invites</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {invites.filter((i: any) => !i.acceptedAt).map((invite: any) => (
@@ -219,8 +219,8 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-amber-500" />
                   <div>
-                    <p className="font-medium text-slate-800">{invite.email}</p>
-                    <p className="text-sm text-gray-500">Invited as {invite.role}</p>
+                    <p className="font-medium text-foreground">{invite.email}</p>
+                    <p className="text-sm text-muted-foreground">Invited as {invite.role}</p>
                   </div>
                 </div>
                 <Badge variant="outline" className="rounded-full bg-amber-50 text-amber-700 border-amber-200">
@@ -232,10 +232,10 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
         </Card>
       )}
 
-      <Card className="bg-gray-50 border-gray-200 rounded-xl">
+      <Card className="bg-muted border-border rounded-xl">
         <CardContent className="py-4">
-          <h3 className="font-medium text-slate-800 mb-2">Role Permissions</h3>
-          <div className="text-sm text-gray-600 space-y-1">
+          <h3 className="font-medium text-foreground mb-2">Role Permissions</h3>
+          <div className="text-sm text-muted-foreground space-y-1">
             <p><strong>Owner:</strong> Full control, delete workspace</p>
             <p><strong>Admin:</strong> Manage members, edit all content</p>
             <p><strong>Member:</strong> Create and edit own content</p>

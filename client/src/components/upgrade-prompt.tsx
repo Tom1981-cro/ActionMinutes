@@ -60,16 +60,16 @@ export function UpgradePrompt({
   
   if (variant === 'inline') {
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg bg-violet-500/10 border border-violet-500/20">
-        <Lock weight="duotone" className="w-5 h-5 text-violet-400 flex-shrink-0" />
+      <div className="flex items-center gap-3 p-3 rounded-lg bg-accent border border-border">
+        <Lock weight="duotone" className="w-5 h-5 text-primary flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-violet-200">{message.description}</p>
+          <p className="text-sm text-muted-foreground">{message.description}</p>
         </div>
         <Button 
           variant="outline" 
           size="sm"
           onClick={handleUpgrade}
-          className="flex-shrink-0 border-violet-500/30 hover:bg-violet-500/20"
+          className="flex-shrink-0 border-border hover:bg-accent"
           data-testid="upgrade-button-inline"
         >
           Upgrade
@@ -79,12 +79,12 @@ export function UpgradePrompt({
   }
   
   return (
-    <Card className="bg-gradient-to-br from-violet-500/10 to-purple-500/10 border-violet-500/20">
+    <Card className="bg-accent border-border">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
-          <PlanIcon weight="duotone" className="w-5 h-5 text-violet-400" />
+          <PlanIcon weight="duotone" className="w-5 h-5 text-primary" />
           <CardTitle className="text-lg">{message.title}</CardTitle>
-          <Badge variant="secondary" className="ml-auto bg-violet-500/20 text-violet-300 border-violet-500/30">
+          <Badge variant="secondary" className="ml-auto bg-accent text-primary border-border">
             Pro
           </Badge>
         </div>
@@ -104,7 +104,7 @@ export function UpgradePrompt({
             </div>
             <Progress 
               value={usagePercent ?? ((currentUsage ?? 0) / (limit ?? 1)) * 100} 
-              className="h-2 bg-muted [&>div]:bg-violet-500"
+              className="h-2 bg-muted [&>div]:bg-primary"
             />
           </div>
         </CardContent>
@@ -113,7 +113,7 @@ export function UpgradePrompt({
       <CardFooter>
         <Button 
           onClick={handleUpgrade}
-          className="w-full bg-violet-600 hover:bg-violet-700"
+          className="w-full bg-primary hover:bg-primary/90"
           data-testid="upgrade-button-card"
         >
           <Lightning weight="fill" className="w-4 h-4 mr-2" />

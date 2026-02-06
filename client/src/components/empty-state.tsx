@@ -161,12 +161,11 @@ export function EmptyState({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <Card className="glass-panel border-dashed border-white/20 rounded-2xl overflow-hidden">
+      <Card className="glass-panel border-dashed border-border rounded-2xl overflow-hidden">
         <CardContent className="py-12 px-6 md:px-12">
           <div className="max-w-md mx-auto text-center space-y-6">
-            {/* Icon with glow effect */}
             <motion.div 
-              className="mx-auto h-20 w-20 bg-violet-500/20 rounded-2xl flex items-center justify-center shadow-glow-sm"
+              className="mx-auto h-20 w-20 bg-accent rounded-2xl flex items-center justify-center shadow-token"
               animate={{ 
                 boxShadow: [
                   "0 0 20px rgba(139, 92, 246, 0.2)",
@@ -176,21 +175,19 @@ export function EmptyState({
               }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              <Icon className="h-10 w-10 text-violet-400" weight="duotone" />
+              <Icon className="h-10 w-10 text-primary" weight="duotone" />
             </motion.div>
 
-            {/* Title and description */}
             <div className="space-y-2">
-              <h3 className="text-xl font-semibold text-white">{config.title}</h3>
-              <p className="text-white/60 text-base leading-relaxed">
+              <h3 className="text-xl font-semibold text-foreground">{config.title}</h3>
+              <p className="text-muted-foreground text-base leading-relaxed">
                 {config.description}
               </p>
             </div>
 
-            {/* Tips section */}
             {config.tips.length > 0 && (
-              <div className="bg-white/5 rounded-xl p-4 text-left space-y-2">
-                <p className="text-xs font-medium text-white/40 uppercase tracking-wider flex items-center gap-2">
+              <div className="bg-muted rounded-xl p-4 text-left space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                   <LightbulbFilament className="h-4 w-4 text-amber-400" weight="fill" />
                   Quick tips
                 </p>
@@ -198,12 +195,12 @@ export function EmptyState({
                   {config.tips.map((tip, index) => (
                     <motion.li 
                       key={index}
-                      className="flex items-start gap-2 text-sm text-white/70"
+                      className="flex items-start gap-2 text-sm text-foreground"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.1 * (index + 1) }}
                     >
-                      <Sparkle className="h-4 w-4 text-violet-400 flex-shrink-0 mt-0.5" weight="fill" />
+                      <Sparkle className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" weight="fill" />
                       {tip}
                     </motion.li>
                   ))}
@@ -211,7 +208,6 @@ export function EmptyState({
               </div>
             )}
 
-            {/* Action buttons */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               {onAction && (
                 <Button 
@@ -228,7 +224,7 @@ export function EmptyState({
                 <Button 
                   variant="outline"
                   onClick={onTutorialStart}
-                  className="rounded-xl h-12 px-6 border-violet-500/30 text-violet-300 hover:bg-violet-500/10"
+                  className="rounded-xl h-12 px-6 border-primary/30 text-primary hover:bg-accent"
                   data-testid={`button-tutorial-${variant}`}
                 >
                   <Play className="h-4 w-4 mr-2" weight="fill" />
@@ -243,7 +239,6 @@ export function EmptyState({
   );
 }
 
-// Smaller inline empty state for sections within pages
 interface InlineEmptyStateProps {
   icon: typeof Tray;
   title: string;
@@ -264,22 +259,22 @@ export function InlineEmptyState({
 }: InlineEmptyStateProps) {
   return (
     <div className={cn(
-      "py-8 text-center border border-dashed border-white/20 rounded-xl",
+      "py-8 text-center border border-dashed border-border rounded-xl",
       className
     )}>
-      <div className="mx-auto h-12 w-12 bg-white/5 rounded-xl flex items-center justify-center mb-3">
-        <Icon className="h-6 w-6 text-white/40" weight="duotone" />
+      <div className="mx-auto h-12 w-12 bg-muted rounded-xl flex items-center justify-center mb-3">
+        <Icon className="h-6 w-6 text-muted-foreground" weight="duotone" />
       </div>
-      <p className="text-white/70 font-medium">{title}</p>
+      <p className="text-foreground font-medium">{title}</p>
       {description && (
-        <p className="text-white/40 text-sm mt-1">{description}</p>
+        <p className="text-muted-foreground text-sm mt-1">{description}</p>
       )}
       {action && (
         <Button 
           variant="ghost" 
           size="sm"
           onClick={action.onClick}
-          className="mt-3 text-violet-400 hover:text-violet-300 hover:bg-violet-500/10"
+          className="mt-3 text-primary hover:text-primary hover:bg-accent"
         >
           {action.label}
           <ArrowRight className="h-4 w-4 ml-1" weight="bold" />

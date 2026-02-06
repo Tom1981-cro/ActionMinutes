@@ -50,22 +50,22 @@ function ExpandableSection({ title, icon, defaultOpen = false, forceOpen, childr
       <Card className="overflow-hidden">
         <CollapsibleTrigger asChild>
           <button
-            className="w-full flex items-center justify-between px-4 py-4 md:px-6 hover:bg-white/5 transition-colors"
+            className="w-full flex items-center justify-between px-4 py-4 md:px-6 hover:bg-accent transition-colors"
             data-testid={testId}
           >
             <div className="flex items-center gap-3">
               {icon}
-              <span className="text-lg font-semibold text-white">{title}</span>
+              <span className="text-lg font-semibold text-foreground">{title}</span>
             </div>
             {isOpen ? (
-              <CaretDown className="h-5 w-5 text-white/50" weight="duotone" />
+              <CaretDown className="h-5 w-5 text-muted-foreground" weight="duotone" />
             ) : (
-              <CaretRight className="h-5 w-5 text-white/50" weight="duotone" />
+              <CaretRight className="h-5 w-5 text-muted-foreground" weight="duotone" />
             )}
           </button>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <div className="px-4 pb-4 md:px-6 md:pb-6 border-t border-white/10 pt-4">
+          <div className="px-4 pb-4 md:px-6 md:pb-6 border-t border-border pt-4">
             {children}
           </div>
         </CollapsibleContent>
@@ -177,20 +177,20 @@ export default function SettingsPage() {
       {/* Appearance Section */}
       <ExpandableSection
         title="Appearance"
-        icon={<Palette className="h-5 w-5 text-violet-400" weight="duotone" />}
+        icon={<Palette className="h-5 w-5 text-primary" weight="duotone" />}
         defaultOpen
         testId="section-appearance"
       >
         <div className="space-y-6">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium text-white/90 light:text-gray-900">Theme</h3>
+              <h3 className="font-medium text-foreground">Theme</h3>
               {currentTheme !== DEFAULT_THEME && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={resetTheme}
-                  className="text-xs text-white/50 hover:text-white/80 light:text-gray-500 light:hover:text-gray-700"
+                  className="text-xs text-muted-foreground hover:text-foreground"
                   data-testid="button-reset-theme"
                 >
                   <ArrowCounterClockwise className="h-3.5 w-3.5 mr-1.5" weight="bold" />
@@ -214,15 +214,15 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-3 mb-2">
                     <div className="flex gap-1">
                       <div
-                        className="h-4 w-4 rounded-full border border-white/20"
+                        className="h-4 w-4 rounded-full border border-border"
                         style={{ background: t.preview.primary }}
                       />
                       <div
-                        className="h-4 w-4 rounded-full border border-white/20"
+                        className="h-4 w-4 rounded-full border border-border"
                         style={{ background: t.preview.accent }}
                       />
                       <div
-                        className="h-4 w-4 rounded-full border border-white/20"
+                        className="h-4 w-4 rounded-full border border-border"
                         style={{ background: t.preview.bg }}
                       />
                     </div>
@@ -244,7 +244,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-4 pt-4 border-t border-border">
-            <h3 className="font-medium text-white/90 light:text-gray-900">Mode</h3>
+            <h3 className="font-medium text-foreground">Mode</h3>
             <div className="flex gap-2">
               <button
                 onClick={() => setMode("light")}
@@ -284,18 +284,18 @@ export default function SettingsPage() {
       {/* AI Preferences Section */}
       <ExpandableSection
         title="AI Preferences"
-        icon={<Sparkle className="h-5 w-5 text-violet-400" weight="duotone" />}
+        icon={<Sparkle className="h-5 w-5 text-primary" weight="duotone" />}
         testId="section-ai-preferences"
       >
         <div className="space-y-6">
           {/* AI Settings */}
           <div className="space-y-4">
-            <h3 className="font-medium text-white/90">AI Extraction</h3>
+            <h3 className="font-medium text-foreground">AI Extraction</h3>
             <div className="space-y-4">
               <div className="flex items-start justify-between gap-4 py-2">
                 <div className="space-y-1 flex-1">
-                  <Label className="text-base text-white/80">Enable AI Extraction</Label>
-                  <p className="text-sm text-white/50">Process notes to find actions automatically.</p>
+                  <Label className="text-base text-foreground">Enable AI Extraction</Label>
+                  <p className="text-sm text-muted-foreground">Process notes to find actions automatically.</p>
                 </div>
                 <Switch 
                   checked={user.aiEnabled} 
@@ -306,8 +306,8 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-start justify-between gap-4 py-2">
                 <div className="space-y-1 flex-1">
-                  <Label className="text-base text-white/80">Auto-generate Drafts</Label>
-                  <p className="text-sm text-white/50">Create follow-up emails immediately.</p>
+                  <Label className="text-base text-foreground">Auto-generate Drafts</Label>
+                  <p className="text-sm text-muted-foreground">Create follow-up emails immediately.</p>
                 </div>
                 <Switch 
                   checked={user.autoGenerateDrafts} 
@@ -318,8 +318,8 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-start justify-between gap-4 py-2">
                 <div className="space-y-1 flex-1">
-                  <Label className="text-base text-white/80">Personal AI</Label>
-                  <p className="text-sm text-white/50">Enable AI suggestions and summaries in your private journal.</p>
+                  <Label className="text-base text-foreground">Personal AI</Label>
+                  <p className="text-sm text-muted-foreground">Enable AI suggestions and summaries in your private journal.</p>
                 </div>
                 <Switch 
                   checked={user.personalAiEnabled !== false} 
@@ -332,10 +332,10 @@ export default function SettingsPage() {
           </div>
 
           {/* Work Style */}
-          <div className="space-y-4 pt-4 border-t border-white/10">
-            <h3 className="font-medium text-white/90">Work Style</h3>
+          <div className="space-y-4 pt-4 border-t border-border">
+            <h3 className="font-medium text-foreground">Work Style</h3>
             <div className="space-y-3">
-              <Label className="text-base text-white/80">Tone</Label>
+              <Label className="text-base text-foreground">Tone</Label>
               <div className="flex flex-wrap gap-2">
                 {['direct', 'friendly', 'formal'].map((t) => (
                   <Button 
@@ -345,8 +345,8 @@ export default function SettingsPage() {
                     className={cn(
                       "capitalize rounded-xl h-11 px-5 flex-1 sm:flex-none",
                       user.tone === t 
-                        ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30' 
-                        : 'text-white/60 border border-white/10'
+                        ? 'bg-accent text-primary border border-primary/30' 
+                        : 'text-muted-foreground border border-border'
                     )}
                     data-testid={`button-tone-${t}`}
                   >
@@ -379,19 +379,19 @@ export default function SettingsPage() {
           )}
 
           {/* Current Plan Status */}
-          <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+          <div className="flex items-center justify-between p-4 bg-accent rounded-xl border border-border">
             <div className="flex items-center gap-3">
               {isPro ? (
-                <div className="p-2 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-lg">
+                <div className="p-2 bg-accent rounded-lg">
                   <Crown className="h-6 w-6 text-amber-400" weight="duotone" />
                 </div>
               ) : (
-                <div className="p-2 bg-white/10 rounded-lg">
-                  <Rocket className="h-6 w-6 text-white/50" weight="duotone" />
+                <div className="p-2 bg-muted rounded-lg">
+                  <Rocket className="h-6 w-6 text-muted-foreground" weight="duotone" />
                 </div>
               )}
               <div>
-                <p className="font-semibold text-white" data-testid="text-current-plan">
+                <p className="font-semibold text-foreground" data-testid="text-current-plan">
                   {isPro ? 'Pro Plan' : 'Free Plan'}
                 </p>
                 <div className="flex items-center gap-2">
@@ -408,7 +408,7 @@ export default function SettingsPage() {
                     </span>
                   )}
                   {!isPro && (
-                    <span className="text-sm text-white/50" data-testid="status-free">
+                    <span className="text-sm text-muted-foreground" data-testid="status-free">
                       300 min/month • 5 AI extractions
                     </span>
                   )}
@@ -420,13 +420,13 @@ export default function SettingsPage() {
           {/* Upgrade Section - Show for Free users */}
           {!isPro && (
             <div className="space-y-6">
-              <Card className="bg-white/5 border-white/10 hover:bg-white/[0.07] transition-all max-w-md">
+              <Card className="bg-accent border-border hover:bg-accent/80 transition-all max-w-md">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg text-white">Pro</CardTitle>
-                    <span className="bg-violet-500/20 text-violet-300 text-xs font-medium px-2 py-1 rounded-full">Recommended</span>
+                    <CardTitle className="text-lg text-foreground">Pro</CardTitle>
+                    <span className="bg-accent text-primary text-xs font-medium px-2 py-1 rounded-full">Recommended</span>
                   </div>
-                  <CardDescription className="text-white/60">Unlock your full productivity</CardDescription>
+                  <CardDescription className="text-muted-foreground">Unlock your full productivity</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-2 mb-3">
@@ -434,8 +434,8 @@ export default function SettingsPage() {
                       onClick={() => setBillingInterval('monthly')}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                         billingInterval === 'monthly' 
-                          ? 'bg-violet-600 text-white' 
-                          : 'bg-white/10 text-white/60 hover:bg-white/15'
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-muted text-muted-foreground hover:bg-accent'
                       }`}
                       data-testid="settings-billing-monthly"
                     >
@@ -445,8 +445,8 @@ export default function SettingsPage() {
                       onClick={() => setBillingInterval('yearly')}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
                         billingInterval === 'yearly' 
-                          ? 'bg-violet-600 text-white' 
-                          : 'bg-white/10 text-white/60 hover:bg-white/15'
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-muted text-muted-foreground hover:bg-accent'
                       }`}
                       data-testid="settings-billing-yearly"
                     >
@@ -455,13 +455,13 @@ export default function SettingsPage() {
                     </button>
                   </div>
                   <div>
-                    <span className="text-3xl font-bold text-white">{currencySymbol}{currentPrice}</span>
-                    <span className="text-white/50 ml-1">/{billingInterval === 'yearly' ? 'year' : 'month'}</span>
+                    <span className="text-3xl font-bold text-foreground">{currencySymbol}{currentPrice}</span>
+                    <span className="text-muted-foreground ml-1">/{billingInterval === 'yearly' ? 'year' : 'month'}</span>
                     {monthlyEquivalent && (
-                      <p className="text-sm text-violet-400 mt-1">{currencySymbol}{monthlyEquivalent}/month</p>
+                      <p className="text-sm text-primary mt-1">{currencySymbol}{monthlyEquivalent}/month</p>
                     )}
                   </div>
-                  <ul className="space-y-2 text-sm text-white/80">
+                  <ul className="space-y-2 text-sm text-foreground">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-emerald-400" weight="duotone" />
                       Unlimited transcription
@@ -478,12 +478,12 @@ export default function SettingsPage() {
                   <Button
                     onClick={() => handleUpgrade()}
                     disabled={isUpgrading}
-                    className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white h-11 rounded-xl font-semibold"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 rounded-xl font-semibold"
                     data-testid="button-upgrade-pro"
                   >
                     {isUpgrading ? (
                       <span className="flex items-center gap-2">
-                        <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                         Redirecting...
                       </span>
                     ) : (
@@ -501,20 +501,20 @@ export default function SettingsPage() {
           {/* Manage Subscription - Show for Pro users */}
           {isPro && (
             <div className="space-y-4">
-              <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-                <p className="text-sm text-white/80 mb-4">
+              <div className="p-4 bg-accent rounded-xl border border-border">
+                <p className="text-sm text-foreground mb-4">
                   Manage your subscription, update payment methods, or cancel your plan through the Stripe Customer Portal.
                 </p>
                 <Button
                   onClick={handleManageSubscription}
                   disabled={isManaging}
                   variant="outline"
-                  className="w-full h-11 rounded-xl text-white border-white/20 hover:bg-white/10"
+                  className="w-full h-11 rounded-xl text-foreground border-border hover:bg-accent"
                   data-testid="button-manage-subscription"
                 >
                   {isManaging ? (
                     <span className="flex items-center gap-2">
-                      <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="h-4 w-4 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
                       Redirecting...
                     </span>
                   ) : (
@@ -563,32 +563,32 @@ export default function SettingsPage() {
         <div className="space-y-4">
           {/* About ActionMinutes */}
           <div className="space-y-3">
-            <h3 className="font-medium text-white/90 flex items-center gap-2">
-              <Info className="h-4 w-4 text-violet-400" weight="duotone" />
+            <h3 className="font-medium text-foreground flex items-center gap-2">
+              <Info className="h-4 w-4 text-primary" weight="duotone" />
               About ActionMinutes
             </h3>
-            <div className="p-4 bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 rounded-xl border border-violet-500/20">
-              <p className="text-sm text-white/80 leading-relaxed">
+            <div className="p-4 bg-accent rounded-xl border border-primary/20">
+              <p className="text-sm text-foreground leading-relaxed">
                 ActionMinutes transforms your messy meeting notes into actionable outputs. 
                 Simply capture your notes, and we'll extract clear action items with owners and due dates, 
                 key decisions, and ready-to-send follow-up emails — all in under 60 seconds.
               </p>
-              <p className="text-xs text-white/50 mt-3">
+              <p className="text-xs text-muted-foreground mt-3">
                 Minutes → Actions → Follow-ups
               </p>
             </div>
           </div>
 
           {/* Privacy Settings */}
-          <div className="space-y-3 pt-4 border-t border-white/10">
-            <h3 className="font-medium text-white/90 flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 text-violet-400" weight="duotone" />
+          <div className="space-y-3 pt-4 border-t border-border">
+            <h3 className="font-medium text-foreground flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-primary" weight="duotone" />
               Privacy Settings
             </h3>
             <div className="flex items-start justify-between gap-4 py-2 pl-2">
               <div className="space-y-1 flex-1">
-                <Label className="text-base text-white/80">Allow storing uploaded images</Label>
-                <p className="text-sm text-white/50">When off, uploaded photos of handwritten notes are processed and immediately deleted.</p>
+                <Label className="text-base text-foreground">Allow storing uploaded images</Label>
+                <p className="text-sm text-muted-foreground">When off, uploaded photos of handwritten notes are processed and immediately deleted.</p>
                 <p className="text-xs text-amber-400">Images can contain sensitive information.</p>
               </div>
               <Switch 
@@ -601,18 +601,18 @@ export default function SettingsPage() {
           </div>
 
           {/* Legal Links */}
-          <div className="space-y-3 pt-4 border-t border-white/10">
-            <h3 className="font-medium text-white/90">Legal</h3>
+          <div className="space-y-3 pt-4 border-t border-border">
+            <h3 className="font-medium text-foreground">Legal</h3>
             <div className="space-y-2">
               <Link href="/privacy-policy">
                 <Button variant="outline" className="w-full justify-start h-11 rounded-xl" data-testid="link-privacy-policy">
-                  <ShieldCheck className="h-4 w-4 mr-3 text-white/50" weight="duotone" />
+                  <ShieldCheck className="h-4 w-4 mr-3 text-muted-foreground" weight="duotone" />
                   Privacy Policy
                 </Button>
               </Link>
               <Link href="/terms">
                 <Button variant="outline" className="w-full justify-start h-11 rounded-xl" data-testid="link-terms">
-                  <Scales className="h-4 w-4 mr-3 text-white/50" weight="duotone" />
+                  <Scales className="h-4 w-4 mr-3 text-muted-foreground" weight="duotone" />
                   Terms of Service
                 </Button>
               </Link>
@@ -620,8 +620,8 @@ export default function SettingsPage() {
           </div>
 
           {/* Help & Feedback */}
-          <div className="space-y-3 pt-4 border-t border-white/10">
-            <h3 className="font-medium text-white/90">Help & Feedback</h3>
+          <div className="space-y-3 pt-4 border-t border-border">
+            <h3 className="font-medium text-foreground">Help & Feedback</h3>
             <Link href="/support">
               <Button variant="outline" className="w-full justify-start h-11 rounded-xl" data-testid="link-support">
                 <Lifebuoy className="h-4 w-4 mr-3 text-amber-400" weight="duotone" />
@@ -634,7 +634,7 @@ export default function SettingsPage() {
               className="w-full justify-start h-11 rounded-xl"
               data-testid="button-send-feedback"
             >
-              <ChatCircle className="h-4 w-4 mr-3 text-violet-400" weight="duotone" />
+              <ChatCircle className="h-4 w-4 mr-3 text-primary" weight="duotone" />
               Send Feedback
             </Button>
             
@@ -646,7 +646,7 @@ export default function SettingsPage() {
                   className="w-full justify-start h-11 rounded-xl"
                   data-testid="button-admin-feedback"
                 >
-                  <ShieldCheck className="h-4 w-4 mr-3 text-fuchsia-400" weight="duotone" />
+                  <ShieldCheck className="h-4 w-4 mr-3 text-primary" weight="duotone" />
                   Admin: View Feedback
                 </Button>
               </Link>
@@ -657,8 +657,8 @@ export default function SettingsPage() {
 
       {/* Version Number */}
       <div className="text-center py-6">
-        <p className="text-xs text-white/60 light:text-gray-600 font-medium">
-          ActionMinutes v1.0.1. - by <a href="https://relay-labs.app" target="_blank" rel="noopener noreferrer" className="hover:text-violet-400 underline decoration-violet-500/30 underline-offset-2 transition-all">Relay Labs</a>
+        <p className="text-xs text-muted-foreground font-medium">
+          ActionMinutes v1.0.1. - by <a href="https://relay-labs.app" target="_blank" rel="noopener noreferrer" className="hover:text-primary underline decoration-primary/30 underline-offset-2 transition-all">Relay Labs</a>
         </p>
       </div>
 

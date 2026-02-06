@@ -12,36 +12,36 @@ const screens = [
     subtitle: "Turn messy meeting notes into calm, clear actions",
     content: (
       <div className="space-y-6">
-        <div className="bg-white rounded-2xl p-6 shadow-soft border border-gray-100">
-          <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-3">Raw Notes</div>
-          <div className="text-sm text-slate-600 leading-relaxed space-y-2">
+        <div className="bg-card rounded-2xl p-6 shadow-soft border border-border">
+          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">Raw Notes</div>
+          <div className="text-sm text-muted-foreground leading-relaxed space-y-2">
             <p>Mike needs to fix auth bug by Thursday</p>
             <p>Sarah will handle marketing deck for board</p>
             <p>Decision: delay mobile launch 2 weeks</p>
           </div>
         </div>
         <div className="flex justify-center">
-          <div className="flex items-center gap-2 text-indigo-500 font-semibold">
+          <div className="flex items-center gap-2 text-primary font-semibold">
             <span>Processing</span>
             <div className="flex gap-1">
-              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-              <div className="w-2 h-2 bg-indigo-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
             </div>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-indigo-50 rounded-xl p-4 text-center border border-indigo-100">
-            <div className="text-2xl font-bold text-indigo-600">3</div>
-            <div className="text-xs text-indigo-500">Actions</div>
+          <div className="bg-accent rounded-xl p-4 text-center border border-border">
+            <div className="text-2xl font-bold text-primary">3</div>
+            <div className="text-xs text-primary">Actions</div>
           </div>
-          <div className="bg-purple-50 rounded-xl p-4 text-center border border-purple-100">
-            <div className="text-2xl font-bold text-purple-600">1</div>
-            <div className="text-xs text-purple-500">Decision</div>
+          <div className="bg-accent rounded-xl p-4 text-center border border-border">
+            <div className="text-2xl font-bold text-primary">1</div>
+            <div className="text-xs text-primary">Decision</div>
           </div>
-          <div className="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
-            <div className="text-2xl font-bold text-teal-600">2</div>
-            <div className="text-xs text-teal-500">Follow-ups</div>
+          <div className="bg-accent rounded-xl p-4 text-center border border-border">
+            <div className="text-2xl font-bold text-primary">2</div>
+            <div className="text-xs text-primary">Follow-ups</div>
           </div>
         </div>
       </div>
@@ -53,16 +53,16 @@ const screens = [
     subtitle: "AI-powered extraction with confidence scoring",
     content: (
       <div className="space-y-4">
-        <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-100">
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
               <div className="w-3 h-3 bg-green-500 rounded-full" />
             </div>
             <div className="flex-1">
-              <div className="font-medium text-slate-800">Fix auth bug blocking API</div>
-              <div className="text-sm text-slate-500 mt-1">Mike • Due: Thursday</div>
+              <div className="font-medium text-foreground">Fix auth bug blocking API</div>
+              <div className="text-sm text-muted-foreground mt-1">Mike • Due: Thursday</div>
               <div className="flex items-center gap-2 mt-2">
-                <div className="h-1.5 flex-1 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
                   <div className="h-full bg-green-500 rounded-full" style={{ width: "95%" }} />
                 </div>
                 <span className="text-xs font-medium text-green-600">95%</span>
@@ -70,16 +70,16 @@ const screens = [
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-100">
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
               <div className="w-3 h-3 bg-green-500 rounded-full" />
             </div>
             <div className="flex-1">
-              <div className="font-medium text-slate-800">Finalize marketing deck</div>
-              <div className="text-sm text-slate-500 mt-1">Sarah • Due: Friday</div>
+              <div className="font-medium text-foreground">Finalize marketing deck</div>
+              <div className="text-sm text-muted-foreground mt-1">Sarah • Due: Friday</div>
               <div className="flex items-center gap-2 mt-2">
-                <div className="h-1.5 flex-1 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
                   <div className="h-full bg-green-500 rounded-full" style={{ width: "98%" }} />
                 </div>
                 <span className="text-xs font-medium text-green-600">98%</span>
@@ -87,16 +87,16 @@ const screens = [
             </div>
           </div>
         </div>
-        <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-100">
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border">
           <div className="flex items-start gap-3">
             <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
               <div className="w-3 h-3 bg-amber-500 rounded-full" />
             </div>
             <div className="flex-1">
-              <div className="font-medium text-slate-800">Update Jira roadmap</div>
-              <div className="text-sm text-slate-500 mt-1">Mike • No due date</div>
+              <div className="font-medium text-foreground">Update Jira roadmap</div>
+              <div className="text-sm text-muted-foreground mt-1">Mike • No due date</div>
               <div className="flex items-center gap-2 mt-2">
-                <div className="h-1.5 flex-1 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
                   <div className="h-full bg-amber-500 rounded-full" style={{ width: "62%" }} />
                 </div>
                 <span className="text-xs font-medium text-amber-600">62%</span>
@@ -104,7 +104,7 @@ const screens = [
             </div>
           </div>
         </div>
-        <div className="text-center text-sm text-slate-400">Extracted in 1.2 seconds</div>
+        <div className="text-center text-sm text-muted-foreground">Extracted in 1.2 seconds</div>
       </div>
     ),
   },
@@ -114,34 +114,34 @@ const screens = [
     subtitle: "Auto-generated email drafts ready to send",
     content: (
       <div className="space-y-4">
-        <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-100">
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">M</div>
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs font-bold">M</div>
             <div>
-              <div className="font-medium text-slate-800">To: Mike</div>
-              <div className="text-xs text-slate-400">mike@company.com</div>
+              <div className="font-medium text-foreground">To: Mike</div>
+              <div className="text-xs text-muted-foreground">mike@company.com</div>
             </div>
           </div>
-          <div className="bg-gray-50 rounded-xl p-4 text-sm text-slate-600">
+          <div className="bg-muted rounded-xl p-4 text-sm text-muted-foreground">
             <p className="font-medium mb-2">Re: Q4 Roadmap - Action Items</p>
             <p>Hi Mike,</p>
             <p className="mt-2">Following up from our sync today. You mentioned you'd fix the auth bug by Thursday. Let me know if you need any help.</p>
             <p className="mt-2">Best,<br/>Alex</p>
           </div>
           <div className="flex gap-2 mt-4">
-            <Button size="sm" className="btn-gradient text-white flex-1">Send via Gmail</Button>
+            <Button size="sm" className="btn-gradient text-primary-foreground flex-1">Send via Gmail</Button>
             <Button size="sm" variant="outline" className="flex-1">Edit</Button>
           </div>
         </div>
-        <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-100 opacity-60">
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border opacity-60">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-green-500 rounded-full flex items-center justify-center text-white text-xs font-bold">S</div>
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs font-bold">S</div>
             <div>
-              <div className="font-medium text-slate-800">To: Sarah</div>
-              <div className="text-xs text-slate-400">sarah@company.com</div>
+              <div className="font-medium text-foreground">To: Sarah</div>
+              <div className="text-xs text-muted-foreground">sarah@company.com</div>
             </div>
           </div>
-          <div className="text-sm text-slate-500">Draft ready...</div>
+          <div className="text-sm text-muted-foreground">Draft ready...</div>
         </div>
       </div>
     ),
@@ -154,11 +154,11 @@ const screens = [
       <div className="space-y-3">
         <div className="flex items-center justify-between mb-4">
           <div className="flex gap-2">
-            <div className="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium">All</div>
-            <div className="px-3 py-1.5 bg-gray-100 text-slate-500 rounded-full text-xs font-medium">Mine</div>
-            <div className="px-3 py-1.5 bg-gray-100 text-slate-500 rounded-full text-xs font-medium">Team</div>
+            <div className="px-3 py-1.5 bg-accent text-primary rounded-full text-xs font-medium">All</div>
+            <div className="px-3 py-1.5 bg-muted text-muted-foreground rounded-full text-xs font-medium">Mine</div>
+            <div className="px-3 py-1.5 bg-muted text-muted-foreground rounded-full text-xs font-medium">Team</div>
           </div>
-          <div className="text-xs text-slate-400">12 open</div>
+          <div className="text-xs text-muted-foreground">12 open</div>
         </div>
         {[
           { title: "Fix auth bug", owner: "Mike", due: "Today", priority: "high" },
@@ -166,18 +166,18 @@ const screens = [
           { title: "Update roadmap", owner: "Mike", due: "This week", priority: "medium" },
           { title: "Review contracts", owner: "You", due: "Next week", priority: "low" },
         ].map((task, i) => (
-          <div key={i} className="bg-white rounded-xl p-4 shadow-soft border border-gray-100 flex items-center gap-3">
+          <div key={i} className="bg-card rounded-xl p-4 shadow-soft border border-border flex items-center gap-3">
             <div className={cn(
               "w-4 h-4 rounded border-2 flex-shrink-0",
-              task.priority === "high" ? "border-red-400" : task.priority === "medium" ? "border-amber-400" : "border-gray-300"
+              task.priority === "high" ? "border-red-400" : task.priority === "medium" ? "border-amber-400" : "border-border"
             )} />
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-slate-800 truncate">{task.title}</div>
-              <div className="text-xs text-slate-400">{task.owner}</div>
+              <div className="font-medium text-foreground truncate">{task.title}</div>
+              <div className="text-xs text-muted-foreground">{task.owner}</div>
             </div>
             <div className={cn(
               "text-xs font-medium px-2 py-1 rounded-full",
-              task.due === "Today" ? "bg-red-50 text-red-600" : task.due === "Tomorrow" ? "bg-amber-50 text-amber-600" : "bg-gray-100 text-slate-500"
+              task.due === "Today" ? "bg-red-50 text-red-600" : task.due === "Tomorrow" ? "bg-amber-50 text-amber-600" : "bg-muted text-muted-foreground"
             )}>
               {task.due}
             </div>
@@ -192,8 +192,8 @@ const screens = [
     subtitle: "Role-based permissions and workspace management",
     content: (
       <div className="space-y-4">
-        <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-100">
-          <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">Product Team</div>
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border">
+          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4">Product Team</div>
           <div className="space-y-3">
             {[
               { name: "Alex Chen", role: "Admin", avatar: "A", tasks: 5 },
@@ -201,22 +201,22 @@ const screens = [
               { name: "Sarah Kim", role: "Member", avatar: "S", tasks: 3 },
             ].map((member, i) => (
               <div key={i} className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-sm">
                   {member.avatar}
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium text-slate-800">{member.name}</div>
-                  <div className="text-xs text-slate-400">{member.role}</div>
+                  <div className="font-medium text-foreground">{member.name}</div>
+                  <div className="text-xs text-muted-foreground">{member.role}</div>
                 </div>
-                <div className="text-sm font-medium text-indigo-600">{member.tasks} tasks</div>
+                <div className="text-sm font-medium text-primary">{member.tasks} tasks</div>
               </div>
             ))}
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
-            <div className="text-2xl font-bold text-indigo-600">16</div>
-            <div className="text-xs text-indigo-500">Open tasks</div>
+          <div className="bg-accent rounded-xl p-4 border border-border">
+            <div className="text-2xl font-bold text-primary">16</div>
+            <div className="text-xs text-primary">Open tasks</div>
           </div>
           <div className="bg-green-50 rounded-xl p-4 border border-green-100">
             <div className="text-2xl font-bold text-green-600">24</div>
@@ -232,28 +232,28 @@ const screens = [
     subtitle: "Private space for reflection and planning",
     content: (
       <div className="space-y-4">
-        <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-100">
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border">
           <div className="flex items-center gap-2 mb-3">
             <div className="text-lg">📝</div>
-            <div className="font-medium text-slate-800">Today's Entry</div>
+            <div className="font-medium text-foreground">Today's Entry</div>
           </div>
-          <div className="text-sm text-slate-600 leading-relaxed">
+          <div className="text-sm text-muted-foreground leading-relaxed">
             Feeling overwhelmed with the product launch. Need to delegate more of the technical tasks to the team...
           </div>
           <div className="flex gap-2 mt-4">
             <span className="px-2 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-medium">overwhelm</span>
-            <span className="px-2 py-1 bg-purple-50 text-purple-600 rounded-full text-xs font-medium">delegation</span>
+            <span className="px-2 py-1 bg-accent text-primary rounded-full text-xs font-medium">delegation</span>
           </div>
         </div>
-        <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-5 text-white">
+        <div className="bg-primary rounded-2xl p-5 text-primary-foreground">
           <div className="text-sm font-medium opacity-90 mb-2">AI Prompt</div>
           <div className="text-lg font-semibold">What would "done" look like for the launch?</div>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {["Today", "Tomorrow", "This Week"].map((bucket, i) => (
-            <div key={i} className="bg-white rounded-xl p-3 text-center shadow-soft border border-gray-100">
-              <div className="text-lg font-bold text-slate-700">{[3, 2, 5][i]}</div>
-              <div className="text-xs text-slate-400">{bucket}</div>
+            <div key={i} className="bg-card rounded-xl p-3 text-center shadow-soft border border-border">
+              <div className="text-lg font-bold text-foreground">{[3, 2, 5][i]}</div>
+              <div className="text-xs text-muted-foreground">{bucket}</div>
             </div>
           ))}
         </div>
@@ -266,38 +266,38 @@ const screens = [
     subtitle: "Generates drafts in your email client—you control send",
     content: (
       <div className="space-y-4">
-        <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-100">
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
                 <span className="text-red-600 font-bold text-sm">G</span>
               </div>
-              <span className="font-medium text-slate-800">Gmail</span>
+              <span className="font-medium text-foreground">Gmail</span>
             </div>
             <div className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">Connected</div>
           </div>
-          <div className="text-sm text-slate-500">Drafts appear in your Gmail drafts folder. You review and send.</div>
+          <div className="text-sm text-muted-foreground">Drafts appear in your Gmail drafts folder. You review and send.</div>
         </div>
-        <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-100">
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                 <span className="text-blue-600 font-bold text-sm">O</span>
               </div>
-              <span className="font-medium text-slate-800">Outlook</span>
+              <span className="font-medium text-foreground">Outlook</span>
             </div>
-            <div className="px-2 py-1 bg-gray-100 text-slate-500 rounded-full text-xs font-medium">Connect</div>
+            <div className="px-2 py-1 bg-muted text-muted-foreground rounded-full text-xs font-medium">Connect</div>
           </div>
-          <div className="text-sm text-slate-500">Link your Microsoft account to create drafts.</div>
+          <div className="text-sm text-muted-foreground">Link your Microsoft account to create drafts.</div>
         </div>
-        <div className="bg-indigo-50 rounded-2xl p-5 border border-indigo-100">
+        <div className="bg-accent rounded-2xl p-5 border border-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-              <span className="text-indigo-600">🔒</span>
+            <div className="w-10 h-10 bg-accent rounded-full flex items-center justify-center">
+              <span className="text-primary">🔒</span>
             </div>
             <div>
-              <div className="font-medium text-indigo-800">Your control, always</div>
-              <div className="text-sm text-indigo-600">We never send emails on your behalf</div>
+              <div className="font-medium text-primary">Your control, always</div>
+              <div className="text-sm text-primary">We never send emails on your behalf</div>
             </div>
           </div>
         </div>
@@ -310,14 +310,14 @@ const screens = [
     subtitle: "Export reminders and due dates to your calendar",
     content: (
       <div className="space-y-4">
-        <div className="bg-white rounded-2xl p-5 shadow-soft border border-gray-100">
+        <div className="bg-card rounded-2xl p-5 shadow-soft border border-border">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center text-white text-lg">
+            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground text-lg">
               📅
             </div>
             <div>
-              <div className="font-medium text-slate-800">Export to Calendar</div>
-              <div className="text-xs text-slate-400">ICS format for any calendar app</div>
+              <div className="font-medium text-foreground">Export to Calendar</div>
+              <div className="text-xs text-muted-foreground">ICS format for any calendar app</div>
             </div>
           </div>
           <div className="space-y-2">
@@ -326,23 +326,23 @@ const screens = [
               { title: "Marketing deck due", date: "Dec 6", time: "All day" },
               { title: "Board meeting prep", date: "Dec 10", time: "All day" },
             ].map((event, i) => (
-              <div key={i} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+              <div key={i} className="flex items-center gap-3 p-3 bg-muted rounded-xl">
                 <div className="w-12 text-center">
-                  <div className="text-xs text-slate-400">{event.date.split(" ")[0]}</div>
-                  <div className="text-lg font-bold text-slate-700">{event.date.split(" ")[1]}</div>
+                  <div className="text-xs text-muted-foreground">{event.date.split(" ")[0]}</div>
+                  <div className="text-lg font-bold text-foreground">{event.date.split(" ")[1]}</div>
                 </div>
                 <div className="flex-1">
-                  <div className="font-medium text-slate-700">{event.title}</div>
-                  <div className="text-xs text-slate-400">{event.time}</div>
+                  <div className="font-medium text-foreground">{event.title}</div>
+                  <div className="text-xs text-muted-foreground">{event.time}</div>
                 </div>
               </div>
             ))}
           </div>
         </div>
-        <Button className="w-full btn-gradient text-white">
+        <Button className="w-full btn-gradient text-primary-foreground">
           Download .ics File
         </Button>
-        <div className="text-center text-xs text-slate-400">
+        <div className="text-center text-xs text-muted-foreground">
           Works with Google Calendar, Apple Calendar, Outlook
         </div>
       </div>
@@ -357,16 +357,16 @@ function DeviceFrame({ children, showFrame }: { children: React.ReactNode; showF
 
   return (
     <div className="relative mx-auto" style={{ maxWidth: "375px" }}>
-      <div className="absolute inset-0 bg-slate-900 rounded-[3rem] shadow-2xl" style={{ transform: "scale(1.04)" }} />
-      <div className="relative bg-slate-900 rounded-[2.5rem] p-3">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-slate-900 rounded-b-2xl z-10" />
-        <div className="bg-gray-50 rounded-[2rem] overflow-hidden">
-          <div className="h-6 bg-gray-50" />
+      <div className="absolute inset-0 bg-secondary rounded-[3rem] shadow-2xl" style={{ transform: "scale(1.04)" }} />
+      <div className="relative bg-secondary rounded-[2.5rem] p-3">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-secondary rounded-b-2xl z-10" />
+        <div className="bg-muted rounded-[2rem] overflow-hidden">
+          <div className="h-6 bg-muted" />
           {children}
-          <div className="h-6 bg-gray-50" />
+          <div className="h-6 bg-muted" />
         </div>
       </div>
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-slate-700 rounded-full" />
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-secondary rounded-full" />
     </div>
   );
 }
@@ -386,12 +386,12 @@ export default function StoreScreensPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 font-sans">
+    <div className="min-h-screen bg-background font-sans">
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">App Store Screenshots</h1>
-            <p className="text-slate-500 text-sm">Capture each screen for store submissions</p>
+            <h1 className="text-2xl font-bold text-foreground">App Store Screenshots</h1>
+            <p className="text-muted-foreground text-sm">Capture each screen for store submissions</p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -401,7 +401,7 @@ export default function StoreScreensPage() {
                 onCheckedChange={setShowDeviceFrame}
                 data-testid="toggle-device-frame"
               />
-              <Label htmlFor="device-frame" className="text-sm text-slate-600 cursor-pointer">
+              <Label htmlFor="device-frame" className="text-sm text-muted-foreground cursor-pointer">
                 <span className="flex items-center gap-1.5">
                   {showDeviceFrame ? <Smartphone className="w-4 h-4" /> : <Monitor className="w-4 h-4" />}
                   Device Frame
@@ -428,7 +428,7 @@ export default function StoreScreensPage() {
                 data-testid={`screen-dot-${i}`}
                 className={cn(
                   "w-2.5 h-2.5 rounded-full transition-all",
-                  i === currentIndex ? "bg-indigo-500 scale-125" : "bg-gray-300 hover:bg-gray-400"
+                  i === currentIndex ? "bg-primary scale-125" : "bg-border hover:bg-muted-foreground"
                 )}
               />
             ))}
@@ -443,15 +443,15 @@ export default function StoreScreensPage() {
           </Button>
         </div>
 
-        <div className="text-center text-sm text-slate-500 mb-4">
+        <div className="text-center text-sm text-muted-foreground mb-4">
           Screen {currentIndex + 1} of {screens.length}
         </div>
 
         <DeviceFrame showFrame={showDeviceFrame}>
-          <div className="bg-gray-50 px-6 py-8" style={{ minHeight: "600px" }}>
+          <div className="bg-muted px-6 py-8" style={{ minHeight: "600px" }}>
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-slate-800 mb-2">{currentScreen.title}</h2>
-              <p className="text-sm text-slate-500">{currentScreen.subtitle}</p>
+              <h2 className="text-2xl font-bold text-foreground mb-2">{currentScreen.title}</h2>
+              <p className="text-sm text-muted-foreground">{currentScreen.subtitle}</p>
             </div>
             {currentScreen.content}
           </div>
@@ -466,11 +466,11 @@ export default function StoreScreensPage() {
               className={cn(
                 "p-3 rounded-xl text-left transition-all border",
                 i === currentIndex
-                  ? "bg-indigo-50 border-indigo-200"
-                  : "bg-white border-gray-100 hover:border-indigo-100"
+                  ? "bg-accent border-primary"
+                  : "bg-card border-border hover:border-primary"
               )}
             >
-              <div className="text-xs font-medium text-slate-700 truncate">{screen.title}</div>
+              <div className="text-xs font-medium text-foreground truncate">{screen.title}</div>
             </button>
           ))}
         </div>

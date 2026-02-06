@@ -66,9 +66,9 @@ export function Logo({ variant = 'squircle', size = 32, className = '', theme = 
 
   if (variant === 'simple') {
     return (
-      <div className={`bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center shadow-sm relative overflow-hidden ${className}`} style={{ width: size, height: size }}>
-        <div className="w-1.5 h-3 border-r-2 border-b-2 border-white transform rotate-45 mb-1 ml-0.5"></div>
-        <div className="absolute inset-0 border-2 border-white/20 rounded-lg"></div>
+      <div className={`bg-primary rounded-lg flex items-center justify-center shadow-sm relative overflow-hidden ${className}`} style={{ width: size, height: size }}>
+        <div className="w-1.5 h-3 border-r-2 border-b-2 border-primary-foreground transform rotate-45 mb-1 ml-0.5"></div>
+        <div className="absolute inset-0 border-2 border-border rounded-lg"></div>
       </div>
     );
   }
@@ -77,8 +77,8 @@ export function Logo({ variant = 'squircle', size = 32, className = '', theme = 
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <canvas ref={canvasRef} width={size} height={size} className="drop-shadow-sm" />
-        <span className="font-bold text-slate-800 tracking-tight" style={{ fontSize: size * 0.6 }}>
-          Action<span className="font-normal text-slate-600">Minutes</span>
+        <span className="font-bold text-foreground tracking-tight" style={{ fontSize: size * 0.6 }}>
+          Action<span className="font-normal text-muted-foreground">Minutes</span>
         </span>
       </div>
     );
@@ -95,8 +95,8 @@ export function LogoWordmark({ size = 'base', className = '' }: { size?: 'sm' | 
   };
 
   return (
-    <span className={`font-bold text-slate-800 tracking-tight ${sizeClasses[size]} ${className}`}>
-      Action<span className="font-normal text-slate-600">Minutes</span>
+    <span className={`font-bold text-foreground tracking-tight ${sizeClasses[size]} ${className}`}>
+      Action<span className="font-normal text-muted-foreground">Minutes</span>
     </span>
   );
 }

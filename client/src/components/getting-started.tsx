@@ -97,7 +97,6 @@ export function GettingStarted({
   const allCompleted = completedCount === steps.length;
 
   useEffect(() => {
-    // Auto-hide if all steps are completed
     if (allCompleted && isVisible) {
       const timer = setTimeout(() => {
         handleDismiss();
@@ -135,16 +134,16 @@ export function GettingStarted({
         exit={{ opacity: 0, y: -20 }}
         className={className}
       >
-        <Card className="glass-panel border-violet-500/30 rounded-2xl overflow-hidden">
+        <Card className="glass-panel border-primary/30 rounded-2xl overflow-hidden">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 bg-violet-500/20 rounded-xl flex items-center justify-center">
-                  <Rocket className="h-5 w-5 text-violet-400" weight="fill" />
+                <div className="h-10 w-10 bg-accent rounded-xl flex items-center justify-center">
+                  <Rocket className="h-5 w-5 text-primary" weight="fill" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg text-white">Getting Started</CardTitle>
-                  <p className="text-sm text-white/50">
+                  <CardTitle className="text-lg text-foreground">Getting Started</CardTitle>
+                  <p className="text-sm text-muted-foreground">
                     {allCompleted 
                       ? "You're all set! Great job." 
                       : `${completedCount} of ${steps.length} completed`
@@ -156,7 +155,7 @@ export function GettingStarted({
                 variant="ghost"
                 size="icon"
                 onClick={handleDismiss}
-                className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10 rounded-lg"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg"
                 data-testid="button-dismiss-getting-started"
               >
                 <X className="h-4 w-4" weight="bold" />
@@ -165,7 +164,7 @@ export function GettingStarted({
             
             <Progress 
               value={progressPercent} 
-              className="h-1.5 mt-3 bg-white/10"
+              className="h-1.5 mt-3 bg-muted"
             />
           </CardHeader>
           
@@ -183,8 +182,8 @@ export function GettingStarted({
                       step.completed 
                         ? "bg-emerald-500/10 border border-emerald-500/20" 
                         : isNext
-                        ? "bg-violet-500/10 border border-violet-500/30 hover:bg-violet-500/20"
-                        : "bg-white/5 border border-white/10 hover:bg-white/10"
+                        ? "bg-accent border border-primary/30 hover:bg-accent"
+                        : "bg-muted border border-border hover:bg-accent"
                     )}
                     whileHover={{ x: 4 }}
                     data-testid={`step-${step.id}`}
@@ -194,15 +193,15 @@ export function GettingStarted({
                       step.completed 
                         ? "bg-emerald-500/20" 
                         : isNext
-                        ? "bg-violet-500/20"
-                        : "bg-white/10"
+                        ? "bg-accent"
+                        : "bg-muted"
                     )}>
                       {step.completed ? (
                         <CheckCircle className="h-5 w-5 text-emerald-400" weight="fill" />
                       ) : (
                         <Icon className={cn(
                           "h-5 w-5",
-                          isNext ? "text-violet-400" : "text-white/50"
+                          isNext ? "text-primary" : "text-muted-foreground"
                         )} weight="duotone" />
                       )}
                     </div>
@@ -210,11 +209,11 @@ export function GettingStarted({
                     <div className="flex-1 min-w-0">
                       <p className={cn(
                         "font-medium text-sm",
-                        step.completed ? "text-emerald-300 line-through opacity-70" : "text-white"
+                        step.completed ? "text-emerald-300 line-through opacity-70" : "text-foreground"
                       )}>
                         {step.title}
                       </p>
-                      <p className="text-xs text-white/40 truncate">
+                      <p className="text-xs text-muted-foreground truncate">
                         {step.description}
                       </p>
                     </div>
@@ -222,7 +221,7 @@ export function GettingStarted({
                     {!step.completed && (
                       <ArrowRight className={cn(
                         "h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0",
-                        isNext ? "text-violet-400" : "text-white/50"
+                        isNext ? "text-primary" : "text-muted-foreground"
                       )} weight="bold" />
                     )}
                   </motion.div>
@@ -249,7 +248,6 @@ export function GettingStarted({
   );
 }
 
-// Mini version for sidebar
 export function GettingStartedMini({ className }: { className?: string }) {
   const [state] = useState<GettingStartedState>(() => getStoredState());
   
@@ -261,15 +259,15 @@ export function GettingStartedMini({ className }: { className?: string }) {
   return (
     <Link href="/app/inbox">
       <div className={cn(
-        "flex items-center gap-3 p-3 rounded-xl bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/20 transition-colors cursor-pointer",
+        "flex items-center gap-3 p-3 rounded-xl bg-accent border border-primary/20 hover:bg-accent transition-colors cursor-pointer",
         className
       )} data-testid="link-getting-started-mini">
-        <Rocket className="h-5 w-5 text-violet-400" weight="fill" />
+        <Rocket className="h-5 w-5 text-primary" weight="fill" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-white">Getting Started</p>
-          <Progress value={progressPercent} className="h-1 mt-1 bg-white/10" />
+          <p className="text-sm font-medium text-foreground">Getting Started</p>
+          <Progress value={progressPercent} className="h-1 mt-1 bg-muted" />
         </div>
-        <span className="text-xs text-white/50">{completedCount}/3</span>
+        <span className="text-xs text-muted-foreground">{completedCount}/3</span>
       </div>
     </Link>
   );

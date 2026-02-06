@@ -5,7 +5,7 @@ import { ArrowLeft, Terminal, CheckCircle, AlertCircle, Play, FileText, Settings
 
 export default function TestingGuidePage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-muted p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-8">
           <Link href="/settings">
@@ -14,8 +14,8 @@ export default function TestingGuidePage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Testing Guide</h1>
-            <p className="text-slate-500">How to run automated tests in ActionMinutes</p>
+            <h1 className="text-2xl font-bold text-foreground">Testing Guide</h1>
+            <p className="text-muted-foreground">How to run automated tests in ActionMinutes</p>
           </div>
         </div>
 
@@ -31,29 +31,29 @@ export default function TestingGuidePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="bg-slate-900 rounded-lg p-4 font-mono text-sm text-slate-100 space-y-3">
+              <div className="bg-card rounded-lg p-4 font-mono text-sm text-foreground space-y-3">
                 <div>
-                  <span className="text-slate-400"># Run all unit and API tests</span>
+                  <span className="text-muted-foreground"># Run all unit and API tests</span>
                   <div className="text-green-400">npx vitest run</div>
                 </div>
                 <div>
-                  <span className="text-slate-400"># Run unit tests only</span>
+                  <span className="text-muted-foreground"># Run unit tests only</span>
                   <div className="text-green-400">npx vitest run server/**/*.test.ts</div>
                 </div>
                 <div>
-                  <span className="text-slate-400"># Run API tests only</span>
+                  <span className="text-muted-foreground"># Run API tests only</span>
                   <div className="text-green-400">npx vitest run tests/api/**/*.test.ts</div>
                 </div>
                 <div>
-                  <span className="text-slate-400"># Run E2E smoke tests (Playwright)</span>
+                  <span className="text-muted-foreground"># Run E2E smoke tests (Playwright)</span>
                   <div className="text-green-400">npx playwright test</div>
                 </div>
                 <div>
-                  <span className="text-slate-400"># Run tests with coverage report</span>
+                  <span className="text-muted-foreground"># Run tests with coverage report</span>
                   <div className="text-green-400">npx vitest run --coverage</div>
                 </div>
                 <div>
-                  <span className="text-slate-400"># Run tests in watch mode</span>
+                  <span className="text-muted-foreground"># Run tests in watch mode</span>
                   <div className="text-green-400">npx vitest</div>
                 </div>
               </div>
@@ -75,31 +75,31 @@ export default function TestingGuidePage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-2 font-medium text-slate-700">Variable</th>
-                      <th className="text-left py-2 font-medium text-slate-700">Purpose</th>
-                      <th className="text-left py-2 font-medium text-slate-700">Default</th>
+                      <th className="text-left py-2 font-medium text-foreground">Variable</th>
+                      <th className="text-left py-2 font-medium text-foreground">Purpose</th>
+                      <th className="text-left py-2 font-medium text-foreground">Default</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
                     <tr>
                       <td className="py-2 font-mono text-indigo-600">AI_FEATURE_ENABLED</td>
-                      <td className="py-2 text-slate-600">Disable real AI calls in tests</td>
-                      <td className="py-2 text-slate-500">false (in tests)</td>
+                      <td className="py-2 text-foreground">Disable real AI calls in tests</td>
+                      <td className="py-2 text-muted-foreground">false (in tests)</td>
                     </tr>
                     <tr>
                       <td className="py-2 font-mono text-indigo-600">INTEGRATIONS_FEATURE_ENABLED</td>
-                      <td className="py-2 text-slate-600">Disable Gmail/Outlook OAuth</td>
-                      <td className="py-2 text-slate-500">false (in tests)</td>
+                      <td className="py-2 text-foreground">Disable Gmail/Outlook OAuth</td>
+                      <td className="py-2 text-muted-foreground">false (in tests)</td>
                     </tr>
                     <tr>
                       <td className="py-2 font-mono text-indigo-600">FIXED_CLOCK</td>
-                      <td className="py-2 text-slate-600">Freeze time for deterministic tests</td>
-                      <td className="py-2 text-slate-500">false</td>
+                      <td className="py-2 text-foreground">Freeze time for deterministic tests</td>
+                      <td className="py-2 text-muted-foreground">false</td>
                     </tr>
                     <tr>
                       <td className="py-2 font-mono text-indigo-600">NODE_ENV</td>
-                      <td className="py-2 text-slate-600">Set to 'test' for test environment</td>
-                      <td className="py-2 text-slate-500">test</td>
+                      <td className="py-2 text-foreground">Set to 'test' for test environment</td>
+                      <td className="py-2 text-muted-foreground">test</td>
                     </tr>
                   </tbody>
                 </table>
@@ -118,44 +118,44 @@ export default function TestingGuidePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="bg-slate-100 rounded-lg p-4 font-mono text-sm space-y-1">
-                <div className="text-slate-800">
+              <div className="bg-muted rounded-lg p-4 font-mono text-sm space-y-1">
+                <div className="text-foreground">
                   <span className="text-purple-600">server/</span>
-                  <span className="text-slate-500"> - Unit tests co-located with source</span>
+                  <span className="text-muted-foreground"> - Unit tests co-located with source</span>
                 </div>
-                <div className="text-slate-600 pl-4">
-                  ├── ai/ai.test.ts <span className="text-slate-400">(19 tests)</span>
+                <div className="text-foreground pl-4">
+                  ├── ai/ai.test.ts <span className="text-muted-foreground">(19 tests)</span>
                 </div>
-                <div className="text-slate-600 pl-4">
-                  ├── rbac.test.ts <span className="text-slate-400">(20 tests)</span>
+                <div className="text-foreground pl-4">
+                  ├── rbac.test.ts <span className="text-muted-foreground">(20 tests)</span>
                 </div>
-                <div className="text-slate-600 pl-4">
-                  ├── reminders/reminders.test.ts <span className="text-slate-400">(26 tests)</span>
+                <div className="text-foreground pl-4">
+                  ├── reminders/reminders.test.ts <span className="text-muted-foreground">(26 tests)</span>
                 </div>
-                <div className="text-slate-600 pl-4">
-                  ├── journal-ai/journal-ai.test.ts <span className="text-slate-400">(45 tests)</span>
+                <div className="text-foreground pl-4">
+                  ├── journal-ai/journal-ai.test.ts <span className="text-muted-foreground">(45 tests)</span>
                 </div>
-                <div className="text-slate-600 pl-4">
-                  └── ocr/ocr.test.ts <span className="text-slate-400">(10 tests)</span>
+                <div className="text-foreground pl-4">
+                  └── ocr/ocr.test.ts <span className="text-muted-foreground">(10 tests)</span>
                 </div>
-                <div className="mt-3 text-slate-800">
+                <div className="mt-3 text-foreground">
                   <span className="text-purple-600">tests/</span>
-                  <span className="text-slate-500"> - Integration and E2E tests</span>
+                  <span className="text-muted-foreground"> - Integration and E2E tests</span>
                 </div>
-                <div className="text-slate-600 pl-4">
-                  ├── api/auth.test.ts <span className="text-slate-400">(auth schemas)</span>
+                <div className="text-foreground pl-4">
+                  ├── api/auth.test.ts <span className="text-muted-foreground">(auth schemas)</span>
                 </div>
-                <div className="text-slate-600 pl-4">
-                  ├── api/meetings.test.ts <span className="text-slate-400">(meeting logic)</span>
+                <div className="text-foreground pl-4">
+                  ├── api/meetings.test.ts <span className="text-muted-foreground">(meeting logic)</span>
                 </div>
-                <div className="text-slate-600 pl-4">
-                  ├── api/extraction.test.ts <span className="text-slate-400">(AI extraction)</span>
+                <div className="text-foreground pl-4">
+                  ├── api/extraction.test.ts <span className="text-muted-foreground">(AI extraction)</span>
                 </div>
-                <div className="text-slate-600 pl-4">
-                  ├── api/drafts.test.ts <span className="text-slate-400">(draft generation)</span>
+                <div className="text-foreground pl-4">
+                  ├── api/drafts.test.ts <span className="text-muted-foreground">(draft generation)</span>
                 </div>
-                <div className="text-slate-600 pl-4">
-                  └── e2e/smoke.spec.ts <span className="text-slate-400">(Playwright)</span>
+                <div className="text-foreground pl-4">
+                  └── e2e/smoke.spec.ts <span className="text-muted-foreground">(Playwright)</span>
                 </div>
               </div>
             </CardContent>
@@ -172,25 +172,25 @@ export default function TestingGuidePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="bg-slate-900 rounded-lg p-4 font-mono text-sm text-slate-100 space-y-3">
+              <div className="bg-card rounded-lg p-4 font-mono text-sm text-foreground space-y-3">
                 <div>
-                  <span className="text-slate-400"># Install Playwright browsers (first time only)</span>
+                  <span className="text-muted-foreground"># Install Playwright browsers (first time only)</span>
                   <div className="text-green-400">npx playwright install chromium</div>
                 </div>
                 <div>
-                  <span className="text-slate-400"># Run all E2E tests headless</span>
+                  <span className="text-muted-foreground"># Run all E2E tests headless</span>
                   <div className="text-green-400">npx playwright test</div>
                 </div>
                 <div>
-                  <span className="text-slate-400"># Run with browser UI visible</span>
+                  <span className="text-muted-foreground"># Run with browser UI visible</span>
                   <div className="text-green-400">npx playwright test --headed</div>
                 </div>
                 <div>
-                  <span className="text-slate-400"># View test report after running</span>
+                  <span className="text-muted-foreground"># View test report after running</span>
                   <div className="text-green-400">npx playwright show-report</div>
                 </div>
               </div>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted-foreground">
                 E2E tests automatically start the dev server if it's not running. 
                 They use data-testid attributes for stable element selection.
               </p>
@@ -208,11 +208,11 @@ export default function TestingGuidePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-slate-600">
-                When <code className="bg-slate-100 px-1 rounded">AI_FEATURE_ENABLED=false</code>, 
+              <p className="text-sm text-foreground">
+                When <code className="bg-muted px-1 rounded">AI_FEATURE_ENABLED=false</code>, 
                 the extraction and draft generation endpoints use deterministic mock functions:
               </p>
-              <ul className="list-disc list-inside text-sm text-slate-600 space-y-1">
+              <ul className="list-disc list-inside text-sm text-foreground space-y-1">
                 <li><strong>generateMockExtraction()</strong> - Parses notes for TODO, @mentions, and action keywords</li>
                 <li><strong>generateMockDrafts()</strong> - Generates group and individual follow-up drafts</li>
                 <li>Confidence scores are deterministic for consistent status mapping</li>
@@ -232,14 +232,14 @@ export default function TestingGuidePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-foreground">
                 Before deploying to production, run the full test suite:
               </p>
-              <div className="bg-slate-900 rounded-lg p-4 font-mono text-sm text-slate-100">
-                <span className="text-slate-400"># Full test suite (unit + API + E2E)</span>
+              <div className="bg-card rounded-lg p-4 font-mono text-sm text-foreground">
+                <span className="text-muted-foreground"># Full test suite (unit + API + E2E)</span>
                 <div className="text-green-400">npx vitest run && npx playwright test</div>
               </div>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted-foreground">
                 If any test fails, review the output and fix the issues before deploying.
                 The deploy process should only proceed when all tests pass.
               </p>

@@ -33,9 +33,9 @@ const TYPE_CONFIG: Record<HighlightType, { label: string; icon: typeof ListCheck
   action: {
     label: "Action Item",
     icon: ListChecks,
-    color: "text-violet-400",
-    bgColor: "bg-violet-500/20",
-    borderColor: "border-violet-500/40",
+    color: "text-primary",
+    bgColor: "bg-accent",
+    borderColor: "border-primary/40",
   },
   decision: {
     label: "Decision",
@@ -70,9 +70,9 @@ function SelectionToolbar({
       className="fixed z-50"
       style={{ top: position.top, left: position.left }}
     >
-      <Card className="glass-panel border-violet-500/30 shadow-xl shadow-black/30">
+      <Card className="glass-panel border-primary/30 shadow-xl shadow-black/30">
         <CardContent className="p-2 flex items-center gap-1">
-          <span className="text-xs text-white/50 px-2">Mark as:</span>
+          <span className="text-xs text-muted-foreground px-2">Mark as:</span>
           {(Object.keys(TYPE_CONFIG) as HighlightType[]).map((type) => {
             const config = TYPE_CONFIG[type];
             const Icon = config.icon;
@@ -83,7 +83,7 @@ function SelectionToolbar({
                 size="sm"
                 onClick={() => onSelect(type)}
                 className={cn(
-                  "h-8 px-3 rounded-lg text-xs gap-1.5 hover:bg-white/10",
+                  "h-8 px-3 rounded-lg text-xs gap-1.5 hover:bg-accent",
                   config.color
                 )}
                 data-testid={`button-highlight-${type}`}
@@ -97,7 +97,7 @@ function SelectionToolbar({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="h-8 w-8 text-white/40 hover:text-white ml-1"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground ml-1"
             aria-label="Close toolbar"
             data-testid="button-close-highlight-toolbar"
           >
@@ -137,7 +137,7 @@ function HighlightedItemCard({
       <div className="flex items-start gap-2">
         <Icon className={cn("h-4 w-4 mt-0.5 flex-shrink-0", config.color)} weight="fill" />
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-white leading-relaxed">{item.text}</p>
+          <p className="text-sm text-foreground leading-relaxed">{item.text}</p>
           
           {item.type === "action" && (
             <div className="mt-2">
@@ -147,7 +147,7 @@ function HighlightedItemCard({
                     value={ownerInput}
                     onChange={(e) => setOwnerInput(e.target.value)}
                     placeholder="Assignee name"
-                    className="h-7 text-xs bg-white/5 border-white/10 text-white"
+                    className="h-7 text-xs bg-muted border-border text-foreground"
                     data-testid={`input-owner-${item.id}`}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -173,7 +173,7 @@ function HighlightedItemCard({
               ) : (
                 <button
                   onClick={() => setEditingOwner(true)}
-                  className="flex items-center gap-1 text-xs text-white/40 hover:text-white/60 transition-colors"
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-muted-foreground transition-colors"
                   data-testid={`button-assign-${item.id}`}
                 >
                   <User className="h-3 w-3" />
@@ -188,7 +188,7 @@ function HighlightedItemCard({
           variant="ghost"
           size="icon"
           onClick={onRemove}
-          className="h-7 w-7 text-white/30 hover:text-red-400"
+          className="h-7 w-7 text-muted-foreground hover:text-red-400"
           aria-label="Remove highlight"
           data-testid={`button-remove-highlight-${item.id}`}
         >
@@ -360,17 +360,16 @@ export function TextHighlighter({
 
   return (
     <div className={cn("flex flex-col lg:flex-row gap-6", className)}>
-      {/* Left: Text with highlights */}
       <div className="lg:w-3/5 space-y-3">
         <div className="flex items-center gap-2">
-          <div className="h-6 w-1 bg-white/30 rounded-full" />
-          <h3 className="font-medium text-white flex items-center gap-2">
-            <HighlighterCircle className="h-4 w-4 text-violet-400" weight="fill" />
+          <div className="h-6 w-1 bg-muted-foreground/50 rounded-full" />
+          <h3 className="font-medium text-foreground flex items-center gap-2">
+            <HighlighterCircle className="h-4 w-4 text-primary" weight="fill" />
             Select text to highlight
           </h3>
         </div>
         
-        <p className="text-xs text-white/40">
+        <p className="text-xs text-muted-foreground">
           Select any text below and choose what type of item it represents
         </p>
 
@@ -378,7 +377,7 @@ export function TextHighlighter({
           <CardContent className="p-5">
             <div
               ref={textRef}
-              className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap select-text cursor-text"
+              className="text-foreground text-sm leading-relaxed whitespace-pre-wrap select-text cursor-text"
               data-testid="text-highlighter-content"
             >
               {renderHighlightedText()}
@@ -387,19 +386,17 @@ export function TextHighlighter({
         </Card>
       </div>
 
-      {/* Right: Highlighted items list */}
       <div className="lg:w-2/5 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-1 bg-violet-500 rounded-full" />
-            <h3 className="font-medium text-white flex items-center gap-2">
-              <Sparkle className="h-4 w-4 text-violet-400" weight="fill" />
+            <div className="h-6 w-1 bg-primary rounded-full" />
+            <h3 className="font-medium text-foreground flex items-center gap-2">
+              <Sparkle className="h-4 w-4 text-primary" weight="fill" />
               Highlighted Items ({highlights.length})
             </h3>
           </div>
         </div>
 
-        {/* Filter tabs */}
         <div className="flex gap-1.5">
           {[
             { key: "all" as const, label: "All", count: highlights.length },
@@ -413,8 +410,8 @@ export function TextHighlighter({
               className={cn(
                 "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
                 activeFilter === tab.key
-                  ? "bg-violet-500/20 text-violet-300 border border-violet-500/30"
-                  : "bg-white/5 text-white/50 hover:bg-white/10 border border-transparent"
+                  ? "bg-accent text-primary border border-primary/30"
+                  : "bg-muted text-muted-foreground hover:bg-accent border border-transparent"
               )}
               data-testid={`button-filter-${tab.key}`}
             >
@@ -423,7 +420,6 @@ export function TextHighlighter({
           ))}
         </div>
 
-        {/* Items list */}
         <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
           <AnimatePresence>
             {filteredHighlights.length === 0 ? (
@@ -432,8 +428,8 @@ export function TextHighlighter({
                 animate={{ opacity: 1 }}
                 className="text-center py-8"
               >
-                <HighlighterCircle className="h-10 w-10 text-white/20 mx-auto mb-3" weight="duotone" />
-                <p className="text-sm text-white/40">
+                <HighlighterCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" weight="duotone" />
+                <p className="text-sm text-muted-foreground">
                   {highlights.length === 0
                     ? "Select text from the notes to get started"
                     : "No items match this filter"}
@@ -452,9 +448,8 @@ export function TextHighlighter({
           </AnimatePresence>
         </div>
 
-        {/* Confirm button */}
         {highlights.length > 0 && onConfirm && (
-          <div className="pt-3 border-t border-white/10">
+          <div className="pt-3 border-t border-border">
             <Button
               onClick={() => onConfirm(highlights)}
               className="w-full rounded-xl btn-gradient h-11"
@@ -467,7 +462,6 @@ export function TextHighlighter({
         )}
       </div>
 
-      {/* Selection toolbar popover */}
       <AnimatePresence>
         {toolbarPosition && pendingSelection && (
           <SelectionToolbar

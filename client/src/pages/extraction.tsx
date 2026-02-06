@@ -223,16 +223,14 @@ export default function ExtractionPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                   activeTab === tab.id
-                    ? 'btn-gradient text-white'
+                    ? 'btn-gradient text-foreground'
                     : 'bg-muted text-muted-foreground border border-border'
                 }`}
                 data-testid={`tab-${tab.id}`}
               >
                 {tab.label}
                 {tab.count !== undefined && tab.count > 0 && (
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                    activeTab === tab.id ? 'bg-white/20' : 'bg-accent'
-                  }`}>
+                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-accent">
                     {tab.count}
                   </span>
                 )}

@@ -52,8 +52,8 @@ export class ErrorBoundary extends Component<Props, State> {
               </div>
               
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold text-white">Something went wrong</h3>
-                <p className="text-white/60 text-sm">
+                <h3 className="text-lg font-semibold text-foreground">Something went wrong</h3>
+                <p className="text-muted-foreground text-sm">
                   We encountered an unexpected error. Don't worry, your data is safe.
                 </p>
               </div>
@@ -69,7 +69,7 @@ export class ErrorBoundary extends Component<Props, State> {
               <div className="flex gap-3 justify-center">
                 <Button
                   onClick={this.handleRetry}
-                  className="rounded-xl bg-violet-600 hover:bg-violet-700"
+                  className="rounded-xl bg-primary hover:bg-primary/90"
                 >
                   <ArrowClockwise className="h-4 w-4 mr-2" weight="bold" />
                   Try again
@@ -91,7 +91,6 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-// Hook for functional components to catch async errors
 export function useErrorHandler() {
   const [error, setError] = React.useState<Error | null>(null);
 
@@ -108,7 +107,6 @@ export function useErrorHandler() {
   return handleError;
 }
 
-// HOC for wrapping components with error boundary
 export function withErrorBoundary<P extends object>(
   WrappedComponent: React.ComponentType<P>,
   fallback?: ReactNode
@@ -122,7 +120,6 @@ export function withErrorBoundary<P extends object>(
   };
 }
 
-// Page-level error fallback
 export function PageErrorFallback({ 
   message = "This page couldn't be loaded",
   onRetry 
@@ -138,8 +135,8 @@ export function PageErrorFallback({
         </div>
         
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-white">Oops!</h2>
-          <p className="text-white/60">{message}</p>
+          <h2 className="text-xl font-semibold text-foreground">Oops!</h2>
+          <p className="text-muted-foreground">{message}</p>
         </div>
 
         <div className="flex gap-3 justify-center">
@@ -160,7 +157,6 @@ export function PageErrorFallback({
   );
 }
 
-// Section-level error fallback (for parts of a page)
 export function SectionErrorFallback({ 
   title = "Couldn't load this section",
   onRetry 
@@ -172,13 +168,13 @@ export function SectionErrorFallback({
     <Card className="glass-panel border-red-500/20 rounded-xl">
       <CardContent className="py-6 text-center space-y-3">
         <WarningCircle className="h-8 w-8 text-red-400 mx-auto" weight="duotone" />
-        <p className="text-white/70 text-sm">{title}</p>
+        <p className="text-foreground text-sm">{title}</p>
         {onRetry && (
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={onRetry}
-            className="text-violet-400 hover:text-violet-300"
+            className="text-primary hover:text-primary"
           >
             <ArrowClockwise className="h-4 w-4 mr-1" />
             Retry

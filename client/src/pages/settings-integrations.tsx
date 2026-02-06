@@ -80,7 +80,7 @@ export default function SettingsIntegrationsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -94,8 +94,8 @@ export default function SettingsIntegrationsPage() {
     return (
       <div className="space-y-6">
         <div className="space-y-1">
-          <h2 className="text-xl font-semibold text-white">Email Integrations</h2>
-          <p className="text-white/60">Connect your email to send follow-ups directly from ActionMinutes.</p>
+          <h2 className="text-xl font-semibold text-foreground">Email Integrations</h2>
+          <p className="text-muted-foreground">Connect your email to send follow-ups directly from ActionMinutes.</p>
         </div>
         <UpgradePrompt feature="email_integration" />
       </div>
@@ -105,20 +105,20 @@ export default function SettingsIntegrationsPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold text-white">Email Integrations</h2>
-        <p className="text-white/60">Connect your email to send follow-ups directly from ActionMinutes.</p>
+        <h2 className="text-xl font-semibold text-foreground">Email Integrations</h2>
+        <p className="text-muted-foreground">Connect your email to send follow-ups directly from ActionMinutes.</p>
       </div>
 
       <div className="grid gap-4">
-        <Card className="bg-white/5 border-white/10 rounded-xl">
+        <Card className="bg-muted border-border rounded-xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-red-500/20 rounded-xl">
                 <Mail className="h-5 w-5 text-red-400" />
               </div>
               <div>
-                <CardTitle className="text-lg text-white">Gmail</CardTitle>
-                <CardDescription className="text-white/60">Send follow-ups from your Gmail account</CardDescription>
+                <CardTitle className="text-lg text-foreground">Gmail</CardTitle>
+                <CardDescription className="text-muted-foreground">Send follow-ups from your Gmail account</CardDescription>
               </div>
             </div>
             {googleConnected ? (
@@ -127,7 +127,7 @@ export default function SettingsIntegrationsPage() {
                 Connected
               </Badge>
             ) : (
-              <Badge variant="outline" className="rounded-full bg-white/5 text-white/50 border-white/10">
+              <Badge variant="outline" className="rounded-full bg-muted text-muted-foreground border-border">
                 <XCircle className="h-3 w-3 mr-1" />
                 Not connected
               </Badge>
@@ -138,9 +138,9 @@ export default function SettingsIntegrationsPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-white/80">{integrations.google.email}</p>
+                    <p className="text-sm text-foreground">{integrations.google.email}</p>
                     {integrations.google.expiresAt && (
-                      <p className="text-xs text-white/50 flex items-center gap-1 mt-1">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                         <Clock className="h-3 w-3" />
                         Expires {format(new Date(integrations.google.expiresAt), "MMM d, yyyy")}
                       </p>
@@ -165,7 +165,7 @@ export default function SettingsIntegrationsPage() {
             ) : googleConfigured ? (
               <Button 
                 onClick={() => handleConnect('google')}
-                className="w-full bg-white/10 hover:bg-white/15 text-white border border-white/20"
+                className="w-full bg-muted hover:bg-accent text-foreground border border-border"
                 data-testid="button-connect-gmail"
               >
                 <Mail className="h-4 w-4 mr-2" />
@@ -181,15 +181,15 @@ export default function SettingsIntegrationsPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-white/5 border-white/10 rounded-xl">
+        <Card className="bg-muted border-border rounded-xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-500/20 rounded-xl">
                 <Mail className="h-5 w-5 text-blue-400" />
               </div>
               <div>
-                <CardTitle className="text-lg text-white">Outlook</CardTitle>
-                <CardDescription className="text-white/60">Send follow-ups from your Outlook account</CardDescription>
+                <CardTitle className="text-lg text-foreground">Outlook</CardTitle>
+                <CardDescription className="text-muted-foreground">Send follow-ups from your Outlook account</CardDescription>
               </div>
             </div>
             {microsoftConnected ? (
@@ -198,7 +198,7 @@ export default function SettingsIntegrationsPage() {
                 Connected
               </Badge>
             ) : (
-              <Badge variant="outline" className="rounded-full bg-white/5 text-white/50 border-white/10">
+              <Badge variant="outline" className="rounded-full bg-muted text-muted-foreground border-border">
                 <XCircle className="h-3 w-3 mr-1" />
                 Not connected
               </Badge>
@@ -209,9 +209,9 @@ export default function SettingsIntegrationsPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-white/80">{integrations.microsoft.email}</p>
+                    <p className="text-sm text-foreground">{integrations.microsoft.email}</p>
                     {integrations.microsoft.expiresAt && (
-                      <p className="text-xs text-white/50 flex items-center gap-1 mt-1">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                         <Clock className="h-3 w-3" />
                         Expires {format(new Date(integrations.microsoft.expiresAt), "MMM d, yyyy")}
                       </p>
@@ -236,7 +236,7 @@ export default function SettingsIntegrationsPage() {
             ) : microsoftConfigured ? (
               <Button 
                 onClick={() => handleConnect('microsoft')}
-                className="w-full bg-white/10 hover:bg-white/15 text-white border border-white/20"
+                className="w-full bg-muted hover:bg-accent text-foreground border border-border"
                 data-testid="button-connect-outlook"
               >
                 <Mail className="h-4 w-4 mr-2" />

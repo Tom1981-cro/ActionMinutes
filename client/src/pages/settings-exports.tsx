@@ -10,7 +10,7 @@ export default function SettingsExportsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -18,36 +18,36 @@ export default function SettingsExportsPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold text-white">Calendar Exports</h2>
-        <p className="text-white/60">History of your exported calendar files.</p>
+        <h2 className="text-xl font-semibold text-foreground">Calendar Exports</h2>
+        <p className="text-muted-foreground">History of your exported calendar files.</p>
       </div>
 
       {exports.length === 0 ? (
-        <Card className="bg-white/5 border-dashed border-white/20 rounded-xl">
+        <Card className="bg-muted border-dashed border-border rounded-xl">
           <CardContent className="py-12 text-center">
-            <Calendar className="h-12 w-12 text-white/30 mx-auto mb-4" />
-            <p className="text-white/60">No exports yet. Open a meeting and tap "Export to Calendar (.ics)".</p>
+            <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No exports yet. Open a meeting and tap "Export to Calendar (.ics)".</p>
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-3">
           {exports.map((exp: any) => (
-            <Card key={exp.id} className="bg-white/5 border-white/10 rounded-xl" data-testid={`export-${exp.id}`}>
+            <Card key={exp.id} className="bg-muted border-border rounded-xl" data-testid={`export-${exp.id}`}>
               <CardContent className="py-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="p-2 bg-violet-500/20 rounded-xl">
-                    <Calendar className="h-5 w-5 text-violet-400" />
+                  <div className="p-2 bg-accent rounded-xl">
+                    <Calendar className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-medium text-white">{exp.filename}</p>
-                    <p className="text-sm text-white/60">
+                    <p className="font-medium text-foreground">{exp.filename}</p>
+                    <p className="text-sm text-muted-foreground">
                       Exported {format(new Date(exp.createdAt), "MMM d, yyyy 'at' h:mm a")}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {exp.options?.includeActionItems && (
-                    <Badge variant="outline" className="rounded-full text-xs bg-white/5 text-white/70 border-white/20">
+                    <Badge variant="outline" className="rounded-full text-xs bg-muted text-foreground border-border">
                       Includes actions
                     </Badge>
                   )}
@@ -58,10 +58,10 @@ export default function SettingsExportsPage() {
         </div>
       )}
 
-      <Card className="bg-white/5 border-white/10 rounded-xl">
+      <Card className="bg-muted border-border rounded-xl">
         <CardContent className="py-4">
-          <h3 className="font-medium text-white mb-2">How to Export</h3>
-          <ol className="text-sm text-white/70 space-y-1 list-decimal list-inside">
+          <h3 className="font-medium text-foreground mb-2">How to Export</h3>
+          <ol className="text-sm text-foreground space-y-1 list-decimal list-inside">
             <li>Open any meeting from the Meetings page</li>
             <li>Click "Export to Calendar (.ics)" button</li>
             <li>Choose whether to include action items as tasks</li>

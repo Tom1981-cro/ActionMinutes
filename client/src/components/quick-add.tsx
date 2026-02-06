@@ -21,7 +21,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
   const [text, setText] = useState("");
   const [parsedDate, setParsedDate] = useState<Date | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { user, theme } = useStore();
+  const { user } = useStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -127,12 +127,12 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
         onClick={() => setIsOpen(true)}
         className={cn(
           "fixed bottom-20 md:bottom-6 right-6 z-40 rounded-full w-14 h-14 shadow-lg",
-          "bg-gradient-to-br from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500",
-          "shadow-violet-500/30"
+          "bg-primary hover:bg-primary/90",
+          "shadow-token"
         )}
         data-testid="button-quick-add-fab"
       >
-        <Plus weight="bold" className="h-6 w-6 text-white" />
+        <Plus weight="bold" className="h-6 w-6 text-primary-foreground" />
       </Button>
 
       <Dialog open={isOpen} onOpenChange={(open) => {
@@ -142,21 +142,12 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
           setParsedDate(null);
         }
       }}>
-        <DialogContent className={cn(
-          "sm:max-w-lg p-0 gap-0 overflow-hidden",
-          theme === "light" ? "bg-white" : "bg-[#1a1a1a] border-white/10"
-        )}>
-          <DialogHeader className={cn(
-            "px-4 py-3 border-b",
-            theme === "light" ? "border-gray-200" : "border-white/10"
-          )}>
-            <DialogTitle className={cn(
-              "flex items-center gap-2 text-lg",
-              theme === "light" ? "text-gray-900" : "text-white"
-            )}>
-              <Lightning weight="duotone" className="h-5 w-5 text-violet-500" />
+        <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden bg-card border-border">
+          <DialogHeader className="px-4 py-3 border-b border-border">
+            <DialogTitle className="flex items-center gap-2 text-lg text-foreground">
+              <Lightning weight="duotone" className="h-5 w-5 text-primary" />
               Quick Add
-              <Badge variant="secondary" className="ml-2 text-xs bg-white/10 text-white/60">
+              <Badge variant="secondary" className="ml-2 text-xs bg-muted text-muted-foreground">
                 Press Q
               </Badge>
             </DialogTitle>
@@ -169,22 +160,12 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                 value={text}
                 onChange={(e) => parseText(e.target.value)}
                 placeholder="What do you need to do? e.g., 'Review report tomorrow at 2pm'"
-                className={cn(
-                  "h-12 text-base",
-                  theme === "light" 
-                    ? "bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-500"
-                    : "bg-white/5 border-white/10 text-white placeholder:text-white/40"
-                )}
+                className="h-12 text-base bg-muted border-border text-foreground placeholder:text-muted-foreground"
                 data-testid="input-quick-add"
               />
               
               {parsedDate && (
-                <div className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-lg text-sm",
-                  theme === "light"
-                    ? "bg-violet-50 text-violet-700 border border-violet-200"
-                    : "bg-violet-500/10 text-violet-300 border border-violet-500/20"
-                )}>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-accent text-primary border border-primary/20">
                   <CalendarDots weight="duotone" className="h-4 w-4" />
                   <span>Due: {format(parsedDate, "EEEE, MMMM d 'at' h:mm a")}</span>
                   <button 
@@ -199,17 +180,14 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
             </div>
 
             <div className="flex items-center justify-between gap-3">
-              <p className={cn(
-                "text-xs",
-                theme === "light" ? "text-gray-500" : "text-white/40"
-              )}>
+              <p className="text-xs text-muted-foreground">
                 Try: "tomorrow", "next Friday", "in 2 hours"
               </p>
               
               <Button
                 type="submit"
                 disabled={!text.trim() || createReminder.isPending}
-                className="bg-violet-600 hover:bg-violet-700 text-white"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
                 data-testid="button-quick-add-submit"
               >
                 {createReminder.isPending ? "Adding..." : "Add Task"}

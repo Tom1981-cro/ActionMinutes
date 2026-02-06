@@ -65,23 +65,23 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-      <Card className="w-full max-w-lg border-gray-200 shadow-glow bg-white rounded-2xl">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+      <Card className="w-full max-w-lg border-border shadow-token bg-card rounded-2xl">
         <CardHeader>
           <div className="flex justify-between items-center mb-4">
             <div className="flex space-x-1.5">
-              <div className={`h-1.5 w-10 rounded-full transition-colors ${step >= 1 ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : 'bg-gray-200'}`} />
-              <div className={`h-1.5 w-10 rounded-full transition-colors ${step >= 2 ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : 'bg-gray-200'}`} />
-              <div className={`h-1.5 w-10 rounded-full transition-colors ${step >= 3 ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : 'bg-gray-200'}`} />
+              <div className={`h-1.5 w-10 rounded-full transition-colors ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
+              <div className={`h-1.5 w-10 rounded-full transition-colors ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
+              <div className={`h-1.5 w-10 rounded-full transition-colors ${step >= 3 ? 'bg-primary' : 'bg-muted'}`} />
             </div>
-            <span className="text-sm text-slate-500 font-medium">Step {step} of 3</span>
+            <span className="text-sm text-muted-foreground font-medium">Step {step} of 3</span>
           </div>
-          <CardTitle className="text-2xl text-slate-900">
+          <CardTitle className="text-2xl text-foreground">
             {step === 1 && "Set your work style"}
             {step === 2 && "Default behavior"}
             {step === 3 && "Personal (optional)"}
           </CardTitle>
-          <CardDescription className="text-slate-500">
+          <CardDescription className="text-muted-foreground">
             {step === 1 && "How should your AI assistant write drafts?"}
             {step === 2 && "Configure automation settings"}
             {step === 3 && "Separate work from personal brain-dumps"}
@@ -91,47 +91,47 @@ export default function OnboardingPage() {
         <CardContent className="space-y-6 pt-4">
           {step === 1 && (
             <RadioGroup value={tone} onValueChange={(v) => setTone(v as WorkStyleTone)} className="space-y-3">
-              <div className={`flex items-start space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${tone === 'direct' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-100 bg-gray-50 hover:border-gray-200'}`} onClick={() => setTone('direct')}>
+              <div className={`flex items-start space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${tone === 'direct' ? 'border-primary bg-accent' : 'border-border bg-muted hover:border-border'}`} onClick={() => setTone('direct')}>
                 <RadioGroupItem value="direct" id="direct" className="mt-1" />
                 <div className="flex-1">
-                  <Label htmlFor="direct" className="font-semibold text-base cursor-pointer text-slate-900">Direct</Label>
-                  <p className="text-sm text-slate-500 mt-1">Short, clear, no fluff. Gets straight to the point.</p>
+                  <Label htmlFor="direct" className="font-semibold text-base cursor-pointer text-foreground">Direct</Label>
+                  <p className="text-sm text-muted-foreground mt-1">Short, clear, no fluff. Gets straight to the point.</p>
                 </div>
-                <Zap className={`h-5 w-5 ${tone === 'direct' ? 'text-indigo-500' : 'text-slate-300'}`} />
+                <Zap className={`h-5 w-5 ${tone === 'direct' ? 'text-primary' : 'text-muted-foreground'}`} />
               </div>
-              <div className={`flex items-start space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${tone === 'friendly' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-100 bg-gray-50 hover:border-gray-200'}`} onClick={() => setTone('friendly')}>
+              <div className={`flex items-start space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${tone === 'friendly' ? 'border-primary bg-accent' : 'border-border bg-muted hover:border-border'}`} onClick={() => setTone('friendly')}>
                 <RadioGroupItem value="friendly" id="friendly" className="mt-1" />
                 <div className="flex-1">
-                  <Label htmlFor="friendly" className="font-semibold text-base cursor-pointer text-slate-900">Friendly</Label>
-                  <p className="text-sm text-slate-500 mt-1">Warm but efficient. Good for client emails.</p>
+                  <Label htmlFor="friendly" className="font-semibold text-base cursor-pointer text-foreground">Friendly</Label>
+                  <p className="text-sm text-muted-foreground mt-1">Warm but efficient. Good for client emails.</p>
                 </div>
-                <Sparkles className={`h-5 w-5 ${tone === 'friendly' ? 'text-indigo-500' : 'text-slate-300'}`} />
+                <Sparkles className={`h-5 w-5 ${tone === 'friendly' ? 'text-primary' : 'text-muted-foreground'}`} />
               </div>
-              <div className={`flex items-start space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${tone === 'formal' ? 'border-indigo-500 bg-indigo-50' : 'border-gray-100 bg-gray-50 hover:border-gray-200'}`} onClick={() => setTone('formal')}>
+              <div className={`flex items-start space-x-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${tone === 'formal' ? 'border-primary bg-accent' : 'border-border bg-muted hover:border-border'}`} onClick={() => setTone('formal')}>
                 <RadioGroupItem value="formal" id="formal" className="mt-1" />
                 <div className="flex-1">
-                  <Label htmlFor="formal" className="font-semibold text-base cursor-pointer text-slate-900">Formal</Label>
-                  <p className="text-sm text-slate-500 mt-1">Traditional wording. Professional and polite.</p>
+                  <Label htmlFor="formal" className="font-semibold text-base cursor-pointer text-foreground">Formal</Label>
+                  <p className="text-sm text-muted-foreground mt-1">Traditional wording. Professional and polite.</p>
                 </div>
-                <Shield className={`h-5 w-5 ${tone === 'formal' ? 'text-indigo-500' : 'text-slate-300'}`} />
+                <Shield className={`h-5 w-5 ${tone === 'formal' ? 'text-primary' : 'text-muted-foreground'}`} />
               </div>
             </RadioGroup>
           )}
 
           {step === 2 && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between space-x-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
+              <div className="flex items-center justify-between space-x-4 p-4 rounded-xl bg-muted border border-border">
                 <div className="space-y-1">
-                  <Label className="text-base font-medium text-slate-900">Auto-generate drafts</Label>
-                  <p className="text-sm text-slate-500">Create follow-up emails immediately after extraction</p>
+                  <Label className="text-base font-medium text-foreground">Auto-generate drafts</Label>
+                  <p className="text-sm text-muted-foreground">Create follow-up emails immediately after extraction</p>
                 </div>
                 <Switch checked={autoDraft} onCheckedChange={setAutoDraft} />
               </div>
               
               <div className="space-y-2">
-                <Label className="text-slate-700 font-medium">Default Timezone</Label>
+                <Label className="text-foreground font-medium">Default Timezone</Label>
                 <Select defaultValue="dublin">
-                  <SelectTrigger className="h-12 rounded-lg border-gray-200 bg-gray-50">
+                  <SelectTrigger className="h-12 rounded-lg border-border bg-muted">
                     <SelectValue placeholder="Select timezone" />
                   </SelectTrigger>
                   <SelectContent>
@@ -146,13 +146,13 @@ export default function OnboardingPage() {
 
           {step === 3 && (
             <div className="space-y-4">
-              <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl text-center space-y-4 border border-indigo-100">
-                <div className="mx-auto h-14 w-14 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+              <div className="bg-accent p-6 rounded-xl text-center space-y-4 border border-border">
+                <div className="mx-auto h-14 w-14 bg-card rounded-2xl flex items-center justify-center shadow-sm">
                   <span className="text-2xl">🧠</span>
                 </div>
                 <div className="space-y-2">
-                  <h3 className="font-semibold text-slate-900">Personal Mode</h3>
-                  <p className="text-slate-600 text-sm">
+                  <h3 className="font-semibold text-foreground">Personal Mode</h3>
+                  <p className="text-muted-foreground text-sm">
                     Personal is a lightweight brain-dump + Top 3 priorities. 
                     Work stays the focus, but sometimes you need to clear your head.
                   </p>
@@ -162,8 +162,8 @@ export default function OnboardingPage() {
                   onClick={() => setEnablePersonal(!enablePersonal)}
                   className={`w-full h-11 rounded-lg transition-all ${
                     enablePersonal 
-                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-transparent hover:from-indigo-700 hover:to-purple-700' 
-                      : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50'
+                      ? 'bg-primary text-primary-foreground border-transparent hover:bg-primary/90' 
+                      : 'border-border text-primary hover:bg-accent'
                   }`}
                   data-testid="button-enable-personal"
                 >
@@ -191,13 +191,13 @@ export default function OnboardingPage() {
             variant="ghost" 
             onClick={() => setStep(s => Math.max(1, s - 1))} 
             disabled={step === 1}
-            className="text-slate-600"
+            className="text-muted-foreground"
           >
             Back
           </Button>
           <Button 
             onClick={() => step < 3 ? setStep(s => s + 1) : handleFinish()} 
-            className="w-36 h-11 rounded-lg btn-gradient text-white font-semibold"
+            className="w-36 h-11 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90"
           >
             {step < 3 ? (
               <>Next <ArrowRight className="ml-2 h-4 w-4" /></>

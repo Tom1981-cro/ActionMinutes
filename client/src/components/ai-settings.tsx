@@ -110,26 +110,25 @@ export function AISettingsDialog({ open, onOpenChange, onSave }: AISettingsDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg glass-panel border-white/20 text-white max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg glass-panel border-border text-foreground max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-white">
-            <Sparkle className="h-5 w-5 text-violet-400" weight="fill" />
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <Sparkle className="h-5 w-5 text-primary" weight="fill" />
             AI Settings
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Language */}
           <div className="space-y-2">
-            <Label className="flex items-center gap-2 text-white/80">
-              <Globe className="h-4 w-4 text-violet-400" weight="duotone" />
+            <Label className="flex items-center gap-2 text-foreground">
+              <Globe className="h-4 w-4 text-primary" weight="duotone" />
               Output Language
             </Label>
             <Select
               value={settings.language}
               onValueChange={(value) => setSettings({ ...settings, language: value })}
             >
-              <SelectTrigger className="bg-white/5 border-white/10 text-white" data-testid="select-language">
+              <SelectTrigger className="bg-muted border-border text-foreground" data-testid="select-language">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -140,15 +139,14 @@ export function AISettingsDialog({ open, onOpenChange, onSave }: AISettingsDialo
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-white/40">
+            <p className="text-xs text-muted-foreground">
               Summaries and extracted items will be written in this language
             </p>
           </div>
 
-          {/* Tone */}
           <div className="space-y-3">
-            <Label className="flex items-center gap-2 text-white/80">
-              <TextAa className="h-4 w-4 text-violet-400" weight="duotone" />
+            <Label className="flex items-center gap-2 text-foreground">
+              <TextAa className="h-4 w-4 text-primary" weight="duotone" />
               Writing Tone
             </Label>
             <div className="grid gap-2">
@@ -159,22 +157,21 @@ export function AISettingsDialog({ open, onOpenChange, onSave }: AISettingsDialo
                   className={cn(
                     "text-left p-3 rounded-xl border transition-all",
                     settings.tone === tone.value
-                      ? "bg-violet-500/20 border-violet-500/50"
-                      : "bg-white/5 border-white/10 hover:bg-white/10"
+                      ? "bg-accent border-primary/50"
+                      : "bg-muted border-border hover:bg-accent"
                   )}
                   data-testid={`button-tone-${tone.value}`}
                 >
-                  <p className="font-medium text-sm text-white">{tone.label}</p>
-                  <p className="text-xs text-white/50">{tone.description}</p>
+                  <p className="font-medium text-sm text-foreground">{tone.label}</p>
+                  <p className="text-xs text-muted-foreground">{tone.description}</p>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Summary Length */}
           <div className="space-y-3">
-            <Label className="flex items-center gap-2 text-white/80">
-              <ListBullets className="h-4 w-4 text-violet-400" weight="duotone" />
+            <Label className="flex items-center gap-2 text-foreground">
+              <ListBullets className="h-4 w-4 text-primary" weight="duotone" />
               Summary Length
             </Label>
             <div className="grid gap-2">
@@ -185,26 +182,25 @@ export function AISettingsDialog({ open, onOpenChange, onSave }: AISettingsDialo
                   className={cn(
                     "text-left p-3 rounded-xl border transition-all",
                     settings.summaryLength === length.value
-                      ? "bg-violet-500/20 border-violet-500/50"
-                      : "bg-white/5 border-white/10 hover:bg-white/10"
+                      ? "bg-accent border-primary/50"
+                      : "bg-muted border-border hover:bg-accent"
                   )}
                   data-testid={`button-length-${length.value}`}
                 >
-                  <p className="font-medium text-sm text-white">{length.label}</p>
-                  <p className="text-xs text-white/50">{length.description}</p>
+                  <p className="font-medium text-sm text-foreground">{length.label}</p>
+                  <p className="text-xs text-muted-foreground">{length.description}</p>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Confidence Threshold */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="flex items-center gap-2 text-white/80">
-                <Faders className="h-4 w-4 text-violet-400" weight="duotone" />
+              <Label className="flex items-center gap-2 text-foreground">
+                <Faders className="h-4 w-4 text-primary" weight="duotone" />
                 Confidence Threshold
               </Label>
-              <span className="text-sm font-mono text-violet-400">
+              <span className="text-sm font-mono text-primary">
                 {Math.round(settings.extractionConfidenceThreshold * 100)}%
               </span>
             </div>
@@ -216,17 +212,16 @@ export function AISettingsDialog({ open, onOpenChange, onSave }: AISettingsDialo
               step={0.05}
               className="py-2"
             />
-            <p className="text-xs text-white/40">
+            <p className="text-xs text-muted-foreground">
               Items below this confidence level will be flagged for review
             </p>
           </div>
 
-          {/* Toggles */}
           <div className="space-y-4 pt-2">
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-white/80">Auto-extract on save</Label>
-                <p className="text-xs text-white/40">
+                <Label className="text-foreground">Auto-extract on save</Label>
+                <p className="text-xs text-muted-foreground">
                   Automatically extract actions when saving meeting notes
                 </p>
               </div>
@@ -239,8 +234,8 @@ export function AISettingsDialog({ open, onOpenChange, onSave }: AISettingsDialo
 
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-white/80">Show confidence scores</Label>
-                <p className="text-xs text-white/40">
+                <Label className="text-foreground">Show confidence scores</Label>
+                <p className="text-xs text-muted-foreground">
                   Display AI confidence levels on extracted items
                 </p>
               </div>
@@ -257,7 +252,7 @@ export function AISettingsDialog({ open, onOpenChange, onSave }: AISettingsDialo
           <Button
             variant="ghost"
             onClick={handleReset}
-            className="text-white/60 hover:text-white"
+            className="text-muted-foreground hover:text-foreground"
             data-testid="button-reset-ai-settings"
           >
             <ArrowCounterClockwise className="h-4 w-4 mr-2" />
@@ -273,7 +268,6 @@ export function AISettingsDialog({ open, onOpenChange, onSave }: AISettingsDialo
   );
 }
 
-// Compact AI settings button for toolbars
 interface AISettingsButtonProps {
   className?: string;
 }
@@ -287,7 +281,7 @@ export function AISettingsButton({ className }: AISettingsButtonProps) {
         variant="ghost"
         size="sm"
         onClick={() => setOpen(true)}
-        className={cn("text-white/60 hover:text-white hover:bg-white/10", className)}
+        className={cn("text-muted-foreground hover:text-foreground hover:bg-accent", className)}
         data-testid="button-ai-settings"
       >
         <GearSix className="h-4 w-4 mr-2" weight="duotone" />

@@ -68,7 +68,7 @@ function ItemTypeIcon({ type }: { type: ExtractedItem["type"] }) {
     risk: Warning,
   };
   const colors = {
-    action: "text-violet-400",
+    action: "text-primary",
     decision: "text-emerald-400",
     risk: "text-amber-400",
   };
@@ -113,12 +113,12 @@ function ExtractedItemCard({
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
               <ItemTypeIcon type={item.type} />
-              <p className="flex-1 text-white/50 line-through text-sm">{item.text}</p>
+              <p className="flex-1 text-muted-foreground line-through text-sm">{item.text}</p>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onAccept}
-                className="text-white/40 hover:text-white"
+                className="text-muted-foreground hover:text-foreground"
               >
                 Undo
               </Button>
@@ -131,17 +131,17 @@ function ExtractedItemCard({
 
   if (isEditing) {
     return (
-      <Card className="glass-panel border-violet-500/30">
+      <Card className="glass-panel border-primary/30">
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center gap-2 mb-2">
             <ItemTypeIcon type={item.type} />
-            <span className="text-sm font-medium text-white capitalize">{item.type}</span>
+            <span className="text-sm font-medium text-foreground capitalize">{item.type}</span>
           </div>
           
           <Textarea
             value={editedText}
             onChange={(e) => setEditedText(e.target.value)}
-            className="bg-white/5 border-white/10 text-white min-h-[80px]"
+            className="bg-muted border-border text-foreground min-h-[80px]"
             placeholder="Edit the extracted text..."
           />
           
@@ -150,7 +150,7 @@ function ExtractedItemCard({
               <Input
                 value={editedOwner}
                 onChange={(e) => setEditedOwner(e.target.value)}
-                className="bg-white/5 border-white/10 text-white flex-1"
+                className="bg-muted border-border text-foreground flex-1"
                 placeholder="Assignee (optional)"
               />
             </div>
@@ -165,14 +165,14 @@ function ExtractedItemCard({
                 setEditedOwner(item.ownerName || "");
                 setIsEditing(false);
               }}
-              className="text-white/60"
+              className="text-muted-foreground"
             >
               Cancel
             </Button>
             <Button
               size="sm"
               onClick={handleSaveEdit}
-              className="bg-violet-600 hover:bg-violet-700"
+              className="bg-primary hover:bg-primary/90"
             >
               Save
             </Button>
@@ -191,31 +191,31 @@ function ExtractedItemCard({
       <Card className={cn(
         "glass-panel transition-all",
         item.status === "accepted" && "border-emerald-500/30 bg-emerald-500/5",
-        item.status === "edited" && "border-violet-500/30 bg-violet-500/5"
+        item.status === "edited" && "border-primary/30 bg-primary/5"
       )}>
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <ItemTypeIcon type={item.type} />
             
             <div className="flex-1 min-w-0 space-y-2">
-              <p className="text-white text-sm leading-relaxed">{item.text}</p>
+              <p className="text-foreground text-sm leading-relaxed">{item.text}</p>
               
               <div className="flex flex-wrap items-center gap-2">
                 {item.ownerName && (
-                  <span className="flex items-center gap-1 text-xs text-white/50">
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
                     <User className="h-3 w-3" />
                     {item.ownerName}
                   </span>
                 )}
                 {item.dueDate && (
-                  <span className="flex items-center gap-1 text-xs text-white/50">
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
                     {format(new Date(item.dueDate), "MMM d")}
                   </span>
                 )}
                 {showConfidence && <ConfidenceBadge confidence={item.confidence} />}
                 {item.status === "edited" && (
-                  <Badge variant="outline" className="text-xs border-violet-500/30 text-violet-300">
+                  <Badge variant="outline" className="text-xs border-primary/30 text-primary">
                     Edited
                   </Badge>
                 )}
@@ -232,7 +232,7 @@ function ExtractedItemCard({
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsEditing(true)}
-                className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
                 aria-label="Edit item"
                 data-testid={`button-edit-${item.id}`}
               >
@@ -255,7 +255,7 @@ function ExtractedItemCard({
                   variant="ghost"
                   size="icon"
                   onClick={onReject}
-                  className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
                   aria-label="Undo accept"
                   data-testid={`button-undo-${item.id}`}
                 >
@@ -326,16 +326,15 @@ export function ExtractionReviewPanel({
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 h-full">
-      {/* Left: Original Notes */}
       {rawNotes && (
         <div className="lg:w-1/2 space-y-4">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-1 bg-white/30 rounded-full" />
-            <h3 className="font-medium text-white">Original Notes</h3>
+            <div className="h-6 w-1 bg-muted-foreground/50 rounded-full" />
+            <h3 className="font-medium text-foreground">Original Notes</h3>
           </div>
           <Card className="glass-panel h-[calc(100vh-300px)] overflow-hidden">
             <ScrollArea className="h-full p-4">
-              <p className="text-white/70 text-sm whitespace-pre-wrap leading-relaxed">
+              <p className="text-foreground text-sm whitespace-pre-wrap leading-relaxed">
                 {rawNotes}
               </p>
             </ScrollArea>
@@ -343,19 +342,18 @@ export function ExtractionReviewPanel({
         </div>
       )}
 
-      {/* Right: Extracted Items */}
       <div className={cn("space-y-4", rawNotes ? "lg:w-1/2" : "w-full")}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-1 bg-violet-500 rounded-full" />
-            <h3 className="font-medium text-white flex items-center gap-2">
-              <Sparkle className="h-4 w-4 text-violet-400" weight="fill" />
+            <div className="h-6 w-1 bg-primary rounded-full" />
+            <h3 className="font-medium text-foreground flex items-center gap-2">
+              <Sparkle className="h-4 w-4 text-primary" weight="fill" />
               Extracted Items
             </h3>
           </div>
           
           <div className="flex items-center gap-3">
-            <span className="text-sm text-white/50">
+            <span className="text-sm text-muted-foreground">
               {acceptedCount}/{totalCount} selected
             </span>
             <Button
@@ -371,10 +369,10 @@ export function ExtractionReviewPanel({
         </div>
 
         {summary && (
-          <Card className="glass-panel border-violet-500/20">
+          <Card className="glass-panel border-primary/20">
             <CardContent className="p-4">
-              <p className="text-sm text-white/80 leading-relaxed">
-                <span className="font-medium text-violet-300">Summary: </span>
+              <p className="text-sm text-foreground leading-relaxed">
+                <span className="font-medium text-primary">Summary: </span>
                 {summary}
               </p>
             </CardContent>
@@ -386,8 +384,8 @@ export function ExtractionReviewPanel({
             {actionItems.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <ListChecks className="h-4 w-4 text-violet-400" />
-                  <span className="text-sm font-medium text-white/70">
+                  <ListChecks className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">
                     Action Items ({actionItems.length})
                   </span>
                 </div>
@@ -409,7 +407,7 @@ export function ExtractionReviewPanel({
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Lightbulb className="h-4 w-4 text-emerald-400" />
-                  <span className="text-sm font-medium text-white/70">
+                  <span className="text-sm font-medium text-foreground">
                     Decisions ({decisions.length})
                   </span>
                 </div>
@@ -431,7 +429,7 @@ export function ExtractionReviewPanel({
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Warning className="h-4 w-4 text-amber-400" />
-                  <span className="text-sm font-medium text-white/70">
+                  <span className="text-sm font-medium text-foreground">
                     Risks ({risks.length})
                   </span>
                 </div>
@@ -451,7 +449,7 @@ export function ExtractionReviewPanel({
           </div>
         </ScrollArea>
 
-        <div className="flex gap-3 pt-4 border-t border-white/10">
+        <div className="flex gap-3 pt-4 border-t border-border">
           <Button
             variant="outline"
             onClick={onCancel}

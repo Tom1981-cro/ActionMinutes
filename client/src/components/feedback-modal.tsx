@@ -27,7 +27,7 @@ const feedbackTypes = [
   { value: "bug", label: "Bug", icon: Bug, color: "text-red-500" },
   { value: "feature", label: "Feature", icon: Lightbulb, color: "text-amber-500" },
   { value: "ux", label: "UX Issue", icon: Palette, color: "text-purple-500" },
-  { value: "other", label: "Other", icon: Question, color: "text-gray-500" },
+  { value: "other", label: "Other", icon: Question, color: "text-muted-foreground" },
 ];
 
 export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
@@ -95,15 +95,15 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[420px] max-w-[calc(100vw-2rem)] rounded-3xl overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="text-xl text-slate-800">Send Feedback</DialogTitle>
-          <DialogDescription className="text-gray-500">
+          <DialogTitle className="text-xl text-foreground">Send Feedback</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Help us improve ActionMinutes
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 py-2 w-full">
           <div className="space-y-2">
-            <Label className="text-base text-slate-700">Type</Label>
+            <Label className="text-base text-foreground">Type</Label>
             <div className="grid grid-cols-4 gap-2">
               {feedbackTypes.map((t) => {
                 const Icon = t.icon;
@@ -117,14 +117,14 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
                       "flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all",
                       isSelected
                         ? "border-indigo-500 bg-indigo-50"
-                        : "border-gray-200 hover:border-gray-300"
+                        : "border-border hover:border-border"
                     )}
                     data-testid={`button-feedback-type-${t.value}`}
                   >
                     <Icon className={cn("h-5 w-5", isSelected ? "text-indigo-600" : t.color)} weight="duotone" />
                     <span className={cn(
                       "text-xs font-medium",
-                      isSelected ? "text-indigo-700" : "text-gray-600"
+                      isSelected ? "text-indigo-700" : "text-foreground"
                     )}>
                       {t.label}
                     </span>
@@ -135,33 +135,33 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-base text-slate-700">Message *</Label>
+            <Label className="text-base text-foreground">Message *</Label>
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Describe your feedback..."
-              className="min-h-[100px] rounded-xl border-gray-200 text-base w-full"
+              className="min-h-[100px] rounded-xl border-border text-base w-full"
               data-testid="input-feedback-message"
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-base text-slate-700">Email (optional)</Label>
+            <Label className="text-base text-foreground">Email (optional)</Label>
             <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="h-11 rounded-xl border-gray-200 w-full"
+              className="h-11 rounded-xl border-border w-full"
               data-testid="input-feedback-email"
             />
-            <p className="text-xs text-gray-400">For follow-up if needed</p>
+            <p className="text-xs text-muted-foreground">For follow-up if needed</p>
           </div>
 
           <div className="flex items-center justify-between gap-4 py-2">
             <div className="space-y-0.5 min-w-0 flex-1">
-              <Label className="text-base text-slate-700">Include diagnostics</Label>
-              <p className="text-xs text-gray-400">Route, viewport size, browser</p>
+              <Label className="text-base text-foreground">Include diagnostics</Label>
+              <p className="text-xs text-muted-foreground">Route, viewport size, browser</p>
             </div>
             <Switch
               checked={includeDiagnostics}
@@ -172,7 +172,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
           </div>
 
           {includeDiagnostics && (
-            <div className="text-xs text-gray-400 bg-gray-50 p-3 rounded-xl space-y-1 overflow-hidden">
+            <div className="text-xs text-muted-foreground bg-muted p-3 rounded-xl space-y-1 overflow-hidden">
               <div className="truncate">Route: {location}</div>
               <div className="truncate">Viewport: {typeof window !== "undefined" ? `${window.innerWidth}x${window.innerHeight}` : "N/A"}</div>
               <div className="truncate">Browser: {typeof navigator !== "undefined" ? navigator.userAgent.slice(0, 50) + "..." : "N/A"}</div>
@@ -184,7 +184,7 @@ export function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="flex-1 h-12 rounded-xl border-gray-200"
+            className="flex-1 h-12 rounded-xl border-border"
             data-testid="button-feedback-cancel"
           >
             Cancel

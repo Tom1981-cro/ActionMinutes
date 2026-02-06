@@ -98,9 +98,9 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
         className="h-[90vh] rounded-t-3xl px-0 pb-0 md:h-auto md:max-h-[85vh] md:rounded-3xl md:inset-x-4 md:bottom-4 md:top-auto md:left-1/2 md:-translate-x-1/2 md:max-w-lg"
       >
         <div className="flex flex-col h-full">
-          <SheetHeader className="px-5 pb-4 border-b border-stone-100">
+          <SheetHeader className="px-5 pb-4 border-b border-border">
             <div className="flex items-center justify-between">
-              <SheetTitle className="text-lg text-slate-800">Edit Action</SheetTitle>
+              <SheetTitle className="text-lg text-foreground">Edit Action</SheetTitle>
               <Button 
                 variant="ghost" 
                 size="icon" 
@@ -117,7 +117,7 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
                 size="sm"
                 variant={status === "done" ? "default" : "outline"}
                 onClick={() => handleQuickStatus("done")}
-                className={`flex-1 h-10 rounded-xl ${status === "done" ? "bg-teal-500 hover:bg-teal-600" : "border-stone-200"}`}
+                className={`flex-1 h-10 rounded-xl ${status === "done" ? "bg-teal-500 hover:bg-teal-600" : "border-border"}`}
               >
                 Done
               </Button>
@@ -125,7 +125,7 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
                 size="sm"
                 variant={status === "open" ? "default" : "outline"}
                 onClick={() => handleQuickStatus("open")}
-                className={`flex-1 h-10 rounded-xl ${status === "open" ? "bg-teal-500 hover:bg-teal-600" : "border-stone-200"}`}
+                className={`flex-1 h-10 rounded-xl ${status === "open" ? "bg-teal-500 hover:bg-teal-600" : "border-border"}`}
               >
                 Open
               </Button>
@@ -133,7 +133,7 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
                 size="sm"
                 variant={status === "waiting" ? "default" : "outline"}
                 onClick={() => handleQuickStatus("waiting")}
-                className={`flex-1 h-10 rounded-xl ${status === "waiting" ? "bg-amber-500 hover:bg-amber-600" : "border-stone-200"}`}
+                className={`flex-1 h-10 rounded-xl ${status === "waiting" ? "bg-amber-500 hover:bg-amber-600" : "border-border"}`}
               >
                 Waiting
               </Button>
@@ -142,42 +142,42 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
 
           <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
             <div className="space-y-2">
-              <Label className="text-base text-slate-700 flex items-center gap-2">
-                <FileText className="h-4 w-4 text-stone-400" />
+              <Label className="text-base text-foreground flex items-center gap-2">
+                <FileText className="h-4 w-4 text-muted-foreground" />
                 Task
               </Label>
               <Textarea
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="What needs to be done?"
-                className="min-h-[100px] text-base rounded-2xl border-stone-200 p-4"
+                className="min-h-[100px] text-base rounded-2xl border-border p-4"
                 data-testid="input-action-text"
               />
             </div>
 
             <div className="grid gap-4">
               <div className="space-y-2">
-                <Label className="text-base text-slate-700 flex items-center gap-2">
-                  <User className="h-4 w-4 text-stone-400" />
+                <Label className="text-base text-foreground flex items-center gap-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
                   Owner Name
                 </Label>
                 <Input
                   value={ownerName}
                   onChange={(e) => setOwnerName(e.target.value)}
                   placeholder="Who's responsible?"
-                  className="h-12 text-base rounded-2xl border-stone-200"
+                  className="h-12 text-base rounded-2xl border-border"
                   data-testid="input-owner-name"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-base text-slate-700">Owner Email</Label>
+                <Label className="text-base text-foreground">Owner Email</Label>
                 <Input
                   type="email"
                   value={ownerEmail}
                   onChange={(e) => setOwnerEmail(e.target.value)}
                   placeholder="owner@example.com"
-                  className="h-12 text-base rounded-2xl border-stone-200"
+                  className="h-12 text-base rounded-2xl border-border"
                   data-testid="input-owner-email"
                 />
               </div>
@@ -185,52 +185,52 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label className="text-base text-slate-700 flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-stone-400" />
+                <Label className="text-base text-foreground flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
                   Due Date
                 </Label>
                 <Input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="h-12 text-base rounded-2xl border-stone-200"
+                  className="h-12 text-base rounded-2xl border-border"
                   data-testid="input-due-date"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-base text-slate-700 flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-stone-400" />
+                <Label className="text-base text-foreground flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
                   Reminder
                 </Label>
                 <Input
                   type="datetime-local"
                   value={reminderAt}
                   onChange={(e) => setReminderAt(e.target.value)}
-                  className="h-12 text-base rounded-2xl border-stone-200"
+                  className="h-12 text-base rounded-2xl border-border"
                   data-testid="input-reminder"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-base text-slate-700">Notes</Label>
+              <Label className="text-base text-foreground">Notes</Label>
               <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Additional context or details..."
-                className="min-h-[80px] text-base rounded-2xl border-stone-200 p-4"
+                className="min-h-[80px] text-base rounded-2xl border-border p-4"
                 data-testid="input-notes"
               />
             </div>
           </div>
 
-          <div className="border-t border-stone-100 p-4 bg-white" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+          <div className="border-t border-border p-4 bg-card" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="flex-1 h-12 rounded-2xl border-stone-200 text-base"
+                className="flex-1 h-12 rounded-2xl border-border text-base"
               >
                 Cancel
               </Button>
