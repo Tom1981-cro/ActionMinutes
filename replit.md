@@ -170,3 +170,4 @@ The UI/UX is designed as a personal productivity assistant with a streamlined si
 - **DOM Convention**: `data-theme="aurora|paper|grid|clay|terminal"` attribute + `.light` class on `<html>` element
 - **Settings UI**: Appearance section in Settings page with theme cards, mode toggle, reset button, and live preview
 - **Integration**: Body background uses `var(--theme-body-bg)` CSS variable; old Zustand theme toggle replaced by `useTheme` hook
+- **Token System**: HSL-based shadcn/ui tokens (space-separated format) converted to hsl() in themes.css. All utilities use semantic variables (--primary, --foreground, --border, etc.). Shadow tokens (--shadow-1, --shadow-2) shared across themes. Legacy palette definitions kept in @theme inline block for Tailwind compatibility only.

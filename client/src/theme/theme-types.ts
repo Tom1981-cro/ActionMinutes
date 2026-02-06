@@ -5,6 +5,7 @@ export interface ThemeConfig {
   id: ThemeId;
   name: string;
   description: string;
+  bestFor: string;
   preview: {
     primary: string;
     accent: string;
@@ -15,33 +16,38 @@ export interface ThemeConfig {
 export const THEMES: ThemeConfig[] = [
   {
     id: "aurora",
-    name: "Aurora",
-    description: "Crisp gradients with violet glow.",
-    preview: { primary: "#8b5cf6", accent: "#d946ef", bg: "#121212" },
+    name: "Aurora Minimal",
+    description: "Premium, calm, background-only gradient; crisp cards.",
+    bestFor: "Best default theme",
+    preview: { primary: "#a78bfa", accent: "#818cf8", bg: "#0f0e1a" },
   },
   {
     id: "paper",
     name: "Studio Paper",
-    description: "Warm editorial surfaces.",
-    preview: { primary: "#b45309", accent: "#d97706", bg: "#1c1917" },
+    description: "Editorial notebook vibe; warm surfaces; great for writing.",
+    bestFor: "Notes / Journal heavy users",
+    preview: { primary: "#c084fc", accent: "#a78bfa", bg: "#171311" },
   },
   {
     id: "grid",
     name: "Monochrome Grid",
-    description: "Enterprise, scan-first layout.",
-    preview: { primary: "#3b82f6", accent: "#60a5fa", bg: "#111827" },
+    description: "Scan-first enterprise precision; minimal color; aligned metadata.",
+    bestFor: "Inbox / Reminders power use",
+    preview: { primary: "#818cf8", accent: "#6366f1", bg: "#0e0e18" },
   },
   {
     id: "clay",
     name: "Warm Clay",
-    description: "Soft, friendly earth tones.",
-    preview: { primary: "#ea580c", accent: "#f97316", bg: "#1a1412" },
+    description: "Friendly tactile softness; warm neutrals; approachable.",
+    bestFor: "Personal productivity",
+    preview: { primary: "#f472b6", accent: "#fb923c", bg: "#171210" },
   },
   {
     id: "terminal",
     name: "Terminal Luxe",
-    description: "Graphite + neon accents.",
-    preview: { primary: "#22c55e", accent: "#4ade80", bg: "#0a0a0a" },
+    description: "Graphite + neon accents; power-user dark without gimmicks.",
+    bestFor: "Late-night / power users",
+    preview: { primary: "#c084fc", accent: "#22d3ee", bg: "#08081a" },
   },
 ];
 

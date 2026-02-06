@@ -232,6 +232,7 @@ export default function SettingsPage() {
                   </div>
                   <p className="font-semibold text-sm text-foreground">{t.name}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">{t.bestFor}</p>
                   {currentTheme === t.id && (
                     <div className="absolute top-3 right-3">
                       <CheckCircle className="h-5 w-5 text-primary" weight="fill" />
