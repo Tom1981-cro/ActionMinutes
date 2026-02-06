@@ -109,32 +109,36 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
         <div className="flex items-center gap-1.5 pt-1">
           <button
             onClick={(e) => { e.stopPropagation(); onDone(); }}
-            className="pill-secondary text-[11px] py-0.5 px-2.5 hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="inline-flex items-center gap-1 rounded-full border font-medium text-[11px] px-2 py-0.5 transition-colors bg-emerald-500/15 text-emerald-600 border-emerald-500/25 hover:bg-emerald-500/25 dark:text-emerald-400"
             data-testid={`button-done-${item.id}`}
           >
+            <CheckCircle className="h-3 w-3" />
             Done
           </button>
           {item.status !== 'waiting' && (
             <button
               onClick={(e) => { e.stopPropagation(); onWaiting(); }}
-              className="pill-secondary text-[11px] py-0.5 px-2.5 hover:bg-primary hover:text-primary-foreground transition-colors"
+              className="inline-flex items-center gap-1 rounded-full border font-medium text-[11px] px-2 py-0.5 transition-colors bg-amber-500/15 text-amber-600 border-amber-500/25 hover:bg-amber-500/25 dark:text-amber-400"
               data-testid={`button-waiting-${item.id}`}
             >
+              <Clock className="h-3 w-3" />
               Waiting
             </button>
           )}
           <button
             onClick={(e) => { e.stopPropagation(); onRemind(); }}
-            className="pill-secondary text-[11px] py-0.5 px-2.5 hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="inline-flex items-center gap-1 rounded-full border font-medium text-[11px] px-2 py-0.5 transition-colors bg-rose-500/15 text-rose-600 border-rose-500/25 hover:bg-rose-500/25 dark:text-rose-400"
             data-testid={`button-remind-${item.id}`}
           >
+            <Bell className="h-3 w-3" />
             Remind
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            className="pill-secondary text-[11px] py-0.5 px-2.5 hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="inline-flex items-center gap-1 rounded-full border font-medium text-[11px] px-2 py-0.5 transition-colors bg-blue-500/15 text-blue-600 border-blue-500/25 hover:bg-blue-500/25 dark:text-blue-400"
             data-testid={`button-edit-${item.id}`}
           >
+            <Pencil className="h-3 w-3" />
             Edit
           </button>
         </div>
