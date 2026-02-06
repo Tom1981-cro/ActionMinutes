@@ -29,7 +29,13 @@ A separate mobile application is developed using Expo React Native, connecting t
 - **AI Integration:** Features for meeting capture, AI extraction for summaries, action items, decisions, risks, and automated follow-up email draft generation.
 - **Access Control:** Plan-based access control (Free and Pro tiers) managing features and usage limits.
 - **UI/UX Design:** Streamlined sidebar navigation providing access to all features.
-- **Theme System:** Five distinct themes (Aurora, Studio Paper, Monochrome Grid, Warm Clay, Terminal Luxe), each supporting light and dark modes, totaling ten configurations. Themes are managed via CSS custom properties and a Zustand store for persistence.
+- **Theme System:** Five themes (Aurora, Paper, Grid, Clay, Terminal) × light/dark modes = 10 configurations. Architecture:
+    - `client/src/theme/themes.css`: Single source of truth with `html[data-theme]` selectors, shadow tokens, status tokens (--success, --warning), per-theme typography.
+    - `client/src/theme/demo-utilities.css`: Reusable classes (.navItem, .shadow-token, .glass-panel, .pill-secondary, etc.).
+    - `client/src/theme/theme.ts`: `initTheme()` runs before React render in main.tsx.
+    - `client/src/theme/useTheme.ts`: Zustand store for React components.
+    - All UI components use semantic CSS tokens exclusively (zero hardcoded slate/white colors in global UI). Pill classes use `color-mix()` with CSS variables for transparency effects.
+    - Settings page has theme switcher with color preview dots, light/dark toggle, and live ThemePreview component.
 - **Notes Module:** Features AES-256-GCM encryption for note content at rest, with searchable keyword indexing. Supports mood tracking, tags, bi-directional links, and attachments.
 - **Calendar Synchronization:** Adapters for Google Calendar and Microsoft Outlook, supporting CRUD operations for events, real-time sync via webhooks, and free/busy queries.
 - **AI Summarization Service:** Structured summarization of transcripts, extracting concise summaries, key decisions, actionable tasks (with assignees, due dates, priority), sentiment analysis, and keywords.
