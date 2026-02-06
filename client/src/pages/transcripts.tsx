@@ -110,6 +110,10 @@ export default function TranscriptsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/transcripts/summary", selectedTranscript] });
+      toast({ title: "Task updated" });
+    },
+    onError: () => {
+      toast({ title: "Failed to update task", variant: "destructive" });
     },
   });
 

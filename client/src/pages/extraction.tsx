@@ -9,14 +9,17 @@ import { Label } from "@/components/ui/label";
 import { StatusBadge, SeverityBadge } from "@/components/ui/status-badge";
 import { 
   ArrowLeft, CheckCircle, FileText, CalendarBlank, DownloadSimple, 
-  Warning, Question, Pencil, User, Clock, SpinnerGap 
+  Warning, Question, Pencil, User, Clock, SpinnerGap, HighlighterCircle
 } from "@phosphor-icons/react";
 import { useToast } from "@/hooks/use-toast";
 import { useMeeting, useActionItemsForMeeting, useDecisionsForMeeting, useRisksForMeeting, useQuestionsForMeeting, useUpdateMeeting, useExportCalendar, useAppConfig, useGenerateDrafts, useDraftsForMeeting, useTasksBySource, useCreateTasksFromMeeting } from "@/lib/hooks";
 import { ActionEditSheet } from "@/components/action-edit-sheet";
+import { TextHighlighter, type HighlightedItem } from "@/components/text-highlighter";
 import type { ActionItem } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+import { useQueryClient } from "@tanstack/react-query";
 
-type TabType = 'summary' | 'actions' | 'decisions' | 'risks' | 'clarify';
+type TabType = 'summary' | 'actions' | 'decisions' | 'risks' | 'clarify' | 'highlight';
 
 export default function ExtractionPage() {
   const [, params] = useRoute("/meeting/:id");
@@ -37,6 +40,7 @@ export default function ExtractionPage() {
   const { data: linkedTasks = [], isLoading: tasksLoading } = useTasksBySource('meeting', id);
   const createTasksFromMeeting = useCreateTasksFromMeeting();
 
+  const queryClient = useQueryClient();
   const aiEnabled = config?.features?.aiEnabled !== false;
   const hasDrafts = existingDrafts.length > 0;
 
@@ -45,6 +49,7 @@ export default function ExtractionPage() {
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [selectedAction, setSelectedAction] = useState<ActionItem | null>(null);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
+  const [manualHighlights, setManualHighlights] = useState<HighlightedItem[]>([]);
 
   if (meetingLoading || actionsLoading) {
     return (
@@ -146,12 +151,52 @@ export default function ExtractionPage() {
     }
   };
 
+  const handleHighlightConfirm = async (items: HighlightedItem[]) => {
+    try {
+      for (const item of items) {
+        if (item.type === "action") {
+          await apiRequest("POST", `/api/actions`, {
+            meetingId: meeting.id,
+            text: item.text,
+            ownerName: item.ownerName || null,
+            status: "needs_review",
+          });
+        } else if (item.type === "decision") {
+          await apiRequest("POST", `/api/meetings/${meeting.id}/decisions`, {
+            text: item.text,
+          });
+        } else if (item.type === "risk") {
+          await apiRequest("POST", `/api/meetings/${meeting.id}/risks`, {
+            text: item.text,
+            severity: "medium",
+          });
+        }
+      }
+      queryClient.invalidateQueries({ queryKey: ['actions', 'meeting', meeting.id] });
+      queryClient.invalidateQueries({ queryKey: ['decisions', 'meeting', meeting.id] });
+      queryClient.invalidateQueries({ queryKey: ['risks', 'meeting', meeting.id] });
+      toast({
+        title: "Items added",
+        description: `${items.length} highlighted item${items.length !== 1 ? "s" : ""} added to extraction results.`,
+      });
+      setManualHighlights([]);
+      setActiveTab("actions");
+    } catch (error: any) {
+      toast({
+        title: "Could not add items",
+        description: error?.message || "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const tabs: { id: TabType; label: string; count?: number }[] = [
     { id: 'summary', label: 'Summary' },
     { id: 'actions', label: 'Actions', count: actions.length },
     { id: 'decisions', label: 'Decisions', count: decisions.length },
     { id: 'risks', label: 'Risks', count: risks.length },
     { id: 'clarify', label: 'Clarify', count: questions.length },
+    { id: 'highlight', label: 'Highlight' },
   ];
 
   return (
@@ -393,6 +438,27 @@ export default function ExtractionPage() {
               </CardContent>
             </Card>
           </div>
+
+          {meeting.notes && (
+            <div className={`${activeTab === 'highlight' ? 'block' : 'hidden md:block'}`}>
+              <Card className="glass-panel rounded-2xl">
+                <CardHeader className="px-4 pt-4 pb-2 md:px-6">
+                  <CardTitle className="text-base font-semibold text-white flex items-center gap-2">
+                    <HighlighterCircle className="h-4 w-4 text-violet-400" weight="duotone" />
+                    Manual Highlight
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-4 pb-4 md:px-6">
+                  <TextHighlighter
+                    text={meeting.notes}
+                    highlights={manualHighlights}
+                    onHighlightsChange={setManualHighlights}
+                    onConfirm={handleHighlightConfirm}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
           <div className="hidden md:flex gap-3 pt-2 flex-wrap">
             <Dialog open={exportOpen} onOpenChange={setExportOpen}>

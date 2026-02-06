@@ -46,6 +46,26 @@ The UI/UX is designed as a personal productivity assistant with a streamlined si
 - **Email/Communication**: Nodemailer for sending emails.
 - **Authentication**: Passport.js, express-session, connect-pg-simple for session management.
 
+## UX Enhancement Components
+
+### Onboarding & Empty States
+- **Empty State** (`client/src/components/empty-state.tsx`): Reusable animated empty state with 10+ page variants (inbox, meetings, transcripts, drafts, journal, calendar, notes, tasks, capture, generic). Includes tips section, CTA buttons, and inline variant.
+- **Getting Started** (`client/src/components/getting-started.tsx`): Dismissible onboarding widget with 3-step progress tracking (capture meeting, create note, connect calendar). Auto-hides when all steps complete. State persisted in localStorage.
+- **Sample Data** (`client/src/lib/sample-data.ts`): Demo mode with 3 sample meetings, extracted items, and follow-up draft emails for new user walkthrough.
+
+### Performance & Loading
+- **Skeleton Loaders** (`client/src/components/skeleton-loader.tsx`): Theme-aware skeleton components for cards, actions, meetings, journals, notes, calendar, and transcripts. Includes SkeletonList wrapper.
+- **Lazy Loading**: Calendar and Transcripts pages use React.lazy with Suspense for code splitting, reducing initial bundle size.
+
+### Error Handling
+- **Error Boundary** (`client/src/components/error-boundary.tsx`): React class error boundary with retry, page-level and section-level fallback UIs. Includes useErrorHandler hook and withErrorBoundary HOC.
+- **Toast Notifications**: All network mutations across pages (notes, tasks, reminders, lists, calendar, transcripts, inbox) have both success and error toast feedback.
+
+### AI Accuracy Controls
+- **AI Settings** (`client/src/components/ai-settings.tsx`): Dialog for configuring output language (12 languages), writing tone (formal/neutral/informal), summary length (brief/standard/detailed), confidence threshold slider, auto-extract toggle, and confidence score visibility. Persisted in localStorage.
+- **Extraction Review** (`client/src/components/extraction-review.tsx`): Side-by-side review panel showing original notes alongside extracted items (actions, decisions, risks) with confidence badges, accept/reject/edit per item, and batch accept.
+- **Text Highlighter** (`client/src/components/text-highlighter.tsx`): Manual text selection UI for highlighting meeting notes and marking them as action items, decisions, or risks. Includes assignee editing and filter tabs.
+
 ## Key Features
 
 ### Audio Transcription (Voice-to-Text)

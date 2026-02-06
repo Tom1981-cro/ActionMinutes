@@ -212,6 +212,9 @@ export default function InboxPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["reminders"] });
     },
+    onError: () => {
+      toast({ title: "Failed to update reminder", variant: "destructive" });
+    },
   });
 
   const isLoading = actionsLoading || remindersLoading;

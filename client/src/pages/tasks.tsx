@@ -208,6 +208,9 @@ export default function TasksPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
     },
+    onError: () => {
+      toast({ title: "Failed to update task", variant: "destructive" });
+    },
   });
 
   const completeTaskMutation = useMutation({
@@ -223,6 +226,9 @@ export default function TasksPage() {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({ title: "Task completed" });
     },
+    onError: () => {
+      toast({ title: "Failed to complete task", variant: "destructive" });
+    },
   });
 
   const deleteTaskMutation = useMutation({
@@ -235,6 +241,9 @@ export default function TasksPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({ title: "Task deleted" });
+    },
+    onError: () => {
+      toast({ title: "Failed to delete task", variant: "destructive" });
     },
   });
 
@@ -255,6 +264,9 @@ export default function TasksPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       toast({ title: "Project created" });
+    },
+    onError: () => {
+      toast({ title: "Failed to create project", variant: "destructive" });
     },
   });
 

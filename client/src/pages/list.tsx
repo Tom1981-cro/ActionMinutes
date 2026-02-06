@@ -83,6 +83,9 @@ export default function ListPage() {
       setIsEditingName(false);
       toast({ title: "List renamed" });
     },
+    onError: () => {
+      toast({ title: "Failed to rename list", variant: "destructive" });
+    },
   });
 
   const addNewTask = useMutation({
@@ -101,6 +104,9 @@ export default function ListPage() {
       setIsAddingTask(false);
       toast({ title: "Task added" });
     },
+    onError: () => {
+      toast({ title: "Failed to add task", variant: "destructive" });
+    },
   });
 
   const addItemToList = useMutation({
@@ -117,6 +123,9 @@ export default function ListPage() {
       queryClient.invalidateQueries({ queryKey: ['custom-list', listId] });
       toast({ title: "Item added to list" });
     },
+    onError: () => {
+      toast({ title: "Failed to add item", variant: "destructive" });
+    },
   });
 
   const removeItemFromList = useMutation({
@@ -130,6 +139,9 @@ export default function ListPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-list', listId] });
       toast({ title: "Item removed from list" });
+    },
+    onError: () => {
+      toast({ title: "Failed to remove item", variant: "destructive" });
     },
   });
 

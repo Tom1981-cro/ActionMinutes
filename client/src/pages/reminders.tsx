@@ -213,6 +213,9 @@ export default function RemindersPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/personal/reminders', user.id] });
       toast({ title: "Reminder added" });
     },
+    onError: () => {
+      toast({ title: "Failed to add reminder", variant: "destructive" });
+    },
   });
 
   const updateReminder = useMutation({
@@ -228,6 +231,9 @@ export default function RemindersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/personal/reminders', user.id] });
     },
+    onError: () => {
+      toast({ title: "Failed to update reminder", variant: "destructive" });
+    },
   });
 
   const deleteReminder = useMutation({
@@ -238,6 +244,9 @@ export default function RemindersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/personal/reminders', user.id] });
       toast({ title: "Reminder deleted" });
+    },
+    onError: () => {
+      toast({ title: "Failed to delete reminder", variant: "destructive" });
     },
   });
 

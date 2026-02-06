@@ -138,6 +138,9 @@ export default function NotesPage() {
       queryClient.invalidateQueries({ queryKey: ['notes-feed'] });
       resetEditor();
       toast({ title: "Note updated" });
+    },
+    onError: () => {
+      toast({ title: "Failed to update note", variant: "destructive" });
     }
   });
   
@@ -152,6 +155,9 @@ export default function NotesPage() {
       queryClient.invalidateQueries({ queryKey: ['notes-feed'] });
       setSelectedNote(null);
       toast({ title: "Note deleted" });
+    },
+    onError: () => {
+      toast({ title: "Failed to delete note", variant: "destructive" });
     }
   });
   
@@ -165,8 +171,12 @@ export default function NotesPage() {
       if (!res.ok) throw new Error('Failed to update note');
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['notes'] });
+      toast({ title: variables.isPinned ? "Note pinned" : "Note unpinned" });
+    },
+    onError: () => {
+      toast({ title: "Failed to update pin", variant: "destructive" });
     }
   });
   
