@@ -557,6 +557,7 @@ export default function CapturePage() {
             data-testid="input-audio-file"
           />
 
+          <div className="glass-panel rounded-xl p-4 space-y-3">
           <div 
             className={cn(
               "flex items-center gap-2 transition-all duration-200",
@@ -665,12 +666,13 @@ export default function CapturePage() {
 • Who is responsible for what?
 
 Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
-              className="w-full min-h-[300px] p-4 bg-muted border border-border rounded-2xl text-base text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:border-ring focus:bg-accent transition-all relative"
+              className="w-full min-h-[300px] p-4 bg-transparent border-0 rounded-xl text-base text-foreground placeholder:text-muted-foreground resize-none focus:outline-none transition-all relative"
               style={{ lineHeight: '1.75', background: 'transparent' }}
               data-testid="input-notes"
               onFocus={() => setIsTextareaFocused(true)}
               onBlur={() => setIsTextareaFocused(false)}
             />
+          </div>
           </div>
 
           {hasDetectedActions && (
