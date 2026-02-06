@@ -157,3 +157,16 @@ The UI/UX is designed as a personal productivity assistant with a streamlined si
   - Daily journal prompts with mood tracking
   - Recent activity feed sidebar
   - Pin notes for quick access
+
+### Theme System
+- **5 Themes**: Aurora (violet glassmorphism, default), Studio Paper (warm editorial), Monochrome Grid (enterprise), Warm Clay (earth tones), Terminal Luxe (graphite + neon)
+- **Light/Dark Modes**: Each theme supports both light and dark modes (10 total configurations)
+- **Architecture** (`client/src/theme/`):
+  - `theme-types.ts`: Theme definitions, IDs, preview colors, descriptions
+  - `useTheme.ts`: React hook for theme/mode state with localStorage persistence (keys: `am.theme`, `am.mode`)
+  - `ThemeProvider.tsx`: Context provider wrapping app root, handles DOM updates via `useLayoutEffect`
+  - `themes.css`: CSS custom properties for all theme+mode combinations using `[data-theme="X"]` selectors
+  - `ThemePreview.tsx`: Live preview component showing buttons, badges, inputs, and text colors
+- **DOM Convention**: `data-theme="aurora|paper|grid|clay|terminal"` attribute + `.light` class on `<html>` element
+- **Settings UI**: Appearance section in Settings page with theme cards, mode toggle, reset button, and live preview
+- **Integration**: Body background uses `var(--theme-body-bg)` CSS variable; old Zustand theme toggle replaced by `useTheme` hook
