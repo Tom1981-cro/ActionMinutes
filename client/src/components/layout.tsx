@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
@@ -7,6 +7,7 @@ import {
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
+import { useTheme } from "@/theme/useTheme";
 import { useAuth, authenticatedFetch } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { QuickAdd } from "@/components/quick-add";
@@ -43,7 +44,8 @@ type CustomList = {
 
 export default function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
-  const { user, theme, toggleTheme } = useStore();
+  const { user } = useStore();
+  const { mode: theme, toggleMode: toggleTheme } = useTheme();
   const { logout, isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
   const [editingListId, setEditingListId] = useState<string | null>(null);
@@ -115,14 +117,6 @@ export default function Layout({ children }: LayoutProps) {
     },
   });
 
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === "light") {
-      root.classList.add("light");
-    } else {
-      root.classList.remove("light");
-    }
-  }, [theme]);
 
   const inboxItem = { href: "/app/inbox", label: "Inbox", icon: Tray };
   

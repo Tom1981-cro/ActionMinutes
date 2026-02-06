@@ -209,12 +209,9 @@
     line-height: 1.6;
     min-height: 100vh;
     min-height: 100dvh;
-    background: linear-gradient(145deg, #121212 0%, #0a0a0a 50%, #121212 100%);
+    background: var(--theme-body-bg, linear-gradient(145deg, #121212 0%, #0a0a0a 50%, #121212 100%));
     background-attachment: fixed;
     transition: background 0.3s ease, color 0.3s ease;
-  }
-  .light body {
-    background: linear-gradient(145deg, #fafafa 0%, #f0f0f0 50%, #fafafa 100%);
   }
   
   /* Premium Page Titles */

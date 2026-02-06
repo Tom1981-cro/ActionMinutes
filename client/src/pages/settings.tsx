@@ -3,6 +3,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useStore } from "@/lib/store";
 import { useUpdateUser } from "@/lib/hooks";
@@ -10,7 +11,7 @@ import { Link, useSearch } from "wouter";
 import { 
   GearSix, Plug, CalendarBlank, Sparkle, UsersThree, ChatCircle, ShieldCheck, 
   User, BookOpen, Clock, FileText, Scales, CaretDown, CaretRight, Info, Lifebuoy,
-  CreditCard, Crown, Rocket, CheckCircle, Warning
+  CreditCard, Crown, Rocket, CheckCircle, Warning, Sun, Moon, Palette, ArrowCounterClockwise
 } from "@phosphor-icons/react";
 import { useGeoData } from "@/components/stripe-pricing-table";
 import { authenticatedFetch } from "@/hooks/use-auth";
@@ -20,6 +21,9 @@ import SettingsPrivacyPage from "./settings-privacy";
 import SettingsTermsPage from "./settings-terms";
 import { FeedbackModal } from "@/components/feedback-modal";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/theme/useTheme";
+import { THEMES, DEFAULT_THEME, type ThemeId } from "@/theme/theme-types";
+import { ThemePreview } from "@/theme/ThemePreview";
 
 const ADMIN_EMAIL = "tomi.vida@gmail.com";
 
@@ -164,9 +168,117 @@ export default function SettingsPage() {
     updateUser.mutate({ tone });
   };
 
+  const { theme: currentTheme, mode, setTheme: applyTheme, setMode, resetTheme } = useTheme();
+
   return (
     <div className="space-y-4 md:space-y-5">
       <h1 className="text-4xl font-black tracking-tight text-gradient-light">Settings</h1>
+
+      {/* Appearance Section */}
+      <ExpandableSection
+        title="Appearance"
+        icon={<Palette className="h-5 w-5 text-violet-400" weight="duotone" />}
+        defaultOpen
+        testId="section-appearance"
+      >
+        <div className="space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium text-white/90 light:text-gray-900">Theme</h3>
+              {currentTheme !== DEFAULT_THEME && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetTheme}
+                  className="text-xs text-white/50 hover:text-white/80 light:text-gray-500 light:hover:text-gray-700"
+                  data-testid="button-reset-theme"
+                >
+                  <ArrowCounterClockwise className="h-3.5 w-3.5 mr-1.5" weight="bold" />
+                  Reset to default
+                </Button>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {THEMES.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => applyTheme(t.id)}
+                  className={cn(
+                    "relative p-4 rounded-xl text-left transition-all border",
+                    currentTheme === t.id
+                      ? "border-primary bg-primary/10 ring-1 ring-primary/30"
+                      : "border-border bg-card hover:bg-accent/50"
+                  )}
+                  data-testid={`theme-card-${t.id}`}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="flex gap-1">
+                      <div
+                        className="h-4 w-4 rounded-full border border-white/20"
+                        style={{ background: t.preview.primary }}
+                      />
+                      <div
+                        className="h-4 w-4 rounded-full border border-white/20"
+                        style={{ background: t.preview.accent }}
+                      />
+                      <div
+                        className="h-4 w-4 rounded-full border border-white/20"
+                        style={{ background: t.preview.bg }}
+                      />
+                    </div>
+                    {t.id === DEFAULT_THEME && (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Default</Badge>
+                    )}
+                  </div>
+                  <p className="font-semibold text-sm text-foreground">{t.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>
+                  {currentTheme === t.id && (
+                    <div className="absolute top-3 right-3">
+                      <CheckCircle className="h-5 w-5 text-primary" weight="fill" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-4 border-t border-border">
+            <h3 className="font-medium text-white/90 light:text-gray-900">Mode</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setMode("light")}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all border",
+                  mode === "light"
+                    ? "border-primary bg-primary/10 text-foreground"
+                    : "border-border bg-card text-muted-foreground hover:bg-accent/50"
+                )}
+                data-testid="button-mode-light"
+              >
+                <Sun className="h-4 w-4" weight={mode === "light" ? "fill" : "duotone"} />
+                Light
+              </button>
+              <button
+                onClick={() => setMode("dark")}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all border",
+                  mode === "dark"
+                    ? "border-primary bg-primary/10 text-foreground"
+                    : "border-border bg-card text-muted-foreground hover:bg-accent/50"
+                )}
+                data-testid="button-mode-dark"
+              >
+                <Moon className="h-4 w-4" weight={mode === "dark" ? "fill" : "duotone"} />
+                Dark
+              </button>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-border">
+            <ThemePreview />
+          </div>
+        </div>
+      </ExpandableSection>
 
       {/* AI Preferences Section */}
       <ExpandableSection

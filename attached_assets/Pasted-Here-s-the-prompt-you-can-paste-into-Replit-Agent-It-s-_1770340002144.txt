@@ -1,0 +1,261 @@
+Here’s the prompt you can paste into **Replit Agent**. It’s written to be implementation-ready for a **Vite + React + shadcn/ui + Tailwind** app, with **Aurora as default**, and covers persistence, CSS tokens, and safe migration from your current dark/light.
+
+---
+
+## Replit Agent Prompt — Implement Theme Switcher (Aurora default)
+
+You are working in a **Vite + React + TypeScript** app using **shadcn/ui** and **Tailwind CSS** (Vibrant Enterprise design system). Implement a **Theme switcher** inside **Settings** that lets users choose **one of 5 themes** and also choose **Light/Dark mode**. Make **Aurora** the default theme.
+
+### Goals
+
+1. Add **Theme** selection (5 templates):
+
+   * `aurora` (default)
+   * `paper`
+   * `grid`
+   * `clay`
+   * `terminal`
+2. Add **Mode** selection: `light` / `dark`
+3. Apply theme + mode globally (entire app), not just preview.
+4. Persist selections in `localStorage` so they survive refresh.
+5. Respect system preference **only on first run** if no saved preference exists (optional but recommended).
+6. Add a **Theme preview block** in Settings (small preview of card/button colors).
+7. Ensure theme switching updates shadcn tokens (CSS variables) without breaking existing styles.
+
+---
+
+## Constraints / Architecture Rules
+
+* Use **CSS variables** (`--background`, `--foreground`, `--card`, `--primary`, etc.) as shadcn expects.
+* Apply theme using attributes on the root element:
+
+  * `<html data-theme="aurora" class="dark">` or `<html data-theme="grid">`
+* Do **not** duplicate app styling per page. One global theme system.
+* Keep the implementation small and clean: a provider + hook + Settings UI.
+
+---
+
+## Implementation Plan
+
+### 1) Create Theme Types + Config
+
+Create:
+
+* `src/theme/theme-types.ts`
+
+```ts
+export type ThemeId = "aurora" | "paper" | "grid" | "clay" | "terminal";
+export type Mode = "light" | "dark";
+
+export const THEMES: { id: ThemeId; name: string; description: string }[] = [
+  { id: "aurora", name: "Aurora Minimal", description: "Crisp, premium gradient background." },
+  { id: "paper", name: "Studio Paper", description: "Warm editorial surfaces." },
+  { id: "grid", name: "Monochrome Grid", description: "Enterprise scan-first." },
+  { id: "clay", name: "Warm Clay", description: "Soft friendly warmth." },
+  { id: "terminal", name: "Terminal Luxe", description: "Graphite + neon accents." },
+];
+```
+
+### 2) Add Global Theme CSS Tokens
+
+Create:
+
+* `src/theme/themes.css`
+
+Put **all five themes** as CSS variable blocks using:
+
+```css
+:root { /* fallback token values */ }
+html[data-theme="aurora"] { ...tokens... }
+html.dark[data-theme="aurora"] { ...tokens... }
+...repeat for each theme...
+```
+
+Use the exact token sets from the Theme Gallery demo (Aurora/Paper/Grid/Clay/Terminal).
+Important: This file must define all shadcn variables used in your project:
+
+* `--background`, `--foreground`, `--card`, `--card-foreground`, `--popover`, `--popover-foreground`,
+* `--primary`, `--primary-foreground`,
+* `--secondary`, `--secondary-foreground`,
+* `--muted`, `--muted-foreground`,
+* `--accent`, `--accent-foreground`,
+* `--destructive`, `--destructive-foreground`,
+* `--border`, `--input`, `--ring`,
+* optionally `--radius`
+
+Also include optional background styling:
+
+* Aurora: subtle radial gradients in light mode, minimal in dark
+* Terminal: subtle neon radial gradients in dark mode only
+
+Then ensure `src/main.tsx` imports it:
+
+```ts
+import "./theme/themes.css";
+```
+
+### 3) Create Theme Provider + Hook
+
+Create:
+
+* `src/theme/theme-store.ts`
+* `src/theme/useTheme.ts`
+* `src/theme/ThemeProvider.tsx`
+
+Requirements:
+
+* Store shape:
+
+```ts
+type ThemeState = { theme: ThemeId; mode: Mode };
+```
+
+* Default:
+
+  * `theme = "aurora"`
+  * `mode = "dark"` OR detect from system (preferable):
+
+    * if no saved preference, set mode based on `window.matchMedia('(prefers-color-scheme: dark)')`
+* Persist keys in localStorage:
+
+  * `am.theme` and `am.mode`
+* Apply to `<html>` every time theme/mode changes:
+
+  * `document.documentElement.dataset.theme = theme`
+  * toggle `document.documentElement.classList.toggle("dark", mode === "dark")`
+
+Provide functions:
+
+* `setTheme(themeId)`
+* `setMode(mode)`
+* `resetTheme()` (sets aurora + system mode OR aurora + dark; choose one and document it)
+
+Expose hook:
+
+```ts
+const { theme, mode, setTheme, setMode, resetTheme } = useTheme();
+```
+
+### 4) Wire Provider Into App Root
+
+In `src/main.tsx` wrap the app:
+
+```tsx
+<ThemeProvider>
+  <App />
+</ThemeProvider>
+```
+
+Ensure it applies theme immediately on load to avoid “flash”:
+
+* In ThemeProvider, apply theme in a `useLayoutEffect` on mount.
+
+### 5) Add Settings UI: Theme Switcher
+
+In your Settings page/component (create if it doesn’t exist):
+
+* `src/pages/Settings.tsx` or wherever settings live
+
+Add a “Appearance” section with:
+
+* Theme dropdown or radio cards (recommended: cards)
+* Mode toggle (light/dark segmented control)
+* Small preview panel showing:
+
+  * a Card
+  * Primary button
+  * Secondary button
+  * Badge
+  * Input
+
+Use shadcn components:
+
+* `Card`, `Button`, `Badge`, `Input`, `Tabs` optional
+* If you have `RadioGroup` / `Select` components, use them; otherwise build with buttons.
+
+UX requirements:
+
+* Aurora is shown first and marked “Default”.
+* Selecting a theme updates immediately (no Save button).
+* Provide a “Reset to default” button.
+
+### 6) Add A Small Theme Preview Component
+
+Create:
+
+* `src/theme/ThemePreview.tsx`
+
+It should render sample UI elements using current tokens:
+
+* Card with title and description
+* Primary Button
+* Secondary Button
+* Badge
+* Input
+
+This ensures theme changes visibly affect UI and helps users choose.
+
+### 7) Do Not Break Existing Dark/Light Toggle
+
+If you already have dark mode toggle:
+
+* Replace existing logic so it uses the new `useTheme().setMode`.
+* Remove any duplicate theme toggles or conflicting class toggles on `<body>`.
+
+### 8) Add Basic Tests / Verification (No Jest required)
+
+Since this is Vite and likely no test runner configured:
+
+* Add a simple `src/theme/selfTest.ts` that runs in dev only:
+
+  * verifies theme IDs are valid
+  * verifies html has `data-theme` set
+  * verifies `dark` class matches mode
+* Call it from ThemeProvider in dev (`import.meta.env.DEV`).
+
+---
+
+## Acceptance Criteria (must pass)
+
+* App boots with **Aurora** theme by default if no preferences exist.
+* Theme choice persists after refresh.
+* Mode choice persists after refresh.
+* Changing theme updates shadcn components across all pages.
+* No build errors, no missing imports.
+* No “double dark mode” conflicts (only html.dark is used).
+* Settings page contains a functional Appearance section + preview.
+
+---
+
+## Deliverables
+
+* `src/theme/themes.css`
+* `src/theme/ThemeProvider.tsx`
+* `src/theme/useTheme.ts`
+* `src/theme/theme-types.ts`
+* `src/theme/ThemePreview.tsx`
+* Settings UI integrated into app navigation
+
+---
+
+### After implementing, show me:
+
+1. the new Settings “Appearance” section screenshot
+2. the `<html>` tag output from devtools showing `data-theme="aurora"` and `class="dark"` when enabled
+3. the final file tree under `src/theme/`
+
+---
+
+## One thing I need you to confirm
+
+When there is **no saved preference**, should Mode default to:
+
+* **System preference** (recommended)
+  or
+* Always **Dark**?
+
+If you don’t answer, implement **system preference fallback** and set Aurora always.
+
+---
+
+If you paste that into Replit Agent, it should produce a clean, production-grade theme system with Aurora as the default.
