@@ -688,38 +688,33 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
               <span className="font-medium">Review {detectedActions.length} Detected Action{detectedActions.length !== 1 ? 's' : ''}</span>
             </button>
           )}
-        </div>
-      </div>
 
-      <div 
-        className="fixed bottom-16 md:bottom-0 left-0 right-0 z-40 glass-panel border-t border-border px-4 py-3"
-        style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 12px)' }}
-      >
-        <div className="max-w-3xl mx-auto flex gap-3">
-          <Button
-            variant="outline"
-            onClick={handleSaveDraft}
-            disabled={isSubmitting || !notes.trim()}
-            className="flex-1 h-12 rounded-xl"
-            data-testid="button-save-draft"
-          >
-            <FloppyDisk className="h-5 w-5 mr-2" weight="duotone" />
-            Save Draft
-          </Button>
-          
-          <Button
-            onClick={handleExtract}
-            disabled={isSubmitting || !notes.trim() || !aiEnabled}
-            className="flex-[2] h-12 rounded-xl btn-gradient"
-            data-testid="button-extract"
-          >
-            {isSubmitting ? (
-              <ArrowsClockwise className="h-5 w-5 mr-2 animate-spin" weight="bold" />
-            ) : (
-              <Sparkle className="h-5 w-5 mr-2" weight="duotone" />
-            )}
-            {aiEnabled ? "Extract Actions" : "AI Disabled"}
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={handleSaveDraft}
+              disabled={isSubmitting || !notes.trim()}
+              className="flex-1 h-12 rounded-xl"
+              data-testid="button-save-draft"
+            >
+              <FloppyDisk className="h-5 w-5 mr-2" weight="duotone" />
+              Save Draft
+            </Button>
+            
+            <Button
+              onClick={handleExtract}
+              disabled={isSubmitting || !notes.trim() || !aiEnabled}
+              className="flex-[2] h-12 rounded-xl btn-gradient"
+              data-testid="button-extract"
+            >
+              {isSubmitting ? (
+                <ArrowsClockwise className="h-5 w-5 mr-2 animate-spin" weight="bold" />
+              ) : (
+                <Sparkle className="h-5 w-5 mr-2" weight="duotone" />
+              )}
+              {aiEnabled ? "Extract Actions" : "AI Disabled"}
+            </Button>
+          </div>
         </div>
       </div>
 
