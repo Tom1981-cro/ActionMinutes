@@ -108,10 +108,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
 
         <div className="flex items-center gap-1.5 pt-1">
           <span
-            role="button"
-            tabIndex={0}
             onClick={(e) => { e.stopPropagation(); onDone(); }}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onDone(); } }}
             className="inline-flex items-center gap-1 rounded-full border font-medium text-xs px-2.5 py-0.5 transition-colors flex-shrink-0 cursor-pointer bg-emerald-500/15 text-emerald-600 border-emerald-500/25 hover:bg-emerald-500/25 dark:text-emerald-400"
             data-testid={`button-done-${item.id}`}
           >
@@ -120,10 +117,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
           </span>
           {item.status !== 'waiting' && (
             <span
-              role="button"
-              tabIndex={0}
               onClick={(e) => { e.stopPropagation(); onWaiting(); }}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onWaiting(); } }}
               className="inline-flex items-center gap-1 rounded-full border font-medium text-xs px-2.5 py-0.5 transition-colors flex-shrink-0 cursor-pointer bg-amber-500/15 text-amber-600 border-amber-500/25 hover:bg-amber-500/25 dark:text-amber-400"
               data-testid={`button-waiting-${item.id}`}
             >
@@ -132,10 +126,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
             </span>
           )}
           <span
-            role="button"
-            tabIndex={0}
             onClick={(e) => { e.stopPropagation(); onRemind(); }}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onRemind(); } }}
             className="inline-flex items-center gap-1 rounded-full border font-medium text-xs px-2.5 py-0.5 transition-colors flex-shrink-0 cursor-pointer bg-rose-500/15 text-rose-600 border-rose-500/25 hover:bg-rose-500/25 dark:text-rose-400"
             data-testid={`button-remind-${item.id}`}
           >
@@ -143,10 +134,7 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
             <span>Remind</span>
           </span>
           <span
-            role="button"
-            tabIndex={0}
             onClick={(e) => { e.stopPropagation(); onEdit(); }}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onEdit(); } }}
             className="inline-flex items-center gap-1 rounded-full border font-medium text-xs px-2.5 py-0.5 transition-colors flex-shrink-0 cursor-pointer bg-blue-500/15 text-blue-600 border-blue-500/25 hover:bg-blue-500/25 dark:text-blue-400"
             data-testid={`button-edit-${item.id}`}
           >
