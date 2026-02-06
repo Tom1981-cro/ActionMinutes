@@ -407,7 +407,7 @@ export default function LandingPage() {
           <nav className="max-w-6xl mx-auto bg-accent backdrop-blur-xl border border-border rounded-2xl px-6 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img src={logoIcon} alt="ActionMinutes" className="w-9 h-9 rounded-xl" />
-              <span className="text-xl tracking-tight font-semibold">
+              <span className="text-xl tracking-tight font-semibold font-logo">
                 <span className="text-foreground">Action</span>
                 <span className="text-primary">Minutes</span>
               </span>
@@ -668,7 +668,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <img src={logoIcon} alt="ActionMinutes" className="w-7 h-7 rounded-lg" />
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-muted-foreground font-logo">
                 ActionMinutes by{" "}
                 <a 
                   href="https://relay-labs.app" 

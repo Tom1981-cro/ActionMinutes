@@ -77,7 +77,7 @@ export function Logo({ variant = 'squircle', size = 32, className = '', theme = 
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <canvas ref={canvasRef} width={size} height={size} className="drop-shadow-sm" />
-        <span className="font-bold text-foreground tracking-tight" style={{ fontSize: size * 0.6 }}>
+        <span className="font-bold text-foreground tracking-tight font-logo" style={{ fontSize: size * 0.6 }}>
           Action<span className="font-normal text-muted-foreground">Minutes</span>
         </span>
       </div>
@@ -95,7 +95,7 @@ export function LogoWordmark({ size = 'base', className = '' }: { size?: 'sm' | 
   };
 
   return (
-    <span className={`font-bold text-foreground tracking-tight ${sizeClasses[size]} ${className}`}>
+    <span className={`font-bold text-foreground tracking-tight font-logo ${sizeClasses[size]} ${className}`}>
       Action<span className="font-normal text-muted-foreground">Minutes</span>
     </span>
   );

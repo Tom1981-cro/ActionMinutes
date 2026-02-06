@@ -158,7 +158,7 @@ export default function Layout({ children }: LayoutProps) {
       <aside className="hidden md:flex w-64 flex-col bg-sidebar border-r border-sidebar-border p-4 h-screen sticky top-0">
         <div className="flex items-center gap-2 px-2 mb-4 mt-4">
           <img src={logoIcon} alt="ActionMinutes" className="w-8 h-8 rounded-lg" />
-          <span className="text-xl tracking-tight">
+          <span className="text-xl tracking-tight font-logo">
             <span className="font-bold text-foreground">Action</span>
             <span className="font-normal text-primary">Minutes</span>
           </span>
@@ -404,7 +404,7 @@ export default function Layout({ children }: LayoutProps) {
       <header className="md:hidden flex items-center justify-between border-b border-border px-4 py-3 bg-sidebar sticky top-0 z-50">
         <div className="flex items-center gap-2">
           <img src={logoIcon} alt="ActionMinutes" className="w-7 h-7 rounded-lg" />
-          <span className="text-lg tracking-tight">
+          <span className="text-lg tracking-tight font-logo">
             <span className="font-bold text-foreground">Action</span>
             <span className="font-normal text-primary">Minutes</span>
           </span>

@@ -31,7 +31,7 @@ export default function AboutPage() {
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <img src={logoIcon} alt="ActionMinutes" className="w-8 h-8 rounded-lg" />
-              <span className="text-lg font-semibold">
+              <span className="text-lg font-semibold font-logo">
                 <span className="text-foreground">Action</span>
                 <span className="text-primary">Minutes</span>
               </span>

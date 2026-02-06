@@ -110,7 +110,7 @@ export default function MarketingPage() {
         <nav className="bg-card/90 backdrop-blur-xl border border-border shadow-soft rounded-full px-6 py-3 pointer-events-auto flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 mr-4 cursor-pointer">
             <img src={logoIcon} alt="ActionMinutes" className="w-8 h-8 rounded-lg" />
-            <span className="font-bold text-foreground tracking-tight">ActionMinutes</span>
+            <span className="font-bold text-foreground tracking-tight font-logo">ActionMinutes</span>
           </Link>
           
           <div className="hidden md:flex items-center gap-6 text-sm">
@@ -327,7 +327,7 @@ export default function MarketingPage() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
               <img src={logoIcon} alt="ActionMinutes" className="w-8 h-8 rounded-lg" />
-              <span className="font-bold tracking-tight">ActionMinutes</span>
+              <span className="font-bold tracking-tight font-logo">ActionMinutes</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <a href="#" className="hover:text-foreground transition-colors">Privacy</a>

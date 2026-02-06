@@ -21,7 +21,7 @@ function BrandingPanel() {
       <div className="relative z-10">
         <Link href="/" className="flex items-center gap-3 group">
           <img src={logoIcon} alt="ActionMinutes" className="h-10 w-auto" />
-          <span className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">ActionMinutes</span>
+          <span className="text-xl font-bold text-foreground group-hover:text-primary transition-colors font-logo">ActionMinutes</span>
         </Link>
       </div>
 
@@ -203,7 +203,7 @@ export default function AuthPage() {
         <div className="lg:hidden flex items-center justify-center mb-8">
           <Link href="/" className="flex items-center gap-3">
             <img src={logoIcon} alt="ActionMinutes" className="h-8 w-auto" />
-            <span className="text-lg font-bold text-foreground">ActionMinutes</span>
+            <span className="text-lg font-bold text-foreground font-logo">ActionMinutes</span>
           </Link>
         </div>
 
