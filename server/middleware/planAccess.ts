@@ -16,7 +16,7 @@ import {
 // Admin emails that bypass all subscription restrictions
 const ADMIN_EMAILS = ['tomi.vida@gmail.com'];
 
-function isAdminUser(user: any): boolean {
+export function isAdminUser(user: any): boolean {
   return user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
 }
 

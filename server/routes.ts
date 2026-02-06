@@ -49,7 +49,8 @@ import {
   incrementAiExtraction, 
   incrementTranscriptionMinutes,
   requireCapability,
-  getUserUsage
+  getUserUsage,
+  isAdminUser
 } from "./middleware/planAccess";
 import { getEffectivePlan, getPlanConfig, getPlanLimit, hasCapability } from "@shared/plans";
 
@@ -239,7 +240,8 @@ export async function registerRoutes(
     const user = await storage.getUser(req.userId!);
     if (!user) return res.status(404).json({ error: "User not found" });
     
-    const effectivePlan = getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
+    const isAdmin = isAdminUser(user);
+    const effectivePlan = isAdmin ? 'pro' as const : getEffectivePlan(user.subscriptionPlan, user.subscriptionStatus);
     const planConfig = getPlanConfig(effectivePlan);
     const usage = await getUserUsage(req.userId!);
     
