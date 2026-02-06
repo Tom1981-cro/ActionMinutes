@@ -164,8 +164,6 @@ export default function Layout({ children }: LayoutProps) {
             <span className="font-normal text-primary">Minutes</span>
           </span>
         </div>
-        <p className="text-xs text-muted-foreground px-2 mb-2">Theme: {themeId}</p>
-
         <nav className="space-y-1 flex-1 overflow-y-auto">
           {(() => {
             const isInboxActive = location === inboxItem.href || location.startsWith(inboxItem.href);
