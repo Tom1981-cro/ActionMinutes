@@ -1,0 +1,238 @@
+Make app match Theme Gallery demo exactly (Aurora default)
+
+You are upgrading an existing Vite + React + TypeScript application using shadcn/ui + Tailwind to a new theme template system. The current implementation is inconsistent and the UI does NOT match the Theme Gallery demo.
+
+Non-negotiable goal
+
+Make the app look and feel exactly like the Theme Gallery demo in:
+
+spacing and density
+
+radii (rounded-xl feel)
+
+shadows (the demo “shadow-token” look)
+
+background (Aurora gradient wash)
+
+sidebar nav item styles (active state and icon emphasis)
+
+task cards and chips (Waiting/Open pills, secondary buttons)
+
+inputs + focus ring behavior
+
+Aurora must be the default theme and the entire app must use the same token-driven styling. Do not imitate Todoist.
+
+Phase 0 — Freeze and audit (don’t start editing blindly)
+
+Search the codebase for these anti-patterns and list where they appear:
+
+any hard-coded colors: text-white, bg-black, bg-[#, text-[#, from-, to-, via-, rgba(, #
+
+multiple theme toggles: document.body.classList, data-theme set in more than one place, duplicated dark-mode toggles
+
+custom global styles that override shadcn tokens (e.g. body { background: ... } inside existing CSS)
+
+Output a short “migration plan” in code comments (not in chat) and then implement.
+
+Phase 1 — Single source of truth: Global tokens + theme application
+1. Create a dedicated theme CSS file
+
+Create src/theme/themes.css and move ALL theme token definitions there.
+
+Important: The Theme Gallery demo used themeScope[data-theme="..."]. In production, apply tokens globally on html, like:
+
+html[data-theme="aurora"] { ... }
+html.dark[data-theme="aurora"] { ... }
+
+
+Use the exact Aurora/Paper/Grid/Clay/Terminal values from the demo code (copy them verbatim). Include:
+
+--background, --foreground
+
+--card, --card-foreground
+
+--popover, --popover-foreground
+
+--primary, --primary-foreground
+
+--secondary, --secondary-foreground
+
+--muted, --muted-foreground
+
+--accent, --accent-foreground
+
+--destructive, --destructive-foreground
+
+--border, --input, --ring
+
+--radius
+
+Also copy the Aurora background wash onto html[data-theme="aurora"] (but not inside cards). This is key to matching the demo.
+
+2. Add demo’s shadow tokens globally
+
+Add these variables into themes.css for all themes:
+
+--shadow-1: 0 10px 24px rgba(0,0,0,0.10);
+
+--shadow-2: 0 18px 52px rgba(0,0,0,0.14);
+
+Then create a small utility CSS file src/theme/demo-utilities.css with the exact helper classes used in the demo:
+
+.shadow-token { box-shadow: var(--shadow-1); }
+
+.shadow-token-2 { box-shadow: var(--shadow-2); }
+
+.meta { color: hsl(var(--muted-foreground)); }
+
+.navItem and .navItemActive styles matching demo
+
+.ring-token:focus focus outline matching demo
+
+3. Import these CSS files once
+
+In src/main.tsx import:
+
+import "./theme/themes.css";
+import "./theme/demo-utilities.css";
+
+4. Implement one Theme manager only
+
+Create src/theme/theme.ts:
+
+Default theme = "aurora"
+
+Default mode: use system preference if no stored setting, else stored
+
+Storage keys: am.theme, am.mode
+
+Apply to <html>:
+
+document.documentElement.dataset.theme = theme
+
+toggle document.documentElement.classList.toggle("dark", mode==="dark")
+
+Ensure theme is applied at startup BEFORE first paint:
+
+call initTheme() before React renders (top of main.tsx).
+
+Remove any other theme/dark toggles in the codebase. There must be only one.
+
+Phase 2 — Make Tailwind + shadcn consume tokens (no hard-coded colors)
+1. Ensure tailwind.config uses token mapping
+
+Confirm these mappings exist:
+
+bg-background, text-foreground, bg-card, border-border, ring-ring, bg-primary, etc.
+
+If any colors are hardcoded, replace them with token classes:
+
+Replace bg-slate-900 → bg-background
+
+Replace text-slate-100 → text-foreground
+
+Replace custom gradients on pages → remove and rely on Aurora global background wash
+
+2. Replace “legacy” global body styling
+
+If there is any body CSS setting background or text colors, remove it unless it’s strictly background: hsl(var(--background)); color: hsl(var(--foreground));.
+
+Phase 3 — Apply demo’s look to key app primitives
+
+To match the demo exactly, implement or modify these components/styles:
+
+A) Sidebar Navigation
+
+Each item uses .navItem
+
+Active item uses .navItemActive
+
+Icon color: active uses text-primary, inactive uses muted
+
+Spacing and radius must match demo (compact, consistent)
+
+B) Cards (Task cards, panels)
+
+All cards must use:
+
+bg-card text-card-foreground
+
+border border-border
+
+rounded-xl feel (use var(--radius) mapping)
+
+add shadow-token class for elevation
+
+C) Pills/Badges (Waiting/Open)
+
+Waiting uses bg-secondary text-secondary-foreground
+
+Open uses bg-accent text-accent-foreground
+
+Rounded full pills, small text
+
+D) Input + Focus Ring
+
+Inputs use token background/border
+
+Focus ring exactly like demo: outline using ring-token behavior or Tailwind ring mapped to --ring with opacity.
+
+E) Buttons
+
+Primary button: bg-primary text-primary-foreground shadow-token
+
+Secondary button: uses secondary tokens, not gray hardcoded
+
+Phase 4 — Settings Theme Switcher (must not break UI)
+
+In Settings, add:
+
+Theme dropdown (aurora default)
+
+Mode toggle (light/dark)
+
+Live preview of components (Card + Buttons + Input + Badge)
+
+Changing theme updates instantly and persists.
+
+Phase 5 — Verification checklist (must pass)
+
+After refactor:
+
+Inspect <html> and confirm it has:
+
+data-theme="aurora" by default
+
+class="dark" when dark enabled
+
+Search the repo for any remaining hard-coded colors (bg-slate, text-slate, #, rgba, from- gradients) and remove where they affect global UI.
+
+Visually compare to the Theme Gallery demo:
+
+Aurora background wash present behind layout
+
+Cards crisp with demo shadows
+
+Sidebar items match spacing and active style
+
+Buttons and pills match token colors
+
+IMPORTANT: Do not get stuck
+
+If you encounter missing components (Tabs, Badge, etc.), run npx shadcn@latest add badge tabs separator (or equivalent for the project) and then continue.
+
+If lucide-react or icon usage differs, keep icons consistent but do not block the build.
+
+Deliverables
+
+src/theme/themes.css
+
+src/theme/demo-utilities.css
+
+src/theme/theme.ts (single theme manager)
+
+Updated src/main.tsx calling initTheme before render
+
+Updated Settings page with Theme + Mode switcher and preview
+
+Updated sidebar/card/button/input styles so app matches demo
