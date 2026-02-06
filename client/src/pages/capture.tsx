@@ -470,7 +470,7 @@ export default function CapturePage() {
               type="date" 
               value={date} 
               onChange={(e) => setDate(e.target.value)} 
-              className="w-36 bg-muted border-border rounded-xl h-11 text-base px-3 text-foreground focus:bg-accent focus:border-ring"
+              className="w-44 bg-muted border-border rounded-xl h-11 text-base px-3 text-foreground focus:bg-accent focus:border-ring"
               data-testid="input-date"
             />
           </div>
