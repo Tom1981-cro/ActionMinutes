@@ -17,52 +17,52 @@ const statusConfig: Record<string, {
   open: {
     label: 'Open',
     icon: CircleDot,
-    className: 'bg-stone-100 text-stone-700 border-stone-200',
+    className: 'bg-primary/15 text-primary border-primary/25',
   },
   pending: {
     label: 'Open',
     icon: CircleDot,
-    className: 'bg-stone-100 text-stone-700 border-stone-200',
+    className: 'bg-primary/15 text-primary border-primary/25',
   },
   done: {
     label: 'Done',
     icon: Check,
-    className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    className: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/25 dark:text-emerald-400',
   },
   waiting: {
     label: 'Waiting',
     icon: Clock,
-    className: 'bg-amber-50 text-amber-700 border-amber-200',
+    className: 'bg-amber-500/15 text-amber-600 border-amber-500/25 dark:text-amber-400',
   },
   needs_review: {
     label: 'Needs Review',
     icon: Eye,
-    className: 'bg-rose-50 text-rose-700 border-rose-200',
+    className: 'bg-rose-500/15 text-rose-600 border-rose-500/25 dark:text-rose-400',
   },
   draft: {
     label: 'Draft',
     icon: CircleDot,
-    className: 'bg-stone-100 text-stone-600 border-stone-200',
+    className: 'bg-secondary text-muted-foreground border-border',
   },
   processing: {
     label: 'Processing',
     icon: Clock,
-    className: 'bg-blue-50 text-blue-700 border-blue-200',
+    className: 'bg-blue-500/15 text-blue-600 border-blue-500/25 dark:text-blue-400',
   },
   parsed: {
     label: 'Parsed',
     icon: Check,
-    className: 'bg-teal-50 text-teal-700 border-teal-200',
+    className: 'bg-teal-500/15 text-teal-600 border-teal-500/25 dark:text-teal-400',
   },
   finalized: {
     label: 'Finalized',
     icon: Check,
-    className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    className: 'bg-emerald-500/15 text-emerald-600 border-emerald-500/25 dark:text-emerald-400',
   },
   error: {
     label: 'Error',
     icon: AlertCircle,
-    className: 'bg-rose-50 text-rose-700 border-rose-200',
+    className: 'bg-destructive/15 text-destructive border-destructive/25',
   },
 };
 
@@ -73,8 +73,8 @@ export function StatusBadge({ status, className, size = 'md' }: StatusBadgeProps
   return (
     <span 
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border font-medium transition-colors",
-        size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-xs',
+        "inline-flex items-center gap-1 rounded-full border font-medium transition-colors flex-shrink-0",
+        size === 'sm' ? 'px-2 py-0.5 text-[11px]' : 'px-2.5 py-0.5 text-xs',
         config.className,
         className
       )}
@@ -87,9 +87,9 @@ export function StatusBadge({ status, className, size = 'md' }: StatusBadgeProps
 
 export function SeverityBadge({ severity, className }: { severity: string; className?: string }) {
   const config: Record<string, { label: string; className: string }> = {
-    high: { label: 'High', className: 'bg-rose-50 text-rose-700 border-rose-200' },
-    medium: { label: 'Medium', className: 'bg-amber-50 text-amber-700 border-amber-200' },
-    low: { label: 'Low', className: 'bg-stone-100 text-stone-600 border-stone-200' },
+    high: { label: 'High', className: 'bg-destructive/15 text-destructive border-destructive/25' },
+    medium: { label: 'Medium', className: 'bg-amber-500/15 text-amber-600 border-amber-500/25 dark:text-amber-400' },
+    low: { label: 'Low', className: 'bg-secondary text-muted-foreground border-border' },
   };
   
   const cfg = config[severity] || config.low;
@@ -97,7 +97,7 @@ export function SeverityBadge({ severity, className }: { severity: string; class
   return (
     <span 
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium",
         cfg.className,
         className
       )}

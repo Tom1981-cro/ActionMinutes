@@ -45,7 +45,7 @@ type CustomList = {
 export default function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
   const { user } = useStore();
-  const { mode: theme, toggleMode: toggleTheme } = useTheme();
+  const { theme: themeId, mode, toggleMode: toggleTheme } = useTheme();
   const { logout, isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
   const [editingListId, setEditingListId] = useState<string | null>(null);
@@ -54,6 +54,7 @@ export default function Layout({ children }: LayoutProps) {
   const [newListName, setNewListName] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<CustomList | null>(null);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
 
   const { data: customLists = [] } = useQuery<CustomList[]>({
     queryKey: ['custom-lists', user.id],
@@ -163,6 +164,7 @@ export default function Layout({ children }: LayoutProps) {
             <span className="font-normal text-primary">Minutes</span>
           </span>
         </div>
+        <p className="text-xs text-muted-foreground px-2 mb-2">Theme: {themeId}</p>
 
         <nav className="space-y-1 flex-1 overflow-y-auto">
           {(() => {
@@ -171,7 +173,7 @@ export default function Layout({ children }: LayoutProps) {
               <Link 
                 href={inboxItem.href}
                 data-testid={`nav-${inboxItem.label.toLowerCase()}`}
-                className={cn(isInboxActive ? "navItemActive" : "navItem", "mb-4")}
+                className={cn(isInboxActive ? "navItemActive" : "navItem")}
               >
                 <inboxItem.icon className={cn("nav-icon", isInboxActive && "text-primary")} weight="duotone" />
                 {inboxItem.label}
@@ -179,154 +181,134 @@ export default function Layout({ children }: LayoutProps) {
             );
           })()}
 
-          <div className="mb-4">
-            <div className="flex items-center justify-between">
-              <div className="section-label flex items-center gap-2">
-                <ListBullets weight="duotone" className="h-3 w-3" />
-                Lists
-              </div>
-              <button
-                onClick={() => setCreateDialogOpen(true)}
-                className="p-1.5 rounded-full transition-colors hover:bg-accent"
-                data-testid="button-add-list"
-              >
-                <Plus className="h-4 w-4" weight="bold" />
-              </button>
-            </div>
-            {customLists.length === 0 ? (
-              <button
-                onClick={() => setCreateDialogOpen(true)}
-                className="navItem w-full"
-                data-testid="button-create-first-list"
-              >
-                <Plus className="nav-icon" weight="duotone" />
-                Create your first list
-              </button>
-            ) : (
-              customLists.map((list) => {
-                const isActive = location === `/app/lists/${list.id}`;
-                return (
-                  <div key={list.id} className="group relative">
-                    {editingListId === list.id ? (
-                      <div className="flex items-center gap-1 px-4 py-2">
-                        <Input
-                          value={editingName}
-                          onChange={(e) => setEditingName(e.target.value)}
-                          className="h-8 text-sm bg-card border-border"
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              updateList.mutate({ id: list.id, name: editingName });
-                            }
-                            if (e.key === 'Escape') {
-                              setEditingListId(null);
-                            }
-                          }}
-                        />
-                        <button onClick={() => updateList.mutate({ id: list.id, name: editingName })} className="p-1 text-green-500">
-                          <Check className="h-4 w-4" />
-                        </button>
-                        <button onClick={() => setEditingListId(null)} className="p-1 text-red-400">
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <Link
-                        href={`/app/lists/${list.id}`}
-                        data-testid={`nav-list-${list.id}`}
-                        className={isActive ? "navItemActive" : "navItem"}
-                      >
-                        <ListBullets className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />
-                        {list.name}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                              }}
-                              className="ml-auto opacity-0 group-hover:opacity-100 p-1.5 rounded-full transition-opacity hover:bg-accent"
-                              data-testid={`menu-list-${list.id}`}
-                            >
-                              <DotsThree className="h-4 w-4" weight="bold" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-32">
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setEditingListId(list.id);
-                                setEditingName(list.name);
-                              }}
-                            >
-                              <PencilSimple className="h-4 w-4 mr-2" />
-                              Rename
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setListToDelete(list);
-                                setDeleteDialogOpen(true);
-                              }}
-                              className="text-red-500 focus:text-red-500"
-                            >
-                              <Trash className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </Link>
-                    )}
+          {customLists.map((list) => {
+            const isActive = location === `/app/lists/${list.id}`;
+            return (
+              <div key={list.id} className="group relative">
+                {editingListId === list.id ? (
+                  <div className="flex items-center gap-1 px-4 py-2">
+                    <Input
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      className="h-8 text-sm bg-card border-border"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          updateList.mutate({ id: list.id, name: editingName });
+                        }
+                        if (e.key === 'Escape') {
+                          setEditingListId(null);
+                        }
+                      }}
+                    />
+                    <button onClick={() => updateList.mutate({ id: list.id, name: editingName })} className="p-1 text-green-500">
+                      <Check className="h-4 w-4" />
+                    </button>
+                    <button onClick={() => setEditingListId(null)} className="p-1 text-red-400">
+                      <X className="h-4 w-4" />
+                    </button>
                   </div>
-                );
-              })
-            )}
-          </div>
+                ) : (
+                  <Link
+                    href={`/app/lists/${list.id}`}
+                    data-testid={`nav-list-${list.id}`}
+                    className={isActive ? "navItemActive" : "navItem"}
+                  >
+                    <ListBullets className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />
+                    {list.name}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          className="ml-auto opacity-0 group-hover:opacity-100 p-1.5 rounded-full transition-opacity hover:bg-accent"
+                          data-testid={`menu-list-${list.id}`}
+                        >
+                          <DotsThree className="h-4 w-4" weight="bold" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-32">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setEditingListId(list.id);
+                            setEditingName(list.name);
+                          }}
+                        >
+                          <PencilSimple className="h-4 w-4 mr-2" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setListToDelete(list);
+                            setDeleteDialogOpen(true);
+                          }}
+                          className="text-red-500 focus:text-red-500"
+                        >
+                          <Trash className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </Link>
+                )}
+              </div>
+            );
+          })}
 
-          <div className="mb-4">
-            <div className="section-label flex items-center gap-2">
-              <Robot weight="duotone" className="h-3 w-3" />
-              Assistant
-            </div>
-            {assistantItems.map((item) => {
-              const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
-              return (
-                <Link 
-                  key={item.href} 
-                  href={item.href}
-                  data-testid={`nav-${item.label.toLowerCase()}`}
-                  className={isActive ? "navItemActive" : "navItem"}
-                >
-                  <item.icon className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
+          <button
+            onClick={() => setCreateDialogOpen(true)}
+            className="navItem w-full"
+            data-testid="button-add-list"
+          >
+            <Plus className="nav-icon" weight="duotone" />
+            Add list
+          </button>
 
-          <div className="mb-4">
-            <div className="section-label flex items-center gap-2">
-              <User weight="duotone" className="h-3 w-3" />
-              Personal
-            </div>
-            {personalItems.map((item) => {
-              const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
-              return (
-                <Link 
-                  key={item.href} 
-                  href={item.href}
-                  data-testid={`nav-${item.label.toLowerCase()}`}
-                  className={isActive ? "navItemActive" : "navItem"}
-                >
-                  <item.icon className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
+          {assistantItems.map((item) => {
+            const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+            return (
+              <Link 
+                key={item.href} 
+                href={item.href}
+                data-testid={`nav-${item.label.toLowerCase()}`}
+                className={isActive ? "navItemActive" : "navItem"}
+              >
+                <item.icon className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />
+                {item.label}
+              </Link>
+            );
+          })}
+
+          {personalItems.map((item) => {
+            const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+            return (
+              <Link 
+                key={item.href} 
+                href={item.href}
+                data-testid={`nav-${item.label.toLowerCase()}`}
+                className={isActive ? "navItemActive" : "navItem"}
+              >
+                <item.icon className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />
+                {item.label}
+              </Link>
+            );
+          })}
+
+          <button
+            onClick={() => setQuickAddOpen(true)}
+            className="navItem w-full"
+            data-testid="nav-quick-add"
+          >
+            <PlusCircle className="nav-icon" weight="duotone" />
+            Quick Add
+          </button>
         </nav>
 
         <div className="mt-auto pt-4 border-t border-border">
@@ -364,7 +346,7 @@ export default function Layout({ children }: LayoutProps) {
                 className="rounded-lg cursor-pointer"
                 data-testid="menu-theme-toggle"
               >
-                {theme === "dark" ? (
+                {mode === "dark" ? (
                   <>
                     <Sun className="h-4 w-4 mr-2 text-amber-400" weight="duotone" />
                     <span className="text-foreground">Light Mode</span>
@@ -443,7 +425,7 @@ export default function Layout({ children }: LayoutProps) {
                 className="rounded-lg cursor-pointer"
                 data-testid="mobile-menu-theme-toggle"
               >
-                {theme === "dark" ? (
+                {mode === "dark" ? (
                   <>
                     <Sun className="h-4 w-4 mr-2 text-amber-400" weight="duotone" />
                     <span className="text-foreground">Light Mode</span>
@@ -541,7 +523,7 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </nav>
 
-      <QuickAdd />
+      <QuickAdd isOpen={quickAddOpen} onOpenChange={setQuickAddOpen} />
 
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="sm:max-w-md">

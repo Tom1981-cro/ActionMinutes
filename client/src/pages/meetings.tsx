@@ -21,7 +21,7 @@ export default function MeetingsPage() {
       <div className="space-y-6 md:space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-4xl font-black tracking-tight text-gradient-light">Meetings</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Meetings</h1>
             <p className="text-muted-foreground text-base">History of your captured minutes.</p>
           </div>
         </div>
@@ -34,7 +34,7 @@ export default function MeetingsPage() {
     <div className="space-y-6 md:space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-4xl font-black tracking-tight text-gradient-light">Meetings</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Meetings</h1>
           <p className="text-muted-foreground text-base">History of your captured minutes.</p>
         </div>
         <Link href="/capture">

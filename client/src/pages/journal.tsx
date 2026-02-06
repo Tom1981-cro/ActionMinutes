@@ -201,7 +201,7 @@ export default function JournalPage() {
       <div className="space-y-5 pb-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-black tracking-tight text-gradient-light">Journal</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Journal</h1>
             <p className="text-muted-foreground text-base mt-1">Private reflections and notes</p>
           </div>
         </div>
@@ -214,7 +214,7 @@ export default function JournalPage() {
     <div className="space-y-5 pb-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-gradient-light">Journal</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Journal</h1>
           <p className="text-muted-foreground text-base mt-1">Private reflections and notes</p>
         </div>
         <Button 

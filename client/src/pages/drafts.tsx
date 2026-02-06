@@ -79,7 +79,7 @@ export default function DraftsPage() {
     return (
       <div className="space-y-6">
         <div className="space-y-1">
-          <h1 className="text-4xl font-black tracking-tight text-gradient-light">Drafts</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Drafts</h1>
           <p className="text-muted-foreground text-base">Ready-to-send follow-up emails.</p>
         </div>
         <div className="glass-panel rounded-2xl border-dashed border-border py-12 text-center">
@@ -101,7 +101,7 @@ export default function DraftsPage() {
         <div className="space-y-4 md:space-y-6">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h1 className="text-4xl font-black tracking-tight text-gradient-light">Drafts</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">Drafts</h1>
               <p className="text-muted-foreground text-sm">Ready-to-send emails</p>
             </div>
             

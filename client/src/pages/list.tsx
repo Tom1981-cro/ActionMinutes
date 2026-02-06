@@ -188,7 +188,7 @@ export default function ListPage() {
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl md:text-3xl font-black text-gradient-light">{list.name}</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">{list.name}</h1>
               <Button 
                 size="icon" 
                 variant="ghost" 

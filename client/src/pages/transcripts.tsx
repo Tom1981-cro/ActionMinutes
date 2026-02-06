@@ -154,7 +154,7 @@ export default function TranscriptsPage() {
   return (
     <div className="space-y-6 md:space-y-8">
       <div className="space-y-1">
-        <h1 className="text-4xl font-black tracking-tight text-gradient-light">Transcripts</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Transcripts</h1>
         <p className="text-muted-foreground text-base">Audio transcriptions with AI-powered summaries.</p>
       </div>
 

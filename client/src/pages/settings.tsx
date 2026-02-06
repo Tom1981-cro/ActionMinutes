@@ -172,7 +172,7 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-4 md:space-y-5">
-      <h1 className="text-4xl font-black tracking-tight text-gradient-light">Settings</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">Settings</h1>
 
       {/* Appearance Section */}
       <ExpandableSection

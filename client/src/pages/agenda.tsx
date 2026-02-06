@@ -165,7 +165,7 @@ export default function AgendaPage() {
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-black tracking-tight text-gradient-light">Agenda</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Agenda</h1>
             <p className="text-muted-foreground text-base mt-1">
               {totalItems === 0 ? "All clear" : `${totalItems} upcoming ${totalItems === 1 ? 'item' : 'items'}`}
             </p>

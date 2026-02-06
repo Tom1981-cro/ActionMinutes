@@ -455,7 +455,7 @@ export default function CapturePage() {
             >
               <ArrowLeft className="h-5 w-5" weight="bold" />
             </Button>
-            <h1 className="text-2xl md:text-3xl font-black text-gradient-light">Capture</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Capture</h1>
           </div>
 
           <div className="flex gap-3">

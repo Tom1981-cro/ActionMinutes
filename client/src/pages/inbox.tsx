@@ -25,6 +25,7 @@ import { useActionItems, useUpdateActionItem } from "@/lib/hooks";
 import { useToast } from "@/hooks/use-toast";
 import { ActionEditSheet } from "@/components/action-edit-sheet";
 import { useStore } from "@/lib/store";
+import { useTheme } from "@/theme/useTheme";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SkeletonList } from "@/components/skeleton-loader";
 import { GettingStarted } from "@/components/getting-started";
@@ -61,108 +62,81 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
   const isOverdue = item.dueDate && new Date(item.dueDate) < new Date();
 
   return (
-    <Card className={`overflow-hidden ${isReview ? 'border-l-4 border-l-amber-400' : ''}`}>
-      <CardContent className="p-0">
-        <button 
-          className="w-full p-4 text-left space-y-3 tap-highlight"
-          onClick={onTap}
-          data-testid={`card-action-${item.id}`}
-        >
-          <div className="flex items-start gap-3">
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-base leading-relaxed text-foreground mb-2">
-                {item.text}
-              </p>
-              
-              <div className="flex flex-wrap gap-2">
-                <StatusBadge status={item.status} size="sm" />
-                {item.source === 'quickadd' && (
-                  <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-accent text-primary border-border">
-                    <Zap className="h-3 w-3" />
-                    Quick Add
-                  </span>
-                )}
-                {lowConfidence && (
-                  <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-amber-500/20 text-amber-400 border-amber-500/30">
-                    <AlertTriangle className="h-3 w-3" />
-                    Low confidence
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+    <Card
+      className="cursor-pointer transition-colors hover:border-primary/30"
+      onClick={onTap}
+      data-testid={`card-action-${item.id}`}
+    >
+      <CardContent className="p-4 space-y-2.5">
+        <div className="flex items-start justify-between gap-3">
+          <p className="font-medium text-sm leading-snug text-foreground flex-1 min-w-0">
+            {item.text}
+          </p>
+          <StatusBadge status={item.status} size="sm" />
+        </div>
 
-          <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
-            {item.ownerName && (
-              <span className="flex items-center gap-1.5">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <span>{item.ownerName}</span>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          {item.dueDate && (
+            <>
+              <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
+              <span className={isOverdue ? 'text-destructive' : ''}>{format(new Date(item.dueDate), "MMM d")}</span>
+              {isOverdue && <span className="text-destructive">(overdue)</span>}
+            </>
+          )}
+          {item.dueDate && item.ownerName && <span className="mx-1">·</span>}
+          {item.ownerName && <span>{item.ownerName}</span>}
+          {item.waitingFor && (
+            <>
+              <span className="mx-1">·</span>
+              <span>Waiting: {item.waitingFor}</span>
+            </>
+          )}
+          <span className="ml-auto flex items-center gap-1.5 flex-shrink-0">
+            {item.source === 'quickadd' && (
+              <span className="pill-accent text-[11px]">
+                <Zap className="h-3 w-3 inline mr-0.5" />quick
               </span>
             )}
-            {item.dueDate && (
-              <span className={`flex items-center gap-1.5 ${isOverdue ? 'text-red-400' : ''}`}>
-                <Calendar className="h-4 w-4" />
-                <span>{format(new Date(item.dueDate), "MMM d")}</span>
-                {isOverdue && <span className="text-xs">(overdue)</span>}
+            {lowConfidence && (
+              <span className="inline-flex items-center gap-0.5 text-[11px] text-amber-500">
+                <AlertTriangle className="h-3 w-3" />
+                low
               </span>
             )}
-            {item.waitingFor && (
-              <span className="flex items-center gap-1.5 text-amber-400">
-                <Clock className="h-4 w-4" />
-                <span>Waiting: {item.waitingFor}</span>
-              </span>
-            )}
-          </div>
-        </button>
+          </span>
+        </div>
 
-        <div className="border-t border-border bg-accent px-2 py-2">
-          <div className="flex items-center justify-between gap-1">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={(e) => { e.stopPropagation(); onDone(); }}
-              className="flex-1 h-11 rounded-xl text-primary hover:bg-accent hover:text-primary flex flex-col items-center gap-0.5 px-2"
-              data-testid={`button-done-${item.id}`}
+        <div className="flex items-center gap-1.5 pt-1">
+          <button
+            onClick={(e) => { e.stopPropagation(); onDone(); }}
+            className="pill-secondary text-[11px] py-0.5 px-2.5 rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
+            data-testid={`button-done-${item.id}`}
+          >
+            Done
+          </button>
+          {item.status !== 'waiting' && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onWaiting(); }}
+              className="pill-secondary text-[11px] py-0.5 px-2.5 rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
+              data-testid={`button-waiting-${item.id}`}
             >
-              <CheckCircle className="h-5 w-5" />
-              <span className="text-[10px] font-medium">Done</span>
-            </Button>
-            
-            {item.status !== 'waiting' && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={(e) => { e.stopPropagation(); onWaiting(); }}
-                className="flex-1 h-11 rounded-xl text-amber-400 hover:bg-amber-500/20 hover:text-amber-300 flex flex-col items-center gap-0.5 px-2"
-                data-testid={`button-waiting-${item.id}`}
-              >
-                <Clock className="h-5 w-5" />
-                <span className="text-[10px] font-medium">Waiting</span>
-              </Button>
-            )}
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={(e) => { e.stopPropagation(); onRemind(); }}
-              className="flex-1 h-11 rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground flex flex-col items-center gap-0.5 px-2"
-              data-testid={`button-remind-${item.id}`}
-            >
-              <Bell className="h-5 w-5" />
-              <span className="text-[10px] font-medium">Remind</span>
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={(e) => { e.stopPropagation(); onEdit(); }}
-              className="flex-1 h-11 rounded-xl text-muted-foreground hover:bg-accent hover:text-foreground flex flex-col items-center gap-0.5 px-2"
-              data-testid={`button-edit-${item.id}`}
-            >
-              <Pencil className="h-5 w-5" />
-              <span className="text-[10px] font-medium">Edit</span>
-            </Button>
-          </div>
+              Waiting
+            </button>
+          )}
+          <button
+            onClick={(e) => { e.stopPropagation(); onRemind(); }}
+            className="pill-secondary text-[11px] py-0.5 px-2.5 rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
+            data-testid={`button-remind-${item.id}`}
+          >
+            Remind
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onEdit(); }}
+            className="pill-secondary text-[11px] py-0.5 px-2.5 rounded-full hover:bg-primary hover:text-primary-foreground transition-colors"
+            data-testid={`button-edit-${item.id}`}
+          >
+            Edit
+          </button>
         </div>
       </CardContent>
     </Card>
@@ -177,6 +151,7 @@ export default function InboxPage() {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const { user } = useStore();
+  const { mode } = useTheme();
   const queryClient = useQueryClient();
 
   const [doneModalOpen, setDoneModalOpen] = useState(false);
@@ -225,7 +200,7 @@ export default function InboxPage() {
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-black tracking-tight text-gradient-light">Inbox</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">Inbox</h1>
               <p className="text-muted-foreground text-base mt-1">Loading...</p>
             </div>
           </div>
@@ -420,71 +395,53 @@ export default function InboxPage() {
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-black tracking-tight text-gradient-light">Inbox</h1>
-            <p className="text-muted-foreground text-base mt-1">
-              {totalItems === 0 ? "All clear" : `${totalItems} open ${totalItems === 1 ? 'item' : 'items'}`}
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">Inbox</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {totalItems === 0 ? "All clear" : `${totalItems} open ${totalItems === 1 ? 'item' : 'items'}`} · {mode}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <div className="flex gap-1 p-1 glass-panel rounded-xl">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSourceFilter("all")}
-              className={`h-8 rounded-lg text-xs transition-all duration-300 ${
-                sourceFilter === "all" 
-                  ? 'bg-accent text-primary border border-border' 
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              data-testid="source-all"
-            >
-              All
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSourceFilter("meetings")}
-              className={`h-8 rounded-lg text-xs transition-all duration-300 ${
-                sourceFilter === "meetings" 
-                  ? 'bg-accent text-primary border border-border' 
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              data-testid="source-meetings"
-            >
-              Meetings ({meetingCount})
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSourceFilter("quickadd")}
-              className={`h-8 rounded-lg text-xs transition-all duration-300 ${
-                sourceFilter === "quickadd" 
-                  ? 'bg-accent text-primary border border-border' 
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              data-testid="source-quickadd"
-            >
-              Quick Add ({quickAddCount})
-            </Button>
-          </div>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setSourceFilter("all")}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              sourceFilter === "all" 
+                ? 'bg-accent text-foreground border border-border' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+            }`}
+            data-testid="source-all"
+          >
+            All
+          </button>
+          <button
+            onClick={() => setSourceFilter("meetings")}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              sourceFilter === "meetings" 
+                ? 'bg-accent text-foreground border border-border' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+            }`}
+            data-testid="source-meetings"
+          >
+            Meetings
+          </button>
+          <button
+            onClick={() => setSourceFilter("quickadd")}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              sourceFilter === "quickadd" 
+                ? 'bg-accent text-foreground border border-border' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+            }`}
+            data-testid="source-quickadd"
+          >
+            Quick Add
+          </button>
         </div>
       </div>
 
       {needsReview.length > 0 && (
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="h-6 w-1 bg-amber-400 rounded-full shadow-token" />
-            <h2 className="text-base font-semibold text-foreground">
-              Needs Review
-            </h2>
-            <Badge className="bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full ml-auto light:bg-amber-100 light:text-amber-700 light:border-amber-200">
-              {needsReview.length}
-            </Badge>
-          </div>
-          
-          <div className="space-y-3">
+        <section className="space-y-2">
+          <div className="space-y-2">
             {needsReview.map((item) => (
               <ActionCard 
                 key={item.id} 
@@ -501,16 +458,7 @@ export default function InboxPage() {
         </section>
       )}
 
-      <section className="space-y-3">
-        <div className="flex items-center gap-2">
-          <div className="h-6 w-1 bg-primary rounded-full shadow-token" />
-          <h2 className="text-base font-semibold text-foreground">
-            Open Items
-          </h2>
-          <Badge variant="secondary" className="bg-accent text-primary border border-border rounded-full ml-auto">
-            {openItems.length}
-          </Badge>
-        </div>
+      <section className="space-y-2">
 
         {openItems.length === 0 && needsReview.length === 0 ? (
           <Card className="border-dashed border-border">
@@ -531,7 +479,7 @@ export default function InboxPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {openItems.map((item) => (
               <ActionCard 
                 key={item.id} 
