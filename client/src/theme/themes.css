@@ -10,6 +10,21 @@ html[data-theme] {
   --shadow-2: 0 18px 52px rgba(0,0,0,0.14);
 }
 
+/* ─── Per-theme font families ─── */
+html[data-theme="aurora"],
+html[data-theme="grid"] {
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+html[data-theme="paper"] {
+  --font-sans: 'Lora', Georgia, 'Times New Roman', serif;
+}
+html[data-theme="clay"] {
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+}
+html[data-theme="terminal"] {
+  --font-sans: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
 /* ═══════════════════════════════════════════════════════════
    AURORA – Premium, calm, background-only gradient; crisp cards
    ═══════════════════════════════════════════════════════════ */
