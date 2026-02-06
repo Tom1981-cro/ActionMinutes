@@ -4,10 +4,18 @@
    Selector: html[data-theme="X"] (dark default) / html[data-theme="X"].light
    ============================================================ */
 
-/* ─── Shared shadow tokens ─── */
+/* ─── Shared tokens ─── */
 html[data-theme] {
   --shadow-1: 0 10px 24px rgba(0,0,0,0.10);
   --shadow-2: 0 18px 52px rgba(0,0,0,0.14);
+  --success: hsl(142, 71%, 35%);
+  --success-foreground: hsl(0, 0%, 100%);
+  --warning: hsl(32, 95%, 44%);
+  --warning-foreground: hsl(0, 0%, 100%);
+}
+html[data-theme]:not(.light) {
+  --success: hsl(142, 71%, 45%);
+  --warning: hsl(38, 92%, 50%);
 }
 
 /* ─── Per-theme font families ─── */
@@ -499,18 +507,6 @@ html[data-theme="terminal"].light body {
 .shadow-token  { box-shadow: var(--shadow-1); }
 .shadow-token-2{ box-shadow: var(--shadow-2); }
 
-/* Gradient text */
-html[data-theme] .text-gradient {
-  background-image: linear-gradient(135deg, var(--theme-gradient-start), var(--theme-gradient-end));
-}
-
-html[data-theme] .text-gradient-light {
-  background-image: linear-gradient(135deg, #ffffff 0%, var(--theme-gradient-start) 100%);
-}
-
-html[data-theme].light .text-gradient-light {
-  background-image: linear-gradient(135deg, var(--theme-gradient-end) 0%, var(--theme-gradient-start) 100%);
-}
 
 /* Button glow */
 html[data-theme] .btn-gradient {
@@ -563,21 +559,6 @@ html[data-theme] ::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--primary), transparent 70%);
 }
 
-/* Page title */
-html[data-theme] h1.page-title,
-html[data-theme] .page-title {
-  background: linear-gradient(135deg, #ffffff 0%, var(--theme-gradient-start) 50%, var(--primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-html[data-theme].light h1.page-title,
-html[data-theme].light .page-title {
-  background: linear-gradient(135deg, var(--foreground) 0%, var(--theme-gradient-start) 50%, var(--primary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
 
 /* Pill */
 html[data-theme] .pill-violet {

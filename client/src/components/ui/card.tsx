@@ -9,7 +9,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-2xl glass-panel text-card-foreground transition-all duration-300 ease-out",
+      "rounded-2xl glass-panel text-card-foreground shadow-token transition-all duration-300 ease-out",
       "md:hover:bg-accent md:hover:border-primary/20 md:hover:-translate-y-0.5",
       "active:scale-[0.99]",
       className

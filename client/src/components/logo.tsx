@@ -22,8 +22,9 @@ export function Logo({ variant = 'squircle', size = 32, className = '', theme = 
     const cx = w / 2;
     const cy = h / 2;
 
-    const bgColor = theme === 'dark' ? '#818cf8' : '#6366f1';
-    const iconColor = theme === 'dark' ? '#0f172a' : '#ffffff';
+    const computedStyle = getComputedStyle(document.documentElement);
+    const bgColor = computedStyle.getPropertyValue('--primary').trim() || (theme === 'dark' ? '#818cf8' : '#6366f1');
+    const iconColor = computedStyle.getPropertyValue('--primary-foreground').trim() || (theme === 'dark' ? '#0f172a' : '#ffffff');
 
     ctx.clearRect(0, 0, w, h);
 
