@@ -377,7 +377,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
         if (!open) resetForm();
         setIsOpen(open);
       }}>
-        <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-visible bg-card border-border top-[15%] translate-y-0" data-testid="dialog-addaction">
+        <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-visible bg-card border-border top-[5%] translate-y-0" data-testid="dialog-addaction">
           <DialogHeader className="px-3 py-2.5 border-b border-border">
             <DialogTitle className="flex items-center gap-1.5 text-sm text-foreground">
               <Lightning weight="fill" className="h-4 w-4 text-primary" />
@@ -596,14 +596,14 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                     type="button"
                     className={cn(
                       "flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] transition-colors",
-                      priority !== "normal"
-                        ? `border-border bg-accent ${priorityInfo.color}`
+                      priority
+                        ? `border-primary/30 bg-primary/10 ${priorityInfo.color}`
                         : "border-border bg-transparent text-muted-foreground hover:bg-accent"
                     )}
                     data-testid="button-addaction-priority"
                   >
                     <Flag className="h-3 w-3" weight="duotone" />
-                    {priority !== "normal" ? priorityInfo.label : "Priority"}
+                    {priorityInfo.label}
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-44 p-1 bg-card border-border" align="start" sideOffset={8}>
