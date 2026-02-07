@@ -1,23 +1,34 @@
 import { useState } from "react";
-import { useRoute } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { 
-  ListBullets, Trash, CheckCircle, Clock, Plus, PencilSimple, Check, X 
+  ListBullets, Plus, PencilSimple, Check, X,
+  ArrowRight, Flag, User, Hourglass,
+  House, Briefcase, UsersThree, Heart, GraduationCap, PaintBrush, Flower, Barbell, ChatCircle, UserCircle
 } from "@phosphor-icons/react";
-import { format, formatDistanceToNow } from "date-fns";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
+import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { authenticatedFetch } from "@/hooks/use-auth";
 
+const LIST_ICON_MAP: Record<string, PhosphorIcon> = {
+  home: House, work: Briefcase, family: UsersThree, health: Heart,
+  education: GraduationCap, hobby: PaintBrush, wellness: Flower,
+  workout: Barbell, social: ChatCircle, personal: UserCircle,
+};
+
 type CustomList = {
   id: string;
   name: string;
   color?: string;
+  icon?: string;
   position: number;
   items?: CustomListItem[];
 };
@@ -33,8 +44,85 @@ type CustomListItem = {
     text: string;
     dueDate?: string;
     isCompleted: boolean;
+    status?: string;
+    priority?: string;
+    notes?: string;
+    description?: string;
+    ownerName?: string;
+    waitingFor?: string;
   };
 };
+
+function TaskCard({ item }: { item: CustomListItem }) {
+  const [, navigate] = useLocation();
+  const r = item.reminder;
+  if (!r) return null;
+
+  const isOverdue = r.dueDate && new Date(r.dueDate) < new Date();
+  const priorityColor = r.priority === 'high' || r.priority === 'urgent' ? 'text-red-500' :
+    r.priority === 'normal' || r.priority === 'medium' ? 'text-amber-500' :
+    r.priority === 'low' ? 'text-emerald-500' : '';
+
+  const handleClick = () => {
+    navigate(`/app/action/reminder/${r.id}`);
+  };
+
+  return (
+    <Card
+      className="glass-panel hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl"
+      onClick={handleClick}
+      data-testid={`card-list-item-${item.id}`}
+    >
+      <CardContent className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
+          <p className="text-sm font-medium leading-snug text-foreground group-hover:text-primary transition-colors flex-1 min-w-0">
+            {r.text}
+          </p>
+          <div className="flex items-center justify-between sm:justify-end gap-2">
+            <StatusBadge status={r.status || (r.isCompleted ? 'done' : 'open')} size="sm" />
+            {r.dueDate && (
+              <span className={cn("text-xs sm:hidden", isOverdue ? "text-destructive" : "text-muted-foreground")}>
+                {format(new Date(r.dueDate), "d MMM")}
+              </span>
+            )}
+          </div>
+        </div>
+        {r.dueDate && (
+          <span className={cn("text-xs hidden sm:block mt-1", isOverdue ? "text-destructive" : "text-muted-foreground")}>
+            {format(new Date(r.dueDate), "d MMM yyyy")}
+            {isOverdue && " (overdue)"}
+          </span>
+        )}
+        {r.description && (
+          <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-snug">{r.description}</p>
+        )}
+      </CardContent>
+      <CardFooter className="pt-0 px-4 pb-4 md:px-6 md:pb-4 text-xs text-muted-foreground flex justify-between items-center">
+        <span className="flex items-center gap-3 flex-wrap">
+          {r.ownerName && (
+            <span className="flex items-center gap-1">
+              <User className="h-3.5 w-3.5" weight="duotone" />
+              {r.ownerName}
+            </span>
+          )}
+          {r.waitingFor && (
+            <span className="flex items-center gap-1 text-amber-500">
+              <Hourglass className="h-3.5 w-3.5" weight="duotone" />
+              {r.waitingFor}
+            </span>
+          )}
+          {r.priority && r.priority !== 'normal' && r.priority !== 'none' && (
+            <span className={cn("flex items-center gap-1", priorityColor)}>
+              <Flag className="h-3.5 w-3.5" weight="fill" />
+              {r.priority}
+            </span>
+          )}
+        </span>
+        <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-primary" weight="bold" />
+      </CardFooter>
+    </Card>
+  );
+}
 
 export default function ListPage() {
   const [, params] = useRoute("/app/lists/:id");
@@ -55,16 +143,6 @@ export default function ListPage() {
       return res.json();
     },
     enabled: !!listId,
-  });
-
-  const { data: inboxItems = [] } = useQuery({
-    queryKey: ['reminders', user.id],
-    queryFn: async () => {
-      const res = await authenticatedFetch(`/api/personal/reminders`);
-      if (!res.ok) return [];
-      return res.json();
-    },
-    enabled: !!user.id,
   });
 
   const updateListName = useMutation({
@@ -100,48 +178,13 @@ export default function ListPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['custom-list', listId] });
+      queryClient.invalidateQueries({ queryKey: ['reminders'] });
       setNewTaskText("");
       setIsAddingTask(false);
       toast({ title: "Task added" });
     },
     onError: () => {
       toast({ title: "Failed to add task", variant: "destructive" });
-    },
-  });
-
-  const addItemToList = useMutation({
-    mutationFn: async (reminderId: string) => {
-      const res = await authenticatedFetch(`/api/lists/${listId}/items`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reminderId }),
-      });
-      if (!res.ok) throw new Error('Failed to add item');
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['custom-list', listId] });
-      toast({ title: "Item added to list" });
-    },
-    onError: () => {
-      toast({ title: "Failed to add item", variant: "destructive" });
-    },
-  });
-
-  const removeItemFromList = useMutation({
-    mutationFn: async (itemId: string) => {
-      const res = await authenticatedFetch(`/api/lists/${listId}/items/${itemId}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) throw new Error('Failed to remove item');
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['custom-list', listId] });
-      toast({ title: "Item removed from list" });
-    },
-    onError: () => {
-      toast({ title: "Failed to remove item", variant: "destructive" });
     },
   });
 
@@ -162,6 +205,10 @@ export default function ListPage() {
       </div>
     );
   }
+
+  const IconComp = list.icon ? (LIST_ICON_MAP[list.icon] || ListBullets) : ListBullets;
+  const activeItems = list.items?.filter(i => i.reminder && !i.reminder.isCompleted) || [];
+  const completedItems = list.items?.filter(i => i.reminder?.isCompleted) || [];
 
   return (
     <div className="space-y-5 pb-6">
@@ -188,6 +235,7 @@ export default function ListPage() {
             </div>
           ) : (
             <div className="flex items-center gap-3">
+              <IconComp className="h-7 w-7 text-primary" weight="duotone" />
               <h1 className="text-2xl font-bold tracking-tight text-foreground">{list.name}</h1>
               <Button 
                 size="icon" 
@@ -200,143 +248,111 @@ export default function ListPage() {
             </div>
           )}
           <p className="text-sm mt-1 text-muted-foreground">
-            {list.items?.length || 0} items in this list
+            {activeItems.length} open {activeItems.length === 1 ? 'item' : 'items'}
+            {completedItems.length > 0 && ` · ${completedItems.length} completed`}
           </p>
         </div>
+        {!isAddingTask && (
+          <Button
+            size="sm"
+            onClick={() => setIsAddingTask(true)}
+            className="bg-primary hover:bg-primary/90 rounded-xl gap-1"
+            data-testid="button-add-list-task"
+          >
+            <Plus className="h-4 w-4" />
+            Add task
+          </Button>
+        )}
       </div>
 
-      <div className="rounded-2xl backdrop-blur-xl border p-4 bg-card border-border">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-foreground">
-            Items in this list
-          </h3>
-          {!isAddingTask && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setIsAddingTask(true)}
-              className="h-8 gap-1"
-            >
-              <Plus className="h-4 w-4" />
-              Add task
-            </Button>
-          )}
+      {isAddingTask && (
+        <div className="flex items-center gap-2">
+          <Input
+            value={newTaskText}
+            onChange={(e) => setNewTaskText(e.target.value)}
+            placeholder="Enter task..."
+            className="flex-1 bg-card rounded-xl"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && newTaskText.trim()) {
+                addNewTask.mutate(newTaskText.trim());
+              }
+              if (e.key === 'Escape') {
+                setIsAddingTask(false);
+                setNewTaskText("");
+              }
+            }}
+            data-testid="input-new-list-task"
+          />
+          <Button 
+            size="icon" 
+            onClick={() => newTaskText.trim() && addNewTask.mutate(newTaskText.trim())}
+            disabled={!newTaskText.trim()}
+            className="bg-primary hover:bg-primary/90 rounded-xl"
+          >
+            <Check className="h-4 w-4" />
+          </Button>
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            onClick={() => { setIsAddingTask(false); setNewTaskText(""); }}
+            className="rounded-xl"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
+      )}
 
-        {isAddingTask && (
-          <div className="flex items-center gap-2 mb-4">
-            <Input
-              value={newTaskText}
-              onChange={(e) => setNewTaskText(e.target.value)}
-              placeholder="Enter task..."
-              className="flex-1 bg-card"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && newTaskText.trim()) {
-                  addNewTask.mutate(newTaskText.trim());
-                }
-                if (e.key === 'Escape') {
-                  setIsAddingTask(false);
-                  setNewTaskText("");
-                }
-              }}
-              data-testid="input-new-list-task"
-            />
-            <Button 
-              size="icon" 
-              onClick={() => newTaskText.trim() && addNewTask.mutate(newTaskText.trim())}
-              disabled={!newTaskText.trim()}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Check className="h-4 w-4" />
-            </Button>
-            <Button 
-              size="icon" 
-              variant="ghost" 
-              onClick={() => { setIsAddingTask(false); setNewTaskText(""); }}
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-        
-        {(!list.items || list.items.length === 0) && !isAddingTask ? (
-          <div className="text-center py-8 rounded-xl border border-dashed border-border">
-            <ListBullets className="h-8 w-8 mx-auto mb-3 text-muted-foreground" weight="duotone" />
-            <p className="text-sm mb-2 text-muted-foreground">
-              This list is empty
-            </p>
+      {activeItems.length === 0 && !isAddingTask ? (
+        <Card className="border-dashed border-border">
+          <CardContent className="py-12 text-center space-y-3">
+            <div className="mx-auto h-16 w-16 bg-accent rounded-full flex items-center justify-center shadow-token">
+              <IconComp className="h-8 w-8 text-primary" weight="duotone" />
+            </div>
+            <div>
+              <p className="text-lg font-medium text-foreground">This list is empty</p>
+              <p className="text-muted-foreground text-base mt-1">Add your first task to get started.</p>
+            </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsAddingTask(true)}
-              className="mt-2"
+              className="mt-2 rounded-xl"
             >
               <Plus className="h-4 w-4 mr-1" />
-              Add your first task
+              Add task
             </Button>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <AnimatePresence>
-              {list.items?.map((item) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  className="flex items-center gap-3 p-3 rounded-xl transition-colors bg-muted hover:bg-accent"
-                >
-                  <CheckCircle className="h-5 w-5 text-muted-foreground" weight="duotone" />
-                  <span className="flex-1 text-foreground">
-                    {item.reminder?.text || `Item ${item.id.slice(0, 8)}`}
-                  </span>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => removeItemFromList.mutate(item.id)}
-                    className="h-8 w-8 text-red-400 hover:text-red-500"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
-      </div>
-
-      <div className="rounded-2xl backdrop-blur-xl border p-6 bg-card border-border">
-        <h3 className="text-sm font-semibold mb-4 text-foreground">
-          Add from Inbox
-        </h3>
-        
-        {inboxItems.length === 0 ? (
-          <p className="text-sm text-center py-4 text-muted-foreground">
-            No items in your inbox
-          </p>
-        ) : (
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {inboxItems.filter((item: any) => !item.isCompleted).slice(0, 10).map((item: any) => (
-              <div
+          </CardContent>
+        </Card>
+      ) : (
+        <section className="space-y-2">
+          <AnimatePresence>
+            {activeItems.map((item) => (
+              <motion.div
                 key={item.id}
-                className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors bg-muted hover:bg-accent"
-                onClick={() => addItemToList.mutate(item.id)}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -10 }}
               >
-                <Plus className="h-4 w-4 text-primary" weight="bold" />
-                <span className="flex-1 text-sm text-foreground">
-                  {item.text}
-                </span>
-                {item.dueDate && (
-                  <Badge variant="secondary" className="text-xs">
-                    {formatDistanceToNow(new Date(item.dueDate), { addSuffix: true })}
-                  </Badge>
-                )}
-              </div>
+                <TaskCard item={item} />
+              </motion.div>
             ))}
-          </div>
-        )}
-      </div>
+          </AnimatePresence>
+        </section>
+      )}
+
+      {completedItems.length > 0 && (
+        <section className="space-y-2">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
+            Completed ({completedItems.length})
+          </h3>
+          {completedItems.map((item) => (
+            <div key={item.id}>
+              <TaskCard item={item} />
+            </div>
+          ))}
+        </section>
+      )}
     </div>
   );
 }

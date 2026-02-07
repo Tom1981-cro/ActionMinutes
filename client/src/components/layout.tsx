@@ -3,8 +3,10 @@ import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
   BookOpenText, CaretDown, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X, DotsThree, Trash, Lightning,
-  CheckCircle, Archive
+  CheckCircle, Archive,
+  House, Briefcase, UsersThree, Heart, GraduationCap, PaintBrush, Flower, Barbell, ChatCircle, UserCircle
 } from "@phosphor-icons/react";
+import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
@@ -40,8 +42,27 @@ type CustomList = {
   id: string;
   name: string;
   color?: string;
+  icon?: string;
   position: number;
 };
+
+const LIST_ICON_OPTIONS: { id: string; label: string; icon: PhosphorIcon }[] = [
+  { id: 'home', label: 'Home', icon: House },
+  { id: 'work', label: 'Work', icon: Briefcase },
+  { id: 'family', label: 'Family', icon: UsersThree },
+  { id: 'health', label: 'Health', icon: Heart },
+  { id: 'education', label: 'Education', icon: GraduationCap },
+  { id: 'hobby', label: 'Hobby', icon: PaintBrush },
+  { id: 'wellness', label: 'Wellness', icon: Flower },
+  { id: 'workout', label: 'Workout', icon: Barbell },
+  { id: 'social', label: 'Social', icon: ChatCircle },
+  { id: 'personal', label: 'Personal', icon: UserCircle },
+];
+
+function getListIcon(iconId?: string): PhosphorIcon {
+  const found = LIST_ICON_OPTIONS.find(o => o.id === iconId);
+  return found ? found.icon : ListBullets;
+}
 
 export default function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
@@ -53,6 +74,7 @@ export default function Layout({ children }: LayoutProps) {
   const [editingName, setEditingName] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [newListName, setNewListName] = useState("");
+  const [newListIcon, setNewListIcon] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<CustomList | null>(null);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -68,11 +90,11 @@ export default function Layout({ children }: LayoutProps) {
   });
 
   const createList = useMutation({
-    mutationFn: async (name: string) => {
+    mutationFn: async ({ name, icon }: { name: string; icon?: string }) => {
       const res = await authenticatedFetch('/api/lists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, position: customLists.length }),
+        body: JSON.stringify({ name, icon: icon || null, position: customLists.length }),
       });
       if (!res.ok) throw new Error('Failed to create list');
       return res.json();
@@ -82,6 +104,7 @@ export default function Layout({ children }: LayoutProps) {
       setLocation(`/app/lists/${newList.id}`);
       setCreateDialogOpen(false);
       setNewListName("");
+      setNewListIcon(null);
     },
   });
 
@@ -231,7 +254,7 @@ export default function Layout({ children }: LayoutProps) {
                     data-testid={`nav-list-${list.id}`}
                     className={isActive ? "navItemActive" : "navItem"}
                   >
-                    <ListBullets className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />
+                    {(() => { const IconComp = getListIcon(list.icon); return <IconComp className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />; })()}
                     {list.name}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -559,12 +582,12 @@ export default function Layout({ children }: LayoutProps) {
 
       <QuickAdd isOpen={quickAddOpen} onOpenChange={setQuickAddOpen} />
 
-      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+      <Dialog open={createDialogOpen} onOpenChange={(open) => { setCreateDialogOpen(open); if (!open) { setNewListName(""); setNewListIcon(null); } }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Create new list</DialogTitle>
             <DialogDescription>
-              Give your list a name to get started.
+              Give your list a name and choose an icon.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -577,20 +600,45 @@ export default function Layout({ children }: LayoutProps) {
                 onChange={(e) => setNewListName(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && newListName.trim()) {
-                    createList.mutate(newListName.trim());
+                    createList.mutate({ name: newListName.trim(), icon: newListIcon || undefined });
                   }
                 }}
                 autoFocus
                 data-testid="input-new-list-name"
               />
             </div>
+            <div className="space-y-2">
+              <Label>Icon</Label>
+              <div className="grid grid-cols-5 gap-2">
+                {LIST_ICON_OPTIONS.map((opt) => {
+                  const isSelected = newListIcon === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => setNewListIcon(isSelected ? null : opt.id)}
+                      className={cn(
+                        "flex flex-col items-center gap-1 p-2.5 rounded-xl border-2 transition-all",
+                        isSelected 
+                          ? "border-primary bg-primary/10 text-primary" 
+                          : "border-transparent bg-muted hover:bg-accent text-muted-foreground hover:text-foreground"
+                      )}
+                      data-testid={`icon-${opt.id}`}
+                    >
+                      <opt.icon className="h-5 w-5" weight={isSelected ? "fill" : "duotone"} />
+                      <span className="text-[10px] font-medium leading-tight">{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => { setCreateDialogOpen(false); setNewListName(""); }}>
+            <Button variant="outline" onClick={() => { setCreateDialogOpen(false); setNewListName(""); setNewListIcon(null); }}>
               Cancel
             </Button>
             <Button 
-              onClick={() => newListName.trim() && createList.mutate(newListName.trim())} 
+              onClick={() => newListName.trim() && createList.mutate({ name: newListName.trim(), icon: newListIcon || undefined })} 
               disabled={!newListName.trim()}
               className="bg-primary hover:bg-primary/90"
             >

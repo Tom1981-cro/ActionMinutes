@@ -121,6 +121,10 @@ export default function DeletedPage() {
       queryClient.invalidateQueries({ queryKey: ["actioned"] });
       queryClient.invalidateQueries({ queryKey: ["reminders"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["actions"] });
+      queryClient.invalidateQueries({ queryKey: ["inbox-items"] });
+      queryClient.invalidateQueries({ queryKey: ["custom-list"] });
+      queryClient.invalidateQueries({ queryKey: ["custom-lists"] });
       toast({ title: "Item restored" });
     },
   });
@@ -132,6 +136,11 @@ export default function DeletedPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["deleted"] });
+      queryClient.invalidateQueries({ queryKey: ["actions"] });
+      queryClient.invalidateQueries({ queryKey: ["reminders"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["custom-list"] });
+      queryClient.invalidateQueries({ queryKey: ["custom-lists"] });
       toast({ title: "Item permanently deleted" });
     },
   });

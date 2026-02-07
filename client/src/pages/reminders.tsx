@@ -243,6 +243,11 @@ export default function RemindersPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/personal/reminders', user.id] });
+      queryClient.invalidateQueries({ queryKey: ["reminders"] });
+      queryClient.invalidateQueries({ queryKey: ["actions"] });
+      queryClient.invalidateQueries({ queryKey: ["deleted"] });
+      queryClient.invalidateQueries({ queryKey: ["custom-list"] });
+      queryClient.invalidateQueries({ queryKey: ["inbox-items"] });
       toast({ title: "Reminder deleted" });
     },
     onError: () => {

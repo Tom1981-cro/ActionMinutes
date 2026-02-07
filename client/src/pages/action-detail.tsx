@@ -241,6 +241,10 @@ export default function ActionDetailPage() {
       }
       queryClient.invalidateQueries({ queryKey: ["actions"] });
       queryClient.invalidateQueries({ queryKey: ["reminders"] });
+      queryClient.invalidateQueries({ queryKey: ["actioned"] });
+      queryClient.invalidateQueries({ queryKey: ["deleted"] });
+      queryClient.invalidateQueries({ queryKey: ["custom-list"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({ title: "Saved" });
       navigate("/app/inbox");
     } catch {
@@ -262,6 +266,10 @@ export default function ActionDetailPage() {
       }
       queryClient.invalidateQueries({ queryKey: ["actions"] });
       queryClient.invalidateQueries({ queryKey: ["reminders"] });
+      queryClient.invalidateQueries({ queryKey: ["actioned"] });
+      queryClient.invalidateQueries({ queryKey: ["deleted"] });
+      queryClient.invalidateQueries({ queryKey: ["custom-list"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({ title: "Deleted" });
       navigate("/app/inbox");
     } catch {

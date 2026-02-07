@@ -308,6 +308,11 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
       queryClient.invalidateQueries({ queryKey: ["meetings"] });
       queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
       queryClient.invalidateQueries({ queryKey: ["custom-lists"] });
+      queryClient.invalidateQueries({ queryKey: ["custom-list"] });
+      queryClient.invalidateQueries({ queryKey: ["actions"] });
+      queryClient.invalidateQueries({ queryKey: ["actioned"] });
+      queryClient.invalidateQueries({ queryKey: ["deleted"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
 
       const destLabel =
         result.type === "inbox" ? "Inbox" :
