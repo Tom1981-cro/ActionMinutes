@@ -717,6 +717,7 @@ export const customListItems = pgTable("custom_list_items", {
   listId: varchar("list_id", { length: 36 }).notNull().references(() => customLists.id, { onDelete: 'cascade' }),
   reminderId: varchar("reminder_id", { length: 36 }).references(() => personalReminders.id, { onDelete: 'cascade' }),
   taskId: varchar("task_id", { length: 36 }).references(() => tasks.id, { onDelete: 'cascade' }),
+  actionItemId: varchar("action_item_id", { length: 36 }).references(() => actionItems.id, { onDelete: 'cascade' }),
   position: integer("position").notNull().default(0),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
