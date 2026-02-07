@@ -447,7 +447,7 @@ export default function ActionDetailPage() {
             <button
               type="button"
               onClick={() => navigate(`/app/meeting/${item.meetingId}`)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-medium bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors cursor-pointer font-semibold pt-[0px] pb-[0px]"
               data-testid="button-go-to-meeting"
             >
               <Lightning className="h-3 w-3" weight="fill" />
@@ -462,11 +462,9 @@ export default function ActionDetailPage() {
           )}
         </div>
       </div>
-
       <h1 className="text-base font-bold tracking-tight text-foreground leading-snug" data-testid="text-task-title">
         {text || item.text || "Untitled task"}
       </h1>
-
       <div className="flex gap-2 flex-wrap items-center" data-testid="status-buttons">
         {STATUSES.map((s) => (
           <Button
@@ -539,7 +537,6 @@ export default function ActionDetailPage() {
           </Popover>
         )}
       </div>
-
       {status === "waiting" && (
         <Card className="glass-panel rounded-2xl">
           <CardContent className="px-4 py-3 md:px-6">
@@ -559,7 +556,6 @@ export default function ActionDetailPage() {
           </CardContent>
         </Card>
       )}
-
       <Card className="glass-panel rounded-2xl">
         <CardHeader className="px-4 pt-4 pb-2 md:px-6">
           <CardTitle className="text-[12px] font-semibold text-primary flex items-center gap-1.5">
@@ -621,7 +617,6 @@ export default function ActionDetailPage() {
           </div>
         </CardContent>
       </Card>
-
       <Card className="glass-panel rounded-2xl">
         <CardHeader className="px-4 pt-4 pb-2 md:px-6">
           <CardTitle className="text-[12px] font-semibold text-primary flex items-center gap-1.5">
@@ -834,7 +829,6 @@ export default function ActionDetailPage() {
           </div>
         </CardContent>
       </Card>
-
       <Card className="glass-panel rounded-2xl">
         <CardHeader className="px-4 pt-4 pb-2 md:px-6">
           <div className="flex items-center justify-between">
@@ -905,7 +899,6 @@ export default function ActionDetailPage() {
           )}
         </CardContent>
       </Card>
-
       <div className="flex items-center gap-3 pt-2">
         <Button
           variant="outline"
@@ -934,7 +927,6 @@ export default function ActionDetailPage() {
           Save
         </Button>
       </div>
-
       <DatePickerModal
         open={showDatePicker}
         onOpenChange={setShowDatePicker}
