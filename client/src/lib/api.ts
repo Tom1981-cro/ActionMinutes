@@ -1,12 +1,18 @@
+import { authenticatedFetch } from '@/hooks/use-auth';
+
 const API_BASE = '';
 
 async function fetchJSON(url: string, options?: RequestInit) {
-  const response = await fetch(url, {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (options?.headers) {
+    Object.assign(headers, options.headers);
+  }
+
+  const response = await authenticatedFetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {

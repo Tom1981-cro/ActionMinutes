@@ -10,12 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Waveform, SpinnerGap, MagicWand, ListChecks, ChatTeardropDots, 
   Tag, SmileyMeh, SmileyWink, SmileySad, ArrowRight, Clock,
-  User, CalendarBlank, Download, CaretDown, CaretUp
+  User, CalendarBlank, Download, CaretDown, CaretUp, FileText
 } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { TemplatePicker } from "@/components/template-picker";
 
 type Transcript = {
   id: string;
@@ -54,6 +55,12 @@ export default function TranscriptsPage() {
   const queryClient = useQueryClient();
   const [selectedTranscript, setSelectedTranscript] = useState<string | null>(null);
   const [expandedTranscript, setExpandedTranscript] = useState<string | null>(null);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [templateSummary, setTemplateSummary] = useState<{
+    summary: string;
+    templateName: string;
+    processingTimeMs: number;
+  } | null>(null);
 
   const { data: transcripts = [], isLoading } = useQuery<Transcript[]>({
     queryKey: ["/api/transcripts", user?.id],
@@ -114,6 +121,33 @@ export default function TranscriptsPage() {
     },
     onError: () => {
       toast({ title: "Failed to update task", variant: "destructive" });
+    },
+  });
+
+  const templateSummarizeMutation = useMutation({
+    mutationFn: async ({ transcriptId, templateId }: { transcriptId: string; templateId: string }) => {
+      const res = await fetch(`/api/transcripts/${transcriptId}/summarize-template?userId=${user?.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ templateId }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Template summarization failed");
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setTemplateSummary({
+        summary: data.summary,
+        templateName: data.templateName,
+        processingTimeMs: data.processingTimeMs,
+      });
+      setTemplatePickerOpen(false);
+      toast({ title: "Template summary generated", description: `${data.templateName} analysis complete!` });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Template summarization failed", description: error.message, variant: "destructive" });
     },
   });
 
@@ -263,24 +297,36 @@ export default function TranscriptsPage() {
               <div className="glass-panel rounded-2xl p-8 text-center">
                 <MagicWand className="h-12 w-12 text-primary mx-auto mb-3" weight="duotone" />
                 <p className="text-muted-foreground mb-4">No summary generated yet.</p>
-                <Button
-                  onClick={() => summarizeMutation.mutate(selectedTranscript)}
-                  disabled={summarizeMutation.isPending}
-                  className="btn-gradient rounded-xl"
-                  data-testid="button-generate-summary"
-                >
-                  {summarizeMutation.isPending ? (
-                    <>
-                      <SpinnerGap className="mr-2 h-4 w-4 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <MagicWand className="mr-2 h-4 w-4" weight="bold" />
-                      Generate AI Summary
-                    </>
-                  )}
-                </Button>
+                <div className="flex gap-3 justify-center">
+                  <Button
+                    onClick={() => summarizeMutation.mutate(selectedTranscript)}
+                    disabled={summarizeMutation.isPending}
+                    className="btn-gradient rounded-xl"
+                    data-testid="button-generate-summary"
+                  >
+                    {summarizeMutation.isPending ? (
+                      <>
+                        <SpinnerGap className="mr-2 h-4 w-4 animate-spin" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <MagicWand className="mr-2 h-4 w-4" weight="bold" />
+                        Generate AI Summary
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="rounded-xl"
+                    onClick={() => setTemplatePickerOpen(true)}
+                    disabled={templateSummarizeMutation.isPending}
+                    data-testid="button-generate-template"
+                  >
+                    <FileText className="mr-2 h-4 w-4" weight="bold" />
+                    Generate with Template
+                  </Button>
+                </div>
               </div>
             ) : (
               <Tabs defaultValue="summary" className="w-full">
@@ -343,6 +389,17 @@ export default function TranscriptsPage() {
                             <MagicWand className="mr-2 h-3 w-3" />
                           )}
                           Regenerate
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-lg"
+                          onClick={() => setTemplatePickerOpen(true)}
+                          disabled={templateSummarizeMutation.isPending}
+                          data-testid="button-generate-template-existing"
+                        >
+                          <FileText className="mr-2 h-3 w-3" />
+                          Generate with Template
                         </Button>
                       </div>
                     </CardContent>
@@ -502,6 +559,44 @@ export default function TranscriptsPage() {
             )}
           </div>
         </div>
+      )}
+
+      {templateSummary && selectedTranscript && (
+        <Card className="glass-panel rounded-2xl" data-testid="card-template-summary">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg text-foreground flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" weight="duotone" />
+                {templateSummary.templateName}
+              </CardTitle>
+              <Badge variant="outline" className="rounded-full text-xs">
+                {(templateSummary.processingTimeMs / 1000).toFixed(1)}s
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div
+              className="text-sm text-foreground leading-relaxed whitespace-pre-wrap font-mono bg-muted/50 rounded-xl p-4 border border-border max-h-96 overflow-y-auto"
+              data-testid="text-template-summary"
+            >
+              {templateSummary.summary}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {selectedTranscript && (
+        <TemplatePicker
+          open={templatePickerOpen}
+          onOpenChange={setTemplatePickerOpen}
+          onSelect={(templateId) => {
+            templateSummarizeMutation.mutate({
+              transcriptId: selectedTranscript,
+              templateId,
+            });
+          }}
+          isGenerating={templateSummarizeMutation.isPending}
+        />
       )}
     </div>
   );

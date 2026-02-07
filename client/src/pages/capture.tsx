@@ -350,7 +350,7 @@ export default function CapturePage() {
       const formData = new FormData();
       formData.append('audio', file);
 
-      const response = await fetch(`/api/transcribe?userId=${user.id}`, {
+      const response = await fetch(`/api/transcribe?userId=${user.id}&save=true&title=${encodeURIComponent(title || `Transcript ${new Date().toLocaleString()}`)}`, {
         method: 'POST',
         body: formData,
       });

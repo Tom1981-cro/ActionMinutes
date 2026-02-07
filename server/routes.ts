@@ -2341,6 +2341,149 @@ Thanks!`,
     }
   });
 
+  app.post("/api/transcripts/:id/summarize-template", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    const { templateId } = req.body;
+    if (!templateId) {
+      return res.status(400).json({ error: "templateId is required" });
+    }
+
+    const { getTemplateById } = await import("../shared/templates");
+    const template = getTemplateById(templateId);
+    if (!template) {
+      return res.status(400).json({ error: "Invalid template" });
+    }
+
+    const transcript = await storage.getTranscript(req.params.id);
+    if (!transcript) {
+      return res.status(404).json({ error: "Transcript not found" });
+    }
+
+    if (transcript.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    const config = getAppConfig();
+    if (!config.features.aiEnabled) {
+      return res.status(503).json({ error: "AI features disabled" });
+    }
+
+    try {
+      const openai = new (await import("openai")).default({
+        apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      });
+
+      const prompt = template.prompt.replace('{{transcript}}', transcript.text);
+      const startTime = Date.now();
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "You are a professional summarization assistant. Always output well-formatted markdown." },
+          { role: "user", content: prompt },
+        ],
+        max_tokens: 4000,
+        temperature: 0.3,
+      });
+
+      const result = completion.choices[0]?.message?.content || "No summary generated.";
+      const processingTimeMs = Date.now() - startTime;
+
+      res.json({
+        summary: result,
+        templateId: template.id,
+        templateName: template.name,
+        provider: "openai",
+        model: "gpt-4o-mini",
+        processingTimeMs,
+      });
+    } catch (error: any) {
+      console.error("[Template Summarization Error]", error);
+      res.status(500).json({ error: error.message || "Summarization failed" });
+    }
+  });
+
+  app.post("/api/meetings/:id/summarize-template", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    const { templateId } = req.body;
+    if (!templateId) {
+      return res.status(400).json({ error: "templateId is required" });
+    }
+
+    const { getTemplateById } = await import("../shared/templates");
+    const template = getTemplateById(templateId);
+    if (!template) {
+      return res.status(400).json({ error: "Invalid template" });
+    }
+
+    const meeting = await storage.getMeeting(req.params.id);
+    if (!meeting) {
+      return res.status(404).json({ error: "Meeting not found" });
+    }
+
+    if (meeting.userId !== userId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    if (!meeting.rawNotes) {
+      return res.status(400).json({ error: "Meeting has no notes to summarize" });
+    }
+
+    const config = getAppConfig();
+    if (!config.features.aiEnabled) {
+      return res.status(503).json({ error: "AI features disabled" });
+    }
+
+    try {
+      const openai = new (await import("openai")).default({
+        apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      });
+
+      const prompt = template.prompt.replace('{{transcript}}', meeting.rawNotes);
+      const startTime = Date.now();
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "You are a professional summarization assistant. Always output well-formatted markdown." },
+          { role: "user", content: prompt },
+        ],
+        max_tokens: 4000,
+        temperature: 0.3,
+      });
+
+      const result = completion.choices[0]?.message?.content || "No summary generated.";
+      const processingTimeMs = Date.now() - startTime;
+
+      res.json({
+        summary: result,
+        templateId: template.id,
+        templateName: template.name,
+        provider: "openai",
+        model: "gpt-4o-mini",
+        processingTimeMs,
+      });
+    } catch (error: any) {
+      console.error("[Template Summarization Error]", error);
+      res.status(500).json({ error: error.message || "Summarization failed" });
+    }
+  });
+
+  app.get("/api/summary-templates", async (_req, res) => {
+    const { SUMMARY_TEMPLATES, TEMPLATE_CATEGORIES } = await import("../shared/templates");
+    res.json({ templates: SUMMARY_TEMPLATES, categories: TEMPLATE_CATEGORIES });
+  });
+
   app.get("/api/transcripts/:id/summary", async (req, res) => {
     const userId = req.query.userId as string;
     if (!userId) {

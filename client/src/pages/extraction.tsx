@@ -9,20 +9,22 @@ import { Label } from "@/components/ui/label";
 import { StatusBadge, SeverityBadge } from "@/components/ui/status-badge";
 import { 
   ArrowLeft, CheckCircle, FileText, CalendarBlank, DownloadSimple, 
-  Warning, Question, Pencil, User, Clock, SpinnerGap, HighlighterCircle
+  Warning, Question, Pencil, User, Clock, SpinnerGap, HighlighterCircle, MagicWand
 } from "@phosphor-icons/react";
 import { useToast } from "@/hooks/use-toast";
 import { useMeeting, useActionItemsForMeeting, useDecisionsForMeeting, useRisksForMeeting, useQuestionsForMeeting, useUpdateMeeting, useExportCalendar, useAppConfig, useGenerateDrafts, useDraftsForMeeting, useTasksBySource, useCreateTasksFromMeeting } from "@/lib/hooks";
 import { ActionEditSheet } from "@/components/action-edit-sheet";
 import { TextHighlighter, type HighlightedItem } from "@/components/text-highlighter";
+import { TemplatePicker } from "@/components/template-picker";
 import type { ActionItem } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/use-auth";
 
 type TabType = 'summary' | 'actions' | 'decisions' | 'risks' | 'clarify' | 'highlight';
 
 export default function ExtractionPage() {
-  const [, params] = useRoute("/meeting/:id");
+  const [, params] = useRoute("/app/meeting/:id");
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { data: config } = useAppConfig();
@@ -44,12 +46,38 @@ export default function ExtractionPage() {
   const aiEnabled = config?.features?.aiEnabled !== false;
   const hasDrafts = existingDrafts.length > 0;
 
+  const { user } = useAuth();
   const [exportOpen, setExportOpen] = useState(false);
   const [includeActionItems, setIncludeActionItems] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('summary');
   const [selectedAction, setSelectedAction] = useState<ActionItem | null>(null);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [manualHighlights, setManualHighlights] = useState<HighlightedItem[]>([]);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [templateSummary, setTemplateSummary] = useState<{ summary: string; templateName: string; processingTimeMs: number } | null>(null);
+
+  const templateSummarizeMutation = useMutation({
+    mutationFn: async (templateId: string) => {
+      const res = await fetch(`/api/meetings/${id}/summarize-template?userId=${user?.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ templateId }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Template summarization failed");
+      }
+      return res.json();
+    },
+    onSuccess: (data) => {
+      setTemplateSummary({ summary: data.summary, templateName: data.templateName, processingTimeMs: data.processingTimeMs });
+      setTemplatePickerOpen(false);
+      toast({ title: "Template summary generated", description: `Generated using "${data.templateName}" template.` });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Template summarization failed", description: error.message, variant: "destructive" });
+    },
+  });
 
   if (meetingLoading || actionsLoading) {
     return (
@@ -240,10 +268,27 @@ export default function ExtractionPage() {
         </div>
 
         <div className="space-y-4 md:space-y-6 pt-4">
-          <div className={`${activeTab === 'summary' ? 'block' : 'hidden md:block'}`}>
+          <div className={`${activeTab === 'summary' ? 'block' : 'hidden md:block'} space-y-4`}>
             <Card className="glass-panel rounded-2xl">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
-                <CardTitle className="text-base font-semibold text-foreground">Summary</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base font-semibold text-foreground">Summary</CardTitle>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl text-xs"
+                    onClick={() => setTemplatePickerOpen(true)}
+                    disabled={templateSummarizeMutation.isPending}
+                    data-testid="button-template-summary"
+                  >
+                    {templateSummarizeMutation.isPending ? (
+                      <SpinnerGap className="mr-1.5 h-3.5 w-3.5 animate-spin" weight="bold" />
+                    ) : (
+                      <MagicWand className="mr-1.5 h-3.5 w-3.5" weight="duotone" />
+                    )}
+                    Template Summary
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="px-4 pb-4 md:px-6">
                 <div className="bg-muted p-4 rounded-xl text-base leading-relaxed text-foreground">
@@ -251,6 +296,34 @@ export default function ExtractionPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {templateSummary && (
+              <Card className="glass-panel rounded-2xl" data-testid="card-template-summary">
+                <CardHeader className="px-4 pt-4 pb-2 md:px-6">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+                      <MagicWand className="h-4 w-4 text-primary" weight="duotone" />
+                      {templateSummary.templateName}
+                    </CardTitle>
+                    <Badge variant="outline" className="rounded-full text-xs bg-accent border-border">
+                      {(templateSummary.processingTimeMs / 1000).toFixed(1)}s
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="px-4 pb-4 md:px-6">
+                  <div className="bg-muted p-4 rounded-xl text-sm leading-relaxed text-foreground whitespace-pre-wrap">
+                    {templateSummary.summary}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <TemplatePicker
+              open={templatePickerOpen}
+              onOpenChange={setTemplatePickerOpen}
+              onSelect={(templateId) => templateSummarizeMutation.mutate(templateId)}
+              isGenerating={templateSummarizeMutation.isPending}
+            />
           </div>
 
           <div className={`${activeTab === 'actions' ? 'block' : 'hidden md:block'}`}>
