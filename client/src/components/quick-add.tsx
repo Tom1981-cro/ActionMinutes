@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { DatePickerModal } from "@/components/date-picker-modal";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
@@ -25,15 +26,14 @@ interface QuickAddProps {
 }
 
 type Destination = "inbox" | "reminders" | "meetings" | string;
-type Priority = "urgent" | "high" | "normal" | "low" | "optional";
+type Priority = "high" | "normal" | "low" | "none";
 type RecurrenceOption = "daily" | "weekly" | "biweekly" | "monthly" | "yearly" | null;
 
 const PRIORITIES: { value: Priority; label: string; color: string; icon: string }[] = [
-  { value: "urgent", label: "Urgent", color: "text-red-500", icon: "🔴" },
   { value: "high", label: "High", color: "text-orange-500", icon: "🟠" },
   { value: "normal", label: "Normal", color: "text-blue-500", icon: "🔵" },
   { value: "low", label: "Low", color: "text-emerald-500", icon: "🟢" },
-  { value: "optional", label: "Optional", color: "text-muted-foreground", icon: "⚪" },
+  { value: "none", label: "None", color: "text-muted-foreground", icon: "⚪" },
 ];
 
 const RECURRENCE_OPTIONS: { value: RecurrenceOption; label: string }[] = [
@@ -53,7 +53,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
   const [dueTime, setDueTime] = useState<string>("");
   const [deadline, setDeadline] = useState<Date | null>(null);
   const [deadlineTime, setDeadlineTime] = useState<string>("");
-  const [priority, setPriority] = useState<Priority>("normal");
+  const [priority, setPriority] = useState<Priority>("none");
   const [reminderAt, setReminderAt] = useState<Date | null>(null);
   const [reminderTime, setReminderTime] = useState<string>("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -62,6 +62,15 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
   const [destination, setDestination] = useState<Destination>("inbox");
   const [recurrence, setRecurrence] = useState<RecurrenceOption>(null);
 
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [endTime, setEndTime] = useState<string>("");
+  const [allDay, setAllDay] = useState(false);
+  const [reminderMode, setReminderMode] = useState("on_time");
+  const [repeatEnds, setRepeatEnds] = useState("endless");
+  const [repeatEndDate, setRepeatEndDate] = useState<Date | null>(null);
+  const [repeatEndCount, setRepeatEndCount] = useState<number | null>(null);
+
+  const [showDatePickerModal, setShowDatePickerModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showDeadlinePicker, setShowDeadlinePicker] = useState(false);
   const [showPriorityPicker, setShowPriorityPicker] = useState(false);
@@ -139,7 +148,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
     setDueTime("");
     setDeadline(null);
     setDeadlineTime("");
-    setPriority("normal");
+    setPriority("none");
     setReminderAt(null);
     setReminderTime("");
     setSelectedTags([]);
@@ -147,6 +156,14 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
     setLocation("");
     setDestination("inbox");
     setRecurrence(null);
+    setEndDate(null);
+    setEndTime("");
+    setAllDay(false);
+    setReminderMode("on_time");
+    setRepeatEnds("endless");
+    setRepeatEndDate(null);
+    setRepeatEndCount(null);
+    setShowDatePickerModal(false);
     setShowDatePicker(false);
     setShowDeadlinePicker(false);
     setShowPriorityPicker(false);
@@ -243,7 +260,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
         bucket: finalDueDate ? determineBucket(finalDueDate) : "sometime",
         dueDate: finalDueDate?.toISOString() || null,
         deadline: finalDeadline?.toISOString() || null,
-        priority,
+        priority: priority === "none" ? "normal" : priority,
         tags: selectedTags,
         location: location || null,
         recurrence: recurrence || null,
@@ -408,186 +425,26 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
             </div>
 
             <div className="px-3 py-2 flex flex-wrap gap-1.5">
-              {/* Date Button */}
-              <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className={cn(
-                      "flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] transition-colors",
-                      dueDate
-                        ? "border-primary/30 bg-primary/10 text-primary"
-                        : "border-border bg-transparent text-muted-foreground hover:bg-accent"
-                    )}
-                    data-testid="button-addaction-date"
-                  >
-                    <CalendarBlank className="h-3 w-3" weight="duotone" />
-                    {dueDate ? format(dueDate, "d MMM") : "Date"}
-                    {dueDate && (
-                      <span onClick={(e) => { e.stopPropagation(); setDueDate(null); setDueTime(""); }} className="ml-1 hover:text-foreground">
-                        <X className="h-3 w-3" />
-                      </span>
-                    )}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-card border-border" align="start" sideOffset={8}>
-                  <div className="p-2 space-y-1.5">
-                    <Input
-                      placeholder="Type a date"
-                      className="h-7 text-xs"
-                      onChange={(e) => {
-                        const parsed = chrono.parseDate(e.target.value, new Date(), { forwardDate: true });
-                        if (parsed) setDueDate(parsed);
-                      }}
-                      data-testid="input-date-search"
-                    />
-                    <div className="space-y-0.5">
-                      {[
-                        { label: "Today", date: today, icon: <Sun className="h-3.5 w-3.5 text-amber-500" weight="duotone" />, day: format(today, "EEE") },
-                        { label: "Tomorrow", date: tomorrow, icon: <SunHorizon className="h-3.5 w-3.5 text-orange-500" weight="duotone" />, day: format(tomorrow, "EEE") },
-                        { label: "Next week", date: nextMonday, icon: <CalendarIcon className="h-3.5 w-3.5 text-blue-500" weight="duotone" />, day: format(nextMonday, "EEE d MMM") },
-                        { label: "Next weekend", date: nextWeekend, icon: <CalendarIcon className="h-3.5 w-3.5 text-purple-500" weight="duotone" />, day: format(nextWeekend, "EEE d MMM") },
-                      ].map((opt) => (
-                        <button
-                          key={opt.label}
-                          type="button"
-                          className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors"
-                          onClick={() => { setDueDate(opt.date); }}
-                          data-testid={`date-shortcut-${opt.label.toLowerCase().replace(/\s/g, "-")}`}
-                        >
-                          {opt.icon}
-                          <span className="flex-1 text-left text-foreground">{opt.label}</span>
-                          <span className="text-[10px] text-muted-foreground">{opt.day}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="border-t border-border">
-                    <Calendar
-                      mode="single"
-                      selected={dueDate || undefined}
-                      onSelect={(d) => { if (d) setDueDate(d); }}
-                      className="p-2"
-                    />
-                  </div>
-                  <div className="border-t border-border p-2 space-y-1">
-                    <button
-                      type="button"
-                      className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-muted-foreground"
-                      onClick={() => {
-                        const el = document.getElementById("addaction-time-input");
-                        if (el) el.focus();
-                      }}
-                    >
-                      <Clock className="h-3.5 w-3.5" weight="duotone" />
-                      <span className="flex-1 text-left">Time</span>
-                      <input
-                        id="addaction-time-input"
-                        type="time"
-                        value={dueTime}
-                        onChange={(e) => setDueTime(e.target.value)}
-                        className="bg-transparent border-none text-xs text-foreground focus:outline-none w-20"
-                        data-testid="input-date-time"
-                      />
-                    </button>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-muted-foreground"
-                        >
-                          <ArrowsClockwise className="h-3.5 w-3.5" weight="duotone" />
-                          <span className="flex-1 text-left">Repeat</span>
-                          {recurrence && <span className="text-[10px] text-primary">{RECURRENCE_OPTIONS.find(r => r.value === recurrence)?.label}</span>}
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-48 p-1 bg-card border-border" align="start">
-                        {RECURRENCE_OPTIONS.map((opt) => (
-                          <button
-                            key={opt.label}
-                            type="button"
-                            className={cn(
-                              "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition-colors",
-                              recurrence === opt.value ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
-                            )}
-                            onClick={() => { setRecurrence(opt.value); }}
-                            data-testid={`recurrence-${opt.value || "none"}`}
-                          >
-                            {recurrence === opt.value && <Check className="h-3.5 w-3.5" weight="bold" />}
-                            {opt.label}
-                          </button>
-                        ))}
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              {/* Deadline Button */}
-              <Popover open={showDeadlinePicker} onOpenChange={setShowDeadlinePicker}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className={cn(
-                      "flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] transition-colors",
-                      deadline
-                        ? "border-red-500/30 bg-red-500/10 text-red-500"
-                        : "border-border bg-transparent text-muted-foreground hover:bg-accent"
-                    )}
-                    data-testid="button-addaction-deadline"
-                  >
-                    <Timer className="h-3 w-3" weight="duotone" />
-                    {deadline ? format(deadline, "d MMM") : "Deadline"}
-                    {deadline && (
-                      <span onClick={(e) => { e.stopPropagation(); setDeadline(null); setDeadlineTime(""); }} className="ml-1 hover:text-foreground">
-                        <X className="h-3 w-3" />
-                      </span>
-                    )}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-card border-border" align="start" sideOffset={8}>
-                  <div className="p-2 space-y-1.5">
-                    <div className="space-y-0.5">
-                      {[
-                        { label: "Today", date: today },
-                        { label: "Tomorrow", date: tomorrow },
-                        { label: "Next week", date: nextMonday },
-                      ].map((opt) => (
-                        <button
-                          key={opt.label}
-                          type="button"
-                          className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-foreground"
-                          onClick={() => { setDeadline(opt.date); }}
-                        >
-                          <span className="flex-1 text-left">{opt.label}</span>
-                          <span className="text-[10px] text-muted-foreground">{format(opt.date, "EEE, d MMM")}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="border-t border-border">
-                    <Calendar
-                      mode="single"
-                      selected={deadline || undefined}
-                      onSelect={(d) => { if (d) setDeadline(d); }}
-                      className="p-2"
-                    />
-                  </div>
-                  <div className="border-t border-border p-2">
-                    <div className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground">
-                      <Clock className="h-3.5 w-3.5" weight="duotone" />
-                      <span className="flex-1">Time</span>
-                      <input
-                        type="time"
-                        value={deadlineTime}
-                        onChange={(e) => setDeadlineTime(e.target.value)}
-                        className="bg-transparent border-none text-xs text-foreground focus:outline-none w-20"
-                        data-testid="input-deadline-time"
-                      />
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+              {/* Date Button - opens DatePickerModal */}
+              <button
+                type="button"
+                className={cn(
+                  "flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] transition-colors",
+                  dueDate
+                    ? "border-primary/30 bg-primary/10 text-primary"
+                    : "border-border bg-transparent text-muted-foreground hover:bg-accent"
+                )}
+                onClick={() => setShowDatePickerModal(true)}
+                data-testid="button-addaction-date"
+              >
+                <CalendarBlank className="h-3 w-3" weight="duotone" />
+                {dueDate ? format(dueDate, "d MMM") : "Date"}
+                {dueDate && (
+                  <span onClick={(e) => { e.stopPropagation(); setDueDate(null); setDueTime(""); setRecurrence(null); }} className="ml-1 hover:text-foreground">
+                    <X className="h-3 w-3" />
+                  </span>
+                )}
+              </button>
 
               {/* Priority Button */}
               <Popover open={showPriorityPicker} onOpenChange={setShowPriorityPicker}>
@@ -626,73 +483,12 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                 </PopoverContent>
               </Popover>
 
-              {/* Reminders Button */}
-              <Popover open={showReminderPicker} onOpenChange={setShowReminderPicker}>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className={cn(
-                      "flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] transition-colors",
-                      reminderAt
-                        ? "border-amber-500/30 bg-amber-500/10 text-amber-600"
-                        : "border-border bg-transparent text-muted-foreground hover:bg-accent"
-                    )}
-                    data-testid="button-addaction-reminder"
-                  >
-                    <BellRinging className="h-3 w-3" weight="duotone" />
-                    {reminderAt ? format(reminderAt, "d MMM") : "Reminders"}
-                    {reminderAt && (
-                      <span onClick={(e) => { e.stopPropagation(); setReminderAt(null); setReminderTime(""); }} className="ml-1 hover:text-foreground">
-                        <X className="h-3 w-3" />
-                      </span>
-                    )}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-card border-border" align="start" sideOffset={8}>
-                  <div className="p-2 space-y-1.5">
-                    <div className="space-y-0.5">
-                      {[
-                        { label: "In 30 minutes", getDate: () => { const d = new Date(); d.setMinutes(d.getMinutes() + 30); return d; } },
-                        { label: "In 1 hour", getDate: () => { const d = new Date(); d.setHours(d.getHours() + 1); return d; } },
-                        { label: "In 3 hours", getDate: () => { const d = new Date(); d.setHours(d.getHours() + 3); return d; } },
-                        { label: "Tomorrow 9am", getDate: () => { const d = addDays(new Date(), 1); d.setHours(9, 0, 0, 0); return d; } },
-                        { label: "Next Monday 9am", getDate: () => { const d = startOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }); d.setHours(9, 0, 0, 0); return d; } },
-                      ].map((opt) => (
-                        <button
-                          key={opt.label}
-                          type="button"
-                          className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-foreground"
-                          onClick={() => { setReminderAt(opt.getDate()); setReminderTime(format(opt.getDate(), "HH:mm")); }}
-                        >
-                          <BellRinging className="h-3.5 w-3.5 text-amber-500" weight="duotone" />
-                          <span className="flex-1 text-left">{opt.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="border-t border-border">
-                    <Calendar
-                      mode="single"
-                      selected={reminderAt || undefined}
-                      onSelect={(d) => { if (d) setReminderAt(d); }}
-                      className="p-2"
-                    />
-                  </div>
-                  <div className="border-t border-border p-2">
-                    <div className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground">
-                      <Clock className="h-3.5 w-3.5" weight="duotone" />
-                      <span className="flex-1">Time</span>
-                      <input
-                        type="time"
-                        value={reminderTime}
-                        onChange={(e) => setReminderTime(e.target.value)}
-                        className="bg-transparent border-none text-xs text-foreground focus:outline-none w-20"
-                        data-testid="input-reminder-time"
-                      />
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+              {recurrence && (
+                <span className="flex items-center gap-1 px-2 py-1 rounded-md border border-primary/30 bg-primary/10 text-primary text-[11px]">
+                  <ArrowsClockwise className="h-3 w-3" weight="duotone" />
+                  {RECURRENCE_OPTIONS.find(r => r.value === recurrence)?.label}
+                </span>
+              )}
 
               {/* Tags Button */}
               <Popover open={showTagsPicker} onOpenChange={setShowTagsPicker}>
@@ -902,6 +698,46 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
           </form>
         </DialogContent>
       </Dialog>
+
+      <DatePickerModal
+        open={showDatePickerModal}
+        onOpenChange={setShowDatePickerModal}
+        date={dueDate}
+        time={dueTime}
+        endDate={endDate}
+        endTime={endTime}
+        allDay={allDay}
+        reminder={reminderMode}
+        recurrence={recurrence}
+        repeatEnds={repeatEnds}
+        repeatEndDate={repeatEndDate}
+        repeatEndCount={repeatEndCount}
+        onConfirm={(values) => {
+          setDueDate(values.date);
+          setDueTime(values.time);
+          setEndDate(values.endDate);
+          setEndTime(values.endTime);
+          setAllDay(values.allDay);
+          setReminderMode(values.reminder);
+          setRecurrence(values.recurrence as RecurrenceOption);
+          setRepeatEnds(values.repeatEnds);
+          setRepeatEndDate(values.repeatEndDate);
+          setRepeatEndCount(values.repeatEndCount);
+        }}
+        onClear={() => {
+          setDueDate(null);
+          setDueTime("");
+          setEndDate(null);
+          setEndTime("");
+          setAllDay(false);
+          setReminderMode("on_time");
+          setRecurrence(null);
+          setRepeatEnds("endless");
+          setRepeatEndDate(null);
+          setRepeatEndCount(null);
+        }}
+        showSkipOccurrence={!!recurrence}
+      />
     </>
   );
 }

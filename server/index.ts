@@ -139,6 +139,8 @@ async function initStripe() {
 
   app.use(billingRoutes);
 
+  app.use("/uploads", express.static("uploads"));
+
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

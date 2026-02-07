@@ -43,6 +43,10 @@ A separate mobile application is developed using Expo React Native, connecting t
 - **Audio Transcription:** Multi-provider support (Gemini, OpenAI Whisper API) for speech-to-text, with transcript storage, full-text search, and export options.
 - **Live Meeting Recording:** In-browser audio recording via MediaRecorder API (audio/webm). GDPR consent dialog shown on first use (stored as `recordingConsentAt` timestamp in users table). Auto-transcribes on stop and inserts text into notes without user prompt. Compatible with template summarization and AI extraction flows.
 - **Template Summaries:** 18 professional templates across 6 categories with markdown rendering, Export PDF/Print/Copy actions, and database persistence via `transcript_summaries` table with `promptVersion: template:${templateId}` tracking.
+- **DatePickerModal:** Reusable modal component (`client/src/components/date-picker-modal.tsx`) with Date and Duration tabs. Date tab has quick icons (Today/Tomorrow/+7/Month), mini calendar, time input, reminder dropdown, repeat dropdown, and repeat-ends. Duration tab has start/end date+time, all-day toggle, same reminder/repeat options. Internal state management, commits on OK press.
+- **Task Detail Page:** Card-based glass-panel layout matching Meeting page style. Task title at top, cards for Task Details, Schedule (due date via DatePickerModal, duration, deadline, reminder, repeat, priority), Location+Tags row, and Notes with attachment support.
+- **Priority System:** High/Normal/Low/None (None as default). Maps to "normal" on backend for DB compatibility.
+- **Task Attachments:** `task_attachments` table in schema, multer-based file upload to `uploads/tasks/`, supports PDF, Word, Excel, PowerPoint, Markdown, and image files. API endpoints: GET/POST/DELETE `/api/attachments`.
 
 ## External Dependencies
 

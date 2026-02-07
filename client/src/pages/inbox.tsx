@@ -39,9 +39,9 @@ function ActionCard({ item }: { item: UnifiedItem }) {
   const isOverdue = item.dueDate && new Date(item.dueDate) < new Date();
   const lowConfidence = (item.confidenceOwner && item.confidenceOwner < 0.6) || (item.confidenceDueDate && item.confidenceDueDate < 0.6);
 
-  const priorityColor = item.priority === 'urgent' ? 'text-red-500' :
-    item.priority === 'high' ? 'text-orange-500' :
-    item.priority === 'low' ? 'text-emerald-500' : '';
+  const priorityColor = item.priority === 'high' ? 'text-orange-500' :
+    item.priority === 'low' ? 'text-emerald-500' :
+    item.priority === 'urgent' ? 'text-red-500' : '';
 
   const handleClick = () => {
     const type = item.source === 'meeting' ? 'meeting' : 'reminder';
@@ -92,7 +92,7 @@ function ActionCard({ item }: { item: UnifiedItem }) {
               {item.waitingFor}
             </span>
           )}
-          {item.priority && item.priority !== 'normal' && (
+          {item.priority && item.priority !== 'normal' && item.priority !== 'none' && (
             <span className={cn("flex items-center gap-1", priorityColor)}>
               <Flag className="h-3.5 w-3.5" weight="fill" />
               {item.priority}

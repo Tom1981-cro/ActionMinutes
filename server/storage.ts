@@ -7,7 +7,7 @@ import {
   refreshTokens, passwordResetTokens, calendarEvents, calendarWebhooks,
   notes, noteTags, noteTagMap, noteLinks, noteAttachments,
   customLists, customListItems,
-  globalTags, userLocations,
+  globalTags, userLocations, taskAttachments,
   type User, type InsertUser,
   type Meeting, type InsertMeeting,
   type Attendee, type InsertAttendee,
@@ -42,7 +42,8 @@ import {
   type CustomList, type InsertCustomList,
   type CustomListItem, type InsertCustomListItem,
   type GlobalTag, type InsertGlobalTag,
-  type UserLocation, type InsertUserLocation
+  type UserLocation, type InsertUserLocation,
+  type TaskAttachment, type InsertTaskAttachment
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, or, isNull, ilike, gte, lte, inArray, lt } from "drizzle-orm";
@@ -301,6 +302,11 @@ export interface IStorage {
   // User Locations
   getUserLocations(userId: string, search?: string): Promise<UserLocation[]>;
   upsertUserLocation(userId: string, name: string): Promise<UserLocation>;
+
+  // Task Attachments
+  getTaskAttachments(parentType: string, parentId: string): Promise<TaskAttachment[]>;
+  createTaskAttachment(attachment: InsertTaskAttachment): Promise<TaskAttachment>;
+  deleteTaskAttachment(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1485,6 +1491,21 @@ export class DatabaseStorage implements IStorage {
 
     const [created] = await db.insert(userLocations).values({ userId, name }).returning();
     return created;
+  }
+
+  async getTaskAttachments(parentType: string, parentId: string): Promise<TaskAttachment[]> {
+    return await db.select().from(taskAttachments).where(
+      and(eq(taskAttachments.parentType, parentType), eq(taskAttachments.parentId, parentId))
+    ).orderBy(taskAttachments.createdAt);
+  }
+
+  async createTaskAttachment(attachment: InsertTaskAttachment): Promise<TaskAttachment> {
+    const [result] = await db.insert(taskAttachments).values(attachment).returning();
+    return result;
+  }
+
+  async deleteTaskAttachment(id: string): Promise<void> {
+    await db.delete(taskAttachments).where(eq(taskAttachments.id, id));
   }
 }
 

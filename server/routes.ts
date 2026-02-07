@@ -1,3 +1,4 @@
+import fs from "fs";
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -1975,6 +1976,81 @@ Thanks!`,
     userLimit.count++;
     return true;
   };
+
+  // Task Attachments
+  const taskUploadDir = 'uploads/tasks/';
+  if (!fs.existsSync(taskUploadDir)) {
+    fs.mkdirSync(taskUploadDir, { recursive: true });
+  }
+  const taskUpload = multer({
+    dest: taskUploadDir,
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req: any, file: any, cb: any) => {
+      const allowedTypes = [
+        'application/pdf',
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'text/markdown', 'text/plain',
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp'
+      ];
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type'));
+      }
+    }
+  });
+
+  // GET /api/attachments?parentType=...&parentId=...
+  app.get("/api/attachments", requireAuth, async (req, res) => {
+    try {
+      const { parentType, parentId } = req.query;
+      if (!parentType || !parentId) {
+        return res.status(400).json({ error: "parentType and parentId required" });
+      }
+      const attachments = await storage.getTaskAttachments(String(parentType), String(parentId));
+      res.json(attachments);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // POST /api/attachments (multipart form upload)
+  app.post("/api/attachments", requireAuth, taskUpload.single("file"), async (req, res) => {
+    try {
+      const userId = req.userId!;
+      if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+      }
+      const { parentType, parentId } = req.body;
+      if (!parentType || !parentId) {
+        return res.status(400).json({ error: "parentType and parentId required" });
+      }
+      const attachment = await storage.createTaskAttachment({
+        parentType,
+        parentId,
+        userId,
+        filename: req.file.originalname,
+        fileType: req.file.mimetype,
+        fileSize: req.file.size,
+        fileUrl: `/uploads/tasks/${req.file.filename}`,
+      });
+      res.json(attachment);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // DELETE /api/attachments/:id
+  app.delete("/api/attachments/:id", requireAuth, async (req, res) => {
+    try {
+      await storage.deleteTaskAttachment(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
 
   const upload = multer({
     storage: multer.memoryStorage(),

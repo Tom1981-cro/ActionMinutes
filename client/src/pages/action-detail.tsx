@@ -5,29 +5,30 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { DatePickerModal } from "@/components/date-picker-modal";
 import {
   ArrowLeft, CalendarBlank, Clock, User, EnvelopeSimple,
   Flag, Tag, MapPin, ArrowsClockwise, Timer, BellRinging,
-  FloppyDisk, Trash, Lightning, Notepad, SpinnerGap, Hourglass
+  FloppyDisk, Trash, Lightning, Notepad, SpinnerGap, Hourglass,
+  Paperclip, UploadSimple
 } from "@phosphor-icons/react";
 import { format, addDays, addWeeks, startOfWeek } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { authenticatedFetch } from "@/hooks/use-auth";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { SkeletonList } from "@/components/skeleton-loader";
 
 const PRIORITIES = [
-  { value: "urgent", label: "Urgent", color: "text-red-500", bg: "bg-red-500/15 border-red-500/25" },
   { value: "high", label: "High", color: "text-orange-500", bg: "bg-orange-500/15 border-orange-500/25" },
   { value: "normal", label: "Normal", color: "text-blue-500", bg: "bg-blue-500/15 border-blue-500/25" },
   { value: "low", label: "Low", color: "text-emerald-500", bg: "bg-emerald-500/15 border-emerald-500/25" },
-  { value: "optional", label: "Optional", color: "text-muted-foreground", bg: "bg-muted border-border" },
+  { value: "none", label: "None", color: "text-muted-foreground", bg: "bg-muted border-border" },
 ];
 
 const STATUSES = [
@@ -38,13 +39,25 @@ const STATUSES = [
 ];
 
 const RECURRENCE_OPTIONS = [
-  { value: null as string | null, label: "None" },
+  { value: "none", label: "None" },
   { value: "daily", label: "Daily" },
   { value: "weekly", label: "Weekly" },
   { value: "biweekly", label: "Bi-weekly" },
   { value: "monthly", label: "Monthly" },
   { value: "yearly", label: "Yearly" },
 ];
+
+const REMINDER_LABELS: Record<string, string> = {
+  on_time: "On time",
+  "5_min": "5 min early",
+  "30_min": "30 min early",
+  "1_hour": "1 hour early",
+  "1_day": "1 day early",
+  custom: "Custom",
+  none: "None",
+};
+
+const ALLOWED_FILE_TYPES = ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.md,.png,.jpg,.jpeg,.gif,.webp";
 
 export default function ActionDetailPage() {
   const [, params] = useRoute("/app/action/:type/:id");
@@ -61,21 +74,28 @@ export default function ActionDetailPage() {
   const [ownerName, setOwnerName] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
   const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [dueTime, setDueTime] = useState("");
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [endTime, setEndTime] = useState("");
+  const [allDay, setAllDay] = useState(false);
   const [deadline, setDeadline] = useState<Date | null>(null);
   const [status, setStatus] = useState("open");
-  const [priority, setPriority] = useState("normal");
+  const [priority, setPriority] = useState("none");
+  const [reminder, setReminder] = useState("on_time");
   const [reminderAt, setReminderAt] = useState<Date | null>(null);
-  const [reminderTime, setReminderTime] = useState("");
   const [notes, setNotes] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [location, setLocation] = useState("");
   const [recurrence, setRecurrence] = useState<string | null>(null);
+  const [repeatEnds, setRepeatEnds] = useState("endless");
+  const [repeatEndDate, setRepeatEndDate] = useState<Date | null>(null);
+  const [repeatEndCount, setRepeatEndCount] = useState<number | null>(null);
   const [waitingFor, setWaitingFor] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [showDueDatePicker, setShowDueDatePicker] = useState(false);
-  const [showDeadlinePicker, setShowDeadlinePicker] = useState(false);
-  const [showReminderPicker, setShowReminderPicker] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [attachments, setAttachments] = useState<any[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { data: item, isLoading } = useQuery({
     queryKey: [itemType === "meeting" ? "action" : "reminder", itemId],
@@ -100,6 +120,20 @@ export default function ActionDetailPage() {
     },
   });
 
+  const { data: fetchedAttachments = [] } = useQuery({
+    queryKey: ["attachments", itemType, itemId],
+    queryFn: async () => {
+      const res = await authenticatedFetch(`/api/attachments?parentType=${itemType === "meeting" ? "action_item" : "reminder"}&parentId=${itemId}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!itemId,
+  });
+
+  useEffect(() => {
+    setAttachments(fetchedAttachments);
+  }, [fetchedAttachments]);
+
   useEffect(() => {
     if (item) {
       setText(item.text || "");
@@ -107,11 +141,13 @@ export default function ActionDetailPage() {
       setOwnerName(item.ownerName || "");
       setOwnerEmail(item.ownerEmail || "");
       setDueDate(item.dueDate ? new Date(item.dueDate) : null);
+      setDueTime(item.dueDate ? format(new Date(item.dueDate), "HH:mm") : "");
       setDeadline(item.deadline ? new Date(item.deadline) : null);
       setStatus(item.status || "open");
-      setPriority(item.priority || "normal");
+      const p = item.priority || "none";
+      setPriority(["high", "normal", "low", "none"].includes(p) ? p : "none");
       setReminderAt(item.reminderAt ? new Date(item.reminderAt) : null);
-      setReminderTime(item.reminderAt ? format(new Date(item.reminderAt), "HH:mm") : "");
+      setReminder(item.reminderMode || "on_time");
       setNotes(item.notes || "");
       setTags(item.tags || []);
       setLocation(item.location || "");
@@ -120,6 +156,42 @@ export default function ActionDetailPage() {
     }
   }, [item]);
 
+  const handleDatePickerConfirm = (values: any) => {
+    setDueDate(values.date);
+    setDueTime(values.time);
+    setEndDate(values.endDate);
+    setEndTime(values.endTime);
+    setAllDay(values.allDay);
+    setReminder(values.reminder);
+    setRecurrence(values.recurrence);
+    setRepeatEnds(values.repeatEnds);
+    setRepeatEndDate(values.repeatEndDate);
+    setRepeatEndCount(values.repeatEndCount);
+  };
+
+  const handleDatePickerClear = () => {
+    setDueDate(null);
+    setDueTime("");
+    setEndDate(null);
+    setEndTime("");
+    setAllDay(false);
+    setReminder("on_time");
+    setRecurrence(null);
+    setRepeatEnds("endless");
+    setRepeatEndDate(null);
+    setRepeatEndCount(null);
+  };
+
+  const combineDateTime = (date: Date | null, time: string): Date | null => {
+    if (!date) return null;
+    const result = new Date(date);
+    if (time) {
+      const [h, m] = time.split(":").map(Number);
+      result.setHours(h, m, 0, 0);
+    }
+    return result;
+  };
+
   const handleSave = async () => {
     if (!text.trim()) {
       toast({ title: "Error", description: "Task text is required", variant: "destructive" });
@@ -127,12 +199,15 @@ export default function ActionDetailPage() {
     }
     setIsSaving(true);
     try {
+      const finalDueDate = combineDateTime(dueDate, dueTime);
+      const finalDeadline = deadline;
+
       if (itemType === "meeting") {
         await api.actions.update(itemId, {
           text,
           ownerName: ownerName || null,
           ownerEmail: ownerEmail || null,
-          dueDate: dueDate?.toISOString() || null,
+          dueDate: finalDueDate?.toISOString() || null,
           status,
           reminderAt: reminderAt?.toISOString() || null,
           notes: notes || null,
@@ -147,10 +222,10 @@ export default function ActionDetailPage() {
           body: JSON.stringify({
             text,
             description: description || null,
-            dueDate: dueDate?.toISOString() || null,
-            deadline: deadline?.toISOString() || null,
+            dueDate: finalDueDate?.toISOString() || null,
+            deadline: finalDeadline?.toISOString() || null,
             status,
-            priority,
+            priority: priority === "none" ? "normal" : priority,
             reminderAt: reminderAt?.toISOString() || null,
             notes: notes || null,
             tags,
@@ -194,6 +269,46 @@ export default function ActionDetailPage() {
     }
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setIsUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("parentType", itemType === "meeting" ? "action_item" : "reminder");
+        formData.append("parentId", itemId);
+        const res = await authenticatedFetch("/api/attachments", {
+          method: "POST",
+          body: formData,
+        });
+        if (res.ok) {
+          const attachment = await res.json();
+          setAttachments(prev => [...prev, attachment]);
+        }
+      }
+      queryClient.invalidateQueries({ queryKey: ["attachments", itemType, itemId] });
+      toast({ title: "Uploaded" });
+    } catch {
+      toast({ title: "Error", description: "Failed to upload", variant: "destructive" });
+    } finally {
+      setIsUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    try {
+      await authenticatedFetch(`/api/attachments/${attachmentId}`, { method: "DELETE" });
+      setAttachments(prev => prev.filter(a => a.id !== attachmentId));
+      queryClient.invalidateQueries({ queryKey: ["attachments", itemType, itemId] });
+      toast({ title: "Attachment removed" });
+    } catch {
+      toast({ title: "Error", description: "Failed to remove", variant: "destructive" });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-5 pb-6">
@@ -218,13 +333,34 @@ export default function ActionDetailPage() {
     );
   }
 
-  const priorityInfo = PRIORITIES.find(p => p.value === priority) || PRIORITIES[2];
-  const today = new Date();
-  const tomorrow = addDays(today, 1);
-  const nextMonday = startOfWeek(addWeeks(today, 1), { weekStartsOn: 1 });
+  const getDurationLabel = () => {
+    if (!dueDate || !endDate) return null;
+    const start = combineDateTime(dueDate, dueTime);
+    const end = combineDateTime(endDate, endTime);
+    if (!start || !end) return null;
+    const diffMs = end.getTime() - start.getTime();
+    if (diffMs <= 0) return null;
+    const diffMin = Math.round(diffMs / 60000);
+    if (allDay) return "All day";
+    if (diffMin < 60) return `${diffMin} min`;
+    const hours = Math.floor(diffMin / 60);
+    const mins = diffMin % 60;
+    return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+  };
+
+  const getFileIcon = (filename: string) => {
+    const ext = filename.split(".").pop()?.toLowerCase() || "";
+    if (["pdf"].includes(ext)) return "📄";
+    if (["doc", "docx"].includes(ext)) return "📝";
+    if (["xls", "xlsx"].includes(ext)) return "📊";
+    if (["ppt", "pptx"].includes(ext)) return "📽";
+    if (["md"].includes(ext)) return "📑";
+    if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext)) return "🖼";
+    return "📎";
+  };
 
   return (
-    <div className="space-y-5 pb-6 max-w-2xl mx-auto" data-testid="page-action-detail">
+    <div className="space-y-4 pb-6 max-w-2xl mx-auto" data-testid="page-action-detail">
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate("/app/inbox")}
@@ -250,6 +386,10 @@ export default function ActionDetailPage() {
         </div>
       </div>
 
+      <h1 className="text-xl font-bold tracking-tight text-foreground leading-snug" data-testid="text-task-title">
+        {text || item.text || "Untitled task"}
+      </h1>
+
       <div className="flex gap-2 flex-wrap" data-testid="status-buttons">
         {STATUSES.map((s) => (
           <Button
@@ -269,88 +409,104 @@ export default function ActionDetailPage() {
       </div>
 
       {status === "waiting" && (
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <Hourglass className="h-3.5 w-3.5" weight="duotone" />
-            Waiting for
-          </Label>
-          <Input
-            value={waitingFor}
-            onChange={(e) => setWaitingFor(e.target.value)}
-            placeholder="Who or what are you waiting on?"
-            className="h-9 text-sm rounded-xl"
-            data-testid="input-waiting-for"
-          />
-        </div>
+        <Card className="glass-panel rounded-2xl">
+          <CardContent className="px-4 py-3 md:px-6">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Hourglass className="h-3.5 w-3.5" weight="duotone" />
+                Waiting for
+              </Label>
+              <Input
+                value={waitingFor}
+                onChange={(e) => setWaitingFor(e.target.value)}
+                placeholder="Who or what are you waiting on?"
+                className="h-9 text-sm rounded-xl"
+                data-testid="input-waiting-for"
+              />
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-          <Notepad className="h-3.5 w-3.5" weight="duotone" />
-          Task
-        </Label>
-        <Textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="What needs to be done?"
-          className="min-h-[80px] text-sm rounded-xl"
-          data-testid="input-action-text"
-        />
-      </div>
+      <Card className="glass-panel rounded-2xl">
+        <CardHeader className="px-4 pt-4 pb-2 md:px-6">
+          <CardTitle className="text-sm font-medium text-foreground flex items-center gap-1.5">
+            <Notepad className="h-4 w-4 text-muted-foreground" weight="duotone" />
+            Task Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 pb-4 md:px-6 space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Task</Label>
+            <Textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="What needs to be done?"
+              className="min-h-[70px] text-sm rounded-xl"
+              data-testid="input-action-text"
+            />
+          </div>
+          {(itemType === "reminder" || description) && (
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">Description</Label>
+              <Input
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Brief description..."
+                className="h-9 text-sm rounded-xl"
+                data-testid="input-description"
+              />
+            </div>
+          )}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5" weight="duotone" />
+                Assigned to
+              </Label>
+              <Input
+                value={ownerName}
+                onChange={(e) => setOwnerName(e.target.value)}
+                placeholder="Who's responsible?"
+                className="h-9 text-sm rounded-xl"
+                data-testid="input-owner-name"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <EnvelopeSimple className="h-3.5 w-3.5" weight="duotone" />
+                Email
+              </Label>
+              <Input
+                type="email"
+                value={ownerEmail}
+                onChange={(e) => setOwnerEmail(e.target.value)}
+                placeholder="owner@example.com"
+                className="h-9 text-sm rounded-xl"
+                data-testid="input-owner-email"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {(itemType === "reminder" || description) && (
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Description</Label>
-          <Input
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Brief description..."
-            className="h-9 text-sm rounded-xl"
-            data-testid="input-description"
-          />
-        </div>
-      )}
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <User className="h-3.5 w-3.5" weight="duotone" />
-            Assigned to
-          </Label>
-          <Input
-            value={ownerName}
-            onChange={(e) => setOwnerName(e.target.value)}
-            placeholder="Who's responsible?"
-            className="h-9 text-sm rounded-xl"
-            data-testid="input-owner-name"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <EnvelopeSimple className="h-3.5 w-3.5" weight="duotone" />
-            Email
-          </Label>
-          <Input
-            type="email"
-            value={ownerEmail}
-            onChange={(e) => setOwnerEmail(e.target.value)}
-            placeholder="owner@example.com"
-            className="h-9 text-sm rounded-xl"
-            data-testid="input-owner-email"
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <CalendarBlank className="h-3.5 w-3.5" weight="duotone" />
-            Due Date
-          </Label>
-          <Popover open={showDueDatePicker} onOpenChange={setShowDueDatePicker}>
-            <PopoverTrigger asChild>
+      <Card className="glass-panel rounded-2xl">
+        <CardHeader className="px-4 pt-4 pb-2 md:px-6">
+          <CardTitle className="text-sm font-medium text-foreground flex items-center gap-1.5">
+            <CalendarBlank className="h-4 w-4 text-muted-foreground" weight="duotone" />
+            Schedule
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-4 pb-4 md:px-6 space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <CalendarBlank className="h-3.5 w-3.5" weight="duotone" />
+                Due Date
+              </Label>
               <button
                 type="button"
+                onClick={() => setShowDatePicker(true)}
                 className={cn(
                   "flex items-center gap-2 w-full h-9 px-3 rounded-xl border text-sm transition-colors text-left",
                   dueDate ? "border-primary/30 bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
@@ -358,52 +514,42 @@ export default function ActionDetailPage() {
                 data-testid="button-due-date"
               >
                 <CalendarBlank className="h-3.5 w-3.5 flex-shrink-0" weight="duotone" />
-                {dueDate ? format(dueDate, "d MMM yyyy") : "Set due date"}
+                {dueDate ? `${format(dueDate, "d MMM yyyy")}${dueTime ? ` ${dueTime}` : ""}` : "Set due date"}
               </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
-              <div className="p-2 space-y-0.5">
-                {[
-                  { label: "Today", date: today },
-                  { label: "Tomorrow", date: tomorrow },
-                  { label: "Next week", date: nextMonday },
-                ].map((opt) => (
-                  <button
-                    key={opt.label}
-                    type="button"
-                    className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-foreground"
-                    onClick={() => { setDueDate(opt.date); setShowDueDatePicker(false); }}
-                  >
-                    <span className="flex-1 text-left">{opt.label}</span>
-                    <span className="text-[10px] text-muted-foreground">{format(opt.date, "EEE, d MMM")}</span>
-                  </button>
-                ))}
-                {dueDate && (
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-destructive"
-                    onClick={() => { setDueDate(null); setShowDueDatePicker(false); }}
-                  >
-                    Clear date
-                  </button>
-                )}
-              </div>
-              <div className="border-t border-border">
-                <Calendar mode="single" selected={dueDate || undefined} onSelect={(d) => { if (d) setDueDate(d); }} className="p-2" />
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <Timer className="h-3.5 w-3.5" weight="duotone" />
-            Deadline
-          </Label>
-          <Popover open={showDeadlinePicker} onOpenChange={setShowDeadlinePicker}>
-            <PopoverTrigger asChild>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" weight="duotone" />
+                Duration
+              </Label>
               <button
                 type="button"
+                onClick={() => setShowDatePicker(true)}
+                className={cn(
+                  "flex items-center gap-2 w-full h-9 px-3 rounded-xl border text-sm transition-colors text-left",
+                  getDurationLabel() ? "border-primary/30 bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
+                )}
+                data-testid="button-duration"
+              >
+                <Clock className="h-3.5 w-3.5 flex-shrink-0" weight="duotone" />
+                {getDurationLabel() || "Set duration"}
+              </button>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Timer className="h-3.5 w-3.5" weight="duotone" />
+                Deadline
+              </Label>
+              <button
+                type="button"
+                onClick={() => {
+                  const d = prompt("Set deadline date (YYYY-MM-DD):", deadline ? format(deadline, "yyyy-MM-dd") : "");
+                  if (d) setDeadline(new Date(d));
+                  else if (d === "") setDeadline(null);
+                }}
                 className={cn(
                   "flex items-center gap-2 w-full h-9 px-3 rounded-xl border text-sm transition-colors text-left",
                   deadline ? "border-red-500/30 bg-red-500/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
@@ -413,222 +559,193 @@ export default function ActionDetailPage() {
                 <Timer className="h-3.5 w-3.5 flex-shrink-0" weight="duotone" />
                 {deadline ? format(deadline, "d MMM yyyy") : "Set deadline"}
               </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
-              <div className="p-2 space-y-0.5">
-                {[
-                  { label: "Today", date: today },
-                  { label: "Tomorrow", date: tomorrow },
-                  { label: "Next week", date: nextMonday },
-                ].map((opt) => (
-                  <button
-                    key={opt.label}
-                    type="button"
-                    className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-foreground"
-                    onClick={() => { setDeadline(opt.date); setShowDeadlinePicker(false); }}
-                  >
-                    <span className="flex-1 text-left">{opt.label}</span>
-                    <span className="text-[10px] text-muted-foreground">{format(opt.date, "EEE, d MMM")}</span>
-                  </button>
-                ))}
-                {deadline && (
-                  <button
-                    type="button"
-                    className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-destructive"
-                    onClick={() => { setDeadline(null); setShowDeadlinePicker(false); }}
-                  >
-                    Clear deadline
-                  </button>
-                )}
-              </div>
-              <div className="border-t border-border">
-                <Calendar mode="single" selected={deadline || undefined} onSelect={(d) => { if (d) setDeadline(d); }} className="p-2" />
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <BellRinging className="h-3.5 w-3.5" weight="duotone" />
-            Reminder
-          </Label>
-          <Popover open={showReminderPicker} onOpenChange={setShowReminderPicker}>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className={cn(
-                  "flex items-center gap-2 w-full h-9 px-3 rounded-xl border text-sm transition-colors text-left",
-                  reminderAt ? "border-amber-500/30 bg-amber-500/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
-                )}
-                data-testid="button-reminder"
-              >
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <BellRinging className="h-3.5 w-3.5" weight="duotone" />
+                Reminder
+              </Label>
+              <div className={cn(
+                "flex items-center gap-2 h-9 px-3 rounded-xl border text-sm",
+                reminder !== "on_time" && reminder !== "none" ? "border-amber-500/30 bg-amber-500/5 text-foreground" : "border-border text-muted-foreground"
+              )}>
                 <BellRinging className="h-3.5 w-3.5 flex-shrink-0" weight="duotone" />
-                {reminderAt ? format(reminderAt, "d MMM yyyy HH:mm") : "Set reminder"}
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
-              <div className="p-2 space-y-0.5">
-                {[
-                  { label: "In 30 minutes", getDate: () => { const d = new Date(); d.setMinutes(d.getMinutes() + 30); return d; } },
-                  { label: "In 1 hour", getDate: () => { const d = new Date(); d.setHours(d.getHours() + 1); return d; } },
-                  { label: "Tomorrow 9am", getDate: () => { const d = addDays(new Date(), 1); d.setHours(9, 0, 0, 0); return d; } },
-                  { label: "Next Monday 9am", getDate: () => { const d = startOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }); d.setHours(9, 0, 0, 0); return d; } },
-                ].map((opt) => (
+                <span className="text-sm">{REMINDER_LABELS[reminder] || "On time"}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <ArrowsClockwise className="h-3.5 w-3.5" weight="duotone" />
+                Repeat
+              </Label>
+              <Select
+                value={recurrence || "none"}
+                onValueChange={(v) => setRecurrence(v === "none" ? null : v)}
+              >
+                <SelectTrigger className="h-9 text-sm rounded-xl" data-testid="select-recurrence">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {RECURRENCE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Flag className="h-3.5 w-3.5" weight="duotone" />
+                Priority
+              </Label>
+              <div className="flex flex-wrap gap-1.5">
+                {PRIORITIES.map((p) => (
                   <button
-                    key={opt.label}
+                    key={p.value}
                     type="button"
-                    className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-foreground"
-                    onClick={() => { const d = opt.getDate(); setReminderAt(d); setReminderTime(format(d, "HH:mm")); setShowReminderPicker(false); }}
+                    onClick={() => setPriority(p.value)}
+                    className={cn(
+                      "px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors",
+                      priority === p.value
+                        ? `${p.bg} ${p.color}`
+                        : "border-border text-muted-foreground hover:bg-accent"
+                    )}
+                    data-testid={`priority-${p.value}`}
                   >
-                    <BellRinging className="h-3.5 w-3.5 text-amber-500" weight="duotone" />
-                    <span className="flex-1 text-left">{opt.label}</span>
+                    {p.label}
                   </button>
                 ))}
-                {reminderAt && (
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="glass-panel rounded-2xl">
+        <CardContent className="px-4 py-3 md:px-6">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5" weight="duotone" />
+                Location
+              </Label>
+              <Input
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="Add location..."
+                className="h-9 text-sm rounded-xl"
+                data-testid="input-location"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Tag className="h-3.5 w-3.5" weight="duotone" />
+                Tags
+              </Label>
+              <div className="flex flex-wrap gap-1.5 min-h-[36px] items-center">
+                {globalTags.map((tag) => (
                   <button
+                    key={tag.id}
                     type="button"
-                    className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-destructive"
-                    onClick={() => { setReminderAt(null); setReminderTime(""); setShowReminderPicker(false); }}
+                    onClick={() => {
+                      setTags(prev => prev.includes(tag.name) ? prev.filter(t => t !== tag.name) : [...prev, tag.name]);
+                    }}
+                    className={cn(
+                      "px-2 py-0.5 rounded-full border text-[11px] font-medium transition-colors",
+                      tags.includes(tag.name)
+                        ? "border-primary/30 bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:bg-accent"
+                    )}
+                    data-testid={`tag-${tag.name}`}
                   >
-                    Clear reminder
+                    #{tag.name}
                   </button>
+                ))}
+                {globalTags.length === 0 && (
+                  <span className="text-[11px] text-muted-foreground">No tags available</span>
                 )}
               </div>
-              <div className="border-t border-border">
-                <Calendar mode="single" selected={reminderAt || undefined} onSelect={(d) => { if (d) setReminderAt(d); }} className="p-2" />
-              </div>
-              <div className="border-t border-border p-2">
-                <div className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5" weight="duotone" />
-                  <span className="flex-1">Time</span>
-                  <input
-                    type="time"
-                    value={reminderTime}
-                    onChange={(e) => setReminderTime(e.target.value)}
-                    className="bg-transparent border-none text-xs text-foreground focus:outline-none w-20"
-                    data-testid="input-reminder-time"
-                  />
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <Flag className="h-3.5 w-3.5" weight="duotone" />
-            Priority
-          </Label>
-          <div className="flex flex-wrap gap-1.5">
-            {PRIORITIES.map((p) => (
-              <button
-                key={p.value}
-                type="button"
-                onClick={() => setPriority(p.value)}
-                className={cn(
-                  "px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors",
-                  priority === p.value
-                    ? `${p.bg} ${p.color}`
-                    : "border-border text-muted-foreground hover:bg-accent"
-                )}
-                data-testid={`priority-${p.value}`}
-              >
-                {p.label}
-              </button>
-            ))}
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <ArrowsClockwise className="h-3.5 w-3.5" weight="duotone" />
-            Repeat
-          </Label>
-          <div className="flex flex-wrap gap-1.5">
-            {RECURRENCE_OPTIONS.map((opt) => (
-              <button
-                key={opt.label}
-                type="button"
-                onClick={() => setRecurrence(opt.value)}
-                className={cn(
-                  "px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors",
-                  recurrence === opt.value
-                    ? "border-primary/30 bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:bg-accent"
+      <Card className="glass-panel rounded-2xl">
+        <CardHeader className="px-4 pt-4 pb-2 md:px-6">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-medium text-foreground flex items-center gap-1.5">
+              <Notepad className="h-4 w-4 text-muted-foreground" weight="duotone" />
+              Notes
+            </CardTitle>
+            <label className="cursor-pointer" data-testid="button-attach-file">
+              <input
+                type="file"
+                multiple
+                accept={ALLOWED_FILE_TYPES}
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <span className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors border border-border">
+                {isUploading ? (
+                  <SpinnerGap className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <UploadSimple className="h-3.5 w-3.5" weight="duotone" />
                 )}
-                data-testid={`recurrence-${opt.value || "none"}`}
-              >
-                {opt.label}
-              </button>
-            ))}
+                Attach
+              </span>
+            </label>
           </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5" weight="duotone" />
-            Location
-          </Label>
-          <Input
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="Add location..."
-            className="h-9 text-sm rounded-xl"
-            data-testid="input-location"
+        </CardHeader>
+        <CardContent className="px-4 pb-4 md:px-6 space-y-3">
+          <Textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Additional context or details..."
+            className="min-h-[80px] text-sm rounded-xl"
+            data-testid="input-notes"
           />
-        </div>
-      </div>
 
-      <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-          <Tag className="h-3.5 w-3.5" weight="duotone" />
-          Tags
-        </Label>
-        <div className="flex flex-wrap gap-1.5">
-          {globalTags.map((tag) => (
-            <button
-              key={tag.id}
-              type="button"
-              onClick={() => {
-                setTags(prev => prev.includes(tag.name) ? prev.filter(t => t !== tag.name) : [...prev, tag.name]);
-              }}
-              className={cn(
-                "px-2.5 py-1 rounded-full border text-xs font-medium transition-colors",
-                tags.includes(tag.name)
-                  ? "border-primary/30 bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-accent"
-              )}
-              data-testid={`tag-${tag.name}`}
-            >
-              #{tag.name}
-            </button>
-          ))}
-          {globalTags.length === 0 && (
-            <span className="text-xs text-muted-foreground">No tags available</span>
+          {attachments.length > 0 && (
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                <Paperclip className="h-3.5 w-3.5" weight="duotone" />
+                Attachments ({attachments.length})
+              </Label>
+              <div className="space-y-1">
+                {attachments.map((att: any) => (
+                  <div
+                    key={att.id}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-accent/30 text-sm group"
+                    data-testid={`attachment-${att.id}`}
+                  >
+                    <span className="text-base">{getFileIcon(att.filename || att.name || "file")}</span>
+                    <span className="flex-1 truncate text-foreground text-xs">
+                      {att.filename || att.name || "Attachment"}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {att.size ? `${Math.round(att.size / 1024)}KB` : ""}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteAttachment(att.id)}
+                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all"
+                      data-testid={`delete-attachment-${att.id}`}
+                    >
+                      <Trash className="h-3.5 w-3.5" weight="duotone" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <div className="space-y-1.5">
-        <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-          <Notepad className="h-3.5 w-3.5" weight="duotone" />
-          Notes
-        </Label>
-        <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Additional context or details..."
-          className="min-h-[80px] text-sm rounded-xl"
-          data-testid="input-notes"
-        />
-      </div>
-
-      <div className="flex items-center gap-3 pt-2 border-t border-border">
+      <div className="flex items-center gap-3 pt-2">
         <Button
           variant="outline"
           onClick={handleDelete}
@@ -656,6 +773,24 @@ export default function ActionDetailPage() {
           Save
         </Button>
       </div>
+
+      <DatePickerModal
+        open={showDatePicker}
+        onOpenChange={setShowDatePicker}
+        date={dueDate}
+        time={dueTime}
+        endDate={endDate}
+        endTime={endTime}
+        allDay={allDay}
+        reminder={reminder}
+        recurrence={recurrence}
+        repeatEnds={repeatEnds}
+        repeatEndDate={repeatEndDate}
+        repeatEndCount={repeatEndCount}
+        onConfirm={handleDatePickerConfirm}
+        onClear={handleDatePickerClear}
+        showSkipOccurrence={!!recurrence}
+      />
     </div>
   );
 }

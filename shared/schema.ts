@@ -794,3 +794,24 @@ export type InsertConversation = z.infer<typeof insertConversationSchema>;
 export type Conversation = typeof conversations.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Message = typeof messages.$inferSelect;
+
+// ==================== TASK ATTACHMENTS ====================
+export const taskAttachments = pgTable("task_attachments", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  parentType: text("parent_type").notNull(), // "action_item" or "reminder"
+  parentId: varchar("parent_id", { length: 36 }).notNull(),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  filename: text("filename").notNull(),
+  fileType: text("file_type").notNull(),
+  fileSize: integer("file_size"),
+  fileUrl: text("file_url").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertTaskAttachmentSchema = createInsertSchema(taskAttachments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertTaskAttachment = z.infer<typeof insertTaskAttachmentSchema>;
+export type TaskAttachment = typeof taskAttachments.$inferSelect;
