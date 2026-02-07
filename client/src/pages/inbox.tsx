@@ -1,19 +1,17 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/status-badge";
 import {
-  CheckCircle, ArrowRight, Lightning, CalendarBlank,
+  ArrowRight, Lightning,
   User, Hourglass, Flag
 } from "@phosphor-icons/react";
 import { CheckCircle as LucideCheck } from "lucide-react";
 import { format } from "date-fns";
-import { useActionItems, useUpdateActionItem } from "@/lib/hooks";
-import { useToast } from "@/hooks/use-toast";
+import { useActionItems } from "@/lib/hooks";
 import { useStore } from "@/lib/store";
 import { useTheme } from "@/theme/useTheme";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { SkeletonList } from "@/components/skeleton-loader";
 import { GettingStarted } from "@/components/getting-started";
 import { cn } from "@/lib/utils";
@@ -118,11 +116,9 @@ function ActionCard({ item }: { item: UnifiedItem }) {
 
 export default function InboxPage() {
   const { data: actionItems = [], isLoading: actionsLoading } = useActionItems();
-  const { toast } = useToast();
   const [sourceFilter, setSourceFilter] = useState<SourceType>("all");
   const { user } = useStore();
   const { mode } = useTheme();
-  const queryClient = useQueryClient();
 
   const { data: reminders = [], isLoading: remindersLoading } = useQuery({
     queryKey: ["reminders", user.id],
@@ -200,7 +196,6 @@ export default function InboxPage() {
 
   const totalItems = needsReview.length + openItems.length;
   const meetingCount = unifiedItems.filter(i => i.source === 'meeting' && !['done', 'completed'].includes(i.status)).length;
-  const quickAddCount = unifiedItems.filter(i => i.source === 'quickadd').length;
 
   const showGettingStarted = totalItems === 0 && meetingCount === 0;
 
