@@ -94,7 +94,6 @@ export default function ActionDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [attachments, setAttachments] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
 
   const { data: item, isLoading } = useQuery({
@@ -130,9 +129,7 @@ export default function ActionDetailPage() {
     enabled: !!itemId,
   });
 
-  useEffect(() => {
-    setAttachments(fetchedAttachments);
-  }, [fetchedAttachments]);
+  const attachments = fetchedAttachments;
 
   useEffect(() => {
     if (item) {
@@ -283,9 +280,8 @@ export default function ActionDetailPage() {
           method: "POST",
           body: formData,
         });
-        if (res.ok) {
-          const attachment = await res.json();
-          setAttachments(prev => [...prev, attachment]);
+        if (!res.ok) {
+          throw new Error("Upload failed");
         }
       }
       queryClient.invalidateQueries({ queryKey: ["attachments", itemType, itemId] });
@@ -301,8 +297,7 @@ export default function ActionDetailPage() {
   const handleDeleteAttachment = async (attachmentId: string) => {
     try {
       await authenticatedFetch(`/api/attachments/${attachmentId}`, { method: "DELETE" });
-      setAttachments(prev => prev.filter(a => a.id !== attachmentId));
-      queryClient.invalidateQueries({ queryKey: ["attachments", itemType, itemId] });
+      await queryClient.invalidateQueries({ queryKey: ["attachments", itemType, itemId] });
       toast({ title: "Attachment removed" });
     } catch {
       toast({ title: "Error", description: "Failed to remove", variant: "destructive" });
