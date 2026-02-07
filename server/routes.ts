@@ -247,20 +247,31 @@ export async function registerRoutes(
     
     res.json({
       plan: effectivePlan,
+      isAdmin,
       planConfig,
       usage: {
         aiExtractions: {
           used: usage.aiExtractions,
-          limit: planConfig.limits.aiExtractionsPerMonth,
-          unlimited: planConfig.limits.aiExtractionsPerMonth === -1
+          limit: isAdmin ? -1 : planConfig.limits.aiExtractionsPerMonth,
+          unlimited: isAdmin || planConfig.limits.aiExtractionsPerMonth === -1
         },
         transcriptionMinutes: {
           used: usage.transcriptionMinutes,
-          limit: planConfig.limits.transcriptionMinutesPerMonth,
-          unlimited: planConfig.limits.transcriptionMinutesPerMonth === -1
+          limit: isAdmin ? -1 : planConfig.limits.transcriptionMinutesPerMonth,
+          unlimited: isAdmin || planConfig.limits.transcriptionMinutesPerMonth === -1
         }
       },
-      capabilities: planConfig.capabilities
+      capabilities: isAdmin ? {
+        ...planConfig.capabilities,
+        unlimitedAiExtractions: true,
+        unlimitedTranscription: true,
+        unlimitedHistory: true,
+        emailIntegrations: true,
+        workspaces: true,
+        teamSeats: true,
+        prioritySupport: true,
+        personalMode: true,
+      } : planConfig.capabilities
     });
   });
 
