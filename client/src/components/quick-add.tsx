@@ -431,33 +431,33 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-card border-border" align="start" sideOffset={8}>
-                  <div className="p-3 space-y-2">
+                  <div className="p-2 space-y-1.5">
                     <Input
                       placeholder="Type a date"
-                      className="h-8 text-sm"
+                      className="h-7 text-xs"
                       onChange={(e) => {
                         const parsed = chrono.parseDate(e.target.value, new Date(), { forwardDate: true });
                         if (parsed) setDueDate(parsed);
                       }}
                       data-testid="input-date-search"
                     />
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                       {[
-                        { label: "Today", date: today, icon: <Sun className="h-4 w-4 text-amber-500" weight="duotone" />, day: format(today, "EEE") },
-                        { label: "Tomorrow", date: tomorrow, icon: <SunHorizon className="h-4 w-4 text-orange-500" weight="duotone" />, day: format(tomorrow, "EEE") },
-                        { label: "Next week", date: nextMonday, icon: <CalendarIcon className="h-4 w-4 text-blue-500" weight="duotone" />, day: format(nextMonday, "EEE MMM d") },
-                        { label: "Next weekend", date: nextWeekend, icon: <CalendarIcon className="h-4 w-4 text-purple-500" weight="duotone" />, day: format(nextWeekend, "EEE MMM d") },
+                        { label: "Today", date: today, icon: <Sun className="h-3.5 w-3.5 text-amber-500" weight="duotone" />, day: format(today, "EEE") },
+                        { label: "Tomorrow", date: tomorrow, icon: <SunHorizon className="h-3.5 w-3.5 text-orange-500" weight="duotone" />, day: format(tomorrow, "EEE") },
+                        { label: "Next week", date: nextMonday, icon: <CalendarIcon className="h-3.5 w-3.5 text-blue-500" weight="duotone" />, day: format(nextMonday, "EEE MMM d") },
+                        { label: "Next weekend", date: nextWeekend, icon: <CalendarIcon className="h-3.5 w-3.5 text-purple-500" weight="duotone" />, day: format(nextWeekend, "EEE MMM d") },
                       ].map((opt) => (
                         <button
                           key={opt.label}
                           type="button"
-                          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors"
+                          className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors"
                           onClick={() => { setDueDate(opt.date); }}
                           data-testid={`date-shortcut-${opt.label.toLowerCase().replace(/\s/g, "-")}`}
                         >
                           {opt.icon}
                           <span className="flex-1 text-left text-foreground">{opt.label}</span>
-                          <span className="text-xs text-muted-foreground">{opt.day}</span>
+                          <span className="text-[10px] text-muted-foreground">{opt.day}</span>
                         </button>
                       ))}
                     </div>
@@ -470,23 +470,23 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                       className="p-2"
                     />
                   </div>
-                  <div className="border-t border-border p-3 space-y-2">
+                  <div className="border-t border-border p-2 space-y-1">
                     <button
                       type="button"
-                      className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors text-muted-foreground"
+                      className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-muted-foreground"
                       onClick={() => {
                         const el = document.getElementById("addaction-time-input");
                         if (el) el.focus();
                       }}
                     >
-                      <Clock className="h-4 w-4" weight="duotone" />
+                      <Clock className="h-3.5 w-3.5" weight="duotone" />
                       <span className="flex-1 text-left">Time</span>
                       <input
                         id="addaction-time-input"
                         type="time"
                         value={dueTime}
                         onChange={(e) => setDueTime(e.target.value)}
-                        className="bg-transparent border-none text-sm text-foreground focus:outline-none w-20"
+                        className="bg-transparent border-none text-xs text-foreground focus:outline-none w-20"
                         data-testid="input-date-time"
                       />
                     </button>
@@ -494,11 +494,11 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                       <PopoverTrigger asChild>
                         <button
                           type="button"
-                          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors text-muted-foreground"
+                          className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-muted-foreground"
                         >
-                          <ArrowsClockwise className="h-4 w-4" weight="duotone" />
+                          <ArrowsClockwise className="h-3.5 w-3.5" weight="duotone" />
                           <span className="flex-1 text-left">Repeat</span>
-                          {recurrence && <span className="text-xs text-primary">{RECURRENCE_OPTIONS.find(r => r.value === recurrence)?.label}</span>}
+                          {recurrence && <span className="text-[10px] text-primary">{RECURRENCE_OPTIONS.find(r => r.value === recurrence)?.label}</span>}
                         </button>
                       </PopoverTrigger>
                       <PopoverContent className="w-48 p-1 bg-card border-border" align="start">
@@ -546,8 +546,8 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-card border-border" align="start" sideOffset={8}>
-                  <div className="p-3 space-y-2">
-                    <div className="space-y-1">
+                  <div className="p-2 space-y-1.5">
+                    <div className="space-y-0.5">
                       {[
                         { label: "Today", date: today },
                         { label: "Tomorrow", date: tomorrow },
@@ -556,11 +556,11 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                         <button
                           key={opt.label}
                           type="button"
-                          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors text-foreground"
+                          className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-foreground"
                           onClick={() => { setDeadline(opt.date); }}
                         >
                           <span className="flex-1 text-left">{opt.label}</span>
-                          <span className="text-xs text-muted-foreground">{format(opt.date, "EEE, MMM d")}</span>
+                          <span className="text-[10px] text-muted-foreground">{format(opt.date, "EEE, MMM d")}</span>
                         </button>
                       ))}
                     </div>
@@ -573,15 +573,15 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                       className="p-2"
                     />
                   </div>
-                  <div className="border-t border-border p-3">
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4" weight="duotone" />
+                  <div className="border-t border-border p-2">
+                    <div className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5" weight="duotone" />
                       <span className="flex-1">Time</span>
                       <input
                         type="time"
                         value={deadlineTime}
                         onChange={(e) => setDeadlineTime(e.target.value)}
-                        className="bg-transparent border-none text-sm text-foreground focus:outline-none w-20"
+                        className="bg-transparent border-none text-xs text-foreground focus:outline-none w-20"
                         data-testid="input-deadline-time"
                       />
                     </div>
@@ -649,9 +649,8 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0 bg-card border-border" align="start" sideOffset={8}>
-                  <div className="p-3 space-y-2">
-                    <p className="text-xs text-muted-foreground px-1">This will also be added to your Reminders and Calendar.</p>
-                    <div className="space-y-1">
+                  <div className="p-2 space-y-1.5">
+                    <div className="space-y-0.5">
                       {[
                         { label: "In 30 minutes", getDate: () => { const d = new Date(); d.setMinutes(d.getMinutes() + 30); return d; } },
                         { label: "In 1 hour", getDate: () => { const d = new Date(); d.setHours(d.getHours() + 1); return d; } },
@@ -662,10 +661,10 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                         <button
                           key={opt.label}
                           type="button"
-                          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors text-foreground"
+                          className="flex items-center gap-2 w-full px-2 py-1.5 rounded-md text-xs hover:bg-accent transition-colors text-foreground"
                           onClick={() => { setReminderAt(opt.getDate()); setReminderTime(format(opt.getDate(), "HH:mm")); }}
                         >
-                          <BellRinging className="h-4 w-4 text-amber-500" weight="duotone" />
+                          <BellRinging className="h-3.5 w-3.5 text-amber-500" weight="duotone" />
                           <span className="flex-1 text-left">{opt.label}</span>
                         </button>
                       ))}
@@ -679,15 +678,15 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                       className="p-2"
                     />
                   </div>
-                  <div className="border-t border-border p-3">
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4" weight="duotone" />
+                  <div className="border-t border-border p-2">
+                    <div className="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5" weight="duotone" />
                       <span className="flex-1">Time</span>
                       <input
                         type="time"
                         value={reminderTime}
                         onChange={(e) => setReminderTime(e.target.value)}
-                        className="bg-transparent border-none text-sm text-foreground focus:outline-none w-20"
+                        className="bg-transparent border-none text-xs text-foreground focus:outline-none w-20"
                         data-testid="input-reminder-time"
                       />
                     </div>
