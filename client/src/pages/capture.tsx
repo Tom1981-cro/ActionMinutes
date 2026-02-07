@@ -507,13 +507,43 @@ export default function CapturePage() {
     return `${m}:${s}`;
   };
 
+  const getSupportedMimeType = () => {
+    const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4', 'audio/mpeg'];
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) return type;
+    }
+    return '';
+  };
+
+  const getFileExtension = (mimeType: string) => {
+    if (mimeType.includes('webm')) return 'webm';
+    if (mimeType.includes('ogg')) return 'ogg';
+    if (mimeType.includes('mp4')) return 'mp4';
+    if (mimeType.includes('mpeg')) return 'mp3';
+    return 'webm';
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       chunksRef.current = [];
-      
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+
+      const mimeType = getSupportedMimeType();
+      if (!mimeType) {
+        stream.getTracks().forEach(t => t.stop());
+        toast({ title: "Recording not supported", description: "Your browser doesn't support audio recording.", variant: "destructive" });
+        return;
+      }
+
+      const currentUserId = user?.id;
+      if (!currentUserId) {
+        stream.getTracks().forEach(t => t.stop());
+        toast({ title: "Not signed in", description: "Please sign in to record meetings.", variant: "destructive" });
+        return;
+      }
+
+      const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
 
       mediaRecorder.ondataavailable = (e) => {
@@ -523,8 +553,10 @@ export default function CapturePage() {
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach(t => t.stop());
         streamRef.current = null;
-        
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+
+        const baseMime = mimeType.split(';')[0];
+        const ext = getFileExtension(baseMime);
+        const blob = new Blob(chunksRef.current, { type: baseMime });
         if (blob.size < 1000) {
           toast({ title: "Recording too short", description: "Please record for longer.", variant: "destructive" });
           setRecordingState('idle');
@@ -532,10 +564,10 @@ export default function CapturePage() {
           return;
         }
 
-        const file = new File([blob], `recording-${Date.now()}.webm`, { type: 'audio/webm' });
+        const file = new File([blob], `recording-${Date.now()}.${ext}`, { type: baseMime });
         setRecordingAutoTranscribing(true);
         setRecordingTranscribeProgress(0);
-        
+
         const progressInterval = setInterval(() => {
           setRecordingTranscribeProgress(prev => Math.min(prev + 6, 90));
         }, 500);
@@ -545,13 +577,17 @@ export default function CapturePage() {
           formData.append('audio', file);
 
           const response = await fetch(
-            `/api/transcribe?userId=${user.id}&save=true&title=${encodeURIComponent(title || `Recording ${new Date().toLocaleString()}`)}`, 
+            `/api/transcribe?userId=${currentUserId}&save=true&title=${encodeURIComponent(title || `Recording ${new Date().toLocaleString()}`)}`,
             { method: 'POST', body: formData }
           );
 
           if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Transcription failed');
+            let errorMsg = 'Transcription failed';
+            try {
+              const errorData = await response.json();
+              errorMsg = errorData.error || errorMsg;
+            } catch {}
+            throw new Error(errorMsg);
           }
 
           const result = await response.json();
@@ -564,10 +600,11 @@ export default function CapturePage() {
             toast({ title: "No speech detected", description: "The recording didn't contain detectable speech.", variant: "destructive" });
           }
         } catch (error) {
-          toast({ 
-            title: "Transcription failed", 
-            description: error instanceof Error ? error.message : "Failed to transcribe recording.", 
-            variant: "destructive" 
+          console.error('[Recording transcription error]', error);
+          toast({
+            title: "Transcription failed",
+            description: error instanceof Error ? error.message : "Failed to transcribe recording.",
+            variant: "destructive"
           });
         } finally {
           clearInterval(progressInterval);
@@ -583,7 +620,7 @@ export default function CapturePage() {
       mediaRecorder.start(1000);
       setRecordingState('recording');
       setRecordingTime(0);
-      
+
       timerRef.current = setInterval(() => {
         setRecordingTime(prev => prev + 1);
       }, 1000);
@@ -591,6 +628,7 @@ export default function CapturePage() {
       if (error?.name === 'NotAllowedError') {
         toast({ title: "Microphone access denied", description: "Please allow microphone access in your browser settings.", variant: "destructive" });
       } else {
+        console.error('[Recording start error]', error);
         toast({ title: "Recording failed", description: "Could not start recording. Check your microphone.", variant: "destructive" });
       }
     }
