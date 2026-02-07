@@ -192,7 +192,7 @@ export default function Layout({ children }: LayoutProps) {
             <span className="font-normal text-primary">Minutes</span>
           </span>
         </div>
-        <nav className="space-y-0.5 flex-1 overflow-y-auto">
+        <nav className="flex-1 overflow-y-auto flex flex-col gap-px">
           <button
             onClick={() => setQuickAddOpen(true)}
             className="navItem w-full group"
@@ -351,7 +351,7 @@ export default function Layout({ children }: LayoutProps) {
 
         </nav>
 
-        <div className="space-y-0.5 pt-2 border-t border-border">
+        <div className="pt-2 border-t border-border flex flex-col gap-px">
           {bottomItems.map((item) => {
             const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             return (
