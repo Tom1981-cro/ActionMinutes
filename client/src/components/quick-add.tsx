@@ -422,7 +422,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                     data-testid="button-addaction-date"
                   >
                     <CalendarBlank className="h-3 w-3" weight="duotone" />
-                    {dueDate ? format(dueDate, "MMM d") : "Date"}
+                    {dueDate ? format(dueDate, "d MMM") : "Date"}
                     {dueDate && (
                       <span onClick={(e) => { e.stopPropagation(); setDueDate(null); setDueTime(""); }} className="ml-1 hover:text-foreground">
                         <X className="h-3 w-3" />
@@ -445,8 +445,8 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                       {[
                         { label: "Today", date: today, icon: <Sun className="h-3.5 w-3.5 text-amber-500" weight="duotone" />, day: format(today, "EEE") },
                         { label: "Tomorrow", date: tomorrow, icon: <SunHorizon className="h-3.5 w-3.5 text-orange-500" weight="duotone" />, day: format(tomorrow, "EEE") },
-                        { label: "Next week", date: nextMonday, icon: <CalendarIcon className="h-3.5 w-3.5 text-blue-500" weight="duotone" />, day: format(nextMonday, "EEE MMM d") },
-                        { label: "Next weekend", date: nextWeekend, icon: <CalendarIcon className="h-3.5 w-3.5 text-purple-500" weight="duotone" />, day: format(nextWeekend, "EEE MMM d") },
+                        { label: "Next week", date: nextMonday, icon: <CalendarIcon className="h-3.5 w-3.5 text-blue-500" weight="duotone" />, day: format(nextMonday, "EEE d MMM") },
+                        { label: "Next weekend", date: nextWeekend, icon: <CalendarIcon className="h-3.5 w-3.5 text-purple-500" weight="duotone" />, day: format(nextWeekend, "EEE d MMM") },
                       ].map((opt) => (
                         <button
                           key={opt.label}
@@ -537,7 +537,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                     data-testid="button-addaction-deadline"
                   >
                     <Timer className="h-3 w-3" weight="duotone" />
-                    {deadline ? format(deadline, "MMM d") : "Deadline"}
+                    {deadline ? format(deadline, "d MMM") : "Deadline"}
                     {deadline && (
                       <span onClick={(e) => { e.stopPropagation(); setDeadline(null); setDeadlineTime(""); }} className="ml-1 hover:text-foreground">
                         <X className="h-3 w-3" />
@@ -560,7 +560,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                           onClick={() => { setDeadline(opt.date); }}
                         >
                           <span className="flex-1 text-left">{opt.label}</span>
-                          <span className="text-[10px] text-muted-foreground">{format(opt.date, "EEE, MMM d")}</span>
+                          <span className="text-[10px] text-muted-foreground">{format(opt.date, "EEE, d MMM")}</span>
                         </button>
                       ))}
                     </div>
@@ -640,7 +640,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                     data-testid="button-addaction-reminder"
                   >
                     <BellRinging className="h-3 w-3" weight="duotone" />
-                    {reminderAt ? format(reminderAt, "MMM d") : "Reminders"}
+                    {reminderAt ? format(reminderAt, "d MMM") : "Reminders"}
                     {reminderAt && (
                       <span onClick={(e) => { e.stopPropagation(); setReminderAt(null); setReminderTime(""); }} className="ml-1 hover:text-foreground">
                         <X className="h-3 w-3" />
