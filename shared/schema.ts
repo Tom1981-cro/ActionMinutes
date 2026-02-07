@@ -239,6 +239,7 @@ export const personalReminders = pgTable("personal_reminders", {
   sourceId: varchar("source_id", { length: 36 }),
   meetingId: varchar("meeting_id", { length: 36 }).references(() => meetings.id, { onDelete: 'set null' }),
   calendarEventId: varchar("calendar_event_id", { length: 36 }),
+  deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -371,6 +372,7 @@ export const tasks = pgTable("tasks", {
   estimatedMinutes: integer("estimated_minutes"),
   position: integer("position").notNull().default(0),
   completedAt: timestamp("completed_at"),
+  deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -459,6 +461,7 @@ export const insertPersonalReminderSchema = createInsertSchema(personalReminders
   createdAt: true,
   updatedAt: true,
   completedAt: true,
+  deletedAt: true,
 });
 
 export const insertJournalPromptSchema = createInsertSchema(journalPrompts).omit({
@@ -498,6 +501,7 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   createdAt: true,
   updatedAt: true,
   completedAt: true,
+  deletedAt: true,
 });
 
 // ==================== TYPES ====================

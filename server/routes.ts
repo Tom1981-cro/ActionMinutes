@@ -1428,7 +1428,7 @@ Thanks!`,
     if (!reminder) return res.status(404).json({ error: "Reminder not found" });
     if (reminder.userId !== userId) return res.status(403).json({ error: "Access denied" });
     
-    await storage.deletePersonalReminder(req.params.id);
+    await storage.updatePersonalReminder(req.params.id, { deletedAt: new Date() } as any);
     res.json({ success: true });
   });
 
@@ -3071,10 +3071,55 @@ Thanks!`,
       return res.status(403).json({ error: "Access denied" });
     }
     
-    await storage.deleteTask(id);
+    await storage.softDeleteTask(id);
     res.status(204).send();
   });
-  
+
+  app.get("/api/actioned", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const result = await storage.getActionedItems(userId);
+    res.json(result);
+  });
+
+  app.get("/api/deleted", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const result = await storage.getDeletedItems(userId);
+    res.json(result);
+  });
+
+  app.post("/api/deleted/:type/:id/restore", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const { type, id } = req.params;
+    if (type === 'task') {
+      const task = await storage.getTask(id);
+      if (!task || task.userId !== userId) return res.status(404).json({ error: "Not found" });
+    } else if (type === 'reminder') {
+      const reminder = await storage.getPersonalReminder(id);
+      if (!reminder || reminder.userId !== userId) return res.status(404).json({ error: "Not found" });
+    } else {
+      return res.status(400).json({ error: "Invalid type" });
+    }
+    await storage.restoreItem(type, id);
+    res.json({ success: true });
+  });
+
+  app.delete("/api/deleted/:type/:id/permanent", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const { type, id } = req.params;
+    if (type === 'task') {
+      const task = await storage.getTask(id);
+      if (!task || task.userId !== userId) return res.status(404).json({ error: "Not found" });
+      await storage.deleteTask(id);
+    } else if (type === 'reminder') {
+      const reminder = await storage.getPersonalReminder(id);
+      if (!reminder || reminder.userId !== userId) return res.status(404).json({ error: "Not found" });
+      await storage.deletePersonalReminder(id);
+    } else {
+      return res.status(400).json({ error: "Invalid type" });
+    }
+    res.status(204).send();
+  });
+
   app.get("/api/tasks/by-source/:sourceType/:sourceId", requireAuth, async (req, res) => {
     const userId = req.userId!;
     const { sourceType, sourceId } = req.params;
