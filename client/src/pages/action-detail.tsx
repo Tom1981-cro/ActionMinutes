@@ -788,7 +788,7 @@ export default function ActionDetailPage() {
             </div>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 pt-1 border-t border-border/50">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label className="text-[12px] text-muted-foreground flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5" weight="duotone" />
