@@ -230,7 +230,11 @@ export async function registerRoutes(
   });
 
   app.patch("/api/users/me", requireAuth, async (req, res) => {
-    const user = await storage.updateUser(req.userId!, req.body);
+    const updates = { ...req.body };
+    if (updates.recordingConsentAt && typeof updates.recordingConsentAt === 'string') {
+      updates.recordingConsentAt = new Date(updates.recordingConsentAt);
+    }
+    const user = await storage.updateUser(req.userId!, updates);
     if (!user) return res.status(404).json({ error: "User not found" });
     const { password: _, ...userWithoutPassword } = user;
     res.json(userWithoutPassword);
