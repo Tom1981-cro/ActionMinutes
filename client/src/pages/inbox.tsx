@@ -18,10 +18,11 @@ import {
 import { 
   CheckCircle, Clock, AlertTriangle, Loader2, 
   Bell, Pencil, User, Calendar,
-  Zap
+  Zap, Trash2
 } from "lucide-react";
 import { format, addDays, addWeeks, addMonths } from "date-fns";
 import { useActionItems, useUpdateActionItem } from "@/lib/hooks";
+import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { ActionEditSheet } from "@/components/action-edit-sheet";
 import { useStore } from "@/lib/store";
@@ -53,11 +54,12 @@ interface ActionCardProps {
   onWaiting: () => void;
   onRemind: () => void;
   onEdit: () => void;
+  onDelete: () => void;
   onTap: () => void;
   isReview?: boolean;
 }
 
-function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview }: ActionCardProps) {
+function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onDelete, onTap, isReview }: ActionCardProps) {
   const lowConfidence = (item.confidenceOwner && item.confidenceOwner < 0.6) || (item.confidenceDueDate && item.confidenceDueDate < 0.6);
   const isOverdue = item.dueDate && new Date(item.dueDate) < new Date();
 
@@ -140,6 +142,14 @@ function ActionCard({ item, onDone, onWaiting, onRemind, onEdit, onTap, isReview
           >
             <Pencil className="h-3.5 w-3.5 flex-shrink-0" />
             <span>Edit</span>
+          </span>
+          <span className="ml-auto" />
+          <span
+            onClick={(e) => { e.stopPropagation(); onDelete(); }}
+            className="inline-flex items-center justify-center h-7 w-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+            data-testid={`button-delete-${item.id}`}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
           </span>
         </div>
       </CardContent>
@@ -347,6 +357,16 @@ export default function InboxPage() {
     setShowCalendar(false);
   };
 
+  const handleDeleteItem = async (item: UnifiedItem) => {
+    try {
+      await api.actions.delete(item.id);
+      queryClient.invalidateQueries({ queryKey: ['actions'] });
+      toast({ title: "Deleted", description: "Item removed." });
+    } catch {
+      toast({ title: "Error", description: "Failed to delete", variant: "destructive" });
+    }
+  };
+
   const openEditModal = (item: UnifiedItem) => {
     setSelectedItem(item);
     setEditForm({
@@ -454,6 +474,7 @@ export default function InboxPage() {
                 onWaiting={() => openWaitingModal(item)}
                 onRemind={() => openRemindModal(item)}
                 onEdit={() => openEditModal(item)}
+                onDelete={() => handleDeleteItem(item)}
                 onTap={() => handleTap(item)}
                 isReview
               />
@@ -492,6 +513,7 @@ export default function InboxPage() {
                 onWaiting={() => openWaitingModal(item)}
                 onRemind={() => openRemindModal(item)}
                 onEdit={() => openEditModal(item)}
+                onDelete={() => handleDeleteItem(item)}
                 onTap={() => handleTap(item)}
               />
             ))}

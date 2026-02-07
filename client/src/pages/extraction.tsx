@@ -10,7 +10,7 @@ import { StatusBadge, SeverityBadge } from "@/components/ui/status-badge";
 import { 
   ArrowLeft, CheckCircle, FileText, CalendarBlank, DownloadSimple, 
   Warning, Question, Pencil, User, Clock, SpinnerGap, HighlighterCircle, MagicWand,
-  Printer, ShareNetwork, FilePdf
+  Printer, ShareNetwork, FilePdf, Trash
 } from "@phosphor-icons/react";
 import { useToast } from "@/hooks/use-toast";
 import { useMeeting, useActionItemsForMeeting, useDecisionsForMeeting, useRisksForMeeting, useQuestionsForMeeting, useUpdateMeeting, useExportCalendar, useAppConfig, useGenerateDrafts, useDraftsForMeeting, useTasksBySource, useCreateTasksFromMeeting } from "@/lib/hooks";
@@ -20,6 +20,7 @@ import { TemplatePicker } from "@/components/template-picker";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import type { ActionItem } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { api } from "@/lib/api";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -218,6 +219,17 @@ export default function ExtractionPage() {
   const handleActionTap = (action: ActionItem) => {
     setSelectedAction(action);
     setEditSheetOpen(true);
+  };
+
+  const handleDeleteAction = async (e: React.MouseEvent, actionId: string) => {
+    e.stopPropagation();
+    try {
+      await api.actions.delete(actionId);
+      queryClient.invalidateQueries({ queryKey: ['actions'] });
+      toast({ title: "Deleted", description: "Action item removed." });
+    } catch {
+      toast({ title: "Error", description: "Failed to delete", variant: "destructive" });
+    }
   };
 
   const handleCreateTasks = async () => {
@@ -498,7 +510,7 @@ export default function ExtractionPage() {
                     <button
                       key={item.id}
                       onClick={() => handleActionTap(item)}
-                      className="w-full text-left bg-muted hover:bg-accent rounded-xl p-4 space-y-3 transition-colors"
+                      className="w-full text-left bg-muted hover:bg-accent rounded-xl p-4 space-y-3 transition-colors relative"
                       data-testid={`action-card-${item.id}`}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -525,6 +537,13 @@ export default function ExtractionPage() {
                             Low confidence
                           </span>
                         )}
+                        <span
+                          onClick={(e) => handleDeleteAction(e, item.id)}
+                          className="ml-auto inline-flex items-center justify-center h-7 w-7 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                          data-testid={`button-delete-action-${item.id}`}
+                        >
+                          <Trash className="h-3.5 w-3.5" weight="duotone" />
+                        </span>
                       </div>
                     </button>
                   ))

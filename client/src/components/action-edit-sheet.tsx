@@ -5,10 +5,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Calendar, User, Clock, FileText, X, Loader2 } from "lucide-react";
+import { Calendar, User, Clock, FileText, X, Loader2, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { useUpdateActionItem } from "@/lib/hooks";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 interface ActionEditSheetProps {
   item: any;
@@ -18,6 +20,7 @@ interface ActionEditSheetProps {
 
 export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetProps) {
   const updateActionItem = useUpdateActionItem();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   
   const [text, setText] = useState("");
@@ -28,6 +31,7 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
   const [reminderAt, setReminderAt] = useState("");
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (item && open) {
@@ -74,18 +78,22 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
     }
   };
 
-  const handleQuickStatus = async (newStatus: string) => {
+  const handleQuickStatus = (newStatus: string) => {
+    setStatus(newStatus);
+  };
+
+  const handleDelete = async () => {
+    if (!item?.id) return;
+    setIsDeleting(true);
     try {
-      await updateActionItem.mutateAsync({
-        id: item.id,
-        updates: { status: newStatus }
-      });
-      toast({ title: `Marked as ${newStatus}` });
-      if (newStatus === "done") {
-        onOpenChange(false);
-      }
+      await api.actions.delete(item.id);
+      queryClient.invalidateQueries({ queryKey: ['actions'] });
+      toast({ title: "Deleted", description: "Action item removed." });
+      onOpenChange(false);
     } catch (error) {
-      toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to delete action item", variant: "destructive" });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -117,15 +125,15 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
                 size="sm"
                 variant={status === "done" ? "default" : "outline"}
                 onClick={() => handleQuickStatus("done")}
-                className={`flex-1 h-10 rounded-xl ${status === "done" ? "bg-teal-500 hover:bg-teal-600" : "border-border"}`}
+                className={`flex-1 h-10 rounded-xl ${status === "done" ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "border-border text-emerald-600 dark:text-emerald-400"}`}
               >
                 Done
               </Button>
               <Button
                 size="sm"
-                variant={status === "open" ? "default" : "outline"}
+                variant={status === "open" || status === "needs_review" ? "default" : "outline"}
                 onClick={() => handleQuickStatus("open")}
-                className={`flex-1 h-10 rounded-xl ${status === "open" ? "bg-teal-500 hover:bg-teal-600" : "border-border"}`}
+                className={`flex-1 h-10 rounded-xl ${status === "open" || status === "needs_review" ? "bg-primary hover:bg-primary/90 text-primary-foreground" : "border-border text-primary"}`}
               >
                 Open
               </Button>
@@ -133,7 +141,7 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
                 size="sm"
                 variant={status === "waiting" ? "default" : "outline"}
                 onClick={() => handleQuickStatus("waiting")}
-                className={`flex-1 h-10 rounded-xl ${status === "waiting" ? "bg-amber-500 hover:bg-amber-600" : "border-border"}`}
+                className={`flex-1 h-10 rounded-xl ${status === "waiting" ? "bg-amber-500 hover:bg-amber-600 text-white" : "border-border text-amber-600 dark:text-amber-400"}`}
               >
                 Waiting
               </Button>
@@ -227,6 +235,15 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
 
           <div className="border-t border-border p-4 bg-card" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
             <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="h-12 rounded-2xl border-destructive/30 text-destructive hover:bg-destructive/10 px-4"
+                data-testid="button-delete-action"
+              >
+                {isDeleting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 className="h-5 w-5" />}
+              </Button>
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}
