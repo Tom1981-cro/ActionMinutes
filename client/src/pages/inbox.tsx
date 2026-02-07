@@ -39,9 +39,9 @@ function ActionCard({ item }: { item: UnifiedItem }) {
   const isOverdue = item.dueDate && new Date(item.dueDate) < new Date();
   const lowConfidence = (item.confidenceOwner && item.confidenceOwner < 0.6) || (item.confidenceDueDate && item.confidenceDueDate < 0.6);
 
-  const priorityColor = item.priority === 'high' ? 'text-orange-500' :
-    item.priority === 'low' ? 'text-emerald-500' :
-    item.priority === 'urgent' ? 'text-red-500' : '';
+  const priorityColor = item.priority === 'high' ? 'text-red-500' :
+    item.priority === 'normal' ? 'text-amber-500' :
+    item.priority === 'low' ? 'text-emerald-500' : '';
 
   const handleClick = () => {
     const type = item.source === 'meeting' ? 'meeting' : 'reminder';

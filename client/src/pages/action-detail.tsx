@@ -13,8 +13,10 @@ import {
   ArrowLeft, CalendarBlank, Clock, User, EnvelopeSimple,
   Flag, Tag, MapPin, ArrowsClockwise, Timer, BellRinging,
   FloppyDisk, Trash, Lightning, Notepad, SpinnerGap, Hourglass,
-  Paperclip, UploadSimple
+  Paperclip, UploadSimple, CaretDown
 } from "@phosphor-icons/react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { format, addDays, addWeeks, startOfWeek } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
@@ -25,8 +27,8 @@ import { cn } from "@/lib/utils";
 import { SkeletonList } from "@/components/skeleton-loader";
 
 const PRIORITIES = [
-  { value: "high", label: "High", color: "text-orange-500", bg: "bg-orange-500/15 border-orange-500/25" },
-  { value: "normal", label: "Normal", color: "text-blue-500", bg: "bg-blue-500/15 border-blue-500/25" },
+  { value: "high", label: "High", color: "text-red-500", bg: "bg-red-500/15 border-red-500/25" },
+  { value: "normal", label: "Normal", color: "text-amber-500", bg: "bg-amber-500/15 border-amber-500/25" },
   { value: "low", label: "Low", color: "text-emerald-500", bg: "bg-emerald-500/15 border-emerald-500/25" },
   { value: "none", label: "None", color: "text-muted-foreground", bg: "bg-muted border-border" },
 ];
@@ -94,6 +96,8 @@ export default function ActionDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showDeadlinePicker, setShowDeadlinePicker] = useState(false);
+  const [deadlineInput, setDeadlineInput] = useState("");
   const [isUploading, setIsUploading] = useState(false);
 
   const { data: item, isLoading } = useQuery({
@@ -140,6 +144,7 @@ export default function ActionDetailPage() {
       setDueDate(item.dueDate ? new Date(item.dueDate) : null);
       setDueTime(item.dueDate ? format(new Date(item.dueDate), "HH:mm") : "");
       setDeadline(item.deadline ? new Date(item.deadline) : null);
+      setDeadlineInput(item.deadline ? format(new Date(item.deadline), "yyyy-MM-dd") : "");
       setStatus(item.status || "open");
       const p = item.priority || "none";
       setPriority(["high", "normal", "low", "none"].includes(p) ? p : "none");
@@ -381,7 +386,7 @@ export default function ActionDetailPage() {
         </div>
       </div>
 
-      <h1 className="text-xl font-bold tracking-tight text-foreground leading-snug" data-testid="text-task-title">
+      <h1 className="text-base font-bold tracking-tight text-foreground leading-snug" data-testid="text-task-title">
         {text || item.text || "Untitled task"}
       </h1>
 
@@ -415,7 +420,7 @@ export default function ActionDetailPage() {
                 value={waitingFor}
                 onChange={(e) => setWaitingFor(e.target.value)}
                 placeholder="Who or what are you waiting on?"
-                className="h-9 text-sm rounded-xl"
+                className="h-9 text-xs rounded-xl"
                 data-testid="input-waiting-for"
               />
             </div>
@@ -425,8 +430,8 @@ export default function ActionDetailPage() {
 
       <Card className="glass-panel rounded-2xl">
         <CardHeader className="px-4 pt-4 pb-2 md:px-6">
-          <CardTitle className="text-sm font-medium text-foreground flex items-center gap-1.5">
-            <Notepad className="h-4 w-4 text-muted-foreground" weight="duotone" />
+          <CardTitle className="text-xs font-semibold text-primary flex items-center gap-1.5">
+            <Notepad className="h-4 w-4" weight="duotone" />
             Task Details
           </CardTitle>
         </CardHeader>
@@ -437,7 +442,7 @@ export default function ActionDetailPage() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="What needs to be done?"
-              className="min-h-[70px] text-sm rounded-xl"
+              className="min-h-[70px] text-xs rounded-xl"
               data-testid="input-action-text"
             />
           </div>
@@ -448,7 +453,7 @@ export default function ActionDetailPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief description..."
-                className="h-9 text-sm rounded-xl"
+                className="h-9 text-xs rounded-xl"
                 data-testid="input-description"
               />
             </div>
@@ -463,7 +468,7 @@ export default function ActionDetailPage() {
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
                 placeholder="Who's responsible?"
-                className="h-9 text-sm rounded-xl"
+                className="h-9 text-xs rounded-xl"
                 data-testid="input-owner-name"
               />
             </div>
@@ -477,7 +482,7 @@ export default function ActionDetailPage() {
                 value={ownerEmail}
                 onChange={(e) => setOwnerEmail(e.target.value)}
                 placeholder="owner@example.com"
-                className="h-9 text-sm rounded-xl"
+                className="h-9 text-xs rounded-xl"
                 data-testid="input-owner-email"
               />
             </div>
@@ -487,8 +492,8 @@ export default function ActionDetailPage() {
 
       <Card className="glass-panel rounded-2xl">
         <CardHeader className="px-4 pt-4 pb-2 md:px-6">
-          <CardTitle className="text-sm font-medium text-foreground flex items-center gap-1.5">
-            <CalendarBlank className="h-4 w-4 text-muted-foreground" weight="duotone" />
+          <CardTitle className="text-xs font-semibold text-primary flex items-center gap-1.5">
+            <CalendarBlank className="h-4 w-4" weight="duotone" />
             Schedule
           </CardTitle>
         </CardHeader>
@@ -503,7 +508,7 @@ export default function ActionDetailPage() {
                 type="button"
                 onClick={() => setShowDatePicker(true)}
                 className={cn(
-                  "flex items-center gap-2 w-full h-9 px-3 rounded-xl border text-sm transition-colors text-left",
+                  "flex items-center gap-2 w-full h-9 px-3 rounded-xl border text-xs transition-colors text-left",
                   dueDate ? "border-primary/30 bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
                 )}
                 data-testid="button-due-date"
@@ -521,7 +526,7 @@ export default function ActionDetailPage() {
                 type="button"
                 onClick={() => setShowDatePicker(true)}
                 className={cn(
-                  "flex items-center gap-2 w-full h-9 px-3 rounded-xl border text-sm transition-colors text-left",
+                  "flex items-center gap-2 w-full h-9 px-3 rounded-xl border text-xs transition-colors text-left",
                   getDurationLabel() ? "border-primary/30 bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
                 )}
                 data-testid="button-duration"
@@ -538,35 +543,68 @@ export default function ActionDetailPage() {
                 <Timer className="h-3.5 w-3.5" weight="duotone" />
                 Deadline
               </Label>
-              <button
-                type="button"
-                onClick={() => {
-                  const d = prompt("Set deadline date (YYYY-MM-DD):", deadline ? format(deadline, "yyyy-MM-dd") : "");
-                  if (d) setDeadline(new Date(d));
-                  else if (d === "") setDeadline(null);
-                }}
-                className={cn(
-                  "flex items-center gap-2 w-full h-9 px-3 rounded-xl border text-sm transition-colors text-left",
-                  deadline ? "border-red-500/30 bg-red-500/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
-                )}
-                data-testid="button-deadline"
-              >
-                <Timer className="h-3.5 w-3.5 flex-shrink-0" weight="duotone" />
-                {deadline ? format(deadline, "d MMM yyyy") : "Set deadline"}
-              </button>
+              <Popover open={showDeadlinePicker} onOpenChange={setShowDeadlinePicker}>
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="date"
+                    value={deadlineInput}
+                    onChange={(e) => {
+                      setDeadlineInput(e.target.value);
+                      if (e.target.value) {
+                        setDeadline(new Date(e.target.value));
+                      } else {
+                        setDeadline(null);
+                      }
+                    }}
+                    className={cn(
+                      "h-9 text-xs rounded-xl flex-1",
+                      deadline ? "border-red-500/30 bg-red-500/5" : ""
+                    )}
+                    data-testid="input-deadline"
+                  />
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="h-9 w-9 flex items-center justify-center rounded-xl border border-border hover:bg-accent transition-colors flex-shrink-0"
+                      data-testid="button-deadline-calendar"
+                    >
+                      <CalendarBlank className="h-3.5 w-3.5 text-muted-foreground" weight="duotone" />
+                    </button>
+                  </PopoverTrigger>
+                </div>
+                <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={deadline ?? undefined}
+                    onSelect={(d) => {
+                      setDeadline(d ?? null);
+                      setDeadlineInput(d ? format(d, "yyyy-MM-dd") : "");
+                      setShowDeadlinePicker(false);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <BellRinging className="h-3.5 w-3.5" weight="duotone" />
                 Reminder
               </Label>
-              <div className={cn(
-                "flex items-center gap-2 h-9 px-3 rounded-xl border text-sm",
-                reminder !== "on_time" && reminder !== "none" ? "border-amber-500/30 bg-amber-500/5 text-foreground" : "border-border text-muted-foreground"
-              )}>
-                <BellRinging className="h-3.5 w-3.5 flex-shrink-0" weight="duotone" />
-                <span className="text-sm">{REMINDER_LABELS[reminder] || "On time"}</span>
-              </div>
+              <Select
+                value={reminder}
+                onValueChange={(v) => setReminder(v)}
+              >
+                <SelectTrigger className="h-9 text-xs rounded-xl" data-testid="select-reminder">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(REMINDER_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -580,7 +618,7 @@ export default function ActionDetailPage() {
                 value={recurrence || "none"}
                 onValueChange={(v) => setRecurrence(v === "none" ? null : v)}
               >
-                <SelectTrigger className="h-9 text-sm rounded-xl" data-testid="select-recurrence">
+                <SelectTrigger className="h-9 text-xs rounded-xl" data-testid="select-recurrence">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -617,12 +655,8 @@ export default function ActionDetailPage() {
               </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      <Card className="glass-panel rounded-2xl">
-        <CardContent className="px-4 py-3 md:px-6">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 pt-1 border-t border-border/50">
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5" weight="duotone" />
@@ -632,7 +666,7 @@ export default function ActionDetailPage() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Add location..."
-                className="h-9 text-sm rounded-xl"
+                className="h-9 text-xs rounded-xl"
                 data-testid="input-location"
               />
             </div>
@@ -643,25 +677,25 @@ export default function ActionDetailPage() {
               </Label>
               <div className="flex flex-wrap gap-1.5 min-h-[36px] items-center">
                 {globalTags.map((tag) => (
-                  <button
+                  <Badge
                     key={tag.id}
-                    type="button"
+                    variant="secondary"
+                    className={cn(
+                      "cursor-pointer transition-colors text-xs",
+                      tags.includes(tag.name)
+                        ? "bg-accent text-primary hover:bg-accent/80"
+                        : "bg-muted text-muted-foreground hover:bg-accent hover:text-primary"
+                    )}
                     onClick={() => {
                       setTags(prev => prev.includes(tag.name) ? prev.filter(t => t !== tag.name) : [...prev, tag.name]);
                     }}
-                    className={cn(
-                      "px-2 py-0.5 rounded-full border text-[11px] font-medium transition-colors",
-                      tags.includes(tag.name)
-                        ? "border-primary/30 bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground hover:bg-accent"
-                    )}
                     data-testid={`tag-${tag.name}`}
                   >
-                    #{tag.name}
-                  </button>
+                    {tag.name}
+                  </Badge>
                 ))}
                 {globalTags.length === 0 && (
-                  <span className="text-[11px] text-muted-foreground">No tags available</span>
+                  <span className="text-xs text-muted-foreground">No tags available</span>
                 )}
               </div>
             </div>
@@ -672,8 +706,8 @@ export default function ActionDetailPage() {
       <Card className="glass-panel rounded-2xl">
         <CardHeader className="px-4 pt-4 pb-2 md:px-6">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium text-foreground flex items-center gap-1.5">
-              <Notepad className="h-4 w-4 text-muted-foreground" weight="duotone" />
+            <CardTitle className="text-xs font-semibold text-primary flex items-center gap-1.5">
+              <Notepad className="h-4 w-4" weight="duotone" />
               Notes
             </CardTitle>
             <label className="cursor-pointer" data-testid="button-attach-file">
@@ -684,7 +718,7 @@ export default function ActionDetailPage() {
                 className="hidden"
                 onChange={handleFileUpload}
               />
-              <span className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors border border-border">
+              <span className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-primary hover:bg-primary/10 transition-colors border border-primary/30">
                 {isUploading ? (
                   <SpinnerGap className="h-3.5 w-3.5 animate-spin" />
                 ) : (
@@ -700,7 +734,7 @@ export default function ActionDetailPage() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Additional context or details..."
-            className="min-h-[80px] text-sm rounded-xl"
+            className="min-h-[80px] text-xs rounded-xl"
             data-testid="input-notes"
           />
 
@@ -754,14 +788,14 @@ export default function ActionDetailPage() {
         <Button
           variant="outline"
           onClick={() => navigate("/app/inbox")}
-          className="h-9 rounded-xl text-sm"
+          className="h-9 rounded-xl text-xs"
         >
           Cancel
         </Button>
         <Button
           onClick={handleSave}
           disabled={isSaving || !text.trim()}
-          className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-sm px-6"
+          className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-6"
           data-testid="button-save-action"
         >
           {isSaving ? <SpinnerGap className="h-4 w-4 animate-spin mr-1.5" /> : <FloppyDisk className="h-4 w-4 mr-1.5" weight="duotone" />}

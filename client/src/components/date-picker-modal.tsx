@@ -197,7 +197,7 @@ export function DatePickerModal({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-2 w-full px-3 py-2 rounded-xl hover:bg-accent transition-colors text-sm"
+          className="flex items-center gap-2 w-full px-3 py-2 rounded-xl hover:bg-accent transition-colors text-xs"
           data-testid="button-datepicker-reminder"
         >
           <BellRinging className="h-4 w-4 text-muted-foreground" weight="duotone" />
@@ -209,7 +209,7 @@ export function DatePickerModal({
           <button
             key={opt.value}
             type="button"
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors"
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-xs hover:bg-accent transition-colors"
             onClick={() => { setLocalReminder(opt.value); setReminderOpen(false); }}
             data-testid={`reminder-option-${opt.value}`}
           >
@@ -226,7 +226,7 @@ export function DatePickerModal({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-2 w-full px-3 py-2 rounded-xl hover:bg-accent transition-colors text-sm"
+          className="flex items-center gap-2 w-full px-3 py-2 rounded-xl hover:bg-accent transition-colors text-xs"
           data-testid="button-datepicker-repeat"
         >
           <ArrowsClockwise className="h-4 w-4 text-muted-foreground" weight="duotone" />
@@ -238,7 +238,7 @@ export function DatePickerModal({
           <button
             key={opt.value ?? "none"}
             type="button"
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors"
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-xs hover:bg-accent transition-colors"
             onClick={() => {
               setLocalRecurrence(opt.value);
               if (!opt.value) {
@@ -263,7 +263,7 @@ export function DatePickerModal({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-2 w-full px-3 py-2 rounded-xl hover:bg-accent transition-colors text-sm"
+          className="flex items-center gap-2 w-full px-3 py-2 rounded-xl hover:bg-accent transition-colors text-xs"
           data-testid="button-datepicker-repeat-ends"
         >
           <Repeat className="h-4 w-4 text-muted-foreground" weight="duotone" />
@@ -279,7 +279,7 @@ export function DatePickerModal({
           <button
             key={opt.value}
             type="button"
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors"
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-xs hover:bg-accent transition-colors"
             onClick={() => {
               setLocalRepeatEnds(opt.value);
               if (opt.value === "endless") {
@@ -301,7 +301,7 @@ export function DatePickerModal({
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className="w-full text-left px-2 py-1.5 rounded-lg text-sm hover:bg-accent border border-border"
+                  className="w-full text-left px-2 py-1.5 rounded-lg text-xs hover:bg-accent border border-border"
                   data-testid="button-repeat-end-date"
                 >
                   {localRepeatEndDate ? format(localRepeatEndDate, "d MMM yyyy") : "Select end date"}
@@ -325,7 +325,7 @@ export function DatePickerModal({
               value={localRepeatEndCount ?? ""}
               onChange={(e) => setLocalRepeatEndCount(e.target.value ? parseInt(e.target.value) : null)}
               placeholder="Number of repeats"
-              className="h-8 text-sm"
+              className="h-8 text-xs"
               data-testid="input-repeat-end-count"
             />
           </div>
@@ -361,7 +361,7 @@ export function DatePickerModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-[300px] p-0 gap-0 bg-card border-border rounded-2xl overflow-hidden"
+        className="sm:max-w-[340px] p-0 gap-0 bg-card border-border rounded-2xl overflow-hidden"
         data-testid="dialog-datepicker"
       >
         <div className="flex items-center gap-1 px-3 pt-3 pb-2">
@@ -469,12 +469,12 @@ export function DatePickerModal({
             <div className="space-y-0.5 px-0 py-1">
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-accent transition-colors">
                 <Clock className="h-4 w-4 text-muted-foreground" weight="duotone" />
-                <span className="text-sm text-foreground flex-1">Time</span>
+                <span className="text-xs text-foreground flex-1">Time</span>
                 <Input
                   type="time"
                   value={localTime}
                   onChange={(e) => setLocalTime(e.target.value)}
-                  className="h-7 w-24 text-sm border-none bg-accent/50 rounded-lg text-right px-2"
+                  className="h-7 w-24 text-xs border-none bg-accent/50 rounded-lg text-right px-2"
                   data-testid="input-datepicker-time"
                 />
               </div>
@@ -495,7 +495,7 @@ export function DatePickerModal({
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="flex-1 text-left px-2 py-1.5 rounded-lg text-sm border border-border hover:bg-accent transition-colors"
+                      className="flex-1 text-left px-2 py-1.5 rounded-lg text-xs border border-border hover:bg-accent transition-colors"
                       data-testid="button-duration-start-date"
                     >
                       {localDate ? format(localDate, "d MMM yyyy") : "Select date"}
@@ -514,7 +514,7 @@ export function DatePickerModal({
                     type="time"
                     value={localTime}
                     onChange={(e) => setLocalTime(e.target.value)}
-                    className="h-8 w-24 text-sm"
+                    className="h-8 w-24 text-xs"
                     data-testid="input-duration-start-time"
                   />
                 )}
@@ -525,7 +525,7 @@ export function DatePickerModal({
                   <PopoverTrigger asChild>
                     <button
                       type="button"
-                      className="flex-1 text-left px-2 py-1.5 rounded-lg text-sm border border-border hover:bg-accent transition-colors"
+                      className="flex-1 text-left px-2 py-1.5 rounded-lg text-xs border border-border hover:bg-accent transition-colors"
                       data-testid="button-duration-end-date"
                     >
                       {localEndDate ? format(localEndDate, "d MMM yyyy") : "Select date"}
@@ -544,13 +544,13 @@ export function DatePickerModal({
                     type="time"
                     value={localEndTime}
                     onChange={(e) => setLocalEndTime(e.target.value)}
-                    className="h-8 w-24 text-sm"
+                    className="h-8 w-24 text-xs"
                     data-testid="input-duration-end-time"
                   />
                 )}
               </div>
               <div className="flex items-center justify-between px-1 py-1">
-                <span className="text-sm text-foreground">All Day</span>
+                <span className="text-xs text-foreground">All Day</span>
                 <Switch
                   checked={localAllDay}
                   onCheckedChange={setLocalAllDay}
