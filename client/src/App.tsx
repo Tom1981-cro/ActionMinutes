@@ -27,7 +27,6 @@ import MobileBuildGuidePage from "@/pages/mobile-build-guide";
 import StoreScreensPage from "@/pages/store-screens";
 import MarketingPage from "@/pages/marketing";
 import TestingGuidePage from "@/pages/testing-guide";
-import InvitePage from "@/pages/invite";
 import AgendaPage from "@/pages/agenda";
 import GuidePage from "@/pages/guide";
 import AboutPage from "@/pages/about";
@@ -91,7 +90,6 @@ function Router() {
       <Route path="/store-screens" component={StoreScreensPage} />
       <Route path="/marketing" component={MarketingPage} />
       <Route path="/help/testing" component={TestingGuidePage} />
-      <Route path="/invite/:token" component={InvitePage} />
       
       {/* Onboarding (after login but before full app access) */}
       <Route path="/app/onboarding">

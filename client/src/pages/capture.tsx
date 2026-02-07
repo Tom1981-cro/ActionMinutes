@@ -222,7 +222,6 @@ export default function CapturePage() {
           date: new Date(date),
           rawNotes: notes,
           parseState: 'draft',
-          workspaceId: null,
         });
       }
       
@@ -276,7 +275,6 @@ export default function CapturePage() {
           date: new Date(date),
           rawNotes: notes,
           parseState: 'draft',
-          workspaceId: null,
         });
       }
       await saveAttendees(meeting.id);

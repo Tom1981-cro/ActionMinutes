@@ -19,7 +19,6 @@ export interface PlanCapabilities {
   unlimitedTranscription: boolean;
   unlimitedHistory: boolean;
   emailIntegrations: boolean;
-  workspaces: boolean;
   teamSeats: boolean;
   prioritySupport: boolean;
   personalMode: boolean;
@@ -79,7 +78,6 @@ export function usePlan() {
   };
   
   const canUseEmailIntegrations = planInfo?.capabilities?.emailIntegrations ?? false;
-  const canUseWorkspaces = planInfo?.capabilities?.workspaces ?? false;
   const canUseTeamSeats = planInfo?.capabilities?.teamSeats ?? false;
   const hasPrioritySupport = planInfo?.capabilities?.prioritySupport ?? false;
   
@@ -120,7 +118,6 @@ export function usePlan() {
     canUseAiExtraction,
     canUseTranscription,
     canUseEmailIntegrations,
-    canUseWorkspaces,
     canUseTeamSeats,
     hasPrioritySupport,
     getAiUsagePercent,

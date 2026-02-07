@@ -73,7 +73,7 @@ export default function SettingsPrivacyPage() {
             <ul className="list-disc pl-5 space-y-2">
               <li><strong className="text-foreground">Encryption:</strong> All data is encrypted using AES-256 at rest and TLS 1.3 in transit.</li>
               <li><strong className="text-foreground">Access Controls:</strong> Strict internal access policies ensure that no ActionMinutes personnel can view your meeting content without explicit technical necessity and user authorization.</li>
-              <li><strong className="text-foreground">Workspace Isolation:</strong> Team data is logically isolated. Members of one workspace cannot access data from another unless specifically invited.</li>
+              <li><strong className="text-foreground">Data Isolation:</strong> User data is logically isolated with strict access controls.</li>
             </ul>
           </CardContent>
         </Card>

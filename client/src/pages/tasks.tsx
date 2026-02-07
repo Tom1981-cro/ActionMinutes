@@ -115,10 +115,8 @@ function getDueDateColor(dateStr: string | null): string {
 }
 
 export default function TasksPage() {
-  const { user, currentWorkspaceId, workspaces } = useStore();
+  const { user } = useStore();
   const { toast } = useToast();
-  
-  const activeWorkspace = workspaces.find(w => w.id === currentWorkspaceId);
   const queryClient = useQueryClient();
   
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
@@ -136,11 +134,9 @@ export default function TasksPage() {
   const parseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: tasks = [], isLoading: tasksLoading } = useQuery<Task[]>({
-    queryKey: ["tasks", user?.id, currentWorkspaceId],
+    queryKey: ["tasks", user?.id],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (currentWorkspaceId) params.set("workspaceId", currentWorkspaceId);
-      const res = await authenticatedFetch(`/api/tasks?${params}`);
+      const res = await authenticatedFetch(`/api/tasks`);
       if (!res.ok) throw new Error("Failed to fetch tasks");
       return res.json();
     },
@@ -148,11 +144,9 @@ export default function TasksPage() {
   });
 
   const { data: projects = [] } = useQuery<Project[]>({
-    queryKey: ["projects", user?.id, currentWorkspaceId],
+    queryKey: ["projects", user?.id],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (currentWorkspaceId) params.set("workspaceId", currentWorkspaceId);
-      const res = await authenticatedFetch(`/api/projects?${params}`);
+      const res = await authenticatedFetch(`/api/projects`);
       if (!res.ok) throw new Error("Failed to fetch projects");
       return res.json();
     },
@@ -165,8 +159,7 @@ export default function TasksPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
-          input, 
-          workspaceId: currentWorkspaceId,
+          input,
         }),
       });
       if (!res.ok) throw new Error("Failed to parse task");
@@ -179,10 +172,7 @@ export default function TasksPage() {
       const res = await authenticatedFetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          workspaceId: currentWorkspaceId || null,
-          ...taskData,
-        }),
+        body: JSON.stringify(taskData),
       });
       if (!res.ok) throw new Error("Failed to create task");
       return res.json();
@@ -253,7 +243,6 @@ export default function TasksPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          workspaceId: currentWorkspaceId || null,
           name,
           keywords: parsedTask?.suggestedProjectKeywords || [],
         }),

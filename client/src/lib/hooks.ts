@@ -5,10 +5,10 @@ import { authenticatedFetch } from '@/hooks/use-auth';
 
 // ==================== MEETINGS ====================
 export function useMeetings() {
-  const { user, currentWorkspaceId } = useStore();
+  const { user } = useStore();
   return useQuery({
-    queryKey: ['meetings', user.id, currentWorkspaceId],
-    queryFn: () => api.meetings.list(user.id, currentWorkspaceId || undefined),
+    queryKey: ['meetings', user.id],
+    queryFn: () => api.meetings.list(user.id),
     enabled: !!user.id && user.isAuthenticated,
   });
 }
@@ -23,12 +23,12 @@ export function useMeeting(id: string | undefined) {
 
 export function useCreateMeeting() {
   const queryClient = useQueryClient();
-  const { user, currentWorkspaceId } = useStore();
+  const { user } = useStore();
   
   return useMutation({
     mutationFn: api.meetings.create,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['meetings', user.id, currentWorkspaceId] });
+      queryClient.invalidateQueries({ queryKey: ['meetings', user.id] });
     },
   });
 }
@@ -48,12 +48,12 @@ export function useUpdateMeeting() {
 
 export function useDeleteMeeting() {
   const queryClient = useQueryClient();
-  const { user, currentWorkspaceId } = useStore();
+  const { user } = useStore();
   
   return useMutation({
     mutationFn: api.meetings.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['meetings', user.id, currentWorkspaceId] });
+      queryClient.invalidateQueries({ queryKey: ['meetings', user.id] });
     },
   });
 }
@@ -105,10 +105,10 @@ export function useGenerateDrafts() {
 
 // ==================== ACTION ITEMS ====================
 export function useActionItems() {
-  const { user, currentWorkspaceId } = useStore();
+  const { user } = useStore();
   return useQuery({
-    queryKey: ['actions', user.id, currentWorkspaceId],
-    queryFn: () => api.actions.list(user.id, currentWorkspaceId || undefined),
+    queryKey: ['actions', user.id],
+    queryFn: () => api.actions.list(user.id),
     enabled: !!user.id && user.isAuthenticated,
   });
 }
@@ -170,10 +170,10 @@ export function useCreateActionItem() {
 
 // ==================== DRAFTS ====================
 export function useDrafts() {
-  const { user, currentWorkspaceId } = useStore();
+  const { user } = useStore();
   return useQuery({
-    queryKey: ['drafts', user.id, currentWorkspaceId],
-    queryFn: () => api.drafts.list(user.id, currentWorkspaceId || undefined),
+    queryKey: ['drafts', user.id],
+    queryFn: () => api.drafts.list(user.id),
     enabled: !!user.id && user.isAuthenticated,
   });
 }
@@ -236,99 +236,6 @@ export function useUpdateUser() {
   });
 }
 
-// ==================== WORKSPACES ====================
-export function useWorkspaces() {
-  const { user, setWorkspaces, currentWorkspaceId, setCurrentWorkspace } = useStore();
-  return useQuery({
-    queryKey: ['workspaces', user.id],
-    queryFn: async () => {
-      const workspaces = await api.workspaces.list(user.id);
-      setWorkspaces(workspaces.map((w: any) => ({ id: w.id, name: w.name, role: w.role || 'member' })));
-      // Auto-select first workspace if none selected
-      if (!currentWorkspaceId && workspaces.length > 0) {
-        setCurrentWorkspace(workspaces[0].id);
-      }
-      return workspaces;
-    },
-    enabled: !!user.id && user.isAuthenticated,
-  });
-}
-
-export function useWorkspace(id: string | undefined) {
-  return useQuery({
-    queryKey: ['workspaces', id],
-    queryFn: () => api.workspaces.get(id!),
-    enabled: !!id,
-  });
-}
-
-export function useCreateWorkspace() {
-  const queryClient = useQueryClient();
-  const { user } = useStore();
-  
-  return useMutation({
-    mutationFn: (name: string) => api.workspaces.create({ name, createdByUserId: user.id }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['workspaces', user.id] });
-    },
-  });
-}
-
-export function useWorkspaceMembers(workspaceId: string | undefined) {
-  return useQuery({
-    queryKey: ['workspace-members', workspaceId],
-    queryFn: () => api.workspaces.getMembers(workspaceId!),
-    enabled: !!workspaceId,
-  });
-}
-
-export function useInviteMember() {
-  const queryClient = useQueryClient();
-  const { user } = useStore();
-  
-  return useMutation({
-    mutationFn: ({ workspaceId, email, role }: { workspaceId: string; email: string; role: string }) => 
-      api.workspaces.createInvite(workspaceId, email, role, user.id),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['workspace-invites', variables.workspaceId] });
-    },
-  });
-}
-
-export function useWorkspaceInvites(workspaceId: string | undefined) {
-  return useQuery({
-    queryKey: ['workspace-invites', workspaceId],
-    queryFn: () => api.workspaces.getInvites(workspaceId!),
-    enabled: !!workspaceId,
-  });
-}
-
-export function useUpdateMemberRole() {
-  const queryClient = useQueryClient();
-  const { user } = useStore();
-  
-  return useMutation({
-    mutationFn: ({ workspaceId, memberId, role }: { workspaceId: string; memberId: string; role: string }) => 
-      api.workspaces.updateMember(workspaceId, memberId, { role }, user.id),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['workspace-members', variables.workspaceId] });
-    },
-  });
-}
-
-export function useRemoveMember() {
-  const queryClient = useQueryClient();
-  const { user } = useStore();
-  
-  return useMutation({
-    mutationFn: ({ workspaceId, memberId }: { workspaceId: string; memberId: string }) => 
-      api.workspaces.removeMember(workspaceId, memberId, user.id),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['workspace-members', variables.workspaceId] });
-    },
-  });
-}
-
 // ==================== INTEGRATIONS ====================
 export function useIntegrations() {
   const { user } = useStore();
@@ -363,10 +270,10 @@ export function useCalendarExports() {
 
 // ==================== AI AUDIT LOGS ====================
 export function useAiAuditLogs() {
-  const { user, currentWorkspaceId } = useStore();
+  const { user } = useStore();
   return useQuery({
-    queryKey: ['ai-audit-logs', user.id, currentWorkspaceId],
-    queryFn: () => api.aiAuditLogs.list(user.id, currentWorkspaceId || undefined),
+    queryKey: ['ai-audit-logs', user.id],
+    queryFn: () => api.aiAuditLogs.list(user.id),
     enabled: !!user.id && user.isAuthenticated,
   });
 }

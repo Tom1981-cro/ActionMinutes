@@ -24,23 +24,13 @@ interface User {
   subscriptionPlan?: string;
 }
 
-interface Workspace {
-  id: string;
-  name: string;
-  role: string;
-}
-
 interface AppState {
   user: User;
   theme: Theme;
-  currentWorkspaceId: string | null;
-  workspaces: Workspace[];
   setUser: (user: User) => void;
   login: () => void;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
-  setCurrentWorkspace: (workspaceId: string | null) => void;
-  setWorkspaces: (workspaces: Workspace[]) => void;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
 }
@@ -65,8 +55,6 @@ export const useStore = create<AppState>()(
       },
 
       theme: "dark" as Theme,
-      currentWorkspaceId: null,
-      workspaces: [],
 
       setUser: (user) => set({ user: { ...user, isAuthenticated: true } }),
 
@@ -90,17 +78,11 @@ export const useStore = create<AppState>()(
           hasCompletedTutorial: false,
           isAuthenticated: false,
         },
-        currentWorkspaceId: null,
-        workspaces: [],
       }),
 
       updateUser: (updates) => set((state) => ({
         user: { ...state.user, ...updates }
       })),
-
-      setCurrentWorkspace: (workspaceId) => set({ currentWorkspaceId: workspaceId }),
-
-      setWorkspaces: (workspaces) => set({ workspaces }),
 
       setTheme: (theme) => set({ theme }),
 

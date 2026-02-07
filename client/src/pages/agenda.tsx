@@ -1,4 +1,3 @@
-import { useStore } from "@/lib/store";
 import { useActionItems, useUpdateActionItem } from "@/lib/hooks";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -90,7 +89,6 @@ function AgendaSection({
 
 export default function AgendaPage() {
   const { user } = useAuth();
-  const { currentWorkspaceId } = useStore();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   

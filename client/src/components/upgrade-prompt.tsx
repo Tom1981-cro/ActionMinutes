@@ -6,7 +6,7 @@ import { useLocation } from "wouter";
 import { Lightning, Sparkle, Crown, ArrowRight, Lock } from "@phosphor-icons/react";
 
 interface UpgradePromptProps {
-  feature: 'ai_extraction' | 'transcription' | 'email_integration' | 'workspaces' | 'analytics';
+  feature: 'ai_extraction' | 'transcription' | 'email_integration' | 'analytics';
   usagePercent?: number;
   currentUsage?: number;
   limit?: number;
@@ -26,10 +26,6 @@ const featureMessages: Record<string, { title: string; description: string }> = 
   email_integration: {
     title: "Email Integrations",
     description: "Connect Gmail and Outlook to send follow-up emails directly from ActionMinutes.",
-  },
-  workspaces: {
-    title: "Workspaces",
-    description: "Create workspaces to organize your meetings and action items.",
   },
   analytics: {
     title: "Advanced Analytics",
@@ -160,7 +156,7 @@ export function UsageBadge({ used, limit, unlimited, label }: UsageBadgeProps) {
 }
 
 interface FeatureGateProps {
-  feature: 'ai_extraction' | 'transcription' | 'email_integration' | 'workspaces' | 'analytics';
+  feature: 'ai_extraction' | 'transcription' | 'email_integration' | 'analytics';
   hasAccess: boolean;
   usagePercent?: number;
   currentUsage?: number;

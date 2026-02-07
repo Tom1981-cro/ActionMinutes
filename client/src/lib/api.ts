@@ -36,48 +36,8 @@ export const api = {
     }),
   },
 
-  workspaces: {
-    list: (userId: string) => fetchJSON(`${API_BASE}/api/workspaces?userId=${userId}`),
-    get: (id: string) => fetchJSON(`${API_BASE}/api/workspaces/${id}`),
-    create: (workspace: any) => fetchJSON(`${API_BASE}/api/workspaces`, {
-      method: 'POST',
-      body: JSON.stringify(workspace),
-    }),
-    update: (id: string, updates: any, userId: string) => fetchJSON(`${API_BASE}/api/workspaces/${id}?userId=${userId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(updates),
-    }),
-    delete: (id: string, userId: string) => fetchJSON(`${API_BASE}/api/workspaces/${id}?userId=${userId}`, {
-      method: 'DELETE',
-    }),
-    getMembers: (id: string) => fetchJSON(`${API_BASE}/api/workspaces/${id}/members`),
-    addMember: (workspaceId: string, member: any, userId: string) => fetchJSON(`${API_BASE}/api/workspaces/${workspaceId}/members?userId=${userId}`, {
-      method: 'POST',
-      body: JSON.stringify(member),
-    }),
-    updateMember: (workspaceId: string, memberId: string, updates: any, userId: string) => fetchJSON(`${API_BASE}/api/workspaces/${workspaceId}/members/${memberId}?userId=${userId}`, {
-      method: 'PATCH',
-      body: JSON.stringify(updates),
-    }),
-    removeMember: (workspaceId: string, memberId: string, userId: string) => fetchJSON(`${API_BASE}/api/workspaces/${workspaceId}/members/${memberId}?userId=${userId}`, {
-      method: 'DELETE',
-    }),
-    getInvites: (id: string) => fetchJSON(`${API_BASE}/api/workspaces/${id}/invites`),
-    createInvite: (workspaceId: string, email: string, role: string, userId: string) => fetchJSON(`${API_BASE}/api/workspaces/${workspaceId}/invites?userId=${userId}`, {
-      method: 'POST',
-      body: JSON.stringify({ email, role }),
-    }),
-    deleteInvite: (workspaceId: string, inviteId: string, userId: string) => fetchJSON(`${API_BASE}/api/workspaces/${workspaceId}/invites/${inviteId}?userId=${userId}`, {
-      method: 'DELETE',
-    }),
-    acceptInvite: (token: string, userId: string) => fetchJSON(`${API_BASE}/api/invites/${token}/accept`, {
-      method: 'POST',
-      body: JSON.stringify({ userId }),
-    }),
-  },
-
   meetings: {
-    list: (userId: string, workspaceId?: string) => fetchJSON(`${API_BASE}/api/meetings?userId=${userId}${workspaceId ? `&workspaceId=${workspaceId}` : ''}`),
+    list: (userId: string) => fetchJSON(`${API_BASE}/api/meetings?userId=${userId}`),
     get: (id: string) => fetchJSON(`${API_BASE}/api/meetings/${id}`),
     create: (meeting: any) => fetchJSON(`${API_BASE}/api/meetings`, {
       method: 'POST',
@@ -119,7 +79,7 @@ export const api = {
   },
 
   actions: {
-    list: (userId: string, workspaceId?: string) => fetchJSON(`${API_BASE}/api/actions?userId=${userId}${workspaceId ? `&workspaceId=${workspaceId}` : ''}`),
+    list: (userId: string) => fetchJSON(`${API_BASE}/api/actions?userId=${userId}`),
     listForMeeting: (meetingId: string) => fetchJSON(`${API_BASE}/api/actions?meetingId=${meetingId}`),
     get: (id: string) => fetchJSON(`${API_BASE}/api/actions/${id}`),
     create: (action: any) => fetchJSON(`${API_BASE}/api/actions`, {
@@ -136,7 +96,7 @@ export const api = {
   },
 
   drafts: {
-    list: (userId: string, workspaceId?: string) => fetchJSON(`${API_BASE}/api/drafts?userId=${userId}${workspaceId ? `&workspaceId=${workspaceId}` : ''}`),
+    list: (userId: string) => fetchJSON(`${API_BASE}/api/drafts?userId=${userId}`),
     listForMeeting: (meetingId: string) => fetchJSON(`${API_BASE}/api/drafts?meetingId=${meetingId}`),
     get: (id: string) => fetchJSON(`${API_BASE}/api/drafts/${id}`),
     create: (draft: any) => fetchJSON(`${API_BASE}/api/drafts`, {
@@ -172,7 +132,7 @@ export const api = {
   },
 
   aiAuditLogs: {
-    list: (userId: string, workspaceId?: string) => fetchJSON(`${API_BASE}/api/ai-audit-logs?userId=${userId}${workspaceId ? `&workspaceId=${workspaceId}` : ''}`),
+    list: (userId: string) => fetchJSON(`${API_BASE}/api/ai-audit-logs?userId=${userId}`),
     listForMeeting: (meetingId: string) => fetchJSON(`${API_BASE}/api/ai-audit-logs?meetingId=${meetingId}`),
   },
 };

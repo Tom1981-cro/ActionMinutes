@@ -189,7 +189,7 @@ const screens = [
   {
     id: 5,
     title: "Team: assign & track",
-    subtitle: "Role-based permissions and workspace management",
+    subtitle: "Role-based permissions and team management",
     content: (
       <div className="space-y-4">
         <div className="bg-card rounded-2xl p-5 shadow-soft border border-border">
