@@ -1631,7 +1631,7 @@ Thanks!`,
     if (!meeting || meeting.userId !== userId) {
       return res.status(404).json({ error: "Action item not found" });
     }
-    const listItem = await storage.getListItemByTaskId(req.params.id);
+    const listItem = await storage.getListItemByActionItemId(req.params.id);
     if (!listItem) {
       return res.json({ listId: null, listName: null, listIcon: null });
     }
@@ -1656,15 +1656,15 @@ Thanks!`,
       if (!targetList || targetList.userId !== userId) {
         return res.status(403).json({ error: "Target list not found" });
       }
-      await storage.removeItemByTaskId(req.params.id);
+      await storage.removeItemByActionItemId(req.params.id);
       await storage.addItemToList({
         listId: targetListId,
-        taskId: req.params.id,
+        actionItemId: req.params.id,
         position: 0,
       });
       res.json({ listId: targetListId, listName: targetList.name, listIcon: targetList.icon });
     } else {
-      await storage.removeItemByTaskId(req.params.id);
+      await storage.removeItemByActionItemId(req.params.id);
       res.json({ listId: null, listName: null, listIcon: null });
     }
   });

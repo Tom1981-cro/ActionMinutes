@@ -292,14 +292,16 @@ export interface IStorage {
   
   // Custom List Items
   getCustomListItems(listId: string): Promise<CustomListItem[]>;
-  getCustomListItemsWithDetails(listId: string, userId: string): Promise<(CustomListItem & { reminder?: any; task?: any })[]>;
+  getCustomListItemsWithDetails(listId: string, userId: string): Promise<(CustomListItem & { reminder?: any; task?: any; actionItem?: any })[]>;
   addItemToList(item: InsertCustomListItem): Promise<CustomListItem>;
   getCustomListItem(id: string): Promise<CustomListItem | undefined>;
   getListItemByReminderId(reminderId: string): Promise<(CustomListItem & { listName: string; listIcon?: string | null }) | undefined>;
   getListItemByTaskId(taskId: string): Promise<(CustomListItem & { listName: string; listIcon?: string | null }) | undefined>;
+  getListItemByActionItemId(actionItemId: string): Promise<(CustomListItem & { listName: string; listIcon?: string | null }) | undefined>;
   removeItemFromList(id: string, listId: string): Promise<void>;
   removeItemByReminderId(reminderId: string): Promise<void>;
   removeItemByTaskId(taskId: string): Promise<void>;
+  removeItemByActionItemId(actionItemId: string): Promise<void>;
   updateListItemPosition(id: string, position: number): Promise<void>;
   
   // Global Tags
@@ -1454,6 +1456,7 @@ export class DatabaseStorage implements IStorage {
       listId: customListItems.listId,
       reminderId: customListItems.reminderId,
       taskId: customListItems.taskId,
+      actionItemId: customListItems.actionItemId,
       position: customListItems.position,
       createdAt: customListItems.createdAt,
       listName: customLists.name,
@@ -1478,6 +1481,7 @@ export class DatabaseStorage implements IStorage {
       listId: customListItems.listId,
       reminderId: customListItems.reminderId,
       taskId: customListItems.taskId,
+      actionItemId: customListItems.actionItemId,
       position: customListItems.position,
       createdAt: customListItems.createdAt,
       listName: customLists.name,
@@ -1494,8 +1498,31 @@ export class DatabaseStorage implements IStorage {
     await db.delete(customListItems).where(eq(customListItems.reminderId, reminderId));
   }
 
+  async getListItemByActionItemId(actionItemId: string): Promise<(CustomListItem & { listName: string; listIcon?: string | null }) | undefined> {
+    const results = await db.select({
+      id: customListItems.id,
+      listId: customListItems.listId,
+      reminderId: customListItems.reminderId,
+      taskId: customListItems.taskId,
+      actionItemId: customListItems.actionItemId,
+      position: customListItems.position,
+      createdAt: customListItems.createdAt,
+      listName: customLists.name,
+      listIcon: customLists.icon,
+    })
+    .from(customListItems)
+    .innerJoin(customLists, eq(customListItems.listId, customLists.id))
+    .where(eq(customListItems.actionItemId, actionItemId))
+    .limit(1);
+    return results[0] || undefined;
+  }
+
   async removeItemByTaskId(taskId: string): Promise<void> {
     await db.delete(customListItems).where(eq(customListItems.taskId, taskId));
+  }
+
+  async removeItemByActionItemId(actionItemId: string): Promise<void> {
+    await db.delete(customListItems).where(eq(customListItems.actionItemId, actionItemId));
   }
 
   async updateListItemPosition(id: string, position: number): Promise<void> {
@@ -1504,7 +1531,7 @@ export class DatabaseStorage implements IStorage {
       .where(eq(customListItems.id, id));
   }
 
-  async getCustomListItemsWithDetails(listId: string, userId: string): Promise<(CustomListItem & { reminder?: any; task?: any })[]> {
+  async getCustomListItemsWithDetails(listId: string, userId: string): Promise<(CustomListItem & { reminder?: any; task?: any; actionItem?: any })[]> {
     const items = await db.select().from(customListItems)
       .where(eq(customListItems.listId, listId))
       .orderBy(customListItems.position);
@@ -1513,6 +1540,7 @@ export class DatabaseStorage implements IStorage {
     for (const item of items) {
       let reminder = undefined;
       let task = undefined;
+      let actionItem = undefined;
       
       if (item.reminderId) {
         const r = await this.getPersonalReminder(item.reminderId);
@@ -1526,8 +1554,17 @@ export class DatabaseStorage implements IStorage {
           task = t;
         }
       }
+      if (item.actionItemId) {
+        const a = await this.getActionItem(item.actionItemId);
+        if (a) {
+          const meeting = await this.getMeeting(a.meetingId);
+          if (meeting && meeting.userId === userId) {
+            actionItem = a;
+          }
+        }
+      }
       
-      result.push({ ...item, reminder, task });
+      result.push({ ...item, reminder, task, actionItem });
     }
     
     return result;

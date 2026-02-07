@@ -38,6 +38,7 @@ type CustomListItem = {
   listId: string;
   reminderId?: string;
   taskId?: string;
+  actionItemId?: string;
   position: number;
   reminder?: {
     id: string;
@@ -51,20 +52,39 @@ type CustomListItem = {
     ownerName?: string;
     waitingFor?: string;
   };
+  actionItem?: {
+    id: string;
+    text: string;
+    dueDate?: string;
+    status?: string;
+    ownerName?: string;
+    tags?: string[];
+  };
 };
 
 function TaskCard({ item, listId, listName }: { item: CustomListItem; listId: string; listName: string }) {
   const [, navigate] = useLocation();
   const r = item.reminder;
-  if (!r) return null;
+  const a = item.actionItem;
+  if (!r && !a) return null;
 
-  const isOverdue = r.dueDate && new Date(r.dueDate) < new Date();
-  const priorityColor = r.priority === 'high' || r.priority === 'urgent' ? 'text-red-500' :
-    r.priority === 'normal' || r.priority === 'medium' ? 'text-amber-500' :
-    r.priority === 'low' ? 'text-emerald-500' : '';
+  const text = r?.text || a?.text || "";
+  const dueDate = r?.dueDate || a?.dueDate;
+  const status = r?.status || (r?.isCompleted ? 'done' : undefined) || a?.status || 'open';
+  const ownerName = r?.ownerName || a?.ownerName;
+  const priority = r?.priority;
+
+  const isOverdue = dueDate && new Date(dueDate) < new Date();
+  const priorityColor = priority === 'high' || priority === 'urgent' ? 'text-red-500' :
+    priority === 'normal' || priority === 'medium' ? 'text-amber-500' :
+    priority === 'low' ? 'text-emerald-500' : '';
 
   const handleClick = () => {
-    navigate(`/app/action/reminder/${r.id}?from=list&listId=${listId}&listName=${encodeURIComponent(listName)}`);
+    if (r) {
+      navigate(`/app/action/reminder/${r.id}?from=list&listId=${listId}&listName=${encodeURIComponent(listName)}`);
+    } else if (a) {
+      navigate(`/app/action/meeting/${a.id}?from=list&listId=${listId}&listName=${encodeURIComponent(listName)}`);
+    }
   };
 
   return (
@@ -76,45 +96,45 @@ function TaskCard({ item, listId, listName }: { item: CustomListItem; listId: st
       <CardContent className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
         <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
           <p className="text-sm font-medium leading-snug text-foreground group-hover:text-primary transition-colors flex-1 min-w-0">
-            {r.text}
+            {text}
           </p>
           <div className="flex items-center justify-between sm:justify-end gap-2">
-            <StatusBadge status={r.status || (r.isCompleted ? 'done' : 'open')} size="sm" />
-            {r.dueDate && (
+            <StatusBadge status={status} size="sm" />
+            {dueDate && (
               <span className={cn("text-xs sm:hidden", isOverdue ? "text-destructive" : "text-muted-foreground")}>
-                {format(new Date(r.dueDate), "d MMM")}
+                {format(new Date(dueDate), "d MMM")}
               </span>
             )}
           </div>
         </div>
-        {r.dueDate && (
+        {dueDate && (
           <span className={cn("text-xs hidden sm:block mt-1", isOverdue ? "text-destructive" : "text-muted-foreground")}>
-            {format(new Date(r.dueDate), "d MMM yyyy")}
+            {format(new Date(dueDate), "d MMM yyyy")}
             {isOverdue && " (overdue)"}
           </span>
         )}
-        {r.description && (
+        {r?.description && (
           <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-snug">{r.description}</p>
         )}
       </CardContent>
       <CardFooter className="pt-0 px-4 pb-4 md:px-6 md:pb-4 text-xs text-muted-foreground flex justify-between items-center">
         <span className="flex items-center gap-3 flex-wrap">
-          {r.ownerName && (
+          {ownerName && (
             <span className="flex items-center gap-1">
               <User className="h-3.5 w-3.5" weight="duotone" />
-              {r.ownerName}
+              {ownerName}
             </span>
           )}
-          {r.waitingFor && (
+          {r?.waitingFor && (
             <span className="flex items-center gap-1 text-amber-500">
               <Hourglass className="h-3.5 w-3.5" weight="duotone" />
               {r.waitingFor}
             </span>
           )}
-          {r.priority && r.priority !== 'normal' && r.priority !== 'none' && (
+          {priority && priority !== 'normal' && priority !== 'none' && (
             <span className={cn("flex items-center gap-1", priorityColor)}>
               <Flag className="h-3.5 w-3.5" weight="fill" />
-              {r.priority}
+              {priority}
             </span>
           )}
         </span>
@@ -207,8 +227,16 @@ export default function ListPage() {
   }
 
   const IconComp = list.icon ? (LIST_ICON_MAP[list.icon] || ListBullets) : ListBullets;
-  const activeItems = list.items?.filter(i => i.reminder && !i.reminder.isCompleted) || [];
-  const completedItems = list.items?.filter(i => i.reminder?.isCompleted) || [];
+  const activeItems = list.items?.filter(i => {
+    if (i.reminder) return !i.reminder.isCompleted;
+    if (i.actionItem) return i.actionItem.status !== 'done' && i.actionItem.status !== 'completed';
+    return false;
+  }) || [];
+  const completedItems = list.items?.filter(i => {
+    if (i.reminder) return i.reminder.isCompleted;
+    if (i.actionItem) return i.actionItem.status === 'done' || i.actionItem.status === 'completed';
+    return false;
+  }) || [];
 
   return (
     <div className="space-y-5 pb-6">
