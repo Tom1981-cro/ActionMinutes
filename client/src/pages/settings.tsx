@@ -95,8 +95,8 @@ export default function SettingsPage() {
   const monthlyEquivalent = billingInterval === 'yearly' ? Math.round(prices.yearly / 12 * 10) / 10 : null;
   const openSubscription = tabParam === "subscription";
   
-  const isPro = user.subscriptionPlan === 'pro';
-  const subscriptionStatus = user.subscriptionStatus || 'none';
+  const isPro = isAdmin || user.subscriptionPlan === 'pro';
+  const subscriptionStatus = isAdmin ? 'active' : (user.subscriptionStatus || 'none');
   const isActive = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
   const isPastDue = subscriptionStatus === 'past_due';
   const hasExistingSubscription = user.stripeSubscriptionId && subscriptionStatus !== 'canceled';
