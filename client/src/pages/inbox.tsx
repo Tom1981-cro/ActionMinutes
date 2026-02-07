@@ -231,7 +231,11 @@ export default function InboxPage() {
           </button>
           <button
             onClick={() => setSourceFilter("meetings")}
-            className="px-3 py-1 rounded-full transition-colors hover:text-foreground hover:bg-accent/50 font-medium text-[#ffffff] bg-[#a541ee] pt-[0px] pb-[0px] pl-[16px] pr-[16px] text-[12px]"
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors pt-[0px] pb-[0px] ${
+              sourceFilter === "meetings" 
+                ? 'bg-accent text-foreground border border-border' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+            }`}
             data-testid="source-meetings"
           >
             Meetings
