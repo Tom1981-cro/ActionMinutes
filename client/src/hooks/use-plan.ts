@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "./use-auth";
+import { useAuth, authenticatedFetch } from "./use-auth";
 
 export interface PlanUsage {
   aiExtractions: {
@@ -43,10 +43,7 @@ export interface PlanInfo {
 }
 
 async function fetchPlanInfo(): Promise<PlanInfo> {
-  const token = localStorage.getItem("accessToken");
-  const response = await fetch("/api/users/me/plan", {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
+  const response = await authenticatedFetch("/api/users/me/plan");
   
   if (!response.ok) {
     throw new Error("Failed to fetch plan info");
