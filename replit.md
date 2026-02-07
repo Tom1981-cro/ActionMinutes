@@ -59,8 +59,17 @@ A separate mobile application is developed using Expo React Native, connecting t
     - OpenAI Whisper API (for audio transcription).
     - Tesseract.js (for OCR).
 - **Email/Communication:** Nodemailer.
-- **Authentication:** Passport.js, express-session, connect-pg-simple.
+- **Authentication:** Custom JWT (bcrypt, `server/jwt.ts`), Replit Auth integration.
 - **Frontend Libraries:**
     - Chart.js (`react-chartjs-2`).
     - date-fns.
     - zod.
+
+## Documentation
+
+- `docs/USER_GUIDE.md` — Comprehensive user-facing guide (20 sections covering all features, navigation, keyboard shortcuts, subscription plans)
+- `docs/DEVELOPER_GUIDE.md` — Developer reference (14 sections: architecture, tech stack, project structure, database schema, auth system, full API reference with all actual endpoints, frontend architecture, AI services, theme system, calendar integration, billing, feature links/data flow, missing links/gaps analysis, 40+ suggested features by priority)
+
+## Recent Changes
+
+- **February 2026:** Created comprehensive User Guide and Developer Guide documentation in `docs/` folder. Developer Guide includes accurate API reference verified against actual routes, database schema audit, missing links/gaps analysis, and industry-standard feature suggestions.
