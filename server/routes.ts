@@ -3077,9 +3077,16 @@ Thanks!`,
       const existingTasks = userId ? await storage.getTasksBySource('meeting', meetingId) : [];
       const existingTaskTitles = new Set(existingTasks.filter(t => t.userId === userId).map(t => t.title));
       
+      const safeParseDueDate = (dateStr: string | null | undefined): Date | null => {
+        if (!dateStr) return null;
+        const d = new Date(dateStr);
+        return isNaN(d.getTime()) ? null : d;
+      };
+
       const createdTasks = [];
       for (const item of output.actionItems) {
         const status = mapConfidenceToStatus(item.confidenceOwner, item.confidenceDueDate);
+        const parsedDueDate = safeParseDueDate(item.dueDate);
         const actionItem = await storage.createActionItem({
           meetingId,
           workspaceId: meeting.workspaceId,
@@ -3090,7 +3097,7 @@ Thanks!`,
           confidenceOwner: item.confidenceOwner,
           confidenceDueDate: item.confidenceDueDate,
           tags: [],
-          dueDate: item.dueDate ? new Date(item.dueDate) : null
+          dueDate: parsedDueDate
         });
         
         if (userId && !existingTaskTitles.has(item.text)) {
@@ -3104,7 +3111,7 @@ Thanks!`,
             description: `From meeting: ${meeting.title}`,
             status: status === 'needs_review' ? 'pending' : 'todo',
             priority: taskPriority,
-            dueDate: item.dueDate ? new Date(item.dueDate) : null,
+            dueDate: parsedDueDate,
             recurrence: null,
             recurrenceEndDate: null,
             nextOccurrence: null,
