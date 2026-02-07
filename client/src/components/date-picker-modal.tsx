@@ -307,7 +307,7 @@ export function DatePickerModal({
                   {localRepeatEndDate ? format(localRepeatEndDate, "d MMM yyyy") : "Select end date"}
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
+              <PopoverContent className="w-auto p-0 bg-card border-border rounded-xl overflow-hidden" align="start">
                 <Calendar
                   mode="single"
                   selected={localRepeatEndDate ?? undefined}
@@ -501,7 +501,7 @@ export function DatePickerModal({
                       {localDate ? format(localDate, "d MMM yyyy") : "Select date"}
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
+                  <PopoverContent className="w-auto p-0 bg-card border-border rounded-xl overflow-hidden" align="start">
                     <Calendar
                       mode="single"
                       selected={localDate ?? undefined}
@@ -531,7 +531,7 @@ export function DatePickerModal({
                       {localEndDate ? format(localEndDate, "d MMM yyyy") : "Select date"}
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
+                  <PopoverContent className="w-auto p-0 bg-card border-border rounded-xl overflow-hidden" align="start">
                     <Calendar
                       mode="single"
                       selected={localEndDate ?? undefined}

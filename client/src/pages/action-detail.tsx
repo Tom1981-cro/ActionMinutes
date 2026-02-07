@@ -371,11 +371,16 @@ export default function ActionDetailPage() {
           Back to Inbox
         </button>
         <div className="flex items-center gap-1">
-          {itemType === "meeting" && (
-            <Badge variant="outline" className="text-[10px] rounded-full">
-              <Lightning className="h-3 w-3 mr-0.5" weight="fill" />
+          {itemType === "meeting" && item?.meetingId && (
+            <button
+              type="button"
+              onClick={() => navigate(`/app/meeting/${item.meetingId}`)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 transition-colors cursor-pointer"
+              data-testid="button-go-to-meeting"
+            >
+              <Lightning className="h-3 w-3" weight="fill" />
               From meeting
-            </Badge>
+            </button>
           )}
           {item.sourceType === "addaction" && (
             <Badge variant="outline" className="text-[10px] rounded-full">
@@ -438,22 +443,22 @@ export default function ActionDetailPage() {
         <CardContent className="px-4 pb-4 md:px-6 space-y-3">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Task</Label>
-            <Textarea
+            <Input
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="What needs to be done?"
-              className="min-h-[70px] text-xs rounded-xl"
+              className="h-9 text-xs rounded-xl"
               data-testid="input-action-text"
             />
           </div>
-          {(itemType === "reminder" || description) && (
+          {(itemType === "reminder" || description !== undefined) && (
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground">Description</Label>
-              <Input
+              <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief description..."
-                className="h-9 text-xs rounded-xl"
+                className="min-h-[70px] text-xs rounded-xl"
                 data-testid="input-description"
               />
             </div>
@@ -572,7 +577,7 @@ export default function ActionDetailPage() {
                     </button>
                   </PopoverTrigger>
                 </div>
-                <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
+                <PopoverContent className="w-auto p-0 bg-card border-border rounded-xl overflow-hidden" align="start">
                   <Calendar
                     mode="single"
                     selected={deadline ?? undefined}
@@ -642,10 +647,10 @@ export default function ActionDetailPage() {
                     type="button"
                     onClick={() => setPriority(p.value)}
                     className={cn(
-                      "px-2.5 py-1 rounded-lg border text-xs font-medium transition-colors",
+                      "px-3 py-1 rounded-full text-xs font-medium transition-colors",
                       priority === p.value
-                        ? `${p.bg} ${p.color}`
-                        : "border-border text-muted-foreground hover:bg-accent"
+                        ? `${p.bg} ${p.color} border`
+                        : "bg-muted text-muted-foreground hover:bg-accent border border-transparent"
                     )}
                     data-testid={`priority-${p.value}`}
                   >
