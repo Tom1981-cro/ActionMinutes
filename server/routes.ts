@@ -1581,6 +1581,46 @@ Thanks!`,
     res.json({ success: true });
   });
 
+  app.get("/api/reminders/:id/list", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const reminder = await storage.getPersonalReminder(req.params.id);
+    if (!reminder || reminder.userId !== userId) {
+      return res.status(404).json({ error: "Reminder not found" });
+    }
+    const listItem = await storage.getListItemByReminderId(req.params.id);
+    if (!listItem) {
+      return res.json({ listId: null, listName: null, listIcon: null });
+    }
+    res.json({ listId: listItem.listId, listName: listItem.listName, listIcon: listItem.listIcon });
+  });
+
+  app.post("/api/reminders/:id/move", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const { targetListId } = req.body;
+
+    const reminder = await storage.getPersonalReminder(req.params.id);
+    if (!reminder || reminder.userId !== userId) {
+      return res.status(404).json({ error: "Reminder not found" });
+    }
+
+    if (targetListId) {
+      const targetList = await storage.getCustomList(targetListId);
+      if (!targetList || targetList.userId !== userId) {
+        return res.status(403).json({ error: "Target list not found" });
+      }
+      await storage.removeItemByReminderId(req.params.id);
+      await storage.addItemToList({
+        listId: targetListId,
+        reminderId: req.params.id,
+        position: 0,
+      });
+      res.json({ listId: targetListId, listName: targetList.name, listIcon: targetList.icon });
+    } else {
+      await storage.removeItemByReminderId(req.params.id);
+      res.json({ listId: null, listName: null, listIcon: null });
+    }
+  });
+
   // ==================== CALENDAR EXPORT ====================
   app.post("/api/meetings/:id/export-calendar", async (req, res) => {
     const userId = req.query.userId as string;

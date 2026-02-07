@@ -295,7 +295,9 @@ export interface IStorage {
   getCustomListItemsWithDetails(listId: string, userId: string): Promise<(CustomListItem & { reminder?: any; task?: any })[]>;
   addItemToList(item: InsertCustomListItem): Promise<CustomListItem>;
   getCustomListItem(id: string): Promise<CustomListItem | undefined>;
+  getListItemByReminderId(reminderId: string): Promise<(CustomListItem & { listName: string; listIcon?: string | null }) | undefined>;
   removeItemFromList(id: string, listId: string): Promise<void>;
+  removeItemByReminderId(reminderId: string): Promise<void>;
   updateListItemPosition(id: string, position: number): Promise<void>;
   
   // Global Tags
@@ -1444,10 +1446,32 @@ export class DatabaseStorage implements IStorage {
     return item || undefined;
   }
 
+  async getListItemByReminderId(reminderId: string): Promise<(CustomListItem & { listName: string; listIcon?: string | null }) | undefined> {
+    const results = await db.select({
+      id: customListItems.id,
+      listId: customListItems.listId,
+      reminderId: customListItems.reminderId,
+      taskId: customListItems.taskId,
+      position: customListItems.position,
+      createdAt: customListItems.createdAt,
+      listName: customLists.name,
+      listIcon: customLists.icon,
+    })
+    .from(customListItems)
+    .innerJoin(customLists, eq(customListItems.listId, customLists.id))
+    .where(eq(customListItems.reminderId, reminderId))
+    .limit(1);
+    return results[0] || undefined;
+  }
+
   async removeItemFromList(id: string, listId: string): Promise<void> {
     await db.delete(customListItems).where(
       and(eq(customListItems.id, id), eq(customListItems.listId, listId))
     );
+  }
+
+  async removeItemByReminderId(reminderId: string): Promise<void> {
+    await db.delete(customListItems).where(eq(customListItems.reminderId, reminderId));
   }
 
   async updateListItemPosition(id: string, position: number): Promise<void> {

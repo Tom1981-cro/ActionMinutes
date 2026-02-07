@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useRoute, useLocation } from "wouter";
+import { useState, useEffect, useMemo } from "react";
+import { useRoute, useLocation, useSearch } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,14 +13,14 @@ import {
   ArrowLeft, CalendarBlank, Clock, User, EnvelopeSimple,
   Flag, Tag, MapPin, ArrowsClockwise, Timer, BellRinging,
   FloppyDisk, Trash, Lightning, Notepad, SpinnerGap, Hourglass,
-  Paperclip, UploadSimple, CaretDown
+  Paperclip, UploadSimple, CaretDown, Tray, ListBullets
 } from "@phosphor-icons/react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format, addDays, addWeeks, startOfWeek } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { authenticatedFetch } from "@/hooks/use-auth";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -99,6 +99,69 @@ export default function ActionDetailPage() {
   const [showDeadlinePicker, setShowDeadlinePicker] = useState(false);
   const [deadlineInput, setDeadlineInput] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [listDropdownOpen, setListDropdownOpen] = useState(false);
+
+  const searchString = useSearch();
+  const searchParams = useMemo(() => new URLSearchParams(searchString), [searchString]);
+  const fromSource = searchParams.get("from");
+  const sourceListId = searchParams.get("listId");
+  const sourceListName = searchParams.get("listName") ? decodeURIComponent(searchParams.get("listName")!) : null;
+
+  const { data: reminderListInfo, isLoading: listInfoLoading } = useQuery<{ listId: string | null; listName: string | null; listIcon: string | null }>({
+    queryKey: ["reminder-list", itemId],
+    queryFn: async () => {
+      const res = await authenticatedFetch(`/api/reminders/${itemId}/list`);
+      if (!res.ok) return { listId: null, listName: null, listIcon: null };
+      return res.json();
+    },
+    enabled: !!itemId && itemType === "reminder",
+  });
+
+  const { data: allLists = [] } = useQuery<{ id: string; name: string; icon?: string }[]>({
+    queryKey: ["custom-lists"],
+    queryFn: async () => {
+      const res = await authenticatedFetch("/api/lists");
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const moveToList = useMutation({
+    mutationFn: async (targetListId: string | null) => {
+      const res = await authenticatedFetch(`/api/reminders/${itemId}/move`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetListId }),
+      });
+      if (!res.ok) throw new Error("Failed to move");
+      return res.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["reminder-list", itemId] });
+      queryClient.invalidateQueries({ queryKey: ["custom-list"] });
+      queryClient.invalidateQueries({ queryKey: ["custom-lists"] });
+      queryClient.invalidateQueries({ queryKey: ["reminders"] });
+      queryClient.invalidateQueries({ queryKey: ["actions"] });
+      queryClient.invalidateQueries({ queryKey: ["inbox-items"] });
+      setListDropdownOpen(false);
+      toast({
+        title: data.listId ? `Moved to ${data.listName}` : "Moved to Inbox",
+      });
+    },
+    onError: () => {
+      toast({ title: "Failed to move task", variant: "destructive" });
+    },
+  });
+
+  const currentListId = reminderListInfo?.listId || null;
+  const currentListName = reminderListInfo?.listName || null;
+
+  const backLabel = fromSource === "list" && sourceListName
+    ? `Back to ${sourceListName}`
+    : "Back to Inbox";
+  const backPath = fromSource === "list" && sourceListId
+    ? `/app/lists/${sourceListId}`
+    : "/app/inbox";
 
   const { data: item, isLoading } = useQuery({
     queryKey: [itemType === "meeting" ? "action" : "reminder", itemId],
@@ -246,7 +309,7 @@ export default function ActionDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["custom-list"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({ title: "Saved" });
-      navigate("/app/inbox");
+      navigate(backPath);
     } catch {
       toast({ title: "Error", description: "Failed to save", variant: "destructive" });
     } finally {
@@ -271,7 +334,7 @@ export default function ActionDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["custom-list"] });
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({ title: "Deleted" });
-      navigate("/app/inbox");
+      navigate(backPath);
     } catch {
       toast({ title: "Error", description: "Failed to delete", variant: "destructive" });
     } finally {
@@ -320,9 +383,9 @@ export default function ActionDetailPage() {
   if (isLoading) {
     return (
       <div className="space-y-5 pb-6">
-        <button onClick={() => navigate("/app/inbox")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <button onClick={() => navigate(backPath)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
-          Back to Inbox
+          {backLabel}
         </button>
         <SkeletonList count={1} type="action" />
       </div>
@@ -332,9 +395,9 @@ export default function ActionDetailPage() {
   if (!item) {
     return (
       <div className="space-y-5 pb-6">
-        <button onClick={() => navigate("/app/inbox")} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <button onClick={() => navigate(backPath)} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
-          Back to Inbox
+          {backLabel}
         </button>
         <div className="text-center py-12 text-muted-foreground">Task not found.</div>
       </div>
@@ -371,12 +434,12 @@ export default function ActionDetailPage() {
     <div className="space-y-4 pb-6 max-w-2xl mx-auto" data-testid="page-action-detail">
       <div className="flex items-center justify-between">
         <button
-          onClick={() => navigate("/app/inbox")}
+          onClick={() => navigate(backPath)}
           className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          data-testid="button-back-inbox"
+          data-testid="button-back"
         >
           <ArrowLeft className="h-4 w-4" weight="bold" />
-          Back to Inbox
+          {backLabel}
         </button>
         <div className="flex items-center gap-1">
           {itemType === "meeting" && item?.meetingId && (
@@ -403,7 +466,7 @@ export default function ActionDetailPage() {
         {text || item.text || "Untitled task"}
       </h1>
 
-      <div className="flex gap-2 flex-wrap" data-testid="status-buttons">
+      <div className="flex gap-2 flex-wrap items-center" data-testid="status-buttons">
         {STATUSES.map((s) => (
           <Button
             key={s.value}
@@ -419,6 +482,61 @@ export default function ActionDetailPage() {
             {s.label}
           </Button>
         ))}
+
+        {itemType === "reminder" && (
+          <Popover open={listDropdownOpen} onOpenChange={setListDropdownOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                className={cn(
+                  "h-8 rounded-xl text-xs px-3 gap-1.5 ml-auto border-border",
+                  currentListId ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20" : "hover:bg-accent"
+                )}
+                data-testid="button-list-picker"
+              >
+                {currentListId ? (
+                  <ListBullets className="h-3.5 w-3.5" weight="duotone" />
+                ) : (
+                  <Tray className="h-3.5 w-3.5" weight="duotone" />
+                )}
+                {currentListName || "Inbox"}
+                <CaretDown className="h-3 w-3" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-1.5" align="end">
+              <div className="space-y-0.5">
+                <button
+                  onClick={() => currentListId && moveToList.mutate(null)}
+                  className={cn(
+                    "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left",
+                    !currentListId ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
+                  )}
+                  data-testid="move-to-inbox"
+                >
+                  <Tray className="h-4 w-4" weight="duotone" />
+                  Inbox
+                  {!currentListId && <span className="ml-auto text-[10px] text-primary">current</span>}
+                </button>
+                {allLists.map((list) => (
+                  <button
+                    key={list.id}
+                    onClick={() => list.id !== currentListId && moveToList.mutate(list.id)}
+                    className={cn(
+                      "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left",
+                      list.id === currentListId ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
+                    )}
+                    data-testid={`move-to-list-${list.id}`}
+                  >
+                    <ListBullets className="h-4 w-4" weight="duotone" />
+                    {list.name}
+                    {list.id === currentListId && <span className="ml-auto text-[10px] text-primary">current</span>}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
       </div>
 
       {status === "waiting" && (
@@ -800,7 +918,7 @@ export default function ActionDetailPage() {
         <div className="flex-1" />
         <Button
           variant="outline"
-          onClick={() => navigate("/app/inbox")}
+          onClick={() => navigate(backPath)}
           className="h-9 rounded-xl text-xs"
         >
           Cancel

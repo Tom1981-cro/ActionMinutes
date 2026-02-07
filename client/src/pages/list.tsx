@@ -53,7 +53,7 @@ type CustomListItem = {
   };
 };
 
-function TaskCard({ item }: { item: CustomListItem }) {
+function TaskCard({ item, listId, listName }: { item: CustomListItem; listId: string; listName: string }) {
   const [, navigate] = useLocation();
   const r = item.reminder;
   if (!r) return null;
@@ -64,7 +64,7 @@ function TaskCard({ item }: { item: CustomListItem }) {
     r.priority === 'low' ? 'text-emerald-500' : '';
 
   const handleClick = () => {
-    navigate(`/app/action/reminder/${r.id}`);
+    navigate(`/app/action/reminder/${r.id}?from=list&listId=${listId}&listName=${encodeURIComponent(listName)}`);
   };
 
   return (
@@ -334,7 +334,7 @@ export default function ListPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: -10 }}
               >
-                <TaskCard item={item} />
+                <TaskCard item={item} listId={list.id} listName={list.name} />
               </motion.div>
             ))}
           </AnimatePresence>
@@ -348,7 +348,7 @@ export default function ListPage() {
           </h3>
           {completedItems.map((item) => (
             <div key={item.id}>
-              <TaskCard item={item} />
+              <TaskCard item={item} listId={list.id} listName={list.name} />
             </div>
           ))}
         </section>
