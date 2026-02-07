@@ -230,21 +230,21 @@ export default function ExtractionPage() {
   return (
     <div className="flex flex-col h-full pb-safe">
       <div className="flex-1 overflow-y-auto pb-24 md:pb-6">
-        <div className="sticky top-0 glass-panel backdrop-blur z-10 -mx-4 px-4 md:-mx-8 md:px-8 border-b border-border">
-          <div className="flex items-center gap-3 py-3">
-            <Button variant="ghost" size="icon" onClick={() => setLocation("/meetings")} className="rounded-full h-11 w-11 shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent" data-testid="button-back" aria-label="Go back to meetings">
+        <div className="space-y-3 pb-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => setLocation("/meetings")} className="rounded-full h-9 w-9 shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent" data-testid="button-back" aria-label="Go back to meetings">
               <ArrowLeft className="h-5 w-5" weight="bold" />
             </Button>
             <div className="min-w-0 flex-1">
-              <h1 className="text-lg font-bold truncate text-foreground">{meeting.title}</h1>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">{meeting.title}</h1>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                 <StatusBadge status={meeting.parseState} size="sm" />
                 {meeting.date && <span>{new Date(meeting.date).toLocaleDateString()}</span>}
               </div>
             </div>
           </div>
           
-          <div className="flex gap-1.5 pb-3 overflow-x-auto no-scrollbar md:hidden">
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar md:hidden">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
@@ -269,14 +269,13 @@ export default function ExtractionPage() {
 
         <div className="space-y-4 md:space-y-6 pt-4">
           <div className={`${activeTab === 'summary' ? 'block' : 'hidden md:block'} space-y-4`}>
-            <Card className="glass-panel rounded-2xl">
+            <Card className="glass-panel rounded-2xl border-2 border-primary/30">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base font-semibold text-foreground">Summary</CardTitle>
                   <Button
-                    variant="outline"
                     size="sm"
-                    className="rounded-xl text-xs"
+                    className="rounded-xl text-xs btn-gradient"
                     onClick={() => setTemplatePickerOpen(true)}
                     disabled={templateSummarizeMutation.isPending}
                     data-testid="button-template-summary"
@@ -286,7 +285,7 @@ export default function ExtractionPage() {
                     ) : (
                       <MagicWand className="mr-1.5 h-3.5 w-3.5" weight="duotone" />
                     )}
-                    Template Summary
+                    Summary Template
                   </Button>
                 </div>
               </CardHeader>
