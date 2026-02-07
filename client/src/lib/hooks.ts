@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from './api';
 import { useStore } from './store';
+import { authenticatedFetch } from '@/hooks/use-auth';
 
 // ==================== MEETINGS ====================
 export function useMeetings() {
@@ -383,9 +384,7 @@ export function useTasksBySource(sourceType: string, sourceId: string | undefine
   return useQuery({
     queryKey: ['tasks', 'source', sourceType, sourceId],
     queryFn: async () => {
-      const response = await fetch(`/api/tasks/by-source/${sourceType}/${sourceId}`, {
-        credentials: 'include',
-      });
+      const response = await authenticatedFetch(`/api/tasks/by-source/${sourceType}/${sourceId}`);
       if (!response.ok) throw new Error('Failed to fetch tasks');
       return response.json();
     },
@@ -397,9 +396,8 @@ export function useCreateTasksFromMeeting() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (meetingId: string) => {
-      const response = await fetch(`/api/meetings/${meetingId}/create-tasks`, {
+      const response = await authenticatedFetch(`/api/meetings/${meetingId}/create-tasks`, {
         method: 'POST',
-        credentials: 'include',
       });
       if (!response.ok) {
         const error = await response.json();

@@ -10,13 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Waveform, SpinnerGap, MagicWand, ListChecks, ChatTeardropDots, 
   Tag, SmileyMeh, SmileyWink, SmileySad, ArrowRight, Clock,
-  User, CalendarBlank, Download, CaretDown, CaretUp, FileText
+  User, CalendarBlank, Download, CaretDown, CaretUp, FileText,
+  Printer, ShareNetwork, FilePdf
 } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { TemplatePicker } from "@/components/template-picker";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 type Transcript = {
   id: string;
@@ -28,6 +30,45 @@ type Transcript = {
   keywords: string[] | null;
   createdAt: string;
 };
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function markdownToHtml(md: string): string {
+  const escaped = escapeHtml(md);
+  return escaped
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^[-*•]\s+(.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+    .replace(/^---$/gm, '<hr/>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br/>');
+}
+
+function buildPrintHtml(title: string, templateName: string, content: string): string {
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 40px 24px; color: #1a1a1a; line-height: 1.6; }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  h2 { font-size: 18px; border-bottom: 1px solid #e5e5e5; padding-bottom: 6px; margin-top: 24px; }
+  h3 { font-size: 15px; margin-top: 16px; }
+  .meta { color: #666; font-size: 13px; margin-bottom: 20px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  hr { border: none; border-top: 1px solid #e5e5e5; margin: 16px 0; }
+  @media print { body { padding: 0; } }
+</style></head><body>
+<h1>${escapeHtml(title)}</h1>
+<div class="meta">Template: ${escapeHtml(templateName)}</div>
+<hr/>
+${markdownToHtml(content)}
+</body></html>`;
+}
 
 type TranscriptSummary = {
   id: string;
@@ -576,10 +617,64 @@ export default function TranscriptsPage() {
           </CardHeader>
           <CardContent>
             <div
-              className="text-sm text-foreground leading-relaxed whitespace-pre-wrap font-mono bg-muted/50 rounded-xl p-4 border border-border max-h-96 overflow-y-auto"
+              className="bg-muted/50 rounded-xl p-4 border border-border max-h-96 overflow-y-auto"
               data-testid="text-template-summary"
             >
-              {templateSummary.summary}
+              <MarkdownRenderer content={templateSummary.summary} />
+            </div>
+            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full text-xs gap-1.5"
+                data-testid="button-export-pdf-transcript"
+                onClick={() => {
+                  const printWindow = window.open('', '_blank');
+                  if (!printWindow) return;
+                  const html = buildPrintHtml('Transcript Summary', templateSummary.templateName, templateSummary.summary);
+                  printWindow.document.write(html);
+                  printWindow.document.close();
+                  printWindow.onload = () => { printWindow.print(); };
+                }}
+              >
+                <FilePdf className="h-3.5 w-3.5" weight="duotone" />
+                Export PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full text-xs gap-1.5"
+                data-testid="button-print-transcript-summary"
+                onClick={() => {
+                  const printWindow = window.open('', '_blank');
+                  if (!printWindow) return;
+                  const html = buildPrintHtml('Transcript Summary', templateSummary.templateName, templateSummary.summary);
+                  printWindow.document.write(html);
+                  printWindow.document.close();
+                  printWindow.onload = () => { printWindow.print(); };
+                }}
+              >
+                <Printer className="h-3.5 w-3.5" weight="duotone" />
+                Print
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full text-xs gap-1.5"
+                data-testid="button-copy-transcript-summary"
+                onClick={async () => {
+                  try {
+                    const header = `# Transcript Summary\nTemplate: ${templateSummary.templateName}\n\n---\n\n`;
+                    await navigator.clipboard.writeText(header + templateSummary.summary);
+                    toast({ title: "Copied to clipboard", description: "Summary has been copied as markdown." });
+                  } catch {
+                    toast({ title: "Copy failed", description: "Unable to access clipboard.", variant: "destructive" });
+                  }
+                }}
+              >
+                <ShareNetwork className="h-3.5 w-3.5" weight="duotone" />
+                Copy
+              </Button>
             </div>
           </CardContent>
         </Card>

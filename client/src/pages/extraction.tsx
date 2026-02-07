@@ -9,19 +9,76 @@ import { Label } from "@/components/ui/label";
 import { StatusBadge, SeverityBadge } from "@/components/ui/status-badge";
 import { 
   ArrowLeft, CheckCircle, FileText, CalendarBlank, DownloadSimple, 
-  Warning, Question, Pencil, User, Clock, SpinnerGap, HighlighterCircle, MagicWand
+  Warning, Question, Pencil, User, Clock, SpinnerGap, HighlighterCircle, MagicWand,
+  Printer, ShareNetwork, FilePdf
 } from "@phosphor-icons/react";
 import { useToast } from "@/hooks/use-toast";
 import { useMeeting, useActionItemsForMeeting, useDecisionsForMeeting, useRisksForMeeting, useQuestionsForMeeting, useUpdateMeeting, useExportCalendar, useAppConfig, useGenerateDrafts, useDraftsForMeeting, useTasksBySource, useCreateTasksFromMeeting } from "@/lib/hooks";
 import { ActionEditSheet } from "@/components/action-edit-sheet";
 import { TextHighlighter, type HighlightedItem } from "@/components/text-highlighter";
 import { TemplatePicker } from "@/components/template-picker";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 import type { ActionItem } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 
 type TabType = 'summary' | 'actions' | 'decisions' | 'risks' | 'clarify' | 'highlight';
+
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function markdownToHtml(md: string): string {
+  const escaped = escapeHtml(md);
+  return escaped
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^[-*•]\s+(.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+    .replace(/^---$/gm, '<hr/>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br/>');
+}
+
+interface PrintMeta {
+  title: string;
+  date?: string;
+  time?: string;
+  attendees?: string[];
+  templateName: string;
+}
+
+function buildPrintHtml(meta: PrintMeta, content: string): string {
+  const metaItems: string[] = [];
+  if (meta.date) metaItems.push(`<span>Date: ${escapeHtml(meta.date)}</span>`);
+  if (meta.time) metaItems.push(`<span>Time: ${escapeHtml(meta.time)}</span>`);
+  if (meta.attendees?.length) metaItems.push(`<span>Attendees: ${escapeHtml(meta.attendees.join(', '))}</span>`);
+  metaItems.push(`<span>Template: ${escapeHtml(meta.templateName)}</span>`);
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHtml(meta.title)}</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 40px 24px; color: #1a1a1a; line-height: 1.6; }
+  h1 { font-size: 24px; margin-bottom: 4px; }
+  h2 { font-size: 18px; border-bottom: 1px solid #e5e5e5; padding-bottom: 6px; margin-top: 24px; }
+  h3 { font-size: 15px; margin-top: 16px; }
+  .meta { color: #666; font-size: 13px; margin-bottom: 20px; }
+  .meta span { display: block; margin-bottom: 2px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  hr { border: none; border-top: 1px solid #e5e5e5; margin: 16px 0; }
+  blockquote { border-left: 3px solid #ddd; margin: 12px 0; padding-left: 12px; color: #555; font-style: italic; }
+  @media print { body { padding: 0; } }
+</style></head><body>
+<h1>${escapeHtml(meta.title)}</h1>
+<div class="meta">${metaItems.join('\n')}</div>
+<hr/>
+${markdownToHtml(content)}
+</body></html>`;
+}
 
 export default function ExtractionPage() {
   const [, params] = useRoute("/app/meeting/:id");
@@ -310,8 +367,82 @@ export default function ExtractionPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="px-4 pb-4 md:px-6">
-                  <div className="bg-muted p-4 rounded-xl text-sm leading-relaxed text-foreground whitespace-pre-wrap">
-                    {templateSummary.summary}
+                  <div className="bg-muted p-4 rounded-xl max-h-[500px] overflow-y-auto">
+                    <MarkdownRenderer content={templateSummary.summary} />
+                  </div>
+                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full text-xs gap-1.5"
+                      data-testid="button-export-pdf"
+                      onClick={() => {
+                        const printWindow = window.open('', '_blank');
+                        if (!printWindow) return;
+                        const meta: PrintMeta = {
+                          title: meeting?.title || 'Meeting Summary',
+                          date: meeting?.startTime ? new Date(meeting.startTime).toLocaleDateString() : undefined,
+                          time: meeting?.startTime ? new Date(meeting.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
+                          attendees: meeting?.attendees?.map((a: any) => a.name || a.email) || [],
+                          templateName: templateSummary.templateName,
+                        };
+                        const html = buildPrintHtml(meta, templateSummary.summary);
+                        printWindow.document.write(html);
+                        printWindow.document.close();
+                        printWindow.onload = () => { printWindow.print(); };
+                      }}
+                    >
+                      <FilePdf className="h-3.5 w-3.5" weight="duotone" />
+                      Export PDF
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full text-xs gap-1.5"
+                      data-testid="button-print-summary"
+                      onClick={() => {
+                        const printWindow = window.open('', '_blank');
+                        if (!printWindow) return;
+                        const meta: PrintMeta = {
+                          title: meeting?.title || 'Meeting Summary',
+                          date: meeting?.startTime ? new Date(meeting.startTime).toLocaleDateString() : undefined,
+                          time: meeting?.startTime ? new Date(meeting.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
+                          attendees: meeting?.attendees?.map((a: any) => a.name || a.email) || [],
+                          templateName: templateSummary.templateName,
+                        };
+                        const html = buildPrintHtml(meta, templateSummary.summary);
+                        printWindow.document.write(html);
+                        printWindow.document.close();
+                        printWindow.onload = () => { printWindow.print(); };
+                      }}
+                    >
+                      <Printer className="h-3.5 w-3.5" weight="duotone" />
+                      Print
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full text-xs gap-1.5"
+                      data-testid="button-copy-summary"
+                      onClick={async () => {
+                        try {
+                          const title = meeting?.title || 'Meeting Summary';
+                          const dateLine = meeting?.startTime ? `Date: ${new Date(meeting.startTime).toLocaleDateString()}` : '';
+                          const timeLine = meeting?.startTime ? `Time: ${new Date(meeting.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '';
+                          const attendeeNames = meeting?.attendees?.map((a: any) => a.name || a.email).join(', ');
+                          const attendeeLine = attendeeNames ? `Attendees: ${attendeeNames}` : '';
+                          const metaLines = [dateLine, timeLine, attendeeLine, `Template: ${templateSummary.templateName}`].filter(Boolean).join('\n');
+                          const header = `# ${title}\n${metaLines}\n\n---\n\n`;
+                          await navigator.clipboard.writeText(header + templateSummary.summary);
+                          toast({ title: "Copied to clipboard", description: "Summary has been copied as markdown." });
+                        } catch {
+                          toast({ title: "Copy failed", description: "Unable to access clipboard.", variant: "destructive" });
+                        }
+                      }}
+                    >
+                      <ShareNetwork className="h-3.5 w-3.5" weight="duotone" />
+                      Copy
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

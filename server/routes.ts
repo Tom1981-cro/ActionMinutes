@@ -2394,8 +2394,23 @@ Thanks!`,
       const result = completion.choices[0]?.message?.content || "No summary generated.";
       const processingTimeMs = Date.now() - startTime;
 
+      const savedSummary = await storage.createTranscriptSummary({
+        transcriptId: req.params.id,
+        userId,
+        summary: result,
+        decisions: [],
+        sentiment: 'neutral',
+        sentimentScore: 0,
+        topKeywords: [],
+        aiProvider: "openai",
+        aiModel: "gpt-4o-mini",
+        promptVersion: `template:${template.id}`,
+        processingTimeMs,
+      });
+
       res.json({
         summary: result,
+        summaryId: savedSummary.id,
         templateId: template.id,
         templateName: template.name,
         provider: "openai",
