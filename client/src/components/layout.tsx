@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
-  BookOpenText, CaretDown, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X, DotsThree, Trash, Lightning,
+  BookOpenText, CaretDown, CaretRight, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X, DotsThree, Trash, Lightning,
   CheckCircle, Archive,
   House, Briefcase, UsersThree, Heart, GraduationCap, PaintBrush, Flower, Barbell, ChatCircle, UserCircle
 } from "@phosphor-icons/react";
@@ -78,6 +78,8 @@ export default function Layout({ children }: LayoutProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<CustomList | null>(null);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const toggleSection = (section: string) => setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
 
   const { data: customLists = [] } = useQuery<CustomList[]>({
     queryKey: ['custom-lists', user.id],
@@ -202,120 +204,101 @@ export default function Layout({ children }: LayoutProps) {
             <span className="text-foreground">Add<span className="text-primary font-semibold">Action</span></span>
           </button>
 
-          <div className="pt-3 pb-1 px-4">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground">Action To Do</span>
+          <div className="pt-3 pb-0.5 px-3 flex items-center justify-between">
+            <button onClick={() => toggleSection('actionToDo')} className="flex items-center gap-1 group/hdr">
+              <CaretRight className={cn("h-2.5 w-2.5 text-muted-foreground transition-transform", !collapsedSections.actionToDo && "rotate-90")} weight="bold" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground">Action To Do</span>
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setCreateDialogOpen(true); }}
+              className="p-0.5 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+              data-testid="button-add-list"
+            >
+              <Plus className="h-3 w-3" weight="bold" />
+            </button>
           </div>
 
-          {actionToDoItems.map((item) => {
-            const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
-            return (
-              <Link 
-                key={item.href} 
-                href={item.href}
-                data-testid={`nav-${item.label.toLowerCase()}`}
-                className={isActive ? "navItemActive" : "navItem"}
-              >
-                <item.icon className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />
-                {item.label}
-              </Link>
-            );
-          })}
+          {!collapsedSections.actionToDo && (
+            <>
+              {actionToDoItems.map((item) => {
+                const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+                return (
+                  <Link 
+                    key={item.href} 
+                    href={item.href}
+                    data-testid={`nav-${item.label.toLowerCase()}`}
+                    className={isActive ? "navItemActive" : "navItem"}
+                  >
+                    <item.icon className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />
+                    {item.label}
+                  </Link>
+                );
+              })}
 
-          {customLists.map((list) => {
-            const isActive = location === `/app/lists/${list.id}`;
-            return (
-              <div key={list.id} className="group relative">
-                {editingListId === list.id ? (
-                  <div className="flex items-center gap-1 px-4 py-2">
+              {customLists.map((list) => {
+                const isActive = location === `/app/lists/${list.id}`;
+                return editingListId === list.id ? (
+                  <div key={list.id} className="flex items-center gap-1 px-3 py-0.5">
                     <Input
                       value={editingName}
                       onChange={(e) => setEditingName(e.target.value)}
-                      className="h-8 text-sm bg-card border-border"
+                      className="h-6 text-xs bg-card border-border"
                       autoFocus
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          updateList.mutate({ id: list.id, name: editingName });
-                        }
-                        if (e.key === 'Escape') {
-                          setEditingListId(null);
-                        }
+                        if (e.key === 'Enter') updateList.mutate({ id: list.id, name: editingName });
+                        if (e.key === 'Escape') setEditingListId(null);
                       }}
                     />
-                    <button onClick={() => updateList.mutate({ id: list.id, name: editingName })} className="p-1 text-green-500">
-                      <Check className="h-4 w-4" />
+                    <button onClick={() => updateList.mutate({ id: list.id, name: editingName })} className="p-0.5 text-green-500">
+                      <Check className="h-3.5 w-3.5" />
                     </button>
-                    <button onClick={() => setEditingListId(null)} className="p-1 text-red-400">
-                      <X className="h-4 w-4" />
+                    <button onClick={() => setEditingListId(null)} className="p-0.5 text-red-400">
+                      <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 ) : (
                   <Link
+                    key={list.id}
                     href={`/app/lists/${list.id}`}
                     data-testid={`nav-list-${list.id}`}
-                    className={isActive ? "navItemActive" : "navItem"}
+                    className={cn(isActive ? "navItemActive" : "navItem", "group")}
                   >
                     {(() => { const IconComp = getListIcon(list.icon); return <IconComp className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />; })()}
                     {list.name}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                          }}
-                          className="ml-auto opacity-0 group-hover:opacity-100 p-1.5 rounded-full transition-opacity hover:bg-accent"
+                          onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                          className="ml-auto opacity-0 group-hover:opacity-100 p-1 rounded-full transition-opacity hover:bg-accent"
                           data-testid={`menu-list-${list.id}`}
                         >
-                          <DotsThree className="h-4 w-4" weight="bold" />
+                          <DotsThree className="h-3.5 w-3.5" weight="bold" />
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-32">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setEditingListId(list.id);
-                            setEditingName(list.name);
-                          }}
-                        >
-                          <PencilSimple className="h-4 w-4 mr-2" />
-                          Rename
+                        <DropdownMenuItem onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingListId(list.id); setEditingName(list.name); }}>
+                          <PencilSimple className="h-4 w-4 mr-2" /> Rename
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setListToDelete(list);
-                            setDeleteDialogOpen(true);
-                          }}
-                          className="text-red-500 focus:text-red-500"
-                        >
-                          <Trash className="h-4 w-4 mr-2" />
-                          Delete
+                        <DropdownMenuItem onClick={(e) => { e.preventDefault(); e.stopPropagation(); setListToDelete(list); setDeleteDialogOpen(true); }} className="text-red-500 focus:text-red-500">
+                          <Trash className="h-4 w-4 mr-2" /> Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </Link>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </>
+          )}
 
-          <button
-            onClick={() => setCreateDialogOpen(true)}
-            className="navItem w-full opacity-60 hover:opacity-100 transition-opacity"
-            data-testid="button-add-list"
-          >
-            <Plus className="nav-icon" weight="bold" />
-            <span className="text-xs">New list</span>
-          </button>
-
-          <div className="pt-3 pb-1 px-4">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground">AI Assistant</span>
+          <div className="pt-3 pb-0.5 px-3">
+            <button onClick={() => toggleSection('aiAssistant')} className="flex items-center gap-1">
+              <CaretRight className={cn("h-2.5 w-2.5 text-muted-foreground transition-transform", !collapsedSections.aiAssistant && "rotate-90")} weight="bold" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground">AI Assistant</span>
+            </button>
           </div>
 
-          {aiAssistantItems.map((item) => {
+          {!collapsedSections.aiAssistant && aiAssistantItems.map((item) => {
             const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             return (
               <Link 
@@ -330,11 +313,14 @@ export default function Layout({ children }: LayoutProps) {
             );
           })}
 
-          <div className="pt-3 pb-1 px-4">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground">Action Reflect</span>
+          <div className="pt-3 pb-0.5 px-3">
+            <button onClick={() => toggleSection('actionReflect')} className="flex items-center gap-1">
+              <CaretRight className={cn("h-2.5 w-2.5 text-muted-foreground transition-transform", !collapsedSections.actionReflect && "rotate-90")} weight="bold" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground">Action Reflect</span>
+            </button>
           </div>
 
-          {actionReflectItems.map((item) => {
+          {!collapsedSections.actionReflect && actionReflectItems.map((item) => {
             const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             return (
               <Link 
