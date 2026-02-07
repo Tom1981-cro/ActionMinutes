@@ -144,7 +144,7 @@ export default function CalendarPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/calendar/events'] });
       setIsCreateOpen(false);
       setNewEvent({ title: '', description: '', location: '', startTime: '', endTime: '', allDay: false, provider: 'local' });
-      toast.success('Event created');
+      toast.success("Event created");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -214,7 +214,7 @@ export default function CalendarPage() {
 
   const handleCreateEvent = () => {
     if (!newEvent.title || !newEvent.startTime || !newEvent.endTime) {
-      toast.error('Please fill in required fields');
+      toast.error("Please fill in required fields");
       return;
     }
     createEventMutation.mutate(newEvent);
