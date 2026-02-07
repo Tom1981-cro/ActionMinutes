@@ -41,6 +41,8 @@ A separate mobile application is developed using Expo React Native, connecting t
 - **AI Summarization Service:** Structured summarization of transcripts, extracting concise summaries, key decisions, actionable tasks (with assignees, due dates, priority), sentiment analysis, and keywords.
 - **Voice Command Activation:** Speech-to-action interface for interacting with the summarization service.
 - **Audio Transcription:** Multi-provider support (Gemini, OpenAI Whisper API) for speech-to-text, with transcript storage, full-text search, and export options.
+- **Live Meeting Recording:** In-browser audio recording via MediaRecorder API (audio/webm). GDPR consent dialog shown on first use (stored as `recordingConsentAt` timestamp in users table). Auto-transcribes on stop and inserts text into notes without user prompt. Compatible with template summarization and AI extraction flows.
+- **Template Summaries:** 18 professional templates across 6 categories with markdown rendering, Export PDF/Print/Copy actions, and database persistence via `transcript_summaries` table with `promptVersion: template:${templateId}` tracking.
 
 ## External Dependencies
 

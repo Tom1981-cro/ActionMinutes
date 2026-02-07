@@ -8,7 +8,7 @@ import {
   Sparkle, FloppyDisk, ArrowLeft, CaretDown, CaretUp, 
   Users, Clock, MapPin, Camera, Upload, Microphone, 
   ArrowsClockwise, Copy, X, Check, User, Buildings, WarningCircle,
-  ListChecks, Plus, Lightning
+  ListChecks, Plus, Lightning, Record, Pause, Stop, Circle
 } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +21,7 @@ import { cn, extractActionsFromText, type ExtractedAction } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { usePlan } from "@/hooks/use-plan";
 import { UsageBadge, UpgradePrompt } from "@/components/upgrade-prompt";
+import { authenticatedFetch } from "@/hooks/use-auth";
 
 function useVirtualKeyboard() {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -115,7 +116,19 @@ export default function CapturePage() {
   const [showReviewActions, setShowReviewActions] = useState(false);
   const [selectedActions, setSelectedActions] = useState<Set<number>>(new Set());
   const [isAddingToReminders, setIsAddingToReminders] = useState(false);
-  
+
+  const [showRecordingModal, setShowRecordingModal] = useState(false);
+  const [showConsentDialog, setShowConsentDialog] = useState(false);
+  const [hasConsent, setHasConsent] = useState<boolean | null>(null);
+  const [recordingState, setRecordingState] = useState<'idle' | 'recording' | 'paused'>('idle');
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [recordingAutoTranscribing, setRecordingAutoTranscribing] = useState(false);
+  const [recordingTranscribeProgress, setRecordingTranscribeProgress] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
   const detectedActions = useMemo(() => extractActionsFromText(notes), [notes]);
   const hasDetectedActions = detectedActions.length > 0;
 
@@ -432,7 +445,214 @@ export default function CapturePage() {
     setTranscriptionError(null);
   };
 
-  const isLoading = ocrLoading || transcriptionLoading;
+  const checkRecordingConsent = async () => {
+    try {
+      const res = await authenticatedFetch('/api/auth/user');
+      if (res.ok) {
+        const userData = await res.json();
+        return !!userData.recordingConsentAt;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  };
+
+  const saveRecordingConsent = async () => {
+    try {
+      await authenticatedFetch('/api/users/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recordingConsentAt: new Date().toISOString() }),
+      });
+      setHasConsent(true);
+    } catch {
+      toast({ title: "Error", description: "Failed to save consent.", variant: "destructive" });
+    }
+  };
+
+  const handleRecordMeetingClick = async () => {
+    if (!canTranscribe) {
+      toast({ 
+        title: "Transcription limit reached", 
+        description: "Upgrade to Pro for more transcription minutes.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    if (hasConsent) {
+      setShowRecordingModal(true);
+      return;
+    }
+
+    const consentGiven = await checkRecordingConsent();
+    if (!consentGiven) {
+      setShowConsentDialog(true);
+    } else {
+      setHasConsent(true);
+      setShowRecordingModal(true);
+    }
+  };
+
+  const handleConsentAccept = async () => {
+    await saveRecordingConsent();
+    setShowConsentDialog(false);
+    setShowRecordingModal(true);
+  };
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      chunksRef.current = [];
+      
+      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        streamRef.current = null;
+        
+        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        if (blob.size < 1000) {
+          toast({ title: "Recording too short", description: "Please record for longer.", variant: "destructive" });
+          setRecordingState('idle');
+          setRecordingTime(0);
+          return;
+        }
+
+        const file = new File([blob], `recording-${Date.now()}.webm`, { type: 'audio/webm' });
+        setRecordingAutoTranscribing(true);
+        setRecordingTranscribeProgress(0);
+        
+        const progressInterval = setInterval(() => {
+          setRecordingTranscribeProgress(prev => Math.min(prev + 6, 90));
+        }, 500);
+
+        try {
+          const formData = new FormData();
+          formData.append('audio', file);
+
+          const response = await fetch(
+            `/api/transcribe?userId=${user.id}&save=true&title=${encodeURIComponent(title || `Recording ${new Date().toLocaleString()}`)}`, 
+            { method: 'POST', body: formData }
+          );
+
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Transcription failed');
+          }
+
+          const result = await response.json();
+          setRecordingTranscribeProgress(100);
+
+          if (result.text && result.text !== '[No speech detected]') {
+            setNotes(prev => prev ? `${prev}\n\n${result.text}` : result.text);
+            toast({ title: "Recording transcribed", description: "Audio has been transcribed and added to your notes." });
+          } else {
+            toast({ title: "No speech detected", description: "The recording didn't contain detectable speech.", variant: "destructive" });
+          }
+        } catch (error) {
+          toast({ 
+            title: "Transcription failed", 
+            description: error instanceof Error ? error.message : "Failed to transcribe recording.", 
+            variant: "destructive" 
+          });
+        } finally {
+          clearInterval(progressInterval);
+          setRecordingAutoTranscribing(false);
+          setRecordingTranscribeProgress(0);
+          setRecordingState('idle');
+          setRecordingTime(0);
+          setShowRecordingModal(false);
+          refetchPlan();
+        }
+      };
+
+      mediaRecorder.start(1000);
+      setRecordingState('recording');
+      setRecordingTime(0);
+      
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } catch (error: any) {
+      if (error?.name === 'NotAllowedError') {
+        toast({ title: "Microphone access denied", description: "Please allow microphone access in your browser settings.", variant: "destructive" });
+      } else {
+        toast({ title: "Recording failed", description: "Could not start recording. Check your microphone.", variant: "destructive" });
+      }
+    }
+  };
+
+  const pauseRecording = () => {
+    if (mediaRecorderRef.current?.state === 'recording') {
+      mediaRecorderRef.current.pause();
+      setRecordingState('paused');
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+  };
+
+  const resumeRecording = () => {
+    if (mediaRecorderRef.current?.state === 'paused') {
+      mediaRecorderRef.current.resume();
+      setRecordingState('recording');
+      timerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    }
+  };
+
+  const stopRecording = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  const cancelRecording = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.onstop = null;
+      mediaRecorderRef.current.stop();
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
+    chunksRef.current = [];
+    setRecordingState('idle');
+    setRecordingTime(0);
+    setShowRecordingModal(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, []);
+
+  const isLoading = ocrLoading || transcriptionLoading || recordingAutoTranscribing;
 
   return (
     <div ref={containerRef} className="flex flex-col h-[calc(100vh-4rem)] md:h-screen overflow-y-auto">
@@ -455,7 +675,17 @@ export default function CapturePage() {
             >
               <ArrowLeft className="h-5 w-5" weight="bold" />
             </Button>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Capture</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground flex-1">Capture</h1>
+            <Button
+              size="sm"
+              className="rounded-xl btn-gradient gap-1.5 text-xs"
+              onClick={handleRecordMeetingClick}
+              disabled={isLoading}
+              data-testid="button-record-meeting"
+            >
+              <Record className="h-4 w-4" weight="fill" />
+              Record Meeting
+            </Button>
           </div>
 
           <div className="flex gap-3">
@@ -607,7 +837,7 @@ export default function CapturePage() {
             {isLoading && (
               <div className="flex items-center gap-2 text-xs text-primary">
                 <ArrowsClockwise className="h-4 w-4 animate-spin" weight="bold" />
-                <span>{ocrLoading ? 'Reading...' : 'Transcribing...'}</span>
+                <span>{ocrLoading ? 'Reading...' : recordingAutoTranscribing ? 'Transcribing recording...' : 'Transcribing...'}</span>
               </div>
             )}
           </div>
@@ -834,6 +1064,138 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                 Insert
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showConsentDialog} onOpenChange={setShowConsentDialog}>
+        <DialogContent className="glass-panel border-border text-foreground max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <WarningCircle className="h-5 w-5 text-amber-400" weight="duotone" />
+              Recording Consent Required
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Please review and accept the following before recording
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-muted rounded-xl p-4 text-sm text-foreground space-y-3 max-h-64 overflow-y-auto border border-border">
+              <p className="font-semibold">Recording Consent & Legal Disclaimer</p>
+              <p>By proceeding, you acknowledge and agree to the following:</p>
+              <ul className="list-disc list-outside ml-5 space-y-2 text-muted-foreground">
+                <li><strong className="text-foreground">Consent Requirement:</strong> You confirm that all participants in this meeting have been informed of and have consented to being recorded, in accordance with applicable laws and regulations.</li>
+                <li><strong className="text-foreground">GDPR Compliance:</strong> Under the General Data Protection Regulation (GDPR), recording conversations requires a lawful basis. You are responsible for ensuring that all necessary consents have been obtained from participants prior to recording.</li>
+                <li><strong className="text-foreground">Data Processing:</strong> Audio recordings will be processed by AI services for transcription purposes. The transcribed text will be stored in your account. Audio files are processed temporarily and not stored permanently.</li>
+                <li><strong className="text-foreground">Two-Party/All-Party Consent:</strong> Some jurisdictions require all parties to consent to being recorded. It is your responsibility to comply with the recording consent laws applicable in your jurisdiction.</li>
+                <li><strong className="text-foreground">Purpose Limitation:</strong> Recordings should only be used for the stated purpose of meeting documentation and should not be shared without the consent of all recorded parties.</li>
+                <li><strong className="text-foreground">Data Retention:</strong> You are responsible for managing the retention and deletion of transcribed meeting data in accordance with your organization's data policies.</li>
+              </ul>
+              <p className="text-xs text-muted-foreground pt-2 border-t border-border">This consent will be recorded in your account settings with a timestamp. You will not be asked again for future recordings.</p>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setShowConsentDialog(false)} className="flex-1" data-testid="button-consent-decline">
+                Decline
+              </Button>
+              <Button onClick={handleConsentAccept} className="flex-1 btn-gradient" data-testid="button-consent-accept">
+                <Check className="h-4 w-4 mr-2" weight="bold" />
+                I Accept
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showRecordingModal} onOpenChange={(open) => {
+        if (!open && recordingState === 'idle' && !recordingAutoTranscribing) {
+          setShowRecordingModal(false);
+        }
+      }}>
+        <DialogContent className="glass-panel border-border text-foreground max-w-sm" onPointerDownOutside={(e) => {
+          if (recordingState !== 'idle' || recordingAutoTranscribing) e.preventDefault();
+        }}>
+          <DialogHeader>
+            <DialogTitle className="text-foreground text-center">
+              {recordingAutoTranscribing ? 'Transcribing...' : 'Record Meeting'}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground text-center">
+              {recordingAutoTranscribing 
+                ? 'Your recording is being transcribed automatically'
+                : recordingState === 'idle' 
+                  ? 'Press the red button to start recording' 
+                  : recordingState === 'paused' 
+                    ? 'Recording paused' 
+                    : 'Recording in progress...'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col items-center gap-6 py-4">
+            <div className="text-4xl font-mono font-bold text-foreground tabular-nums" data-testid="text-recording-timer">
+              {formatTime(recordingTime)}
+            </div>
+
+            {recordingAutoTranscribing ? (
+              <div className="w-full space-y-2">
+                <Progress value={recordingTranscribeProgress} className="h-2" />
+                <p className="text-xs text-muted-foreground text-center">Processing audio...</p>
+              </div>
+            ) : (
+              <>
+                {recordingState === 'recording' && (
+                  <div className="flex items-center gap-2 text-xs text-red-400">
+                    <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                    Recording
+                  </div>
+                )}
+
+                <div className="flex items-center gap-4">
+                  {recordingState === 'idle' ? (
+                    <button
+                      onClick={startRecording}
+                      className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all shadow-lg hover:shadow-xl active:scale-95"
+                      data-testid="button-start-recording"
+                      aria-label="Start recording"
+                    >
+                      <Circle className="h-6 w-6 text-white" weight="fill" />
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={recordingState === 'paused' ? resumeRecording : pauseRecording}
+                        className="w-14 h-14 rounded-full bg-muted hover:bg-accent border border-border flex items-center justify-center transition-all"
+                        data-testid="button-pause-recording"
+                        aria-label={recordingState === 'paused' ? 'Resume recording' : 'Pause recording'}
+                      >
+                        {recordingState === 'paused' ? (
+                          <Record className="h-5 w-5 text-red-400" weight="fill" />
+                        ) : (
+                          <Pause className="h-5 w-5 text-muted-foreground" weight="fill" />
+                        )}
+                      </button>
+
+                      <button
+                        onClick={stopRecording}
+                        className="w-16 h-16 rounded-full bg-foreground hover:bg-foreground/80 flex items-center justify-center transition-all shadow-lg active:scale-95"
+                        data-testid="button-stop-recording"
+                        aria-label="Stop recording"
+                      >
+                        <Stop className="h-6 w-6 text-background" weight="fill" />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+
+            {recordingState !== 'idle' && !recordingAutoTranscribing && (
+              <button
+                onClick={cancelRecording}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                data-testid="button-cancel-recording"
+              >
+                Cancel recording
+              </button>
+            )}
           </div>
         </DialogContent>
       </Dialog>

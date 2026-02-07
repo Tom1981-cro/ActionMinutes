@@ -37,6 +37,7 @@ export const users = pgTable("users", {
   subscriptionStatus: text("subscription_status"),
   subscriptionPlan: text("subscription_plan"),
   emailVerified: boolean("email_verified").notNull().default(false),
+  recordingConsentAt: timestamp("recording_consent_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
