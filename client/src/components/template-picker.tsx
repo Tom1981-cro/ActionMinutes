@@ -13,7 +13,7 @@ import {
   ListBullets, CheckSquare, Notebook, HighlighterCircle, ChatCircle,
   Stethoscope, TrendUp, UserCircle, UserCheck, Newspaper,
   Chalkboard, BookOpen, Target, Handshake, ChartLine,
-  SpinnerGap, MagnifyingGlass, Robot, Globe, Star, ClockCounterClockwise,
+  SpinnerGap, MagnifyingGlass, Sparkle, Globe, Star,
 } from "@phosphor-icons/react";
 import type { Icon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
@@ -67,7 +67,7 @@ const LANGUAGES = [
 const AI_MODELS = [
   { value: "auto", label: "Auto" },
   { value: "gpt-4o-mini", label: "GPT-4o Mini" },
-  { value: "gpt-4o", label: "GPT-4o" },
+  { value: "gemini-2.5-flash", label: "Gemini Flash" },
 ];
 
 export function TemplatePicker({ open, onOpenChange, onSelect, isGenerating }: TemplatePickerProps) {
@@ -105,7 +105,7 @@ export function TemplatePicker({ open, onOpenChange, onSelect, isGenerating }: T
 
   const getCategoryIcon = (iconName: string) => {
     const IconComp = ICON_MAP[iconName] || FileText;
-    return <IconComp className="h-4 w-4" weight="duotone" />;
+    return <IconComp className="h-3.5 w-3.5" weight="duotone" />;
   };
 
   const handleGenerate = () => {
@@ -115,7 +115,7 @@ export function TemplatePicker({ open, onOpenChange, onSelect, isGenerating }: T
   };
 
   const sidebarItems: { id: string; label: string; icon: React.ReactNode }[] = [
-    { id: "all", label: "Recommended", icon: <Star className="h-4 w-4" weight="duotone" /> },
+    { id: "all", label: "Recommended", icon: <Star className="h-3.5 w-3.5" weight="duotone" /> },
     ...categories.map((cat) => ({
       id: cat.id,
       label: cat.label,
@@ -142,7 +142,7 @@ export function TemplatePicker({ open, onOpenChange, onSelect, isGenerating }: T
         ) : (
           <div className="flex flex-col h-[65vh]">
             <div className="flex flex-1 min-h-0">
-              <div className="w-44 shrink-0 border-r border-border py-3 overflow-y-auto" data-testid="template-category-sidebar">
+              <div className="w-40 shrink-0 border-r border-border py-3 overflow-y-auto" data-testid="template-category-sidebar">
                 <div className="px-3 pb-3">
                   <div className="relative">
                     <MagnifyingGlass className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -161,7 +161,7 @@ export function TemplatePicker({ open, onOpenChange, onSelect, isGenerating }: T
                     key={item.id}
                     onClick={() => setSelectedCategory(item.id)}
                     className={cn(
-                      "w-full flex items-center gap-2.5 px-4 py-2 text-sm font-medium transition-colors text-left",
+                      "w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium transition-colors text-left",
                       selectedCategory === item.id
                         ? "bg-primary/10 text-primary border-r-2 border-primary"
                         : "text-muted-foreground hover:text-foreground hover:bg-accent"
@@ -193,7 +193,7 @@ export function TemplatePicker({ open, onOpenChange, onSelect, isGenerating }: T
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-foreground leading-tight">{template.name}</p>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{template.description}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{template.description}</p>
                       </div>
                     </button>
                   ))}
@@ -207,7 +207,7 @@ export function TemplatePicker({ open, onOpenChange, onSelect, isGenerating }: T
             <div className="border-t border-border px-5 py-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <Robot className="h-4 w-4 text-muted-foreground" weight="duotone" />
+                  <Sparkle className="h-4 w-4 text-primary" weight="duotone" />
                   <Select value={aiModel} onValueChange={setAiModel}>
                     <SelectTrigger className="h-8 w-[130px] text-xs rounded-lg border-border bg-muted" data-testid="select-ai-model">
                       <SelectValue placeholder="AI model" />
