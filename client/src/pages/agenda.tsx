@@ -146,7 +146,7 @@ export default function AgendaPage() {
 
   const handleTap = (item: ActionItem) => {
     if (item.meetingId) {
-      setLocation(`/meeting/${item.meetingId}`);
+      setLocation(`/app/meeting/${item.meetingId}`);
     }
   };
 

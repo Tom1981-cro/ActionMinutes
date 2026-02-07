@@ -130,7 +130,7 @@ export default function MeetingsPage() {
         )}
         
         {meetings.map((meeting: any) => (
-          <Link key={meeting.id} href={meeting.parseState === 'draft' ? `/capture?id=${meeting.id}` : `/meeting/${meeting.id}`}>
+          <Link key={meeting.id} href={meeting.parseState === 'draft' ? `/app/capture?id=${meeting.id}` : `/app/meeting/${meeting.id}`}>
             <Card className="glass-panel hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl" data-testid={`card-meeting-${meeting.id}`}>
               <CardHeader className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
                 <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
