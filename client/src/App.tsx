@@ -141,7 +141,7 @@ function Router() {
       <Route path="/app/calendar">
         <ProtectedRoute>
           <Layout>
-            <ErrorBoundary fallback={<PageErrorFallback message="Couldn't load calendar" />}>
+            <ErrorBoundary key="calendar" fallback={<PageErrorFallback message="Couldn't load calendar" />}>
               <Suspense fallback={<PageLoader />}>
                 <CalendarPage />
               </Suspense>
@@ -152,7 +152,7 @@ function Router() {
       <Route path="/app/transcripts">
         <ProtectedRoute>
           <Layout>
-            <ErrorBoundary fallback={<PageErrorFallback message="Couldn't load transcripts" />}>
+            <ErrorBoundary key="transcripts" fallback={<PageErrorFallback message="Couldn't load transcripts" />}>
               <Suspense fallback={<PageLoader />}>
                 <TranscriptsPage />
               </Suspense>

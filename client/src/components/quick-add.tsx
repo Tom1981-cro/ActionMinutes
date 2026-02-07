@@ -351,10 +351,10 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
   };
 
   const getDestinationIcon = () => {
-    if (destination === "inbox") return <Tray className="h-3.5 w-3.5" weight="duotone" />;
-    if (destination === "reminders") return <BellRinging className="h-3.5 w-3.5" weight="duotone" />;
-    if (destination === "meetings") return <CalendarBlank className="h-3.5 w-3.5" weight="duotone" />;
-    return <ListBullets className="h-3.5 w-3.5" weight="duotone" />;
+    if (destination === "inbox") return <Tray className="h-3 w-3" weight="duotone" />;
+    if (destination === "reminders") return <BellRinging className="h-3 w-3" weight="duotone" />;
+    if (destination === "meetings") return <CalendarBlank className="h-3 w-3" weight="duotone" />;
+    return <ListBullets className="h-3 w-3" weight="duotone" />;
   };
 
   const priorityInfo = PRIORITIES.find(p => p.value === priority)!;
@@ -377,52 +377,52 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
         if (!open) resetForm();
         setIsOpen(open);
       }}>
-        <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-visible bg-card border-border" data-testid="dialog-addaction">
-          <DialogHeader className="px-4 py-3 border-b border-border">
-            <DialogTitle className="flex items-center gap-2 text-lg text-foreground">
-              <Lightning weight="fill" className="h-5 w-5 text-primary" />
+        <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-visible bg-card border-border top-[15%] translate-y-0" data-testid="dialog-addaction">
+          <DialogHeader className="px-3 py-2.5 border-b border-border">
+            <DialogTitle className="flex items-center gap-1.5 text-sm text-foreground">
+              <Lightning weight="fill" className="h-4 w-4 text-primary" />
               <span>Add</span>
-              <span className="text-primary">Action</span>
-              <Badge variant="secondary" className="ml-2 text-xs bg-muted text-muted-foreground">
-                Press Q
+              <span className="text-primary font-semibold">Action</span>
+              <Badge variant="secondary" className="ml-2 text-[10px] px-1.5 py-0 bg-muted text-muted-foreground">
+                Q
               </Badge>
             </DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="flex flex-col">
-            <div className="px-4 pt-4 space-y-2">
+            <div className="px-3 pt-3 space-y-1">
               <Input
                 ref={titleRef}
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Task name"
-                className="h-10 text-base bg-transparent border-none shadow-none px-0 font-medium text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
+                className="h-8 text-sm bg-transparent border-none shadow-none px-0 font-medium text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
                 data-testid="input-addaction-title"
               />
               <Input
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Description"
-                className="h-8 text-sm bg-transparent border-none shadow-none px-0 text-muted-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0"
+                className="h-7 text-xs bg-transparent border-none shadow-none px-0 text-muted-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0"
                 data-testid="input-addaction-description"
               />
             </div>
 
-            <div className="px-4 py-3 flex flex-wrap gap-2">
+            <div className="px-3 py-2 flex flex-wrap gap-1.5">
               {/* Date Button */}
               <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors",
+                      "flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] transition-colors",
                       dueDate
                         ? "border-primary/30 bg-primary/10 text-primary"
                         : "border-border bg-transparent text-muted-foreground hover:bg-accent"
                     )}
                     data-testid="button-addaction-date"
                   >
-                    <CalendarBlank className="h-3.5 w-3.5" weight="duotone" />
+                    <CalendarBlank className="h-3 w-3" weight="duotone" />
                     {dueDate ? format(dueDate, "MMM d") : "Date"}
                     {dueDate && (
                       <span onClick={(e) => { e.stopPropagation(); setDueDate(null); setDueTime(""); }} className="ml-1 hover:text-foreground">
@@ -530,14 +530,14 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                   <button
                     type="button"
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors",
+                      "flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] transition-colors",
                       deadline
                         ? "border-red-500/30 bg-red-500/10 text-red-500"
                         : "border-border bg-transparent text-muted-foreground hover:bg-accent"
                     )}
                     data-testid="button-addaction-deadline"
                   >
-                    <Timer className="h-3.5 w-3.5" weight="duotone" />
+                    <Timer className="h-3 w-3" weight="duotone" />
                     {deadline ? format(deadline, "MMM d") : "Deadline"}
                     {deadline && (
                       <span onClick={(e) => { e.stopPropagation(); setDeadline(null); setDeadlineTime(""); }} className="ml-1 hover:text-foreground">
@@ -596,14 +596,14 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                   <button
                     type="button"
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors",
+                      "flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] transition-colors",
                       priority !== "normal"
                         ? `border-border bg-accent ${priorityInfo.color}`
                         : "border-border bg-transparent text-muted-foreground hover:bg-accent"
                     )}
                     data-testid="button-addaction-priority"
                   >
-                    <Flag className="h-3.5 w-3.5" weight="duotone" />
+                    <Flag className="h-3 w-3" weight="duotone" />
                     {priority !== "normal" ? priorityInfo.label : "Priority"}
                   </button>
                 </PopoverTrigger>
@@ -633,14 +633,14 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                   <button
                     type="button"
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors",
+                      "flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] transition-colors",
                       reminderAt
                         ? "border-amber-500/30 bg-amber-500/10 text-amber-600"
                         : "border-border bg-transparent text-muted-foreground hover:bg-accent"
                     )}
                     data-testid="button-addaction-reminder"
                   >
-                    <BellRinging className="h-3.5 w-3.5" weight="duotone" />
+                    <BellRinging className="h-3 w-3" weight="duotone" />
                     {reminderAt ? format(reminderAt, "MMM d") : "Reminders"}
                     {reminderAt && (
                       <span onClick={(e) => { e.stopPropagation(); setReminderAt(null); setReminderTime(""); }} className="ml-1 hover:text-foreground">
@@ -702,14 +702,14 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                   <button
                     type="button"
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors",
+                      "flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] transition-colors",
                       selectedTags.length > 0
                         ? "border-primary/30 bg-primary/10 text-primary"
                         : "border-border bg-transparent text-muted-foreground hover:bg-accent"
                     )}
                     data-testid="button-addaction-tags"
                   >
-                    <Hash className="h-3.5 w-3.5" weight="duotone" />
+                    <Hash className="h-3 w-3" weight="duotone" />
                     {selectedTags.length > 0 ? `${selectedTags.length} tag${selectedTags.length > 1 ? "s" : ""}` : "Tags"}
                   </button>
                 </PopoverTrigger>
@@ -759,14 +759,14 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                   <button
                     type="button"
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors",
+                      "flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] transition-colors",
                       location
                         ? "border-primary/30 bg-primary/10 text-primary"
                         : "border-border bg-transparent text-muted-foreground hover:bg-accent"
                     )}
                     data-testid="button-addaction-location"
                   >
-                    <MapPin className="h-3.5 w-3.5" weight="duotone" />
+                    <MapPin className="h-3 w-3" weight="duotone" />
                     {location ? (location.length > 15 ? location.slice(0, 15) + "..." : location) : "Location"}
                     {location && (
                       <span onClick={(e) => { e.stopPropagation(); setLocation(""); }} className="ml-1 hover:text-foreground">
@@ -805,35 +805,33 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
               </Popover>
             </div>
 
-            {/* Active selections summary */}
             {selectedTags.length > 0 && (
-              <div className="px-4 pb-2 flex flex-wrap gap-1">
+              <div className="px-3 pb-1.5 flex flex-wrap gap-1">
                 {selectedTags.map((tag) => (
                   <Badge
                     key={tag}
                     variant="outline"
-                    className="text-xs rounded-full gap-1 cursor-pointer hover:bg-destructive/10"
+                    className="text-[10px] rounded-full gap-0.5 cursor-pointer hover:bg-destructive/10 px-1.5 py-0"
                     onClick={() => toggleTag(tag)}
                   >
                     #{tag}
-                    <X className="h-2.5 w-2.5" weight="bold" />
+                    <X className="h-2 w-2" weight="bold" />
                   </Badge>
                 ))}
               </div>
             )}
 
-            {/* Footer: destination + actions */}
-            <div className="px-4 py-3 border-t border-border flex items-center justify-between gap-3">
+            <div className="px-3 py-2 border-t border-border flex items-center justify-between gap-2">
               <Popover open={showDestinationPicker} onOpenChange={setShowDestinationPicker}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                     data-testid="button-addaction-destination"
                   >
                     {getDestinationIcon()}
                     <span>{getDestinationLabel()}</span>
-                    <CaretDown className="h-3 w-3" weight="bold" />
+                    <CaretDown className="h-2.5 w-2.5" weight="bold" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-52 p-1 bg-card border-border" align="start" side="top" sideOffset={8}>
@@ -881,13 +879,13 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                 </PopoverContent>
               </Popover>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() => { resetForm(); setIsOpen(false); }}
-                  className="text-sm"
+                  className="text-xs h-7 px-2"
                   data-testid="button-addaction-cancel"
                 >
                   Cancel
@@ -896,10 +894,10 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                   type="submit"
                   size="sm"
                   disabled={!title.trim() || createAction.isPending}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-md text-xs h-7 px-3"
                   data-testid="button-addaction-submit"
                 >
-                  {createAction.isPending ? "Adding..." : "Add action"}
+                  {createAction.isPending ? "Adding..." : "Add Action"}
                 </Button>
               </div>
             </div>
