@@ -191,7 +191,7 @@ export default function CapturePage() {
       
       setTimeout(() => {
         setIsSubmitting(false);
-        setLocation(`/meeting/${meeting.id}`);
+        setLocation(`/app/meeting/${meeting.id}`);
       }, 500);
     } catch (error: any) {
       setIsSubmitting(false);
@@ -220,7 +220,7 @@ export default function CapturePage() {
       });
       await saveAttendees(meeting.id);
       toast({ title: "Saved draft", description: "Meeting saved without extraction." });
-      setLocation("/meetings");
+      setLocation("/app/meetings");
     } catch (error) {
       toast({ title: "Error", description: "Failed to save meeting", variant: "destructive" });
     }
@@ -448,7 +448,7 @@ export default function CapturePage() {
             <Button 
               variant="ghost" 
               size="icon" 
-              onClick={() => setLocation("/meetings")} 
+              onClick={() => setLocation("/app/meetings")} 
               className="rounded-full h-10 w-10 shrink-0" 
               data-testid="button-back"
               aria-label="Go back to meetings"
