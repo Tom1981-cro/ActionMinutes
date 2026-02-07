@@ -475,7 +475,7 @@ export default function ActionDetailPage() {
             variant={status === s.value ? "default" : "outline"}
             onClick={() => setStatus(s.value)}
             className={cn(
-              "h-8 rounded-xl text-xs px-4",
+              "h-8 rounded-xl text-[10px] px-4",
               status === s.value ? s.className : "border-border"
             )}
             data-testid={`status-${s.value}`}
@@ -491,7 +491,7 @@ export default function ActionDetailPage() {
                 size="sm"
                 variant="outline"
                 className={cn(
-                  "h-8 rounded-xl text-xs px-3 gap-1.5 ml-auto border-border",
+                  "h-8 rounded-xl text-[10px] px-3 gap-1.5 ml-auto border-border",
                   currentListId ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20" : "hover:bg-accent"
                 )}
                 data-testid="button-list-picker"
@@ -510,7 +510,7 @@ export default function ActionDetailPage() {
                 <button
                   onClick={() => currentListId && moveToList.mutate(null)}
                   className={cn(
-                    "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left",
+                    "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[10px] font-medium transition-colors text-left",
                     !currentListId ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
                   )}
                   data-testid="move-to-inbox"
@@ -524,7 +524,7 @@ export default function ActionDetailPage() {
                     key={list.id}
                     onClick={() => list.id !== currentListId && moveToList.mutate(list.id)}
                     className={cn(
-                      "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors text-left",
+                      "w-full flex items-center gap-2 px-3 py-2 rounded-lg text-[10px] font-medium transition-colors text-left",
                       list.id === currentListId ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
                     )}
                     data-testid={`move-to-list-${list.id}`}
@@ -544,7 +544,7 @@ export default function ActionDetailPage() {
         <Card className="glass-panel rounded-2xl">
           <CardContent className="px-4 py-3 md:px-6">
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Label className="text-[10px] text-muted-foreground flex items-center gap-1.5">
                 <Hourglass className="h-3.5 w-3.5" weight="duotone" />
                 Waiting for
               </Label>
@@ -552,7 +552,7 @@ export default function ActionDetailPage() {
                 value={waitingFor}
                 onChange={(e) => setWaitingFor(e.target.value)}
                 placeholder="Who or what are you waiting on?"
-                className="h-9 text-xs rounded-xl"
+                className="h-9 text-[10px] rounded-xl"
                 data-testid="input-waiting-for"
               />
             </div>
@@ -562,37 +562,37 @@ export default function ActionDetailPage() {
 
       <Card className="glass-panel rounded-2xl">
         <CardHeader className="px-4 pt-4 pb-2 md:px-6">
-          <CardTitle className="text-xs font-semibold text-primary flex items-center gap-1.5">
+          <CardTitle className="text-[10px] font-semibold text-primary flex items-center gap-1.5">
             <Notepad className="h-4 w-4" weight="duotone" />
             Task Details
           </CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-4 md:px-6 space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Task</Label>
+            <Label className="text-[10px] text-muted-foreground">Task</Label>
             <Input
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder="What needs to be done?"
-              className="h-9 text-xs rounded-xl"
+              className="h-9 text-[10px] rounded-xl"
               data-testid="input-action-text"
             />
           </div>
           {(itemType === "reminder" || description !== undefined) && (
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Description</Label>
+              <Label className="text-[10px] text-muted-foreground">Description</Label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Brief description..."
-                className="min-h-[70px] text-xs rounded-xl"
+                className="min-h-[70px] text-[10px] rounded-xl"
                 data-testid="input-description"
               />
             </div>
           )}
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Label className="text-[10px] text-muted-foreground flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5" weight="duotone" />
                 Assigned to
               </Label>
@@ -600,12 +600,12 @@ export default function ActionDetailPage() {
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
                 placeholder="Who's responsible?"
-                className="h-9 text-xs rounded-xl"
+                className="h-9 text-[10px] rounded-xl"
                 data-testid="input-owner-name"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Label className="text-[10px] text-muted-foreground flex items-center gap-1.5">
                 <EnvelopeSimple className="h-3.5 w-3.5" weight="duotone" />
                 Email
               </Label>
@@ -614,7 +614,7 @@ export default function ActionDetailPage() {
                 value={ownerEmail}
                 onChange={(e) => setOwnerEmail(e.target.value)}
                 placeholder="owner@example.com"
-                className="h-9 text-xs rounded-xl"
+                className="h-9 text-[10px] rounded-xl"
                 data-testid="input-owner-email"
               />
             </div>
@@ -624,7 +624,7 @@ export default function ActionDetailPage() {
 
       <Card className="glass-panel rounded-2xl">
         <CardHeader className="px-4 pt-4 pb-2 md:px-6">
-          <CardTitle className="text-xs font-semibold text-primary flex items-center gap-1.5">
+          <CardTitle className="text-[10px] font-semibold text-primary flex items-center gap-1.5">
             <CalendarBlank className="h-4 w-4" weight="duotone" />
             Schedule
           </CardTitle>
@@ -632,7 +632,7 @@ export default function ActionDetailPage() {
         <CardContent className="px-4 pb-4 md:px-6 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Label className="text-[10px] text-muted-foreground flex items-center gap-1.5">
                 <CalendarBlank className="h-3.5 w-3.5" weight="duotone" />
                 Due Date
               </Label>
@@ -640,7 +640,7 @@ export default function ActionDetailPage() {
                 type="button"
                 onClick={() => setShowDatePicker(true)}
                 className={cn(
-                  "flex items-center gap-2 w-full h-9 px-3 rounded-xl border text-xs transition-colors text-left",
+                  "flex items-center gap-2 w-full h-9 px-3 rounded-xl border text-[10px] transition-colors text-left",
                   dueDate ? "border-primary/30 bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
                 )}
                 data-testid="button-due-date"
@@ -650,7 +650,7 @@ export default function ActionDetailPage() {
               </button>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Label className="text-[10px] text-muted-foreground flex items-center gap-1.5">
                 <Clock className="h-3.5 w-3.5" weight="duotone" />
                 Duration
               </Label>
@@ -658,7 +658,7 @@ export default function ActionDetailPage() {
                 type="button"
                 onClick={() => setShowDatePicker(true)}
                 className={cn(
-                  "flex items-center gap-2 w-full h-9 px-3 rounded-xl border text-xs transition-colors text-left",
+                  "flex items-center gap-2 w-full h-9 px-3 rounded-xl border text-[10px] transition-colors text-left",
                   getDurationLabel() ? "border-primary/30 bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
                 )}
                 data-testid="button-duration"
@@ -671,7 +671,7 @@ export default function ActionDetailPage() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Label className="text-[10px] text-muted-foreground flex items-center gap-1.5">
                 <Timer className="h-3.5 w-3.5" weight="duotone" />
                 Deadline
               </Label>
@@ -689,7 +689,7 @@ export default function ActionDetailPage() {
                       }
                     }}
                     className={cn(
-                      "h-9 text-xs rounded-xl flex-1",
+                      "h-9 text-[10px] rounded-xl flex-1",
                       deadline ? "border-red-500/30 bg-red-500/5" : ""
                     )}
                     data-testid="input-deadline"
@@ -718,7 +718,7 @@ export default function ActionDetailPage() {
               </Popover>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Label className="text-[10px] text-muted-foreground flex items-center gap-1.5">
                 <BellRinging className="h-3.5 w-3.5" weight="duotone" />
                 Reminder
               </Label>
@@ -726,7 +726,7 @@ export default function ActionDetailPage() {
                 value={reminder}
                 onValueChange={(v) => setReminder(v)}
               >
-                <SelectTrigger className="h-9 text-xs rounded-xl" data-testid="select-reminder">
+                <SelectTrigger className="h-9 text-[10px] rounded-xl" data-testid="select-reminder">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -742,7 +742,7 @@ export default function ActionDetailPage() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Label className="text-[10px] text-muted-foreground flex items-center gap-1.5">
                 <ArrowsClockwise className="h-3.5 w-3.5" weight="duotone" />
                 Repeat
               </Label>
@@ -750,7 +750,7 @@ export default function ActionDetailPage() {
                 value={recurrence || "none"}
                 onValueChange={(v) => setRecurrence(v === "none" ? null : v)}
               >
-                <SelectTrigger className="h-9 text-xs rounded-xl" data-testid="select-recurrence">
+                <SelectTrigger className="h-9 text-[10px] rounded-xl" data-testid="select-recurrence">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -763,7 +763,7 @@ export default function ActionDetailPage() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Label className="text-[10px] text-muted-foreground flex items-center gap-1.5">
                 <Flag className="h-3.5 w-3.5" weight="duotone" />
                 Priority
               </Label>
@@ -774,7 +774,7 @@ export default function ActionDetailPage() {
                     type="button"
                     onClick={() => setPriority(p.value)}
                     className={cn(
-                      "px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                      "px-3 py-1 rounded-full text-[10px] font-medium transition-colors",
                       priority === p.value
                         ? `${p.bg} ${p.color} border`
                         : "bg-muted text-muted-foreground hover:bg-accent border border-transparent"
@@ -790,7 +790,7 @@ export default function ActionDetailPage() {
 
           <div className="grid gap-3 sm:grid-cols-2 pt-1 border-t border-border/50">
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Label className="text-[10px] text-muted-foreground flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5" weight="duotone" />
                 Location
               </Label>
@@ -798,12 +798,12 @@ export default function ActionDetailPage() {
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 placeholder="Add location..."
-                className="h-9 text-xs rounded-xl"
+                className="h-9 text-[10px] rounded-xl"
                 data-testid="input-location"
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Label className="text-[10px] text-muted-foreground flex items-center gap-1.5">
                 <Tag className="h-3.5 w-3.5" weight="duotone" />
                 Tags
               </Label>
@@ -813,7 +813,7 @@ export default function ActionDetailPage() {
                     key={tag.id}
                     variant="secondary"
                     className={cn(
-                      "cursor-pointer transition-colors text-xs",
+                      "cursor-pointer transition-colors text-[10px]",
                       tags.includes(tag.name)
                         ? "bg-accent text-primary hover:bg-accent/80"
                         : "bg-muted text-muted-foreground hover:bg-accent hover:text-primary"
@@ -827,7 +827,7 @@ export default function ActionDetailPage() {
                   </Badge>
                 ))}
                 {globalTags.length === 0 && (
-                  <span className="text-xs text-muted-foreground">No tags available</span>
+                  <span className="text-[10px] text-muted-foreground">No tags available</span>
                 )}
               </div>
             </div>
@@ -838,7 +838,7 @@ export default function ActionDetailPage() {
       <Card className="glass-panel rounded-2xl">
         <CardHeader className="px-4 pt-4 pb-2 md:px-6">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-xs font-semibold text-primary flex items-center gap-1.5">
+            <CardTitle className="text-[10px] font-semibold text-primary flex items-center gap-1.5">
               <Notepad className="h-4 w-4" weight="duotone" />
               Notes
             </CardTitle>
@@ -850,7 +850,7 @@ export default function ActionDetailPage() {
                 className="hidden"
                 onChange={handleFileUpload}
               />
-              <span className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-primary hover:bg-primary/10 transition-colors border border-primary/30">
+              <span className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] text-primary hover:bg-primary/10 transition-colors border border-primary/30">
                 {isUploading ? (
                   <SpinnerGap className="h-3.5 w-3.5 animate-spin" />
                 ) : (
@@ -866,13 +866,13 @@ export default function ActionDetailPage() {
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Additional context or details..."
-            className="min-h-[80px] text-xs rounded-xl"
+            className="min-h-[80px] text-[10px] rounded-xl"
             data-testid="input-notes"
           />
 
           {attachments.length > 0 && (
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+              <Label className="text-[10px] text-muted-foreground flex items-center gap-1.5">
                 <Paperclip className="h-3.5 w-3.5" weight="duotone" />
                 Attachments ({attachments.length})
               </Label>
@@ -884,7 +884,7 @@ export default function ActionDetailPage() {
                     data-testid={`attachment-${att.id}`}
                   >
                     <span className="text-base">{getFileIcon(att.filename || att.name || "file")}</span>
-                    <span className="flex-1 truncate text-foreground text-xs">
+                    <span className="flex-1 truncate text-foreground text-[10px]">
                       {att.filename || att.name || "Attachment"}
                     </span>
                     <span className="text-[10px] text-muted-foreground">
@@ -920,14 +920,14 @@ export default function ActionDetailPage() {
         <Button
           variant="outline"
           onClick={() => navigate(backPath)}
-          className="h-9 rounded-xl text-xs"
+          className="h-9 rounded-xl text-[10px]"
         >
           Cancel
         </Button>
         <Button
           onClick={handleSave}
           disabled={isSaving || !text.trim()}
-          className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs px-6"
+          className="h-9 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-[10px] px-6"
           data-testid="button-save-action"
         >
           {isSaving ? <SpinnerGap className="h-4 w-4 animate-spin mr-1.5" /> : <FloppyDisk className="h-4 w-4 mr-1.5" weight="duotone" />}
