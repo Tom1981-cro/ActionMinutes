@@ -629,7 +629,7 @@ export default function ActionDetailPage() {
             Schedule
           </CardTitle>
         </CardHeader>
-        <CardContent className="px-4 pb-4 md:px-6 space-y-3 text-[12px]">
+        <CardContent className="px-4 pb-4 md:px-6 space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
