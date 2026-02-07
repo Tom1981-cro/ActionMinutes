@@ -45,6 +45,7 @@ export async function transcribeWithGemini(
     model: "gemini-2.5-flash",
     contents: [
       {
+        role: "user",
         parts: [
           {
             text: `Please transcribe this audio recording accurately. ${languageInstruction}
