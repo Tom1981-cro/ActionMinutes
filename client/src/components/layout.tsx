@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
-  BookOpenText, CaretDown, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X, DotsThree, Trash
+  BookOpenText, CaretDown, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X, DotsThree, Trash, Lightning
 } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -165,6 +165,15 @@ export default function Layout({ children }: LayoutProps) {
           </span>
         </div>
         <nav className="space-y-1 flex-1 overflow-y-auto">
+          <button
+            onClick={() => setQuickAddOpen(true)}
+            className="navItem w-full group"
+            data-testid="nav-addaction"
+          >
+            <Lightning className="nav-icon text-primary" weight="fill" />
+            <span className="text-foreground">Add</span>
+            <span className="text-primary font-semibold">Action</span>
+          </button>
           {(() => {
             const isInboxActive = location === inboxItem.href || location.startsWith(inboxItem.href);
             return (
@@ -299,14 +308,6 @@ export default function Layout({ children }: LayoutProps) {
             );
           })}
 
-          <button
-            onClick={() => setQuickAddOpen(true)}
-            className="navItem w-full"
-            data-testid="nav-quick-add"
-          >
-            <PlusCircle className="nav-icon" weight="duotone" />
-            Quick Add
-          </button>
         </nav>
 
         <div className="mt-auto pt-4 border-t border-border">

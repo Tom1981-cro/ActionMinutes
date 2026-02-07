@@ -1,13 +1,21 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Plus, Lightning, CalendarDots, X } from "@phosphor-icons/react";
+import {
+  Lightning, CalendarDots, X, CalendarBlank, Clock, Timer, Flag,
+  BellRinging, Hash, MapPin, Tray, ListBullets, CaretDown,
+  Sun, SunHorizon, Calendar as CalendarIcon, ArrowsClockwise,
+  Check
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
+import { authenticatedFetch } from "@/hooks/use-auth";
+import { format, addDays, nextSaturday, startOfWeek, addWeeks } from "date-fns";
 import * as chrono from "chrono-node";
 import { cn } from "@/lib/utils";
 
@@ -16,11 +24,53 @@ interface QuickAddProps {
   onOpenChange?: (open: boolean) => void;
 }
 
+type Destination = "inbox" | "reminders" | "meetings" | string;
+type Priority = "urgent" | "high" | "normal" | "low" | "optional";
+type RecurrenceOption = "daily" | "weekly" | "biweekly" | "monthly" | "yearly" | null;
+
+const PRIORITIES: { value: Priority; label: string; color: string; icon: string }[] = [
+  { value: "urgent", label: "Urgent", color: "text-red-500", icon: "🔴" },
+  { value: "high", label: "High", color: "text-orange-500", icon: "🟠" },
+  { value: "normal", label: "Normal", color: "text-blue-500", icon: "🔵" },
+  { value: "low", label: "Low", color: "text-emerald-500", icon: "🟢" },
+  { value: "optional", label: "Optional", color: "text-muted-foreground", icon: "⚪" },
+];
+
+const RECURRENCE_OPTIONS: { value: RecurrenceOption; label: string }[] = [
+  { value: null, label: "No repeat" },
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "biweekly", label: "Every 2 weeks" },
+  { value: "monthly", label: "Monthly" },
+  { value: "yearly", label: "Yearly" },
+];
+
 export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps) {
   const [internalOpen, setInternalOpen] = useState(false);
-  const [text, setText] = useState("");
-  const [parsedDate, setParsedDate] = useState<Date | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [dueDate, setDueDate] = useState<Date | null>(null);
+  const [dueTime, setDueTime] = useState<string>("");
+  const [deadline, setDeadline] = useState<Date | null>(null);
+  const [deadlineTime, setDeadlineTime] = useState<string>("");
+  const [priority, setPriority] = useState<Priority>("normal");
+  const [reminderAt, setReminderAt] = useState<Date | null>(null);
+  const [reminderTime, setReminderTime] = useState<string>("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [newTagInput, setNewTagInput] = useState("");
+  const [location, setLocation] = useState("");
+  const [destination, setDestination] = useState<Destination>("inbox");
+  const [recurrence, setRecurrence] = useState<RecurrenceOption>(null);
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showDeadlinePicker, setShowDeadlinePicker] = useState(false);
+  const [showPriorityPicker, setShowPriorityPicker] = useState(false);
+  const [showReminderPicker, setShowReminderPicker] = useState(false);
+  const [showTagsPicker, setShowTagsPicker] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [showDestinationPicker, setShowDestinationPicker] = useState(false);
+
+  const titleRef = useRef<HTMLInputElement>(null);
   const { user } = useStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -28,9 +78,40 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setIsOpen = onOpenChange || setInternalOpen;
 
+  const { data: globalTags = [] } = useQuery<{ id: string; name: string; color: string | null }[]>({
+    queryKey: ["global-tags"],
+    queryFn: async () => {
+      const res = await authenticatedFetch("/api/tags");
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: isOpen,
+  });
+
+  const { data: customLists = [] } = useQuery<{ id: string; name: string; color?: string }[]>({
+    queryKey: ["custom-lists", user.id],
+    queryFn: async () => {
+      const res = await authenticatedFetch("/api/lists");
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: isOpen,
+  });
+
+  const { data: locationSuggestions = [] } = useQuery<{ id: string; name: string }[]>({
+    queryKey: ["locations", location],
+    queryFn: async () => {
+      if (location.length < 3) return [];
+      const res = await authenticatedFetch(`/api/locations?search=${encodeURIComponent(location)}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: isOpen && location.length >= 3,
+  });
+
   useEffect(() => {
-    if (isOpen && inputRef.current) {
-      setTimeout(() => inputRef.current?.focus(), 100);
+    if (isOpen && titleRef.current) {
+      setTimeout(() => titleRef.current?.focus(), 100);
     }
   }, [isOpen]);
 
@@ -38,63 +119,42 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "q" && !e.ctrlKey && !e.metaKey && !e.altKey) {
         const activeEl = document.activeElement;
-        const isTyping = activeEl?.tagName === "INPUT" || 
-                         activeEl?.tagName === "TEXTAREA" || 
-                         (activeEl as HTMLElement)?.isContentEditable;
+        const isTyping = activeEl?.tagName === "INPUT" ||
+          activeEl?.tagName === "TEXTAREA" ||
+          (activeEl as HTMLElement)?.isContentEditable;
         if (!isTyping) {
           e.preventDefault();
           setIsOpen(true);
         }
       }
-      if (e.key === "Escape" && isOpen) {
-        setIsOpen(false);
-        setText("");
-        setParsedDate(null);
-      }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, setIsOpen]);
+  }, [setIsOpen]);
 
-  const parseText = useCallback((value: string) => {
-    setText(value);
-    const results = chrono.parse(value, new Date(), { forwardDate: true });
-    if (results.length > 0 && results[0].start) {
-      setParsedDate(results[0].start.date());
-    } else {
-      setParsedDate(null);
-    }
+  const resetForm = useCallback(() => {
+    setTitle("");
+    setDescription("");
+    setDueDate(null);
+    setDueTime("");
+    setDeadline(null);
+    setDeadlineTime("");
+    setPriority("normal");
+    setReminderAt(null);
+    setReminderTime("");
+    setSelectedTags([]);
+    setNewTagInput("");
+    setLocation("");
+    setDestination("inbox");
+    setRecurrence(null);
+    setShowDatePicker(false);
+    setShowDeadlinePicker(false);
+    setShowPriorityPicker(false);
+    setShowReminderPicker(false);
+    setShowTagsPicker(false);
+    setShowLocationPicker(false);
+    setShowDestinationPicker(false);
   }, []);
-
-  const createReminder = useMutation({
-    mutationFn: async (data: { text: string; dueDate: Date | null }) => {
-      const bucket = data.dueDate ? determineBucket(data.dueDate) : "sometime";
-      const response = await fetch(`/api/personal/reminders`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          text: data.text,
-          bucket,
-          dueDate: data.dueDate?.toISOString() || null,
-          priority: "normal",
-        }),
-      });
-      if (!response.ok) throw new Error("Failed to create reminder");
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["reminders"] });
-      queryClient.invalidateQueries({ queryKey: ["inbox-items"] });
-      toast({ title: "Added", description: "Task added to your inbox." });
-      setText("");
-      setParsedDate(null);
-      setIsOpen(false);
-    },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to add task.", variant: "destructive" });
-    },
-  });
 
   const determineBucket = (date: Date): string => {
     const now = new Date();
@@ -105,9 +165,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
     nextWeek.setDate(nextWeek.getDate() + 7);
     const nextMonth = new Date(today);
     nextMonth.setDate(nextMonth.getDate() + 30);
-
     const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
     if (dateOnly <= today) return "today";
     if (dateOnly <= tomorrow) return "tomorrow";
     if (dateOnly <= nextWeek) return "next_week";
@@ -115,11 +173,191 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
     return "sometime";
   };
 
+  const combineDateTime = (date: Date | null, time: string): Date | null => {
+    if (!date) return null;
+    const result = new Date(date);
+    if (time) {
+      const [h, m] = time.split(":").map(Number);
+      result.setHours(h, m, 0, 0);
+    }
+    return result;
+  };
+
+  const createAction = useMutation({
+    mutationFn: async () => {
+      const finalDueDate = combineDateTime(dueDate, dueTime);
+      const finalDeadline = combineDateTime(deadline, deadlineTime);
+      const finalReminderAt = combineDateTime(reminderAt, reminderTime);
+
+      if (location) {
+        await authenticatedFetch("/api/locations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: location }),
+        });
+      }
+
+      if (destination === "meetings") {
+        const res = await authenticatedFetch("/api/meetings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user.id,
+            title: title.trim(),
+            date: (finalDueDate || new Date()).toISOString(),
+            startTime: dueTime || null,
+            duration: null,
+            location: location || null,
+            rawNotes: description || "",
+            parseState: "draft",
+          }),
+        });
+        if (!res.ok) throw new Error("Failed to create meeting");
+        const meeting = await res.json();
+
+        if (finalDueDate) {
+          const endDate = new Date(finalDueDate);
+          endDate.setHours(endDate.getHours() + 1);
+          await authenticatedFetch("/api/calendar/events", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title: title.trim(),
+              description: description || "",
+              location: location || "",
+              startTime: finalDueDate.toISOString(),
+              endTime: endDate.toISOString(),
+              provider: "local",
+              meetingId: meeting.id,
+            }),
+          });
+        }
+
+        return { type: "meeting", data: meeting };
+      }
+
+      const reminderData: any = {
+        userId: user.id,
+        text: title.trim(),
+        description: description || null,
+        bucket: finalDueDate ? determineBucket(finalDueDate) : "sometime",
+        dueDate: finalDueDate?.toISOString() || null,
+        deadline: finalDeadline?.toISOString() || null,
+        priority,
+        tags: selectedTags,
+        location: location || null,
+        recurrence: recurrence || null,
+        reminderAt: finalReminderAt?.toISOString() || null,
+        sourceType: "addaction",
+      };
+
+      const res = await authenticatedFetch("/api/personal/reminders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reminderData),
+      });
+      if (!res.ok) throw new Error("Failed to create action");
+      const reminder = await res.json();
+
+      if (destination === "reminders" && finalReminderAt) {
+        const endDate = new Date(finalReminderAt);
+        endDate.setMinutes(endDate.getMinutes() + 30);
+        await authenticatedFetch("/api/calendar/events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: `⏰ ${title.trim()}`,
+            description: description || "",
+            startTime: finalReminderAt.toISOString(),
+            endTime: endDate.toISOString(),
+            provider: "local",
+          }),
+        });
+      }
+
+      if (destination !== "inbox" && destination !== "reminders" && destination !== "meetings") {
+        await authenticatedFetch(`/api/lists/${destination}/items`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reminderId: reminder.id }),
+        });
+      }
+
+      return { type: destination, data: reminder };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["reminders"] });
+      queryClient.invalidateQueries({ queryKey: ["inbox-items"] });
+      queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
+      queryClient.invalidateQueries({ queryKey: ["custom-lists"] });
+
+      const destLabel =
+        result.type === "inbox" ? "Inbox" :
+        result.type === "reminders" ? "Reminders" :
+        result.type === "meetings" ? "Meetings" :
+        customLists.find(l => l.id === result.type)?.name || "List";
+
+      toast({
+        title: "Action added",
+        description: `Added to ${destLabel}`,
+      });
+      resetForm();
+      setIsOpen(false);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to add action.", variant: "destructive" });
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim()) return;
-    createReminder.mutate({ text: text.trim(), dueDate: parsedDate });
+    if (!title.trim()) return;
+    createAction.mutate();
   };
+
+  const handleCreateTag = async () => {
+    if (!newTagInput.trim()) return;
+    const tagName = newTagInput.trim().replace(/^#/, "");
+    const res = await authenticatedFetch("/api/tags", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: tagName }),
+    });
+    if (res.ok) {
+      const tag = await res.json();
+      setSelectedTags(prev => [...prev, tag.name]);
+      setNewTagInput("");
+      queryClient.invalidateQueries({ queryKey: ["global-tags"] });
+    }
+  };
+
+  const toggleTag = (tagName: string) => {
+    setSelectedTags(prev =>
+      prev.includes(tagName) ? prev.filter(t => t !== tagName) : [...prev, tagName]
+    );
+  };
+
+  const today = new Date();
+  const tomorrow = addDays(today, 1);
+  const nextMonday = startOfWeek(addWeeks(today, 1), { weekStartsOn: 1 });
+  const nextWeekend = nextSaturday(today);
+
+  const getDestinationLabel = () => {
+    if (destination === "inbox") return "Inbox";
+    if (destination === "reminders") return "Reminders";
+    if (destination === "meetings") return "Meetings";
+    return customLists.find(l => l.id === destination)?.name || "List";
+  };
+
+  const getDestinationIcon = () => {
+    if (destination === "inbox") return <Tray className="h-3.5 w-3.5" weight="duotone" />;
+    if (destination === "reminders") return <BellRinging className="h-3.5 w-3.5" weight="duotone" />;
+    if (destination === "meetings") return <CalendarBlank className="h-3.5 w-3.5" weight="duotone" />;
+    return <ListBullets className="h-3.5 w-3.5" weight="duotone" />;
+  };
+
+  const priorityInfo = PRIORITIES.find(p => p.value === priority)!;
 
   return (
     <>
@@ -130,68 +368,540 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
           "bg-primary hover:bg-primary/90",
           "shadow-token"
         )}
-        data-testid="button-quick-add-fab"
+        data-testid="button-addaction-fab"
       >
-        <Plus weight="bold" className="h-6 w-6 text-primary-foreground" />
+        <Lightning weight="fill" className="h-6 w-6 text-primary-foreground" />
       </Button>
 
       <Dialog open={isOpen} onOpenChange={(open) => {
+        if (!open) resetForm();
         setIsOpen(open);
-        if (!open) {
-          setText("");
-          setParsedDate(null);
-        }
       }}>
-        <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-hidden bg-card border-border">
+        <DialogContent className="sm:max-w-lg p-0 gap-0 overflow-visible bg-card border-border" data-testid="dialog-addaction">
           <DialogHeader className="px-4 py-3 border-b border-border">
             <DialogTitle className="flex items-center gap-2 text-lg text-foreground">
-              <Lightning weight="duotone" className="h-5 w-5 text-primary" />
-              Quick Add
+              <Lightning weight="fill" className="h-5 w-5 text-primary" />
+              <span>Add</span>
+              <span className="text-primary">Action</span>
               <Badge variant="secondary" className="ml-2 text-xs bg-muted text-muted-foreground">
                 Press Q
               </Badge>
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="p-4 space-y-4">
-            <div className="space-y-2">
+          <form onSubmit={handleSubmit} className="flex flex-col">
+            <div className="px-4 pt-4 space-y-2">
               <Input
-                ref={inputRef}
-                value={text}
-                onChange={(e) => parseText(e.target.value)}
-                placeholder="What do you need to do? e.g., 'Review report tomorrow at 2pm'"
-                className="h-12 text-base bg-muted border-border text-foreground placeholder:text-muted-foreground"
-                data-testid="input-quick-add"
+                ref={titleRef}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Task name"
+                className="h-10 text-base bg-transparent border-none shadow-none px-0 font-medium text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
+                data-testid="input-addaction-title"
               />
-              
-              {parsedDate && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm bg-accent text-primary border border-primary/20">
-                  <CalendarDots weight="duotone" className="h-4 w-4" />
-                  <span>Due: {format(parsedDate, "EEEE, MMMM d 'at' h:mm a")}</span>
-                  <button 
-                    type="button" 
-                    onClick={() => setParsedDate(null)}
-                    className="ml-auto hover:opacity-70"
-                  >
-                    <X weight="bold" className="h-3 w-3" />
-                  </button>
-                </div>
-              )}
+              <Input
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Description"
+                className="h-8 text-sm bg-transparent border-none shadow-none px-0 text-muted-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0"
+                data-testid="input-addaction-description"
+              />
             </div>
 
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs text-muted-foreground">
-                Try: "tomorrow", "next Friday", "in 2 hours"
-              </p>
-              
-              <Button
-                type="submit"
-                disabled={!text.trim() || createReminder.isPending}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                data-testid="button-quick-add-submit"
-              >
-                {createReminder.isPending ? "Adding..." : "Add Task"}
-              </Button>
+            <div className="px-4 py-3 flex flex-wrap gap-2">
+              {/* Date Button */}
+              <Popover open={showDatePicker} onOpenChange={setShowDatePicker}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors",
+                      dueDate
+                        ? "border-primary/30 bg-primary/10 text-primary"
+                        : "border-border bg-transparent text-muted-foreground hover:bg-accent"
+                    )}
+                    data-testid="button-addaction-date"
+                  >
+                    <CalendarBlank className="h-3.5 w-3.5" weight="duotone" />
+                    {dueDate ? format(dueDate, "MMM d") : "Date"}
+                    {dueDate && (
+                      <span onClick={(e) => { e.stopPropagation(); setDueDate(null); setDueTime(""); }} className="ml-1 hover:text-foreground">
+                        <X className="h-3 w-3" />
+                      </span>
+                    )}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-card border-border" align="start" sideOffset={8}>
+                  <div className="p-3 space-y-2">
+                    <Input
+                      placeholder="Type a date"
+                      className="h-8 text-sm"
+                      onChange={(e) => {
+                        const parsed = chrono.parseDate(e.target.value, new Date(), { forwardDate: true });
+                        if (parsed) setDueDate(parsed);
+                      }}
+                      data-testid="input-date-search"
+                    />
+                    <div className="space-y-1">
+                      {[
+                        { label: "Today", date: today, icon: <Sun className="h-4 w-4 text-amber-500" weight="duotone" />, day: format(today, "EEE") },
+                        { label: "Tomorrow", date: tomorrow, icon: <SunHorizon className="h-4 w-4 text-orange-500" weight="duotone" />, day: format(tomorrow, "EEE") },
+                        { label: "Next week", date: nextMonday, icon: <CalendarIcon className="h-4 w-4 text-blue-500" weight="duotone" />, day: format(nextMonday, "EEE MMM d") },
+                        { label: "Next weekend", date: nextWeekend, icon: <CalendarIcon className="h-4 w-4 text-purple-500" weight="duotone" />, day: format(nextWeekend, "EEE MMM d") },
+                      ].map((opt) => (
+                        <button
+                          key={opt.label}
+                          type="button"
+                          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors"
+                          onClick={() => { setDueDate(opt.date); }}
+                          data-testid={`date-shortcut-${opt.label.toLowerCase().replace(/\s/g, "-")}`}
+                        >
+                          {opt.icon}
+                          <span className="flex-1 text-left text-foreground">{opt.label}</span>
+                          <span className="text-xs text-muted-foreground">{opt.day}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="border-t border-border">
+                    <Calendar
+                      mode="single"
+                      selected={dueDate || undefined}
+                      onSelect={(d) => { if (d) setDueDate(d); }}
+                      className="p-2"
+                    />
+                  </div>
+                  <div className="border-t border-border p-3 space-y-2">
+                    <button
+                      type="button"
+                      className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors text-muted-foreground"
+                      onClick={() => {
+                        const el = document.getElementById("addaction-time-input");
+                        if (el) el.focus();
+                      }}
+                    >
+                      <Clock className="h-4 w-4" weight="duotone" />
+                      <span className="flex-1 text-left">Time</span>
+                      <input
+                        id="addaction-time-input"
+                        type="time"
+                        value={dueTime}
+                        onChange={(e) => setDueTime(e.target.value)}
+                        className="bg-transparent border-none text-sm text-foreground focus:outline-none w-20"
+                        data-testid="input-date-time"
+                      />
+                    </button>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors text-muted-foreground"
+                        >
+                          <ArrowsClockwise className="h-4 w-4" weight="duotone" />
+                          <span className="flex-1 text-left">Repeat</span>
+                          {recurrence && <span className="text-xs text-primary">{RECURRENCE_OPTIONS.find(r => r.value === recurrence)?.label}</span>}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-48 p-1 bg-card border-border" align="start">
+                        {RECURRENCE_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.label}
+                            type="button"
+                            className={cn(
+                              "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition-colors",
+                              recurrence === opt.value ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
+                            )}
+                            onClick={() => { setRecurrence(opt.value); }}
+                            data-testid={`recurrence-${opt.value || "none"}`}
+                          >
+                            {recurrence === opt.value && <Check className="h-3.5 w-3.5" weight="bold" />}
+                            {opt.label}
+                          </button>
+                        ))}
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Deadline Button */}
+              <Popover open={showDeadlinePicker} onOpenChange={setShowDeadlinePicker}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors",
+                      deadline
+                        ? "border-red-500/30 bg-red-500/10 text-red-500"
+                        : "border-border bg-transparent text-muted-foreground hover:bg-accent"
+                    )}
+                    data-testid="button-addaction-deadline"
+                  >
+                    <Timer className="h-3.5 w-3.5" weight="duotone" />
+                    {deadline ? format(deadline, "MMM d") : "Deadline"}
+                    {deadline && (
+                      <span onClick={(e) => { e.stopPropagation(); setDeadline(null); setDeadlineTime(""); }} className="ml-1 hover:text-foreground">
+                        <X className="h-3 w-3" />
+                      </span>
+                    )}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-card border-border" align="start" sideOffset={8}>
+                  <div className="p-3 space-y-2">
+                    <div className="space-y-1">
+                      {[
+                        { label: "Today", date: today },
+                        { label: "Tomorrow", date: tomorrow },
+                        { label: "Next week", date: nextMonday },
+                      ].map((opt) => (
+                        <button
+                          key={opt.label}
+                          type="button"
+                          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors text-foreground"
+                          onClick={() => { setDeadline(opt.date); }}
+                        >
+                          <span className="flex-1 text-left">{opt.label}</span>
+                          <span className="text-xs text-muted-foreground">{format(opt.date, "EEE, MMM d")}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="border-t border-border">
+                    <Calendar
+                      mode="single"
+                      selected={deadline || undefined}
+                      onSelect={(d) => { if (d) setDeadline(d); }}
+                      className="p-2"
+                    />
+                  </div>
+                  <div className="border-t border-border p-3">
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground">
+                      <Clock className="h-4 w-4" weight="duotone" />
+                      <span className="flex-1">Time</span>
+                      <input
+                        type="time"
+                        value={deadlineTime}
+                        onChange={(e) => setDeadlineTime(e.target.value)}
+                        className="bg-transparent border-none text-sm text-foreground focus:outline-none w-20"
+                        data-testid="input-deadline-time"
+                      />
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Priority Button */}
+              <Popover open={showPriorityPicker} onOpenChange={setShowPriorityPicker}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors",
+                      priority !== "normal"
+                        ? `border-border bg-accent ${priorityInfo.color}`
+                        : "border-border bg-transparent text-muted-foreground hover:bg-accent"
+                    )}
+                    data-testid="button-addaction-priority"
+                  >
+                    <Flag className="h-3.5 w-3.5" weight="duotone" />
+                    {priority !== "normal" ? priorityInfo.label : "Priority"}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-44 p-1 bg-card border-border" align="start" sideOffset={8}>
+                  {PRIORITIES.map((p) => (
+                    <button
+                      key={p.value}
+                      type="button"
+                      className={cn(
+                        "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition-colors",
+                        priority === p.value ? "bg-accent" : "hover:bg-accent"
+                      )}
+                      onClick={() => { setPriority(p.value); setShowPriorityPicker(false); }}
+                      data-testid={`priority-${p.value}`}
+                    >
+                      <span>{p.icon}</span>
+                      <span className={cn("flex-1 text-left", p.color)}>{p.label}</span>
+                      {priority === p.value && <Check className="h-3.5 w-3.5 text-primary" weight="bold" />}
+                    </button>
+                  ))}
+                </PopoverContent>
+              </Popover>
+
+              {/* Reminders Button */}
+              <Popover open={showReminderPicker} onOpenChange={setShowReminderPicker}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors",
+                      reminderAt
+                        ? "border-amber-500/30 bg-amber-500/10 text-amber-600"
+                        : "border-border bg-transparent text-muted-foreground hover:bg-accent"
+                    )}
+                    data-testid="button-addaction-reminder"
+                  >
+                    <BellRinging className="h-3.5 w-3.5" weight="duotone" />
+                    {reminderAt ? format(reminderAt, "MMM d") : "Reminders"}
+                    {reminderAt && (
+                      <span onClick={(e) => { e.stopPropagation(); setReminderAt(null); setReminderTime(""); }} className="ml-1 hover:text-foreground">
+                        <X className="h-3 w-3" />
+                      </span>
+                    )}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-card border-border" align="start" sideOffset={8}>
+                  <div className="p-3 space-y-2">
+                    <p className="text-xs text-muted-foreground px-1">This will also be added to your Reminders and Calendar.</p>
+                    <div className="space-y-1">
+                      {[
+                        { label: "In 30 minutes", getDate: () => { const d = new Date(); d.setMinutes(d.getMinutes() + 30); return d; } },
+                        { label: "In 1 hour", getDate: () => { const d = new Date(); d.setHours(d.getHours() + 1); return d; } },
+                        { label: "In 3 hours", getDate: () => { const d = new Date(); d.setHours(d.getHours() + 3); return d; } },
+                        { label: "Tomorrow 9am", getDate: () => { const d = addDays(new Date(), 1); d.setHours(9, 0, 0, 0); return d; } },
+                        { label: "Next Monday 9am", getDate: () => { const d = startOfWeek(addWeeks(new Date(), 1), { weekStartsOn: 1 }); d.setHours(9, 0, 0, 0); return d; } },
+                      ].map((opt) => (
+                        <button
+                          key={opt.label}
+                          type="button"
+                          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm hover:bg-accent transition-colors text-foreground"
+                          onClick={() => { setReminderAt(opt.getDate()); setReminderTime(format(opt.getDate(), "HH:mm")); }}
+                        >
+                          <BellRinging className="h-4 w-4 text-amber-500" weight="duotone" />
+                          <span className="flex-1 text-left">{opt.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="border-t border-border">
+                    <Calendar
+                      mode="single"
+                      selected={reminderAt || undefined}
+                      onSelect={(d) => { if (d) setReminderAt(d); }}
+                      className="p-2"
+                    />
+                  </div>
+                  <div className="border-t border-border p-3">
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground">
+                      <Clock className="h-4 w-4" weight="duotone" />
+                      <span className="flex-1">Time</span>
+                      <input
+                        type="time"
+                        value={reminderTime}
+                        onChange={(e) => setReminderTime(e.target.value)}
+                        className="bg-transparent border-none text-sm text-foreground focus:outline-none w-20"
+                        data-testid="input-reminder-time"
+                      />
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Tags Button */}
+              <Popover open={showTagsPicker} onOpenChange={setShowTagsPicker}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors",
+                      selectedTags.length > 0
+                        ? "border-primary/30 bg-primary/10 text-primary"
+                        : "border-border bg-transparent text-muted-foreground hover:bg-accent"
+                    )}
+                    data-testid="button-addaction-tags"
+                  >
+                    <Hash className="h-3.5 w-3.5" weight="duotone" />
+                    {selectedTags.length > 0 ? `${selectedTags.length} tag${selectedTags.length > 1 ? "s" : ""}` : "Tags"}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2 bg-card border-border" align="start" sideOffset={8}>
+                  <div className="space-y-2">
+                    <div className="flex gap-1.5">
+                      <Input
+                        value={newTagInput}
+                        onChange={(e) => setNewTagInput(e.target.value)}
+                        placeholder="# new tag"
+                        className="h-8 text-sm flex-1"
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleCreateTag(); } }}
+                        data-testid="input-new-tag"
+                      />
+                      <Button type="button" size="sm" variant="ghost" className="h-8 px-2" onClick={handleCreateTag}>
+                        <Lightning className="h-3.5 w-3.5" weight="bold" />
+                      </Button>
+                    </div>
+                    <div className="max-h-40 overflow-y-auto space-y-0.5">
+                      {globalTags.map((tag) => (
+                        <button
+                          key={tag.id}
+                          type="button"
+                          className={cn(
+                            "flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-sm transition-colors",
+                            selectedTags.includes(tag.name) ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
+                          )}
+                          onClick={() => toggleTag(tag.name)}
+                          data-testid={`tag-${tag.name}`}
+                        >
+                          <Hash className="h-3.5 w-3.5" weight="duotone" />
+                          <span className="flex-1 text-left">{tag.name}</span>
+                          {selectedTags.includes(tag.name) && <Check className="h-3.5 w-3.5" weight="bold" />}
+                        </button>
+                      ))}
+                      {globalTags.length === 0 && !newTagInput && (
+                        <p className="text-xs text-muted-foreground text-center py-2">No tags yet. Type above to create one.</p>
+                      )}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Location Button */}
+              <Popover open={showLocationPicker} onOpenChange={setShowLocationPicker}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition-colors",
+                      location
+                        ? "border-primary/30 bg-primary/10 text-primary"
+                        : "border-border bg-transparent text-muted-foreground hover:bg-accent"
+                    )}
+                    data-testid="button-addaction-location"
+                  >
+                    <MapPin className="h-3.5 w-3.5" weight="duotone" />
+                    {location ? (location.length > 15 ? location.slice(0, 15) + "..." : location) : "Location"}
+                    {location && (
+                      <span onClick={(e) => { e.stopPropagation(); setLocation(""); }} className="ml-1 hover:text-foreground">
+                        <X className="h-3 w-3" />
+                      </span>
+                    )}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2 bg-card border-border" align="start" sideOffset={8}>
+                  <div className="space-y-2">
+                    <Input
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="Enter location..."
+                      className="h-8 text-sm"
+                      autoFocus
+                      data-testid="input-location"
+                    />
+                    {locationSuggestions.length > 0 && (
+                      <div className="max-h-32 overflow-y-auto space-y-0.5">
+                        {locationSuggestions.map((loc) => (
+                          <button
+                            key={loc.id}
+                            type="button"
+                            className="flex items-center gap-2 w-full px-3 py-1.5 rounded-lg text-sm hover:bg-accent text-foreground transition-colors"
+                            onClick={() => { setLocation(loc.name); setShowLocationPicker(false); }}
+                          >
+                            <MapPin className="h-3.5 w-3.5 text-muted-foreground" weight="duotone" />
+                            <span className="flex-1 text-left">{loc.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Active selections summary */}
+            {selectedTags.length > 0 && (
+              <div className="px-4 pb-2 flex flex-wrap gap-1">
+                {selectedTags.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant="outline"
+                    className="text-xs rounded-full gap-1 cursor-pointer hover:bg-destructive/10"
+                    onClick={() => toggleTag(tag)}
+                  >
+                    #{tag}
+                    <X className="h-2.5 w-2.5" weight="bold" />
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Footer: destination + actions */}
+            <div className="px-4 py-3 border-t border-border flex items-center justify-between gap-3">
+              <Popover open={showDestinationPicker} onOpenChange={setShowDestinationPicker}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    data-testid="button-addaction-destination"
+                  >
+                    {getDestinationIcon()}
+                    <span>{getDestinationLabel()}</span>
+                    <CaretDown className="h-3 w-3" weight="bold" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-52 p-1 bg-card border-border" align="start" side="top" sideOffset={8}>
+                  {[
+                    { value: "inbox" as Destination, label: "Inbox", icon: <Tray className="h-4 w-4" weight="duotone" /> },
+                    { value: "reminders" as Destination, label: "Reminders", icon: <BellRinging className="h-4 w-4" weight="duotone" /> },
+                    { value: "meetings" as Destination, label: "Meetings", icon: <CalendarBlank className="h-4 w-4" weight="duotone" /> },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={cn(
+                        "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition-colors",
+                        destination === opt.value ? "bg-accent text-primary" : "hover:bg-accent text-foreground"
+                      )}
+                      onClick={() => { setDestination(opt.value); setShowDestinationPicker(false); }}
+                      data-testid={`destination-${opt.value}`}
+                    >
+                      {opt.icon}
+                      <span className="flex-1 text-left">{opt.label}</span>
+                      {destination === opt.value && <Check className="h-3.5 w-3.5 text-primary" weight="bold" />}
+                    </button>
+                  ))}
+                  {customLists.length > 0 && (
+                    <>
+                      <div className="border-t border-border my-1" />
+                      {customLists.map((list) => (
+                        <button
+                          key={list.id}
+                          type="button"
+                          className={cn(
+                            "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition-colors",
+                            destination === list.id ? "bg-accent text-primary" : "hover:bg-accent text-foreground"
+                          )}
+                          onClick={() => { setDestination(list.id); setShowDestinationPicker(false); }}
+                          data-testid={`destination-list-${list.id}`}
+                        >
+                          <ListBullets className="h-4 w-4" weight="duotone" />
+                          <span className="flex-1 text-left">{list.name}</span>
+                          {destination === list.id && <Check className="h-3.5 w-3.5 text-primary" weight="bold" />}
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </PopoverContent>
+              </Popover>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { resetForm(); setIsOpen(false); }}
+                  className="text-sm"
+                  data-testid="button-addaction-cancel"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={!title.trim() || createAction.isPending}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg"
+                  data-testid="button-addaction-submit"
+                >
+                  {createAction.isPending ? "Adding..." : "Add action"}
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>

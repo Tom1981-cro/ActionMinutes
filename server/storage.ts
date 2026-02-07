@@ -7,6 +7,7 @@ import {
   refreshTokens, passwordResetTokens, calendarEvents, calendarWebhooks,
   notes, noteTags, noteTagMap, noteLinks, noteAttachments,
   customLists, customListItems,
+  globalTags, userLocations,
   type User, type InsertUser,
   type Meeting, type InsertMeeting,
   type Attendee, type InsertAttendee,
@@ -39,7 +40,9 @@ import {
   type NoteLink, type InsertNoteLink,
   type NoteAttachment, type InsertNoteAttachment,
   type CustomList, type InsertCustomList,
-  type CustomListItem, type InsertCustomListItem
+  type CustomListItem, type InsertCustomListItem,
+  type GlobalTag, type InsertGlobalTag,
+  type UserLocation, type InsertUserLocation
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, or, isNull, ilike, gte, lte, inArray, lt } from "drizzle-orm";
@@ -289,6 +292,15 @@ export interface IStorage {
   getCustomListItem(id: string): Promise<CustomListItem | undefined>;
   removeItemFromList(id: string, listId: string): Promise<void>;
   updateListItemPosition(id: string, position: number): Promise<void>;
+  
+  // Global Tags
+  getGlobalTags(userId: string): Promise<GlobalTag[]>;
+  createGlobalTag(tag: InsertGlobalTag): Promise<GlobalTag>;
+  deleteGlobalTag(id: string): Promise<void>;
+  
+  // User Locations
+  getUserLocations(userId: string, search?: string): Promise<UserLocation[]>;
+  upsertUserLocation(userId: string, name: string): Promise<UserLocation>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1429,6 +1441,50 @@ export class DatabaseStorage implements IStorage {
     }
     
     return result;
+  }
+
+  // ==================== GLOBAL TAGS ====================
+  async getGlobalTags(userId: string): Promise<GlobalTag[]> {
+    return await db.select().from(globalTags).where(eq(globalTags.userId, userId)).orderBy(globalTags.name);
+  }
+
+  async createGlobalTag(tag: InsertGlobalTag): Promise<GlobalTag> {
+    const [created] = await db.insert(globalTags).values(tag).returning();
+    return created;
+  }
+
+  async deleteGlobalTag(id: string): Promise<void> {
+    await db.delete(globalTags).where(eq(globalTags.id, id));
+  }
+
+  // ==================== USER LOCATIONS ====================
+  async getUserLocations(userId: string, search?: string): Promise<UserLocation[]> {
+    const conditions = [eq(userLocations.userId, userId)];
+    if (search) {
+      conditions.push(ilike(userLocations.name, `%${search}%`));
+    }
+    return await db.select().from(userLocations)
+      .where(and(...conditions))
+      .orderBy(desc(userLocations.usageCount), desc(userLocations.lastUsedAt));
+  }
+
+  async upsertUserLocation(userId: string, name: string): Promise<UserLocation> {
+    const [existing] = await db.select().from(userLocations)
+      .where(and(eq(userLocations.userId, userId), ilike(userLocations.name, name)));
+    
+    if (existing) {
+      const [updated] = await db.update(userLocations)
+        .set({
+          usageCount: existing.usageCount + 1,
+          lastUsedAt: new Date(),
+        })
+        .where(eq(userLocations.id, existing.id))
+        .returning();
+      return updated;
+    }
+
+    const [created] = await db.insert(userLocations).values({ userId, name }).returning();
+    return created;
   }
 }
 

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import {
   Sparkle, FloppyDisk, ArrowLeft, CaretDown, CaretUp, 
   Users, Clock, MapPin, Camera, Upload, Microphone, 
   ArrowsClockwise, Copy, X, Check, User, Buildings, WarningCircle,
-  ListChecks, Plus, Lightning, Record, Pause, Stop, Circle
+  ListChecks, Plus, Lightning, Record, Pause, Stop, Circle, CalendarBlank
 } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -85,9 +86,21 @@ export default function CapturePage() {
   const [attendees, setAttendees] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocationValue] = useState("");
+  const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [isHeaderSticky, setIsHeaderSticky] = useState(false);
+
+  const queryClient = useQueryClient();
+  const { data: emptyMeetings = [] } = useQuery<{ id: string; title: string; date: string; location?: string }[]>({
+    queryKey: ["empty-meetings"],
+    queryFn: async () => {
+      const res = await authenticatedFetch("/api/meetings/empty");
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!user.id,
+  });
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -187,20 +200,38 @@ export default function CapturePage() {
     setIsSubmitting(true);
     
     try {
-      const meeting = await createMeeting.mutateAsync({
-        userId: user.id,
-        title,
-        date: new Date(date),
-        rawNotes: notes,
-        parseState: 'draft',
-        workspaceId: null,
-      });
+      let meeting;
+      if (selectedMeetingId) {
+        const res = await authenticatedFetch(`/api/meetings/${selectedMeetingId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            rawNotes: notes,
+            date: new Date(date).toISOString(),
+            startTime: time || null,
+            location: location || null,
+          }),
+        });
+        if (!res.ok) throw new Error("Failed to update meeting");
+        meeting = await res.json();
+      } else {
+        meeting = await createMeeting.mutateAsync({
+          userId: user.id,
+          title,
+          date: new Date(date),
+          rawNotes: notes,
+          parseState: 'draft',
+          workspaceId: null,
+        });
+      }
       
       await saveAttendees(meeting.id);
       await extractMeeting.mutateAsync(meeting.id);
       
       toast({ title: "Processing...", description: "AI is extracting actions." });
       refetchPlan();
+      queryClient.invalidateQueries({ queryKey: ["empty-meetings"] });
       
       setTimeout(() => {
         setIsSubmitting(false);
@@ -223,15 +254,33 @@ export default function CapturePage() {
 
   const handleSaveDraft = async () => {
     try {
-      const meeting = await createMeeting.mutateAsync({
-        userId: user.id,
-        title,
-        date: new Date(date),
-        rawNotes: notes,
-        parseState: 'draft',
-        workspaceId: null,
-      });
+      let meeting;
+      if (selectedMeetingId) {
+        const res = await authenticatedFetch(`/api/meetings/${selectedMeetingId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            rawNotes: notes,
+            date: new Date(date).toISOString(),
+            startTime: time || null,
+            location: location || null,
+          }),
+        });
+        if (!res.ok) throw new Error("Failed to update meeting");
+        meeting = await res.json();
+      } else {
+        meeting = await createMeeting.mutateAsync({
+          userId: user.id,
+          title,
+          date: new Date(date),
+          rawNotes: notes,
+          parseState: 'draft',
+          workspaceId: null,
+        });
+      }
       await saveAttendees(meeting.id);
+      queryClient.invalidateQueries({ queryKey: ["empty-meetings"] });
       toast({ title: "Saved draft", description: "Meeting saved without extraction." });
       setLocation("/app/meetings");
     } catch (error) {
@@ -725,6 +774,56 @@ export default function CapturePage() {
               Record Meeting
             </Button>
           </div>
+
+          {emptyMeetings.length > 0 && (
+            <div className="mb-2">
+              <Select 
+                value={selectedMeetingId || "new"} 
+                onValueChange={(val) => {
+                  if (val === "new") {
+                    setSelectedMeetingId(null);
+                    setTitle(`Meeting — ${format(new Date(), "MMM d")}`);
+                    setDate(format(new Date(), "yyyy-MM-dd"));
+                    setNotes("");
+                    setAttendees("");
+                    setTime("");
+                    setLocationValue("");
+                  } else {
+                    const meeting = emptyMeetings.find(m => m.id === val);
+                    if (meeting) {
+                      setSelectedMeetingId(meeting.id);
+                      setTitle(meeting.title);
+                      setDate(format(new Date(meeting.date), "yyyy-MM-dd"));
+                      if (meeting.location) setLocationValue(meeting.location);
+                    }
+                  }
+                }}
+              >
+                <SelectTrigger className="bg-muted border-border rounded-xl h-9 text-xs" data-testid="select-existing-meeting">
+                  <SelectValue placeholder="New meeting" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new">
+                    <span className="flex items-center gap-2">
+                      <Plus className="h-3.5 w-3.5" weight="bold" />
+                      New meeting
+                    </span>
+                  </SelectItem>
+                  {emptyMeetings.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      <span className="flex items-center gap-2">
+                        <CalendarBlank className="h-3.5 w-3.5 text-primary" weight="duotone" />
+                        {m.title}
+                        <span className="text-muted-foreground text-xs">
+                          ({format(new Date(m.date), "MMM d")})
+                        </span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="flex gap-3">
             <Input 

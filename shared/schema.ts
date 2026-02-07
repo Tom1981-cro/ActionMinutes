@@ -221,14 +221,24 @@ export const personalReminders = pgTable("personal_reminders", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
   text: text("text").notNull(),
+  description: text("description"),
   bucket: text("bucket").notNull().default('sometime'), // today, tomorrow, next_week, next_month, sometime
   dueDate: timestamp("due_date"),
+  deadline: timestamp("deadline"),
   isCompleted: boolean("is_completed").notNull().default(false),
   completedAt: timestamp("completed_at"),
-  priority: text("priority").notNull().default('normal'), // low, normal, high
+  priority: text("priority").notNull().default('normal'), // urgent, high, normal, low, optional
   notes: text("notes"),
   status: text("status").notNull().default('open'), // open, waiting, done
-  waitingFor: text("waiting_for"), // note about who/what we're waiting for
+  waitingFor: text("waiting_for"),
+  tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
+  location: text("location"),
+  recurrence: text("recurrence"),
+  reminderAt: timestamp("reminder_at"),
+  sourceType: text("source_type"), // addaction, manual, meeting, transcript
+  sourceId: varchar("source_id", { length: 36 }),
+  meetingId: varchar("meeting_id", { length: 36 }).references(() => meetings.id, { onDelete: 'set null' }),
+  calendarEventId: varchar("calendar_event_id", { length: 36 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -721,6 +731,39 @@ export type InsertCustomList = z.infer<typeof insertCustomListSchema>;
 export type CustomList = typeof customLists.$inferSelect;
 export type InsertCustomListItem = z.infer<typeof insertCustomListItemSchema>;
 export type CustomListItem = typeof customListItems.$inferSelect;
+
+// ==================== GLOBAL TAGS ====================
+export const globalTags = pgTable("global_tags", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text("name").notNull(),
+  color: text("color"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ==================== USER LOCATIONS (for autofill) ====================
+export const userLocations = pgTable("user_locations", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  name: text("name").notNull(),
+  usageCount: integer("usage_count").notNull().default(1),
+  lastUsedAt: timestamp("last_used_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertGlobalTagSchema = createInsertSchema(globalTags).omit({
+  id: true,
+  createdAt: true,
+});
+export const insertUserLocationSchema = createInsertSchema(userLocations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertGlobalTag = z.infer<typeof insertGlobalTagSchema>;
+export type GlobalTag = typeof globalTags.$inferSelect;
+export type InsertUserLocation = z.infer<typeof insertUserLocationSchema>;
+export type UserLocation = typeof userLocations.$inferSelect;
 
 // ==================== CHAT (AI Integration) ====================
 export const conversations = pgTable("conversations", {

@@ -898,6 +898,17 @@ Thanks!`,
     res.json(meetingsWithCounts);
   });
 
+  app.get("/api/meetings/empty", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const allMeetings = await storage.getMeetings(userId);
+    const emptyMeetings = allMeetings.filter(m => 
+      (!m.rawNotes || m.rawNotes.trim() === '') && 
+      !m.summary && 
+      m.parseState === 'draft'
+    );
+    res.json(emptyMeetings);
+  });
+
   app.get("/api/meetings/:id", async (req, res) => {
     const meeting = await storage.getMeeting(req.params.id);
     if (!meeting) return res.status(404).json({ error: "Meeting not found" });
@@ -3391,6 +3402,38 @@ Thanks!`,
         publishableKey: null
       });
     }
+  });
+
+  // ==================== GLOBAL TAGS ROUTES ====================
+  app.get("/api/tags", requireAuth, async (req, res) => {
+    const tags = await storage.getGlobalTags(req.userId!);
+    res.json(tags);
+  });
+
+  app.post("/api/tags", requireAuth, async (req, res) => {
+    const tag = await storage.createGlobalTag({
+      userId: req.userId!,
+      name: req.body.name,
+      color: req.body.color || null,
+    });
+    res.json(tag);
+  });
+
+  app.delete("/api/tags/:id", requireAuth, async (req, res) => {
+    await storage.deleteGlobalTag(req.params.id);
+    res.json({ success: true });
+  });
+
+  // ==================== USER LOCATIONS ROUTES ====================
+  app.get("/api/locations", requireAuth, async (req, res) => {
+    const search = req.query.search as string | undefined;
+    const locations = await storage.getUserLocations(req.userId!, search);
+    res.json(locations);
+  });
+
+  app.post("/api/locations", requireAuth, async (req, res) => {
+    const location = await storage.upsertUserLocation(req.userId!, req.body.name);
+    res.json(location);
   });
 
   // Apply global error handler last
