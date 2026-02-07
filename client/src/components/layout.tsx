@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
-  BookOpenText, CaretDown, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X, DotsThree, Trash, Lightning
+  BookOpenText, CaretDown, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X, DotsThree, Trash, Lightning,
+  CheckCircle, Archive
 } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -119,20 +120,24 @@ export default function Layout({ children }: LayoutProps) {
   });
 
 
-  const inboxItem = { href: "/app/inbox", label: "Inbox", icon: Tray };
-  
-  const assistantItems = [
-    { href: "/app/capture", label: "Capture", icon: PlusCircle, primary: true },
-    { href: "/app/meetings", label: "Meetings", icon: CalendarBlank },
-    { href: "/app/transcripts", label: "Transcripts", icon: Waveform },
-    { href: "/app/drafts", label: "Drafts", icon: FileText },
+  const actionToDoItems = [
+    { href: "/app/inbox", label: "Inbox", icon: Tray },
   ];
 
-  const personalItems = [
-    { href: "/app/reminders", label: "Reminders", icon: Bell },
-    { href: "/app/journal", label: "Journal", icon: BookOpen },
+  const aiAssistantItems = [
+    { href: "/app/capture", label: "Capture", icon: PlusCircle, primary: true },
+    { href: "/app/meetings", label: "Meetings", icon: CalendarBlank },
     { href: "/app/calendar", label: "Calendar", icon: Calendar },
+  ];
+
+  const actionReflectItems = [
+    { href: "/app/journal", label: "Journal", icon: BookOpen },
     { href: "/app/notes", label: "Notes", icon: NotePencil },
+  ];
+
+  const bottomItems = [
+    { href: "/app/actioned", label: "Actioned", icon: CheckCircle },
+    { href: "/app/deleted", label: "Deleted", icon: Trash },
   ];
 
   if (isLoading) {
@@ -173,19 +178,25 @@ export default function Layout({ children }: LayoutProps) {
             <Lightning className="nav-icon text-primary" weight="fill" />
             <span className="text-foreground">Add<span className="text-primary font-semibold">Action</span></span>
           </button>
-          {(() => {
-            const isInboxActive = location === inboxItem.href || location.startsWith(inboxItem.href);
+
+          <div className="pt-3 pb-1 px-4">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Action To Do</span>
+          </div>
+
+          {actionToDoItems.map((item) => {
+            const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             return (
               <Link 
-                href={inboxItem.href}
-                data-testid={`nav-${inboxItem.label.toLowerCase()}`}
-                className={cn(isInboxActive ? "navItemActive" : "navItem")}
+                key={item.href} 
+                href={item.href}
+                data-testid={`nav-${item.label.toLowerCase()}`}
+                className={isActive ? "navItemActive" : "navItem"}
               >
-                <inboxItem.icon className={cn("nav-icon", isInboxActive && "text-primary")} weight="duotone" />
-                {inboxItem.label}
+                <item.icon className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />
+                {item.label}
               </Link>
             );
-          })()}
+          })}
 
           {customLists.map((list) => {
             const isActive = location === `/app/lists/${list.id}`;
@@ -270,14 +281,18 @@ export default function Layout({ children }: LayoutProps) {
 
           <button
             onClick={() => setCreateDialogOpen(true)}
-            className="navItem w-full"
+            className="navItem w-full opacity-60 hover:opacity-100 transition-opacity"
             data-testid="button-add-list"
           >
-            <Plus className="nav-icon" weight="duotone" />
-            Add list
+            <Plus className="nav-icon" weight="bold" />
+            <span className="text-xs">New list</span>
           </button>
 
-          {assistantItems.map((item) => {
+          <div className="pt-3 pb-1 px-4">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">AI Assistant</span>
+          </div>
+
+          {aiAssistantItems.map((item) => {
             const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             return (
               <Link 
@@ -292,7 +307,11 @@ export default function Layout({ children }: LayoutProps) {
             );
           })}
 
-          {personalItems.map((item) => {
+          <div className="pt-3 pb-1 px-4">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Action Reflect</span>
+          </div>
+
+          {actionReflectItems.map((item) => {
             const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             return (
               <Link 
@@ -306,6 +325,23 @@ export default function Layout({ children }: LayoutProps) {
               </Link>
             );
           })}
+
+          <div className="pt-4 mt-2 border-t border-border space-y-1">
+            {bottomItems.map((item) => {
+              const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+              return (
+                <Link 
+                  key={item.href} 
+                  href={item.href}
+                  data-testid={`nav-${item.label.toLowerCase()}`}
+                  className={cn(isActive ? "navItemActive" : "navItem", "text-muted-foreground")}
+                >
+                  <item.icon className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
 
         </nav>
 
@@ -471,7 +507,7 @@ export default function Layout({ children }: LayoutProps) {
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex items-center justify-around h-16">
-          {[inboxItem, ...assistantItems.slice(0, 1), ...personalItems.slice(0, 2)].map((item) => {
+          {[actionToDoItems[0], aiAssistantItems[0], ...actionReflectItems].map((item) => {
             const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             const Icon = item.icon;
             const isPrimary = (item as any).primary;

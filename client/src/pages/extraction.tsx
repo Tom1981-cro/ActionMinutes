@@ -10,7 +10,7 @@ import { StatusBadge, SeverityBadge } from "@/components/ui/status-badge";
 import { 
   ArrowLeft, CheckCircle, FileText, CalendarBlank, DownloadSimple, 
   Warning, Question, Pencil, User, Clock, SpinnerGap, HighlighterCircle, MagicWand,
-  Printer, ShareNetwork, FilePdf, Trash
+  Printer, ShareNetwork, FilePdf, Trash, Waveform
 } from "@phosphor-icons/react";
 import { useToast } from "@/hooks/use-toast";
 import { useMeeting, useActionItemsForMeeting, useDecisionsForMeeting, useRisksForMeeting, useQuestionsForMeeting, useUpdateMeeting, useExportCalendar, useAppConfig, useGenerateDrafts, useDraftsForMeeting, useTasksBySource, useCreateTasksFromMeeting } from "@/lib/hooks";
@@ -21,7 +21,7 @@ import { MarkdownRenderer } from "@/components/markdown-renderer";
 import type { ActionItem } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { api } from "@/lib/api";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 
 type TabType = 'summary' | 'actions' | 'decisions' | 'risks' | 'clarify' | 'highlight';
@@ -105,6 +105,30 @@ export default function ExtractionPage() {
   const hasDrafts = existingDrafts.length > 0;
 
   const { user } = useAuth();
+
+  const { data: meetingTranscripts = [] } = useQuery({
+    queryKey: ['transcripts-meeting', id],
+    queryFn: async () => {
+      const res = await fetch(`/api/transcripts?userId=${user?.id}`);
+      if (!res.ok) return [];
+      const all = await res.json();
+      const filtered = all.filter((t: any) => t.meetingId === id);
+      const withSummaries = await Promise.all(
+        filtered.map(async (t: any) => {
+          try {
+            const sumRes = await fetch(`/api/transcripts/${t.id}/summary?userId=${user?.id}`);
+            if (sumRes.ok) {
+              const sumData = await sumRes.json();
+              return { ...t, _summary: sumData };
+            }
+          } catch {}
+          return t;
+        })
+      );
+      return withSummaries;
+    },
+    enabled: !!user?.id && !!id,
+  });
   const [exportOpen, setExportOpen] = useState(false);
   const [includeActionItems, setIncludeActionItems] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('summary');
@@ -337,6 +361,70 @@ export default function ExtractionPage() {
         </div>
 
         <div className="space-y-3 md:space-y-4 pt-4">
+          {meetingTranscripts.length > 0 && (
+            <Card className="glass-panel rounded-2xl" data-testid="card-source">
+              <CardHeader className="px-4 pt-4 pb-2 md:px-6">
+                <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <Waveform className="h-4 w-4 text-primary" weight="duotone" />
+                  Source
+                  <Badge variant="outline" className="rounded-full bg-accent text-foreground border-border">{meetingTranscripts.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4 md:px-6 space-y-3">
+                {meetingTranscripts.map((transcript: any) => (
+                  <div key={transcript.id} className="bg-muted p-4 rounded-xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-foreground">{transcript.title || 'Transcript'}</span>
+                      {transcript.duration && (
+                        <span className="text-xs text-muted-foreground">
+                          {Math.floor(transcript.duration / 60)}m {transcript.duration % 60}s
+                        </span>
+                      )}
+                    </div>
+                    {transcript._summary?.summary && (
+                      <div className="bg-background/50 p-3 rounded-lg border border-border/50">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-primary mb-1 block">AI Summary</span>
+                        <p className="text-xs text-foreground leading-relaxed line-clamp-4">
+                          {transcript._summary.summary}
+                        </p>
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+                      {transcript.text}
+                    </p>
+                    {transcript.keywords?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-1">
+                        {transcript.keywords.slice(0, 5).map((kw: string, idx: number) => (
+                          <span key={idx} className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
+                            {kw}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {meeting.notes && !meetingTranscripts.length && (
+            <Card className="glass-panel rounded-2xl" data-testid="card-source-notes">
+              <CardHeader className="px-4 pt-4 pb-2 md:px-6">
+                <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <Waveform className="h-4 w-4 text-primary" weight="duotone" />
+                  Source
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4 md:px-6">
+                <div className="bg-muted p-4 rounded-xl">
+                  <p className="text-xs text-muted-foreground line-clamp-4 leading-relaxed whitespace-pre-wrap">
+                    {meeting.notes}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <div className={`${activeTab === 'summary' ? 'block' : 'hidden md:block'} space-y-4`}>
             <Card className="glass-panel rounded-2xl border-2 border-primary/30">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">

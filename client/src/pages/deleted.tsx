@@ -1,0 +1,181 @@
+import { useLocation } from "wouter";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Trash, ArrowCounterClockwise, User, Flag, Warning
+} from "@phosphor-icons/react";
+import { format } from "date-fns";
+import { useStore } from "@/lib/store";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { SkeletonList } from "@/components/skeleton-loader";
+import { cn } from "@/lib/utils";
+import { authenticatedFetch } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+
+interface DeletedData {
+  tasks: any[];
+  reminders: any[];
+}
+
+function DeletedCard({ item, type, onRestore, onPermanentDelete }: { 
+  item: any; 
+  type: 'task' | 'reminder';
+  onRestore: () => void;
+  onPermanentDelete: () => void;
+}) {
+  const title = type === 'task' ? item.title : item.text;
+  const deletedDate = item.deletedAt ? new Date(item.deletedAt) : null;
+
+  const priorityColor = item.priority === 'high' || item.priority === 'urgent' ? 'text-red-500' :
+    item.priority === 'normal' || item.priority === 'medium' ? 'text-amber-500' :
+    item.priority === 'low' ? 'text-emerald-500' : '';
+
+  return (
+    <Card
+      className="glass-panel rounded-2xl opacity-70"
+      data-testid={`card-deleted-${type}-${item.id}`}
+    >
+      <CardContent className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
+          <p className="text-sm font-medium leading-snug text-foreground flex-1 min-w-0 line-through decoration-muted-foreground/40">
+            {title}
+          </p>
+          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30 shrink-0">
+            <Trash className="h-3 w-3" weight="fill" />
+            Deleted
+          </span>
+        </div>
+        {item.description && (
+          <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-snug">{item.description}</p>
+        )}
+      </CardContent>
+      <CardFooter className="pt-0 px-4 pb-4 md:px-6 md:pb-4 text-xs text-muted-foreground flex justify-between items-center">
+        <span className="flex items-center gap-3 flex-wrap">
+          {(item.ownerName || (type === 'task' && item.assignee)) && (
+            <span className="flex items-center gap-1">
+              <User className="h-3.5 w-3.5" weight="duotone" />
+              {item.ownerName || item.assignee}
+            </span>
+          )}
+          {item.priority && item.priority !== 'normal' && item.priority !== 'none' && item.priority !== 'medium' && (
+            <span className={cn("flex items-center gap-1", priorityColor)}>
+              <Flag className="h-3.5 w-3.5" weight="fill" />
+              {item.priority}
+            </span>
+          )}
+          {deletedDate && (
+            <span className="text-muted-foreground">
+              Deleted {format(deletedDate, "d MMM yyyy")}
+            </span>
+          )}
+        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => { e.stopPropagation(); onRestore(); }}
+            className="h-8 px-3 text-xs rounded-full hover:bg-primary/10 hover:text-primary"
+            data-testid={`button-restore-${type}-${item.id}`}
+          >
+            <ArrowCounterClockwise className="h-3.5 w-3.5 mr-1" weight="bold" />
+            Restore
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={(e) => { e.stopPropagation(); onPermanentDelete(); }}
+            className="h-8 px-3 text-xs rounded-full hover:bg-destructive/10 hover:text-destructive"
+            data-testid={`button-permanent-delete-${type}-${item.id}`}
+          >
+            <Trash className="h-3.5 w-3.5 mr-1" weight="bold" />
+            Delete forever
+          </Button>
+        </div>
+      </CardFooter>
+    </Card>
+  );
+}
+
+export default function DeletedPage() {
+  const { user } = useStore();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const { data, isLoading } = useQuery<DeletedData>({
+    queryKey: ["deleted", user.id],
+    queryFn: async () => {
+      const res = await authenticatedFetch("/api/deleted");
+      if (!res.ok) throw new Error("Failed to fetch");
+      return res.json();
+    },
+    enabled: !!user.id,
+  });
+
+  const restoreMutation = useMutation({
+    mutationFn: async ({ type, id }: { type: string; id: string }) => {
+      const res = await authenticatedFetch(`/api/deleted/${type}/${id}/restore`, { method: 'POST' });
+      if (!res.ok) throw new Error("Failed to restore");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deleted"] });
+      queryClient.invalidateQueries({ queryKey: ["actioned"] });
+      queryClient.invalidateQueries({ queryKey: ["reminders"] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      toast({ title: "Item restored" });
+    },
+  });
+
+  const permanentDeleteMutation = useMutation({
+    mutationFn: async ({ type, id }: { type: string; id: string }) => {
+      const res = await authenticatedFetch(`/api/deleted/${type}/${id}/permanent`, { method: 'DELETE' });
+      if (!res.ok) throw new Error("Failed to delete");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deleted"] });
+      toast({ title: "Item permanently deleted" });
+    },
+  });
+
+  const allItems = [
+    ...(data?.tasks || []).map(t => ({ ...t, _type: 'task' as const })),
+    ...(data?.reminders || []).map(r => ({ ...r, _type: 'reminder' as const })),
+  ].sort((a, b) => {
+    const aDate = a.deletedAt ? new Date(a.deletedAt).getTime() : 0;
+    const bDate = b.deletedAt ? new Date(b.deletedAt).getTime() : 0;
+    return bDate - aDate;
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <Trash className="h-6 w-6 text-muted-foreground" weight="duotone" />
+        <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">Deleted</h1>
+        {allItems.length > 0 && (
+          <span className="text-sm text-muted-foreground">({allItems.length})</span>
+        )}
+      </div>
+      <p className="text-sm text-muted-foreground">Items you've deleted. Restore them or remove permanently.</p>
+
+      {isLoading ? (
+        <SkeletonList count={4} type="card" />
+      ) : allItems.length === 0 ? (
+        <div className="text-center py-16">
+          <Trash className="h-12 w-12 text-muted-foreground/30 mx-auto mb-4" weight="duotone" />
+          <p className="text-muted-foreground text-sm">No deleted items.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {allItems.map((item) => (
+            <DeletedCard 
+              key={`${item._type}-${item.id}`} 
+              item={item} 
+              type={item._type}
+              onRestore={() => restoreMutation.mutate({ type: item._type, id: item.id })}
+              onPermanentDelete={() => permanentDeleteMutation.mutate({ type: item._type, id: item.id })}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

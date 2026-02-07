@@ -36,6 +36,8 @@ import NotesPage from "@/pages/notes";
 import ListPage from "@/pages/list";
 import NotFound from "@/pages/not-found";
 import ActionDetailPage from "@/pages/action-detail";
+import ActionedPage from "@/pages/actioned";
+import DeletedPage from "@/pages/deleted";
 
 const CalendarPage = React.lazy(() => import("@/pages/calendar"));
 const TranscriptsPage = React.lazy(() => import("@/pages/transcripts"));
@@ -179,6 +181,16 @@ function Router() {
       <Route path="/app/action/:type/:id">
         <ProtectedRoute>
           <Layout><ActionDetailPage /></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/actioned">
+        <ProtectedRoute>
+          <Layout><ActionedPage /></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/deleted">
+        <ProtectedRoute>
+          <Layout><DeletedPage /></Layout>
         </ProtectedRoute>
       </Route>
       <Route path="/app/agenda">

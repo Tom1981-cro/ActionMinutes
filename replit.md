@@ -28,7 +28,9 @@ A separate mobile application is developed using Expo React Native, connecting t
 - **Authentication:** Secure JWT-based system with access and refresh tokens.
 - **AI Integration:** Features for meeting capture, AI extraction for summaries, action items, decisions, risks, and automated follow-up email draft generation.
 - **Access Control:** Plan-based access control (Free and Pro tiers) managing features and usage limits.
-- **UI/UX Design:** Streamlined sidebar navigation providing access to all features.
+- **UI/UX Design:** Category-based sidebar navigation with three sections: "Action To Do" (Inbox + custom lists), "AI Assistant" (Capture, Meetings, Calendar), "Action Reflect" (Journal, Notes). Actioned and Deleted views at sidebar bottom. Transcripts/Drafts/Reminders removed from sidebar (routes still exist).
+- **Soft Delete:** Tasks and personal reminders support soft deletion via `deletedAt` timestamp. Deleted items viewable and restorable from the Deleted page. Actioned page shows completed items.
+- **Meeting Source Card:** Extraction page shows a "Source" card at top displaying linked transcripts with AI summaries (from transcript_summaries) and meeting notes.
 - **Theme System:** Five themes (Aurora, Paper, Grid, Clay, Terminal) × light/dark modes = 10 configurations. Architecture:
     - `client/src/theme/themes.css`: Single source of truth with `html[data-theme]` selectors, shadow tokens, status tokens (--success, --warning), per-theme typography.
     - `client/src/theme/demo-utilities.css`: Reusable classes (.navItem, .shadow-token, .glass-panel, .pill-secondary, etc.).
