@@ -192,7 +192,7 @@ export default function Layout({ children }: LayoutProps) {
             <span className="font-normal text-primary">Minutes</span>
           </span>
         </div>
-        <nav className="space-y-1 flex-1 overflow-y-auto">
+        <nav className="space-y-0.5 flex-1 overflow-y-auto">
           <button
             onClick={() => setQuickAddOpen(true)}
             className="navItem w-full group"
@@ -203,7 +203,7 @@ export default function Layout({ children }: LayoutProps) {
           </button>
 
           <div className="pt-3 pb-1 px-4">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Action To Do</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground">Action To Do</span>
           </div>
 
           {actionToDoItems.map((item) => {
@@ -312,7 +312,7 @@ export default function Layout({ children }: LayoutProps) {
           </button>
 
           <div className="pt-3 pb-1 px-4">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">AI Assistant</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground">AI Assistant</span>
           </div>
 
           {aiAssistantItems.map((item) => {
@@ -331,7 +331,7 @@ export default function Layout({ children }: LayoutProps) {
           })}
 
           <div className="pt-3 pb-1 px-4">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Action Reflect</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground">Action Reflect</span>
           </div>
 
           {actionReflectItems.map((item) => {
@@ -349,40 +349,55 @@ export default function Layout({ children }: LayoutProps) {
             );
           })}
 
-          <div className="pt-4 mt-2 border-t border-border space-y-1">
-            {bottomItems.map((item) => {
-              const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
-              return (
-                <Link 
-                  key={item.href} 
-                  href={item.href}
-                  data-testid={`nav-${item.label.toLowerCase()}`}
-                  className={cn(isActive ? "navItemActive" : "navItem", "text-muted-foreground")}
-                >
-                  <item.icon className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-
         </nav>
 
-        <div className="mt-auto pt-4 border-t border-border">
+        <div className="space-y-0.5 pt-2 border-t border-border">
+          {bottomItems.map((item) => {
+            const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+            return (
+              <Link 
+                key={item.href} 
+                href={item.href}
+                data-testid={`nav-${item.label.toLowerCase()}`}
+                className={cn(isActive ? "navItemActive" : "navItem", "text-muted-foreground")}
+              >
+                <item.icon className={cn("nav-icon", isActive && "text-primary")} weight="duotone" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="pt-2 mt-2 border-t border-border">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button 
-                className="w-full px-4 py-2 flex items-center gap-3 rounded-xl transition-colors cursor-pointer hover:bg-accent"
+                className="w-full px-3 py-1.5 flex items-center gap-2.5 rounded-xl transition-colors cursor-pointer hover:bg-accent"
                 data-testid="button-user-menu"
               >
-                <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-semibold shadow-token">
+                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold shadow-token">
                   {(user.name || "U").charAt(0).toUpperCase()}
                 </div>
-                <div className="min-w-0 flex-1 text-left">
-                  <p className="text-sm font-bold truncate text-foreground" data-testid="text-user-name">{user.name}</p>
-                  <p className="text-xs truncate text-muted-foreground" data-testid="text-user-email">{user.email}</p>
+                <div className="min-w-0 flex-1 text-left flex items-center gap-2">
+                  <p className="text-xs font-bold truncate text-foreground" data-testid="text-user-name">{(user.name || "User").split(" ")[0]}</p>
+                  {(() => {
+                    const isPro = user.subscriptionPlan === "pro" || user.subscriptionPlan === "team";
+                    return (
+                      <span
+                        className={cn(
+                          "text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full leading-none",
+                          isPro
+                            ? "bg-amber-400/20 text-amber-500 border border-amber-400/30"
+                            : "bg-purple-500/15 text-purple-500 border border-purple-400/30"
+                        )}
+                        data-testid="badge-plan"
+                      >
+                        {isPro ? "Pro" : "Free"}
+                      </span>
+                    );
+                  })()}
                 </div>
-                <CaretDown className="h-4 w-4 flex-shrink-0 text-muted-foreground" weight="bold" />
+                <CaretDown className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" weight="bold" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
