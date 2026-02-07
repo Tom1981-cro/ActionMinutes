@@ -338,11 +338,11 @@ export default function TranscriptsPage() {
               <div className="glass-panel rounded-2xl p-8 text-center">
                 <MagicWand className="h-12 w-12 text-primary mx-auto mb-3" weight="duotone" />
                 <p className="text-muted-foreground mb-4">No summary generated yet.</p>
-                <div className="flex gap-3 justify-center">
+                <div className="flex flex-col gap-3 items-center">
                   <Button
                     onClick={() => summarizeMutation.mutate(selectedTranscript)}
                     disabled={summarizeMutation.isPending}
-                    className="btn-gradient rounded-xl"
+                    className="btn-gradient rounded-xl w-full max-w-[220px]"
                     data-testid="button-generate-summary"
                   >
                     {summarizeMutation.isPending ? (
@@ -359,7 +359,7 @@ export default function TranscriptsPage() {
                   </Button>
                   <Button
                     variant="outline"
-                    className="rounded-xl"
+                    className="rounded-xl w-full max-w-[220px]"
                     onClick={() => setTemplatePickerOpen(true)}
                     disabled={templateSummarizeMutation.isPending}
                     data-testid="button-generate-template"
