@@ -107,14 +107,15 @@ export default function ActionDetailPage() {
   const sourceListId = searchParams.get("listId");
   const sourceListName = searchParams.get("listName") ? decodeURIComponent(searchParams.get("listName")!) : null;
 
+  const listApiBase = itemType === "meeting" ? "actions" : "reminders";
   const { data: reminderListInfo, isLoading: listInfoLoading } = useQuery<{ listId: string | null; listName: string | null; listIcon: string | null }>({
-    queryKey: ["reminder-list", itemId],
+    queryKey: ["item-list", itemType, itemId],
     queryFn: async () => {
-      const res = await authenticatedFetch(`/api/reminders/${itemId}/list`);
+      const res = await authenticatedFetch(`/api/${listApiBase}/${itemId}/list`);
       if (!res.ok) return { listId: null, listName: null, listIcon: null };
       return res.json();
     },
-    enabled: !!itemId && itemType === "reminder",
+    enabled: !!itemId,
   });
 
   const { data: allLists = [] } = useQuery<{ id: string; name: string; icon?: string }[]>({
@@ -128,7 +129,7 @@ export default function ActionDetailPage() {
 
   const moveToList = useMutation({
     mutationFn: async (targetListId: string | null) => {
-      const res = await authenticatedFetch(`/api/reminders/${itemId}/move`, {
+      const res = await authenticatedFetch(`/api/${listApiBase}/${itemId}/move`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ targetListId }),
@@ -137,7 +138,7 @@ export default function ActionDetailPage() {
       return res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["reminder-list", itemId] });
+      queryClient.invalidateQueries({ queryKey: ["item-list", itemType, itemId] });
       queryClient.invalidateQueries({ queryKey: ["custom-list"] });
       queryClient.invalidateQueries({ queryKey: ["custom-lists"] });
       queryClient.invalidateQueries({ queryKey: ["reminders"] });
@@ -483,7 +484,7 @@ export default function ActionDetailPage() {
           </Button>
         ))}
 
-        {itemType === "reminder" && (
+        {(itemType === "reminder" || itemType === "meeting") && (
           <Popover open={listDropdownOpen} onOpenChange={setListDropdownOpen}>
             <PopoverTrigger asChild>
               <Button

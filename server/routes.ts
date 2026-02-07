@@ -1621,6 +1621,54 @@ Thanks!`,
     }
   });
 
+  app.get("/api/actions/:id/list", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const actionItem = await storage.getActionItem(req.params.id);
+    if (!actionItem) {
+      return res.status(404).json({ error: "Action item not found" });
+    }
+    const meeting = await storage.getMeeting(actionItem.meetingId);
+    if (!meeting || meeting.userId !== userId) {
+      return res.status(404).json({ error: "Action item not found" });
+    }
+    const listItem = await storage.getListItemByTaskId(req.params.id);
+    if (!listItem) {
+      return res.json({ listId: null, listName: null, listIcon: null });
+    }
+    res.json({ listId: listItem.listId, listName: listItem.listName, listIcon: listItem.listIcon });
+  });
+
+  app.post("/api/actions/:id/move", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const { targetListId } = req.body;
+
+    const actionItem = await storage.getActionItem(req.params.id);
+    if (!actionItem) {
+      return res.status(404).json({ error: "Action item not found" });
+    }
+    const meeting = await storage.getMeeting(actionItem.meetingId);
+    if (!meeting || meeting.userId !== userId) {
+      return res.status(404).json({ error: "Action item not found" });
+    }
+
+    if (targetListId) {
+      const targetList = await storage.getCustomList(targetListId);
+      if (!targetList || targetList.userId !== userId) {
+        return res.status(403).json({ error: "Target list not found" });
+      }
+      await storage.removeItemByTaskId(req.params.id);
+      await storage.addItemToList({
+        listId: targetListId,
+        taskId: req.params.id,
+        position: 0,
+      });
+      res.json({ listId: targetListId, listName: targetList.name, listIcon: targetList.icon });
+    } else {
+      await storage.removeItemByTaskId(req.params.id);
+      res.json({ listId: null, listName: null, listIcon: null });
+    }
+  });
+
   // ==================== CALENDAR EXPORT ====================
   app.post("/api/meetings/:id/export-calendar", async (req, res) => {
     const userId = req.query.userId as string;
