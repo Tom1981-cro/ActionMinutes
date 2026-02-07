@@ -320,7 +320,7 @@ export default function NotesPage() {
   };
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 pb-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Notes</h1>
@@ -335,7 +335,7 @@ export default function NotesPage() {
         </Button>
       </div>
       
-      <div className="flex flex-col lg:flex-row gap-6">
+      <div className="flex flex-col lg:flex-row gap-4">
         <div className="flex-1">
           <div className="relative mb-4 rounded-xl backdrop-blur-xl border bg-card border-border">
             <MagnifyingGlass className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -343,7 +343,7 @@ export default function NotesPage() {
               placeholder="Search notes..." 
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="pl-10 border-0 bg-transparent h-12 text-foreground placeholder:text-muted-foreground"
+              className="pl-10 border-0 bg-transparent h-10 text-foreground placeholder:text-muted-foreground"
               data-testid="input-search-notes"
             />
           </div>
@@ -359,7 +359,7 @@ export default function NotesPage() {
               showTutorial={false}
             />
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2">
               <AnimatePresence>
                 {notes.map(note => (
                   <NoteCard key={note.id} note={note} />

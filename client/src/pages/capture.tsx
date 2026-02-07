@@ -730,7 +730,7 @@ export default function CapturePage() {
             <Input 
               value={title} 
               onChange={(e) => setTitle(e.target.value)} 
-              className="flex-1 bg-muted border-border rounded-xl h-11 text-base px-4 text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
+              className="flex-1 bg-muted border-border rounded-xl h-10 text-sm px-4 text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
               placeholder="Meeting title..."
               data-testid="input-title"
             />
@@ -738,7 +738,7 @@ export default function CapturePage() {
               type="date" 
               value={date} 
               onChange={(e) => setDate(e.target.value)} 
-              className="w-44 bg-muted border-border rounded-xl h-11 text-base px-3 text-foreground focus:bg-accent focus:border-ring"
+              className="w-44 bg-muted border-border rounded-xl h-10 text-sm px-3 text-foreground focus:bg-accent focus:border-ring"
               data-testid="input-date"
             />
           </div>
@@ -962,7 +962,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
               variant="outline"
               onClick={handleSaveDraft}
               disabled={isSubmitting || !notes.trim()}
-              className="flex-1 h-12 rounded-xl"
+              className="flex-1 h-10 rounded-xl"
               data-testid="button-save-draft"
             >
               <FloppyDisk className="h-5 w-5 mr-2" weight="duotone" />
@@ -972,7 +972,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
             <Button
               onClick={handleExtract}
               disabled={isSubmitting || !notes.trim() || !aiEnabled}
-              className="flex-[2] h-12 rounded-xl btn-gradient"
+              className="flex-[2] h-10 rounded-xl btn-gradient"
               data-testid="button-extract"
             >
               {isSubmitting ? (

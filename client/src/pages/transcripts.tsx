@@ -194,9 +194,9 @@ export default function TranscriptsPage() {
 
   const getSentimentIcon = (sentiment: string) => {
     switch (sentiment) {
-      case "positive": return <SmileyWink className="h-5 w-5 text-emerald-400" weight="duotone" />;
-      case "negative": return <SmileySad className="h-5 w-5 text-red-400" weight="duotone" />;
-      default: return <SmileyMeh className="h-5 w-5 text-amber-400" weight="duotone" />;
+      case "positive": return <SmileyWink className="h-4 w-4 text-emerald-400" weight="duotone" />;
+      case "negative": return <SmileySad className="h-4 w-4 text-red-400" weight="duotone" />;
+      default: return <SmileyMeh className="h-4 w-4 text-amber-400" weight="duotone" />;
     }
   };
 
@@ -227,10 +227,10 @@ export default function TranscriptsPage() {
   }
 
   return (
-    <div className="space-y-6 md:space-y-8">
+    <div className="space-y-5 pb-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Transcripts</h1>
-        <p className="text-muted-foreground text-base">Audio transcriptions with AI-powered summaries.</p>
+        <p className="text-muted-foreground text-sm">Audio transcriptions with AI-powered summaries.</p>
       </div>
 
       {transcripts.length === 0 ? (
@@ -238,13 +238,13 @@ export default function TranscriptsPage() {
           <div className="mx-auto h-16 w-16 bg-accent rounded-2xl flex items-center justify-center mb-4">
             <Waveform className="h-8 w-8 text-primary" weight="duotone" />
           </div>
-          <p className="text-foreground text-base">No transcripts yet.</p>
+          <p className="text-foreground text-sm">No transcripts yet.</p>
           <p className="text-muted-foreground text-sm mt-1">Record audio in the Capture page to create transcripts.</p>
         </div>
       ) : (
-        <div className="grid lg:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">Your Transcripts</h2>
+        <div className="grid lg:grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold text-foreground">Your Transcripts</h2>
             {transcripts.map((transcript) => (
               <Card 
                 key={transcript.id}
@@ -259,21 +259,21 @@ export default function TranscriptsPage() {
               >
                 <CardHeader className="pb-2 px-4 pt-4">
                   <div className="flex justify-between items-start gap-2">
-                    <CardTitle className="text-lg text-foreground">
+                    <CardTitle className="text-sm font-medium text-foreground">
                       {transcript.title || "Untitled Recording"}
                     </CardTitle>
                     <Badge variant="outline" className="shrink-0 bg-accent text-primary border-border rounded-full">
                       {transcript.provider || "audio"}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
-                      <CalendarBlank className="h-4 w-4" />
+                      <CalendarBlank className="h-3.5 w-3.5" />
                       {format(new Date(transcript.createdAt), "MMM d, yyyy")}
                     </span>
                     {transcript.duration && (
                       <span className="flex items-center gap-1">
-                        <Clock className="h-4 w-4" />
+                        <Clock className="h-3.5 w-3.5" />
                         {Math.round(transcript.duration / 60)}m
                       </span>
                     )}
@@ -322,11 +322,11 @@ export default function TranscriptsPage() {
             ))}
           </div>
 
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-foreground">AI Summary</h2>
+          <div className="space-y-3">
+            <h2 className="text-sm font-semibold text-foreground">AI Summary</h2>
             {!selectedTranscript ? (
               <div className="glass-panel rounded-2xl p-8 text-center">
-                <MagicWand className="h-12 w-12 text-primary mx-auto mb-3" weight="duotone" />
+                <MagicWand className="h-10 w-10 text-primary mx-auto mb-3" weight="duotone" />
                 <p className="text-muted-foreground">Select a transcript to view or generate its AI summary.</p>
               </div>
             ) : summaryLoading ? (
@@ -336,7 +336,7 @@ export default function TranscriptsPage() {
               </div>
             ) : !summaryData?.summary ? (
               <div className="glass-panel rounded-2xl p-8 text-center">
-                <MagicWand className="h-12 w-12 text-primary mx-auto mb-3" weight="duotone" />
+                <MagicWand className="h-10 w-10 text-primary mx-auto mb-3" weight="duotone" />
                 <p className="text-muted-foreground mb-4">No summary generated yet.</p>
                 <div className="flex flex-col gap-3 items-center">
                   <Button
@@ -388,7 +388,7 @@ export default function TranscriptsPage() {
 
                 <TabsContent value="summary" className="mt-4">
                   <Card className="glass-panel rounded-2xl">
-                    <CardContent className="p-5 space-y-4">
+                    <CardContent className="p-4 space-y-4">
                       <div className="flex items-start gap-3">
                         {getSentimentIcon(summaryData.summary.sentiment)}
                         <div className="flex-1">
@@ -449,7 +449,7 @@ export default function TranscriptsPage() {
 
                 <TabsContent value="tasks" className="mt-4">
                   <Card className="glass-panel rounded-2xl">
-                    <CardContent className="p-5">
+                    <CardContent className="p-4">
                       {(!summaryData.tasks || summaryData.tasks.length === 0) ? (
                         <p className="text-muted-foreground text-center py-4">No action items extracted.</p>
                       ) : (
@@ -529,7 +529,7 @@ export default function TranscriptsPage() {
 
                 <TabsContent value="insights" className="mt-4">
                   <Card className="glass-panel rounded-2xl">
-                    <CardContent className="p-5 space-y-4">
+                    <CardContent className="p-4 space-y-4">
                       <div>
                         <h4 className="text-sm font-semibold text-foreground mb-3">Top Keywords</h4>
                         <div className="flex flex-wrap gap-2">

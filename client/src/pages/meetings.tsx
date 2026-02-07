@@ -18,11 +18,11 @@ export default function MeetingsPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 md:space-y-8">
+      <div className="space-y-5 pb-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Meetings</h1>
-            <p className="text-muted-foreground text-base">History of your captured minutes.</p>
+            <p className="text-muted-foreground text-sm">History of your captured minutes.</p>
           </div>
         </div>
         <SkeletonList count={3} type="meeting" />
@@ -31,21 +31,21 @@ export default function MeetingsPage() {
   }
 
   return (
-    <div className="space-y-6 md:space-y-8">
+    <div className="space-y-5 pb-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Meetings</h1>
-          <p className="text-muted-foreground text-base">History of your captured minutes.</p>
+          <p className="text-muted-foreground text-sm">History of your captured minutes.</p>
         </div>
         <Link href="/capture">
-          <Button className="w-full sm:w-auto h-12 rounded-xl btn-gradient" data-testid="button-new-meeting">
+          <Button className="w-full sm:w-auto h-10 rounded-xl btn-gradient" data-testid="button-new-meeting">
             <Plus className="mr-2 h-5 w-5" weight="bold" />
             New Meeting
           </Button>
         </Link>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-3">
         {meetings.length === 0 && !showDemo && (
           <EmptyState 
             variant="meetings" 
@@ -97,7 +97,7 @@ export default function MeetingsPage() {
               >
                 <CardHeader className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
                   <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
-                    <CardTitle className="text-lg leading-snug text-foreground group-hover:text-primary transition-colors">{sample.title}</CardTitle>
+                    <CardTitle className="text-sm font-medium leading-snug text-foreground group-hover:text-primary transition-colors">{sample.title}</CardTitle>
                     <div className="flex items-center justify-between sm:justify-end gap-2">
                       <Badge variant="outline" className="rounded-full bg-sky-500/20 text-sky-300 border-sky-500/30">
                         <CheckCircle className="mr-1 h-3 w-3" weight="fill" />
@@ -113,11 +113,11 @@ export default function MeetingsPage() {
                   </span>
                 </CardHeader>
                 <CardContent className="pb-3 px-4 md:px-6">
-                  <p className="text-base text-foreground line-clamp-2 leading-relaxed">
+                  <p className="text-sm text-foreground line-clamp-2 leading-snug">
                     {sample.summary}
                   </p>
                 </CardContent>
-                <CardFooter className="pt-0 px-4 pb-4 md:px-6 md:pb-5 text-sm text-muted-foreground flex justify-between items-center">
+                <CardFooter className="pt-0 px-4 pb-4 md:px-6 md:pb-4 text-sm text-muted-foreground flex justify-between items-center">
                   <span className="flex items-center gap-1.5">
                     <Users className="h-4 w-4" weight="duotone" />
                     {sample.attendees.split(",").length} attendees
@@ -134,7 +134,7 @@ export default function MeetingsPage() {
             <Card className="glass-panel hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl" data-testid={`card-meeting-${meeting.id}`}>
               <CardHeader className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
                 <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
-                  <CardTitle className="text-lg leading-snug text-foreground group-hover:text-primary transition-colors">{meeting.title}</CardTitle>
+                  <CardTitle className="text-sm font-medium leading-snug text-foreground group-hover:text-primary transition-colors">{meeting.title}</CardTitle>
                   <div className="flex items-center justify-between sm:justify-end gap-2">
                     <Badge 
                       variant="outline"
@@ -160,11 +160,11 @@ export default function MeetingsPage() {
                 </span>
               </CardHeader>
               <CardContent className="pb-3 px-4 md:px-6">
-                <p className="text-base text-foreground line-clamp-2 leading-relaxed">
+                <p className="text-sm text-foreground line-clamp-2 leading-snug">
                   {meeting.summary || meeting.rawNotes || "No notes..."}
                 </p>
               </CardContent>
-              <CardFooter className="pt-0 px-4 pb-4 md:px-6 md:pb-5 text-sm text-muted-foreground flex justify-between items-center">
+              <CardFooter className="pt-0 px-4 pb-4 md:px-6 md:pb-4 text-sm text-muted-foreground flex justify-between items-center">
                 <span className="flex items-center gap-1.5">
                   <Users className="h-4 w-4" weight="duotone" />
                   {meeting.attendeeCount || 0} attendees

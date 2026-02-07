@@ -360,7 +360,7 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="container max-w-6xl mx-auto p-4 space-y-6">
+    <div className="container max-w-6xl mx-auto p-4 space-y-5">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Tasks</h1>
@@ -392,7 +392,7 @@ export default function TasksPage() {
                 onChange={(e) => setQuickAddInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Add a task... Try 'Call client tomorrow at 2pm !high' or 'Review docs every week'"
-                className="bg-accent border-border h-11 pr-10"
+                className="bg-accent border-border h-10 pr-10"
                 data-testid="quick-add-input"
               />
               {isParsingTask && (
@@ -405,7 +405,7 @@ export default function TasksPage() {
             <Button 
               onClick={handleQuickAdd} 
               disabled={!quickAddInput.trim() || createTaskMutation.isPending}
-              className="h-11 gap-1.5"
+              className="h-10 gap-1.5"
               data-testid="add-task-button"
             >
               {createTaskMutation.isPending ? (
@@ -536,7 +536,7 @@ export default function TasksPage() {
                 <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center mx-auto mb-4">
                   <ListBullets className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-medium text-foreground mb-1">No tasks yet</h3>
+                <h3 className="text-sm font-medium text-foreground mb-1">No tasks yet</h3>
                 <p className="text-muted-foreground text-sm">Add your first task using natural language above</p>
               </div>
             ) : (

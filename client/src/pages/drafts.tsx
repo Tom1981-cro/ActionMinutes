@@ -77,16 +77,16 @@ export default function DraftsPage() {
 
   if (drafts.length === 0) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-5 pb-6">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Drafts</h1>
-          <p className="text-muted-foreground text-base">Ready-to-send follow-up emails.</p>
+          <p className="text-muted-foreground text-sm">Ready-to-send follow-up emails.</p>
         </div>
         <div className="glass-panel rounded-2xl border-dashed border-border py-12 text-center">
           <div className="mx-auto h-16 w-16 bg-accent rounded-2xl flex items-center justify-center mb-4">
             <EnvelopeSimple className="h-8 w-8 text-primary" weight="duotone" />
           </div>
-          <p className="text-foreground text-base">No drafts yet.</p>
+          <p className="text-foreground text-sm">No drafts yet.</p>
           <p className="text-muted-foreground text-sm mt-1">Process a meeting to generate follow-up emails.</p>
         </div>
       </div>
@@ -98,7 +98,7 @@ export default function DraftsPage() {
   return (
     <div className="flex flex-col h-full pb-safe">
       <div className="flex-1 overflow-y-auto pb-28 md:pb-6">
-        <div className="space-y-4 md:space-y-6">
+        <div className="space-y-3 md:space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h1 className="text-2xl font-bold tracking-tight text-foreground">Drafts</h1>
@@ -162,7 +162,7 @@ export default function DraftsPage() {
                     <Input 
                       value={activeDraft.subject} 
                       onChange={(e) => updateDraft.mutate({ id: activeDraft.id, updates: { subject: e.target.value } })}
-                      className="bg-muted border-border rounded-xl h-12 text-base text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
+                      className="bg-muted border-border rounded-xl h-10 text-sm text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
                       data-testid={`input-subject-${activeDraft.id}`}
                     />
                   </div>
@@ -172,7 +172,7 @@ export default function DraftsPage() {
                       value={activeDraft.recipientEmail || ""} 
                       placeholder="recipient@email.com"
                       onChange={(e) => updateDraft.mutate({ id: activeDraft.id, updates: { recipientEmail: e.target.value } })}
-                      className="bg-muted border-border rounded-xl h-12 text-base text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
+                      className="bg-muted border-border rounded-xl h-10 text-sm text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
                       data-testid={`input-recipient-${activeDraft.id}`}
                     />
                   </div>
@@ -183,7 +183,7 @@ export default function DraftsPage() {
                     <Textarea 
                       value={activeDraft.body} 
                       onChange={(e) => updateDraft.mutate({ id: activeDraft.id, updates: { body: e.target.value } })}
-                      className="min-h-[280px] text-base leading-relaxed bg-muted border-border rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
+                      className="min-h-[280px] text-sm leading-relaxed bg-muted border-border rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
                       data-testid={`textarea-body-${activeDraft.id}`}
                     />
                   </div>
@@ -202,7 +202,7 @@ export default function DraftsPage() {
                       <Input 
                         value={draft.subject} 
                         onChange={(e) => updateDraft.mutate({ id: draft.id, updates: { subject: e.target.value } })}
-                        className="bg-muted border-border rounded-xl h-12 text-base text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
+                        className="bg-muted border-border rounded-xl h-10 text-sm text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
                         data-testid={`input-subject-${draft.id}`}
                       />
                     </div>
@@ -212,7 +212,7 @@ export default function DraftsPage() {
                         value={draft.recipientEmail || ""} 
                         placeholder="Recipient email..."
                         onChange={(e) => updateDraft.mutate({ id: draft.id, updates: { recipientEmail: e.target.value } })}
-                        className="bg-muted border-border rounded-xl h-12 text-base text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
+                        className="bg-muted border-border rounded-xl h-10 text-sm text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
                         data-testid={`input-recipient-${draft.id}`}
                       />
                     </div>
@@ -224,7 +224,7 @@ export default function DraftsPage() {
                     <Textarea 
                       value={draft.body} 
                       onChange={(e) => updateDraft.mutate({ id: draft.id, updates: { body: e.target.value } })}
-                      className="min-h-[300px] text-base leading-relaxed bg-muted border-border rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
+                      className="min-h-[300px] text-sm leading-relaxed bg-muted border-border rounded-xl p-4 text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
                       data-testid={`textarea-body-${draft.id}`}
                     />
                   </div>

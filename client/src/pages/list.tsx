@@ -147,7 +147,7 @@ export default function ListPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-5 pb-6">
         <div className="h-10 rounded-lg animate-pulse bg-muted" />
         <div className="h-40 rounded-2xl animate-pulse bg-muted" />
       </div>
@@ -156,7 +156,7 @@ export default function ListPage() {
 
   if (!list) {
     return (
-      <div className="space-y-6 text-center py-12">
+      <div className="space-y-5 pb-6 text-center py-12">
         <ListBullets className="h-12 w-12 mx-auto text-muted-foreground" weight="duotone" />
         <p className="text-lg text-muted-foreground">List not found</p>
       </div>
@@ -164,7 +164,7 @@ export default function ListPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 pb-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           {isEditingName ? (
@@ -172,7 +172,7 @@ export default function ListPage() {
               <Input
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className="text-2xl font-black h-12 bg-card"
+                className="text-2xl font-black h-10 bg-card"
                 autoFocus
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') updateListName.mutate(editName);
@@ -205,7 +205,7 @@ export default function ListPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl backdrop-blur-xl border p-6 bg-card border-border">
+      <div className="rounded-2xl backdrop-blur-xl border p-4 bg-card border-border">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-semibold text-foreground">
             Items in this list
@@ -262,7 +262,7 @@ export default function ListPage() {
         
         {(!list.items || list.items.length === 0) && !isAddingTask ? (
           <div className="text-center py-8 rounded-xl border border-dashed border-border">
-            <ListBullets className="h-10 w-10 mx-auto mb-3 text-muted-foreground" weight="duotone" />
+            <ListBullets className="h-8 w-8 mx-auto mb-3 text-muted-foreground" weight="duotone" />
             <p className="text-sm mb-2 text-muted-foreground">
               This list is empty
             </p>

@@ -67,7 +67,7 @@ function AgendaSection({
                 }}
                 data-testid={`button-done-${item.id}`}
               >
-                <CheckCircle className="h-5 w-5" weight="duotone" />
+                <CheckCircle className="h-4 w-4" weight="duotone" />
               </Button>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-foreground font-medium line-clamp-2">{item.description}</p>
@@ -166,7 +166,7 @@ export default function AgendaPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Agenda</h1>
-            <p className="text-muted-foreground text-base mt-1">
+            <p className="text-muted-foreground text-sm mt-1">
               {totalItems === 0 ? "All clear" : `${totalItems} upcoming ${totalItems === 1 ? 'item' : 'items'}`}
             </p>
           </div>
@@ -179,12 +179,12 @@ export default function AgendaPage() {
             <CalendarBlank className="h-8 w-8 text-primary" weight="duotone" />
           </div>
           <div>
-            <p className="text-lg font-medium text-foreground">All caught up!</p>
-            <p className="text-muted-foreground text-base mt-1">No upcoming tasks on your agenda.</p>
+            <p className="text-sm font-medium text-foreground">All caught up!</p>
+            <p className="text-muted-foreground text-sm mt-1">No upcoming tasks on your agenda.</p>
           </div>
         </div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <AgendaSection
             title="Overdue"
             icon={Warning}

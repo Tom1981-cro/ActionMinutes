@@ -318,7 +318,7 @@ export default function ExtractionPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
                   activeTab === tab.id
                     ? 'btn-gradient text-foreground'
                     : 'bg-muted text-muted-foreground border border-border'
@@ -336,7 +336,7 @@ export default function ExtractionPage() {
           </div>
         </div>
 
-        <div className="space-y-4 md:space-y-6 pt-4">
+        <div className="space-y-3 md:space-y-4 pt-4">
           <div className={`${activeTab === 'summary' ? 'block' : 'hidden md:block'} space-y-4`}>
             <Card className="glass-panel rounded-2xl border-2 border-primary/30">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
@@ -359,7 +359,7 @@ export default function ExtractionPage() {
                 </div>
               </CardHeader>
               <CardContent className="px-4 pb-4 md:px-6">
-                <div className="bg-muted p-4 rounded-xl text-base leading-relaxed text-foreground">
+                <div className="bg-muted p-4 rounded-xl text-sm leading-relaxed text-foreground">
                   {meeting.summary || "No summary generated yet."}
                 </div>
               </CardContent>
@@ -502,30 +502,30 @@ export default function ExtractionPage() {
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="px-4 pb-4 md:px-6 space-y-3">
+              <CardContent className="px-4 pb-4 md:px-6 space-y-2">
                 {actions.length === 0 ? (
-                  <p className="text-center py-6 text-muted-foreground text-base">No action items extracted yet.</p>
+                  <p className="text-center py-6 text-muted-foreground text-sm">No action items extracted yet.</p>
                 ) : (
                   actions.map((item: ActionItem) => (
                     <button
                       key={item.id}
                       onClick={() => handleActionTap(item)}
-                      className="w-full text-left bg-muted hover:bg-accent rounded-xl p-4 space-y-3 transition-colors relative"
+                      className="w-full text-left bg-muted hover:bg-accent rounded-xl p-4 space-y-2 transition-colors relative"
                       data-testid={`action-card-${item.id}`}
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <p className="font-medium text-base leading-relaxed text-foreground flex-1">{item.text}</p>
+                        <p className="font-medium text-sm leading-snug text-foreground flex-1">{item.text}</p>
                         <Pencil className="h-4 w-4 text-muted-foreground shrink-0 mt-1" weight="duotone" />
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         {item.ownerName && (
-                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <User className="h-3.5 w-3.5" weight="duotone" />
                             <span>{item.ownerName}</span>
                           </div>
                         )}
                         {item.dueDate && (
-                          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Clock className="h-3.5 w-3.5" weight="duotone" />
                             <span>{new Date(item.dueDate).toLocaleDateString()}</span>
                           </div>
@@ -563,9 +563,9 @@ export default function ExtractionPage() {
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="px-4 pb-4 md:px-6 space-y-3">
+              <CardContent className="px-4 pb-4 md:px-6 space-y-2">
                 {decisions.length === 0 ? (
-                  <p className="text-center py-6 text-muted-foreground text-base">No decisions extracted.</p>
+                  <p className="text-center py-6 text-muted-foreground text-sm">No decisions extracted.</p>
                 ) : (
                   decisions.map((decision: any) => (
                     <div 
@@ -573,7 +573,7 @@ export default function ExtractionPage() {
                       className="border border-emerald-500/30 rounded-xl p-4 bg-emerald-500/10"
                       data-testid={`decision-${decision.id}`}
                     >
-                      <p className="text-base text-foreground">{decision.text}</p>
+                      <p className="text-sm text-foreground">{decision.text}</p>
                     </div>
                   ))
                 )}
@@ -592,9 +592,9 @@ export default function ExtractionPage() {
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="px-4 pb-4 md:px-6 space-y-3">
+              <CardContent className="px-4 pb-4 md:px-6 space-y-2">
                 {risks.length === 0 ? (
-                  <p className="text-center py-6 text-muted-foreground text-base">No risks identified.</p>
+                  <p className="text-center py-6 text-muted-foreground text-sm">No risks identified.</p>
                 ) : (
                   risks.map((risk: any) => (
                     <div 
@@ -607,7 +607,7 @@ export default function ExtractionPage() {
                       data-testid={`risk-${risk.id}`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-base text-foreground flex-1">{risk.text}</p>
+                        <p className="text-sm text-foreground flex-1">{risk.text}</p>
                         <SeverityBadge severity={risk.severity} />
                       </div>
                     </div>
@@ -628,9 +628,9 @@ export default function ExtractionPage() {
                   )}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="px-4 pb-4 md:px-6 space-y-3">
+              <CardContent className="px-4 pb-4 md:px-6 space-y-2">
                 {questions.length === 0 ? (
-                  <p className="text-center py-6 text-muted-foreground text-base">No clarifying questions needed.</p>
+                  <p className="text-center py-6 text-muted-foreground text-sm">No clarifying questions needed.</p>
                 ) : (
                   questions.map((question: any) => (
                     <div 
@@ -638,13 +638,13 @@ export default function ExtractionPage() {
                       className="border border-sky-500/30 rounded-xl p-4 bg-sky-500/10 space-y-3"
                       data-testid={`question-${question.id}`}
                     >
-                      <p className="text-base text-foreground">{question.text}</p>
+                      <p className="text-sm text-foreground">{question.text}</p>
                       {question.options && question.options.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                           {question.options.map((option: string, idx: number) => (
                             <button
                               key={idx}
-                              className="px-4 py-2 rounded-full text-sm font-medium bg-accent border border-sky-500/30 text-sky-300 hover:bg-sky-500/20 active:bg-sky-500/30 transition-colors"
+                              className="px-3 py-1.5 rounded-full text-xs font-medium bg-accent border border-sky-500/30 text-sky-300 hover:bg-sky-500/20 active:bg-sky-500/30 transition-colors"
                               data-testid={`question-option-${question.id}-${idx}`}
                             >
                               {option}
@@ -693,13 +693,13 @@ export default function ExtractionPage() {
                   <DialogTitle className="text-foreground text-lg">Export to Calendar</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-6 mt-4">
-                  <p className="text-base text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     Export this meeting as an .ics file that you can import into any calendar app.
                   </p>
                   
                   <div className="flex items-center justify-between p-4 bg-muted rounded-xl gap-4">
                     <div className="flex-1">
-                      <Label className="text-base text-foreground">Include action items as tasks</Label>
+                      <Label className="text-sm text-foreground">Include action items as tasks</Label>
                       <p className="text-sm text-muted-foreground mt-1">Action items with due dates will be added as separate calendar tasks</p>
                     </div>
                     <Switch 
@@ -712,7 +712,7 @@ export default function ExtractionPage() {
                   <Button 
                     onClick={handleExport} 
                     disabled={exportCalendar.isPending}
-                    className="w-full rounded-xl btn-gradient h-12 text-base"
+                    className="w-full rounded-xl btn-gradient h-10 text-sm"
                     data-testid="button-download-ics"
                   >
                     {exportCalendar.isPending ? (
@@ -769,13 +769,13 @@ export default function ExtractionPage() {
                 <DialogTitle className="text-foreground text-lg">Export to Calendar</DialogTitle>
               </DialogHeader>
               <div className="space-y-6 mt-4">
-                <p className="text-base text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Export this meeting as an .ics file.
                 </p>
                 
                 <div className="flex items-center justify-between p-4 bg-muted rounded-xl gap-4">
                   <div className="flex-1">
-                    <Label className="text-base text-foreground">Include action items</Label>
+                    <Label className="text-sm text-foreground">Include action items</Label>
                     <p className="text-sm text-muted-foreground mt-1">Add tasks with due dates</p>
                   </div>
                   <Switch 
@@ -787,7 +787,7 @@ export default function ExtractionPage() {
                 <Button 
                   onClick={handleExport} 
                   disabled={exportCalendar.isPending}
-                  className="w-full rounded-xl btn-gradient h-12 text-base"
+                  className="w-full rounded-xl btn-gradient h-10 text-sm"
                 >
                   {exportCalendar.isPending ? (
                     <SpinnerGap className="mr-2 h-5 w-5 animate-spin" weight="bold" />

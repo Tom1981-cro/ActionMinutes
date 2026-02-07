@@ -202,7 +202,7 @@ export default function JournalPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">Journal</h1>
-            <p className="text-muted-foreground text-base mt-1">Private reflections and notes</p>
+            <p className="text-muted-foreground text-sm mt-1">Private reflections and notes</p>
           </div>
         </div>
         <SkeletonList count={3} type="journal" />
@@ -215,7 +215,7 @@ export default function JournalPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Journal</h1>
-          <p className="text-muted-foreground text-base mt-1">Private reflections and notes</p>
+          <p className="text-muted-foreground text-sm mt-1">Private reflections and notes</p>
         </div>
         <Button 
           onClick={() => setShowNewEntry(true)}
@@ -234,7 +234,7 @@ export default function JournalPage() {
           showTutorial={false}
         />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {entries.map((entry: any) => (
             <Card 
               key={entry.id} 
@@ -267,7 +267,7 @@ export default function JournalPage() {
                     )}
                   </div>
                 </div>
-                <p className="text-foreground whitespace-pre-wrap line-clamp-3">
+                <p className="text-sm text-foreground whitespace-pre-wrap line-clamp-3">
                   {entry.rawText}
                 </p>
                 {entry.detectedSignals && entry.detectedSignals.length > 0 && (

@@ -55,12 +55,12 @@ function ExpandableSection({ title, icon, defaultOpen = false, forceOpen, childr
           >
             <div className="flex items-center gap-3">
               {icon}
-              <span className="text-lg font-semibold text-foreground">{title}</span>
+              <span className="text-sm font-semibold text-foreground">{title}</span>
             </div>
             {isOpen ? (
-              <CaretDown className="h-5 w-5 text-muted-foreground" weight="duotone" />
+              <CaretDown className="h-4 w-4 text-muted-foreground" weight="duotone" />
             ) : (
-              <CaretRight className="h-5 w-5 text-muted-foreground" weight="duotone" />
+              <CaretRight className="h-4 w-4 text-muted-foreground" weight="duotone" />
             )}
           </button>
         </CollapsibleTrigger>
@@ -177,7 +177,7 @@ export default function SettingsPage() {
       {/* Appearance Section */}
       <ExpandableSection
         title="Appearance"
-        icon={<Palette className="h-5 w-5 text-primary" weight="duotone" />}
+        icon={<Palette className="h-4 w-4 text-primary" weight="duotone" />}
         defaultOpen
         testId="section-appearance"
       >
@@ -284,7 +284,7 @@ export default function SettingsPage() {
       {/* AI Preferences Section */}
       <ExpandableSection
         title="AI Preferences"
-        icon={<Sparkle className="h-5 w-5 text-primary" weight="duotone" />}
+        icon={<Sparkle className="h-4 w-4 text-primary" weight="duotone" />}
         testId="section-ai-preferences"
       >
         <div className="space-y-6">
@@ -366,7 +366,7 @@ export default function SettingsPage() {
       {/* Subscription Section */}
       <ExpandableSection
         title="Subscription"
-        icon={<CreditCard className="h-5 w-5 text-amber-400" weight="duotone" />}
+        icon={<CreditCard className="h-4 w-4 text-amber-400" weight="duotone" />}
         testId="section-subscription"
         forceOpen={openSubscription}
       >
@@ -539,7 +539,7 @@ export default function SettingsPage() {
       {/* Integrations Section */}
       <ExpandableSection
         title="Integrations"
-        icon={<Plug className="h-5 w-5 text-emerald-400" weight="duotone" />}
+        icon={<Plug className="h-4 w-4 text-emerald-400" weight="duotone" />}
         testId="section-integrations"
       >
         <SettingsIntegrationsPage />
@@ -548,7 +548,7 @@ export default function SettingsPage() {
       {/* Exports Section */}
       <ExpandableSection
         title="Exports"
-        icon={<CalendarBlank className="h-5 w-5 text-sky-400" weight="duotone" />}
+        icon={<CalendarBlank className="h-4 w-4 text-sky-400" weight="duotone" />}
         testId="section-exports"
       >
         <SettingsExportsPage />
@@ -557,7 +557,7 @@ export default function SettingsPage() {
       {/* Support & Legal Section */}
       <ExpandableSection
         title="Support & Legal"
-        icon={<ChatCircle className="h-5 w-5 text-amber-400" weight="duotone" />}
+        icon={<ChatCircle className="h-4 w-4 text-amber-400" weight="duotone" />}
         testId="section-support"
       >
         <div className="space-y-4">

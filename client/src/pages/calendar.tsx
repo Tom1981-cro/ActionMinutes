@@ -244,11 +244,11 @@ export default function CalendarPage() {
   }
 
   return (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-5 pb-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Calendar</h1>
-          <p className="text-muted-foreground text-base mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Your unified schedule and events
           </p>
         </div>
