@@ -171,8 +171,7 @@ export default function Layout({ children }: LayoutProps) {
             data-testid="nav-addaction"
           >
             <Lightning className="nav-icon text-primary" weight="fill" />
-            <span className="text-foreground">Add</span>
-            <span className="text-primary font-semibold">Action</span>
+            <span className="text-foreground">Add<span className="text-primary font-semibold">Action</span></span>
           </button>
           {(() => {
             const isInboxActive = location === inboxItem.href || location.startsWith(inboxItem.href);

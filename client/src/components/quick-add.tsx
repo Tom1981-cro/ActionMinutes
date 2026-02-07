@@ -381,8 +381,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
           <DialogHeader className="px-3 py-2.5 border-b border-border">
             <DialogTitle className="flex items-center gap-1.5 text-sm text-foreground">
               <Lightning weight="fill" className="h-4 w-4 text-primary" />
-              <span>Add</span>
-              <span className="text-primary font-semibold">Action</span>
+              <span>Add<span className="text-primary font-semibold">Action</span></span>
               <Badge variant="secondary" className="ml-2 text-[10px] px-1.5 py-0 bg-muted text-muted-foreground">
                 Q
               </Badge>
@@ -834,17 +833,17 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                     <CaretDown className="h-2.5 w-2.5" weight="bold" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-52 p-1 bg-card border-border" align="start" side="top" sideOffset={8}>
+                <PopoverContent className="w-44 p-1 bg-card border-border" align="start" side="top" sideOffset={8}>
                   {[
-                    { value: "inbox" as Destination, label: "Inbox", icon: <Tray className="h-4 w-4" weight="duotone" /> },
-                    { value: "reminders" as Destination, label: "Reminders", icon: <BellRinging className="h-4 w-4" weight="duotone" /> },
-                    { value: "meetings" as Destination, label: "Meetings", icon: <CalendarBlank className="h-4 w-4" weight="duotone" /> },
+                    { value: "inbox" as Destination, label: "Inbox", icon: <Tray className="h-3.5 w-3.5" weight="duotone" /> },
+                    { value: "reminders" as Destination, label: "Reminders", icon: <BellRinging className="h-3.5 w-3.5" weight="duotone" /> },
+                    { value: "meetings" as Destination, label: "Meetings", icon: <CalendarBlank className="h-3.5 w-3.5" weight="duotone" /> },
                   ].map((opt) => (
                     <button
                       key={opt.value}
                       type="button"
                       className={cn(
-                        "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition-colors",
+                        "flex items-center gap-1.5 w-full px-2 py-1.5 rounded-md text-[11px] transition-colors",
                         destination === opt.value ? "bg-accent text-primary" : "hover:bg-accent text-foreground"
                       )}
                       onClick={() => { setDestination(opt.value); setShowDestinationPicker(false); }}
@@ -852,7 +851,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                     >
                       {opt.icon}
                       <span className="flex-1 text-left">{opt.label}</span>
-                      {destination === opt.value && <Check className="h-3.5 w-3.5 text-primary" weight="bold" />}
+                      {destination === opt.value && <Check className="h-3 w-3 text-primary" weight="bold" />}
                     </button>
                   ))}
                   {customLists.length > 0 && (
@@ -863,15 +862,15 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                           key={list.id}
                           type="button"
                           className={cn(
-                            "flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm transition-colors",
+                            "flex items-center gap-1.5 w-full px-2 py-1.5 rounded-md text-[11px] transition-colors",
                             destination === list.id ? "bg-accent text-primary" : "hover:bg-accent text-foreground"
                           )}
                           onClick={() => { setDestination(list.id); setShowDestinationPicker(false); }}
                           data-testid={`destination-list-${list.id}`}
                         >
-                          <ListBullets className="h-4 w-4" weight="duotone" />
+                          <ListBullets className="h-3.5 w-3.5" weight="duotone" />
                           <span className="flex-1 text-left">{list.name}</span>
-                          {destination === list.id && <Check className="h-3.5 w-3.5 text-primary" weight="bold" />}
+                          {destination === list.id && <Check className="h-3 w-3 text-primary" weight="bold" />}
                         </button>
                       ))}
                     </>
@@ -897,7 +896,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
                   className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-md text-xs h-7 px-3"
                   data-testid="button-addaction-submit"
                 >
-                  {createAction.isPending ? "Adding..." : "Add Action"}
+                  {createAction.isPending ? "Adding..." : "AddAction"}
                 </Button>
               </div>
             </div>
