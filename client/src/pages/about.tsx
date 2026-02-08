@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { ArrowLeft, Heart, Lightning, Shield, Target, Users } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { motion } from "@/lib/motion-shim";
+import { motion } from "framer-motion";
 import logoIcon from "@assets/am_logo_1767300370565.png";
 
 const floatUpVariants = {

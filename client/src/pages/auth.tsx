@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth, forgotPassword, resetPassword } from "@/hooks/use-auth";
 import { useLocation, useSearch, Link } from "wouter";
 import { Loader2, Eye, EyeOff, Mail, Lock, User } from "lucide-react";
-import { motion } from "@/lib/motion-shim";
+import { motion } from "framer-motion";
 import { Brain, Sparkle, Lightning, CheckCircle } from "@phosphor-icons/react";
 import logoIcon from "@assets/am_logo_1767300370565.png";
 import { Button } from "@/components/ui/button";

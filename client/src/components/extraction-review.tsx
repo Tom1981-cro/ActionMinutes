@@ -14,7 +14,7 @@ import {
 } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "@/lib/motion-shim";
+import { motion, AnimatePresence } from "framer-motion";
 import { getAISettings } from "./ai-settings";
 
 export interface ExtractedItem {

@@ -7,7 +7,7 @@ import {
   LightbulbFilament, CheckCircle, ArrowRight
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
-import { motion } from "@/lib/motion-shim";
+import { motion } from "framer-motion";
 
 type EmptyStateVariant = 
   | "inbox" 

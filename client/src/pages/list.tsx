@@ -15,7 +15,7 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "@/lib/motion-shim";
+import { motion, AnimatePresence } from "framer-motion";
 import { authenticatedFetch } from "@/hooks/use-auth";
 
 const LIST_ICON_MAP: Record<string, PhosphorIcon> = {

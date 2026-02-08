@@ -8,7 +8,7 @@ import {
   Plus, X, Check, Trash, User, ArrowRight, Sparkle
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "@/lib/motion-shim";
+import { motion, AnimatePresence } from "framer-motion";
 
 export interface HighlightedItem {
   id: string;
