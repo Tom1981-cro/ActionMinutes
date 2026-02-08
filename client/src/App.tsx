@@ -8,7 +8,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { ErrorBoundary, PageErrorFallback } from "@/components/error-boundary";
 
-const LandingPage = React.lazy(() => import("@/pages/landing"));
 const AuthPage = React.lazy(() => import("@/pages/auth"));
 const OnboardingPage = React.lazy(() => import("@/pages/onboarding"));
 const InboxPage = React.lazy(() => import("@/pages/inbox"));
@@ -78,9 +77,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function Router() {
   return (
     <Switch>
-      {/* Public routes */}
+      {/* Root redirects to app */}
       <Route path="/">
-        <Suspense fallback={<PageLoader />}><div className="page-enter"><LandingPage /></div></Suspense>
+        <Redirect to="/app/inbox" />
       </Route>
       <Route path="/login">
         <Suspense fallback={<PageLoader />}><div className="page-enter"><AuthPage /></div></Suspense>
