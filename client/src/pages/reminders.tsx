@@ -45,6 +45,7 @@ const BUCKETS: {
   label: string; 
   icon: typeof Sun; 
   color: string; 
+  bgColor: string;
   glowColor: string;
   emptyIcon: typeof Rocket;
   emptyText: string;
@@ -55,6 +56,7 @@ const BUCKETS: {
     label: "Today", 
     icon: Sun, 
     color: "text-amber-400", 
+    bgColor: "bg-amber-500/20",
     glowColor: "shadow-amber-500/20",
     emptyIcon: FireSimple,
     emptyText: "All clear!",
@@ -65,6 +67,7 @@ const BUCKETS: {
     label: "Tomorrow", 
     icon: SunHorizon, 
     color: "text-orange-400", 
+    bgColor: "bg-orange-500/20",
     glowColor: "shadow-orange-500/20",
     emptyIcon: Coffee,
     emptyText: "Free day ahead",
@@ -75,6 +78,7 @@ const BUCKETS: {
     label: "Next Week", 
     icon: CalendarDots, 
     color: "text-sky-400", 
+    bgColor: "bg-sky-500/20",
     glowColor: "shadow-sky-500/20",
     emptyIcon: Rocket,
     emptyText: "Week looks open",
@@ -85,6 +89,7 @@ const BUCKETS: {
     label: "Next Month", 
     icon: CalendarBlank, 
     color: "text-primary", 
+    bgColor: "bg-primary/20",
     glowColor: "shadow-primary/20",
     emptyIcon: Moon,
     emptyText: "Month is clear",
@@ -95,6 +100,7 @@ const BUCKETS: {
     label: "Sometime", 
     icon: Sparkle, 
     color: "text-fuchsia-400", 
+    bgColor: "bg-fuchsia-500/20",
     glowColor: "shadow-fuchsia-500/20",
     emptyIcon: Heart,
     emptyText: "Wishlist empty",
@@ -415,7 +421,7 @@ export default function RemindersPage() {
           <div className="flex items-center gap-2.5">
             <div className={cn(
               "w-8 h-8 rounded-xl flex items-center justify-center",
-              bucket.color.replace('text-', 'bg-').replace('-400', '-500/20')
+              bucket.bgColor
             )}>
               <BucketIcon className={cn("h-4 w-4", bucket.color)} weight="duotone" />
             </div>
@@ -424,7 +430,7 @@ export default function RemindersPage() {
           {bucketReminders.length > 0 && (
             <span className={cn(
               "text-xs font-medium rounded-full px-2.5 py-1",
-              bucket.color.replace('text-', 'bg-').replace('-400', '-500/20'),
+              bucket.bgColor,
               bucket.color
             )}>
               {bucketReminders.length}
@@ -438,7 +444,7 @@ export default function RemindersPage() {
             <div className="flex flex-col items-center justify-center h-full py-6 text-center">
               <div className={cn(
                 "w-12 h-12 rounded-2xl flex items-center justify-center mb-3",
-                bucket.color.replace('text-', 'bg-').replace('-400', '-500/10')
+                bucket.bgColor
               )}>
                 <EmptyIcon className={cn("h-6 w-6", bucket.color)} weight="duotone" />
               </div>
