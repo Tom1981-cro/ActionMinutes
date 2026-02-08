@@ -638,6 +638,8 @@ export const notes = pgTable("notes", {
   moodScore: integer("mood_score"),
   moodLabel: text("mood_label"),
   promptId: varchar("prompt_id", { length: 36 }),
+  meetingId: varchar("meeting_id", { length: 36 }).references(() => meetings.id, { onDelete: 'set null' }),
+  collection: text("collection"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

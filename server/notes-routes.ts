@@ -32,6 +32,8 @@ const createNoteSchema = z.object({
   moodLabel: z.string().optional(),
   promptId: z.string().optional(),
   workspaceId: z.string().optional(),
+  meetingId: z.string().optional(),
+  collection: z.string().optional(),
   tagIds: z.array(z.string()).optional()
 });
 
@@ -43,7 +45,9 @@ const updateNoteSchema = z.object({
   isPinned: z.boolean().optional(),
   color: z.string().optional(),
   moodScore: z.number().min(1).max(5).optional(),
-  moodLabel: z.string().optional()
+  moodLabel: z.string().optional(),
+  meetingId: z.string().nullable().optional(),
+  collection: z.string().nullable().optional()
 });
 
 const createTagSchema = z.object({
@@ -114,6 +118,21 @@ router.get('/search', requireAuth, async (req: Request, res: Response) => {
     res.json({ success: true, notes: decryptedNotes });
   } catch (error: any) {
     console.error('[Notes] Search failed:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.get('/collections/list', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const allNotes = await storage.getNotes(userId, { isJournal: false });
+    const collectionSet = new Set<string>();
+    for (const note of allNotes) {
+      if ((note as any).collection) collectionSet.add((note as any).collection);
+    }
+    res.json({ success: true, collections: Array.from(collectionSet).sort() });
+  } catch (error: any) {
+    console.error('[Notes] Get collections failed:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -493,6 +512,59 @@ router.delete('/:id/attachments/:attachmentId', requireAuth, async (req: Request
     res.json({ success: true });
   } catch (error: any) {
     console.error('[Notes] Delete attachment failed:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+router.post('/:id/extract-actions', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const note = await storage.getNote(req.params.id);
+    
+    if (!note) {
+      return res.status(404).json({ success: false, error: 'Note not found' });
+    }
+    if (note.userId !== userId) {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+    
+    const content = decryptNoteContent(note.contentEncrypted, note.contentIv);
+    const plainText = content.replace(/<[^>]*>/g, '').trim();
+    
+    if (!plainText || plainText.length < 10) {
+      return res.json({ success: true, actions: [], message: 'Note content too short to extract actions' });
+    }
+    
+    const { extractActionsFromEntry } = await import("./journal-ai");
+    const actions = await extractActionsFromEntry(plainText);
+    
+    const createdTasks = [];
+    for (const action of actions) {
+      try {
+        const task = await storage.createPersonalReminder({
+          userId,
+          text: action.text || String(action),
+          bucket: 'sometime',
+          priority: action.priority || 'normal',
+          status: 'open',
+          sourceType: 'manual',
+          notes: `Extracted from note: ${note.title}`,
+          tags: [],
+        });
+        createdTasks.push(task);
+      } catch (err) {
+        console.error('[Notes] Failed to create task from action:', err);
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      actions: actions,
+      tasksCreated: createdTasks.length,
+      message: `${createdTasks.length} action${createdTasks.length !== 1 ? 's' : ''} extracted and added to your inbox`
+    });
+  } catch (error: any) {
+    console.error('[Notes] Extract actions failed:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
