@@ -195,8 +195,8 @@
   }
   
   /* Mobile touch target minimums */
-  button, 
-  [role="button"],
+  button:not([data-state]), 
+  [role="button"]:not([data-state]),
   a,
   input[type="checkbox"],
   input[type="radio"],
