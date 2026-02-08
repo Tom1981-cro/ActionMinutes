@@ -630,7 +630,7 @@ export default function CalendarPage() {
                   </label>
                 ))}
 
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer pt-[4px] pb-[4px]">
                   <Checkbox
                     checked={showLists.reminders !== false}
                     onCheckedChange={() => toggleList('reminders')}
