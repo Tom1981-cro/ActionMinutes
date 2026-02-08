@@ -22,13 +22,22 @@ import {
   endOfWeek,
   isSameMonth,
   parseISO,
-  differenceInMinutes
+  differenceInMinutes,
+  addWeeks,
+  subWeeks,
+  addDays,
+  subDays,
+  startOfDay,
+  endOfDay,
+  getHours,
+  getMinutes,
+  setHours,
+  getDay
 } from "date-fns";
 import { 
   CaretLeft, 
   CaretRight, 
   Plus,
-  ArrowsClockwise,
   Warning,
   Lightning,
   NotePencil,
@@ -37,10 +46,8 @@ import {
   DotsSixVertical,
   Tray,
   BellRinging,
-  DotsThree,
   CalendarBlank
 } from "@phosphor-icons/react";
-import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -80,6 +87,9 @@ interface CustomList {
 
 const CAPACITY_HOURS = 8;
 const DAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const HOURS = Array.from({ length: 17 }, (_, i) => i + 6);
+
+type ViewMode = 'month' | 'week' | 'day';
 
 function getEventDurationMinutes(event: CalendarEvent): number {
   if (event.allDay) return 480;
@@ -91,6 +101,20 @@ function getEventDurationMinutes(event: CalendarEvent): number {
   } catch {
     return 60;
   }
+}
+
+function getEventColor(provider: string): string {
+  if (provider === 'google') return '#dc2626';
+  if (provider === 'microsoft') return '#2563eb';
+  return 'var(--primary)';
+}
+
+function getCurrentTimePosition(startHour: number, hourHeight: number): number | null {
+  const now = new Date();
+  const hours = getHours(now);
+  const minutes = getMinutes(now);
+  if (hours < startHour || hours >= 22) return null;
+  return (hours - startHour) * hourHeight + (minutes / 60) * hourHeight;
 }
 
 export default function CalendarPage() {
@@ -106,6 +130,7 @@ export default function CalendarPage() {
   const [meetingPrepEvent, setMeetingPrepEvent] = useState<CalendarEvent | null>(null);
   const [draggedItem, setDraggedItem] = useState<TaskItem | null>(null);
   const [dragOverDate, setDragOverDate] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('month');
 
   const [showLists, setShowLists] = useState<Record<string, boolean>>({
     inbox: true,
@@ -114,13 +139,25 @@ export default function CalendarPage() {
   const [showListIds, setShowListIds] = useState<Record<string, boolean>>({});
 
   const dateRange = useMemo(() => {
+    if (viewMode === 'week') {
+      return {
+        start: startOfWeek(currentDate, { weekStartsOn: 1 }),
+        end: endOfWeek(currentDate, { weekStartsOn: 1 })
+      };
+    }
+    if (viewMode === 'day') {
+      return {
+        start: startOfDay(currentDate),
+        end: endOfDay(currentDate)
+      };
+    }
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
     return {
       start: startOfWeek(monthStart, { weekStartsOn: 1 }),
       end: endOfWeek(monthEnd, { weekStartsOn: 1 })
     };
-  }, [currentDate]);
+  }, [currentDate, viewMode]);
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['/api/calendar/events', dateRange.start.toISOString(), dateRange.end.toISOString()],
@@ -131,16 +168,6 @@ export default function CalendarPage() {
       if (!response.ok) throw new Error("Failed to fetch events");
       const data = await response.json();
       return data.events || [];
-    }
-  });
-
-  const { data: providers = [] } = useQuery({
-    queryKey: ['/api/calendar/providers'],
-    queryFn: async () => {
-      const response = await authenticatedFetch('/api/calendar/providers');
-      if (!response.ok) throw new Error("Failed to fetch providers");
-      const data = await response.json();
-      return data.providers || [];
     }
   });
 
@@ -257,28 +284,6 @@ export default function CalendarPage() {
     return { totalMinutes, percentage, isOverloaded: totalMinutes > CAPACITY_HOURS * 60 };
   };
 
-  const syncMutation = useMutation({
-    mutationFn: async (provider: string) => {
-      const response = await authenticatedFetch('/api/calendar/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ provider })
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to sync');
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/calendar/events'] });
-      toast({ title: `Synced ${data.synced} events` });
-    },
-    onError: (error: Error) => {
-      toast({ title: error.message, variant: "destructive" });
-    }
-  });
-
   const assignTaskToDate = useMutation({
     mutationFn: async ({ item, date }: { item: TaskItem; date: Date }) => {
       const endpoint = item.type === 'reminder' 
@@ -325,6 +330,13 @@ export default function CalendarPage() {
     setQuickAddOpen(true);
   };
 
+  const handleTimeSlotClick = (day: Date, hour: number) => {
+    const dateWithTime = setHours(startOfDay(day), hour);
+    setSelectedDate(day);
+    setQuickAddDate(dateWithTime);
+    setQuickAddOpen(true);
+  };
+
   const handleMeetingPrep = (event: CalendarEvent, action: 'agenda' | 'notes') => {
     setMeetingPrepEvent(null);
     if (action === 'notes') {
@@ -367,13 +379,35 @@ export default function CalendarPage() {
     setShowListIds(prev => ({ ...prev, [id]: prev[id] === false }));
   };
 
-  const googleProvider = providers.find((p: any) => p.id === 'google');
-  const microsoftProvider = providers.find((p: any) => p.id === 'microsoft');
+  const navigatePrev = () => {
+    if (viewMode === 'month') setCurrentDate(subMonths(currentDate, 1));
+    else if (viewMode === 'week') setCurrentDate(subWeeks(currentDate, 1));
+    else setCurrentDate(subDays(currentDate, 1));
+  };
+
+  const navigateNext = () => {
+    if (viewMode === 'month') setCurrentDate(addMonths(currentDate, 1));
+    else if (viewMode === 'week') setCurrentDate(addWeeks(currentDate, 1));
+    else setCurrentDate(addDays(currentDate, 1));
+  };
+
+  const headerTitle = useMemo(() => {
+    if (viewMode === 'month') return format(currentDate, "MMMM yyyy");
+    if (viewMode === 'week') {
+      const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+      const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
+      if (weekStart.getMonth() === weekEnd.getMonth()) {
+        return `${format(weekStart, 'd')} – ${format(weekEnd, 'd MMMM yyyy')}`;
+      }
+      return `${format(weekStart, 'd MMM')} – ${format(weekEnd, 'd MMM yyyy')}`;
+    }
+    return format(currentDate, "EEEE, d MMMM yyyy");
+  }, [currentDate, viewMode]);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
   }
@@ -383,34 +417,33 @@ export default function CalendarPage() {
     weeks.push(calendarDays.slice(i, i + 7));
   }
 
+  const weekDays = viewMode === 'week'
+    ? eachDayOfInterval({
+        start: startOfWeek(currentDate, { weekStartsOn: 1 }),
+        end: endOfWeek(currentDate, { weekStartsOn: 1 })
+      })
+    : [];
+
+  const isWeekend = (date: Date) => {
+    const d = getDay(date);
+    return d === 0 || d === 6;
+  };
+
   return (
     <TooltipProvider>
       <div className="pb-6">
-        {/* Main layout: Calendar grid + Right sidebar */}
         <div className="flex gap-0">
-          {/* Calendar grid - flexible width */}
           <div className="flex-1 min-w-0">
-            {/* Header row inside grid area */}
             <div className="flex items-center justify-between mb-3">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground" data-testid="text-calendar-title">
-                {format(currentDate, "MMMM yyyy")}
-              </h1>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-1.5"
-                  onClick={() => { setQuickAddDate(selectedDate || new Date()); setQuickAddOpen(true); }}
-                  data-testid="button-create-event"
-                >
-                  <Plus className="h-4 w-4" weight="bold" />
-                </Button>
-                <span className="text-sm text-muted-foreground">Month</span>
-                <div className="flex items-center gap-0.5">
+                <h1 className="text-2xl font-bold tracking-tight text-foreground" data-testid="text-calendar-title">
+                  {headerTitle}
+                </h1>
+                <div className="flex items-center gap-0.5 ml-2">
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setCurrentDate(subMonths(currentDate, 1))}
+                    onClick={navigatePrev}
                     className="h-7 w-7"
                     data-testid="button-prev"
                   >
@@ -419,7 +452,7 @@ export default function CalendarPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+                    onClick={navigateNext}
                     className="h-7 w-7"
                     data-testid="button-next"
                   >
@@ -435,144 +468,503 @@ export default function CalendarPage() {
                 >
                   Today
                 </Button>
-                <Button variant="ghost" size="icon" className="h-7 w-7" data-testid="button-more-options">
-                  <DotsThree className="h-4 w-4" weight="bold" />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex items-center rounded-full border border-border bg-muted/50 p-0.5" data-testid="view-mode-toggle">
+                  {(['month', 'week', 'day'] as ViewMode[]).map((mode) => (
+                    <button
+                      key={mode}
+                      onClick={() => setViewMode(mode)}
+                      className={cn(
+                        "px-3 py-1 text-xs font-medium rounded-full transition-all capitalize",
+                        viewMode === mode
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                      data-testid={`button-view-${mode}`}
+                    >
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => { setQuickAddDate(selectedDate || new Date()); setQuickAddOpen(true); }}
+                  data-testid="button-create-event"
+                >
+                  <Plus className="h-4 w-4" weight="bold" />
                 </Button>
               </div>
             </div>
 
-            {/* Calendar table */}
-            <div className="border border-border rounded-xl overflow-hidden bg-card" data-testid="card-calendar-grid">
-              {/* Day headers */}
-              <div className="grid grid-cols-7 border-b border-border">
-                {DAY_HEADERS.map(day => (
-                  <div key={day} className="text-center text-xs font-semibold py-2 text-muted-foreground tracking-wider border-r border-border last:border-r-0">
-                    {day}
+            {/* Month View */}
+            {viewMode === 'month' && (
+              <div className="border border-border rounded-xl overflow-hidden bg-card" data-testid="card-calendar-grid">
+                <div className="grid grid-cols-7 border-b border-border">
+                  {DAY_HEADERS.map(day => (
+                    <div key={day} className="text-center text-xs font-semibold py-2.5 text-muted-foreground tracking-wider border-r border-border last:border-r-0">
+                      {day}
+                    </div>
+                  ))}
+                </div>
+
+                {weeks.map((week, weekIdx) => (
+                  <div key={weekIdx} className="grid grid-cols-7 border-b border-border last:border-b-0">
+                    {week.map((day, dayIdx) => {
+                      const dayEvents = getEventsForDate(day);
+                      const dayTasks = getTasksForDate(day);
+                      const isCurrentMonth = isSameMonth(day, currentDate);
+                      const isTodayDate = isToday(day);
+                      const isSelected = selectedDate && isSameDay(day, selectedDate);
+                      const dayLoad = getDayLoad(day);
+                      const hasItems = dayEvents.length > 0 || dayTasks.length > 0;
+                      const dateStr = format(day, 'yyyy-MM-dd');
+                      const isDragOver = dragOverDate === dateStr;
+
+                      return (
+                        <div
+                          key={dayIdx}
+                          onClick={() => handleDateClick(day)}
+                          onDragOver={(e) => handleDragOver(e, dateStr)}
+                          onDragLeave={handleDragLeave}
+                          onDrop={(e) => handleDrop(e, day)}
+                          className={cn(
+                            "min-h-[110px] p-1.5 border-r border-border last:border-r-0 flex flex-col cursor-pointer transition-colors relative",
+                            !isCurrentMonth && "bg-muted/20",
+                            isCurrentMonth && "hover:bg-accent/30",
+                            isSelected && "bg-accent/40",
+                            isDragOver && "bg-primary/5 ring-2 ring-inset ring-primary/30"
+                          )}
+                          data-testid={`calendar-day-${dateStr}`}
+                        >
+
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className={cn(
+                              "text-sm w-7 h-7 flex items-center justify-center rounded-full font-medium",
+                              isTodayDate && "bg-primary text-primary-foreground font-bold",
+                              !isTodayDate && isCurrentMonth && "text-foreground",
+                              !isCurrentMonth && "text-muted-foreground/40"
+                            )}>
+                              {isSameDay(day, startOfMonth(addMonths(currentDate, 1))) || isSameDay(day, startOfMonth(currentDate))
+                                ? format(day, 'MMM d')
+                                : format(day, 'd')}
+                            </span>
+                            {dayLoad.isOverloaded && isCurrentMonth && (
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Warning className="h-3 w-3 text-destructive" weight="fill" />
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">
+                                  {Math.round(dayLoad.totalMinutes / 60 * 10) / 10}h / {CAPACITY_HOURS}h
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+
+                          <div className="space-y-0.5 flex-1 overflow-hidden">
+                            {dayEvents.slice(0, 4).map((event: CalendarEvent) => (
+                              <div
+                                key={event.id}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (event.provider !== 'local') setMeetingPrepEvent(event);
+                                }}
+                                className={cn(
+                                  "text-[10px] leading-tight px-1.5 py-0.5 rounded truncate font-medium flex items-center gap-1 bg-card border border-border/50",
+                                  event.provider !== 'local' && "cursor-pointer hover:bg-accent/50"
+                                )}
+                                style={{
+                                  borderLeftWidth: '3px',
+                                  borderLeftColor: getEventColor(event.provider),
+                                }}
+                                data-testid={`event-${event.id}`}
+                              >
+                                <span className="truncate text-foreground">{event.title}</span>
+                                {!event.allDay && (
+                                  <span className="text-[9px] text-muted-foreground flex-shrink-0">
+                                    {format(parseISO(event.startTime), 'H:mm')}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                            {dayTasks.slice(0, 4 - Math.min(dayEvents.length, 4)).map((task) => (
+                              <div
+                                key={task.id}
+                                className="text-[10px] leading-tight px-1.5 py-0.5 rounded truncate font-medium flex items-center gap-1 bg-card border border-border/50"
+                                style={{
+                                  borderLeftWidth: '3px',
+                                  borderLeftColor: 'color-mix(in srgb, var(--primary) 60%, transparent)',
+                                }}
+                                data-testid={`task-${task.id}`}
+                              >
+                                <span className="truncate text-foreground/80">{task.title}</span>
+                              </div>
+                            ))}
+                            {(dayEvents.length + dayTasks.length) > 4 && (
+                              <div className="text-[9px] text-muted-foreground px-1.5 font-medium">
+                                +{dayEvents.length + dayTasks.length - 4} more
+                              </div>
+                            )}
+                          </div>
+
+                          {hasItems && isCurrentMonth && (
+                            <div className="mt-auto pt-0.5">
+                              <div className="h-[2px] bg-muted rounded-full overflow-hidden">
+                                <div 
+                                  style={{ width: `${Math.min(dayLoad.percentage, 100)}%` }} 
+                                  className={cn(
+                                    "h-full rounded-full transition-all",
+                                    dayLoad.percentage >= 100 ? "bg-destructive" : dayLoad.percentage >= 75 ? "bg-warning" : "bg-success"
+                                  )}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 ))}
               </div>
+            )}
 
-              {/* Calendar rows */}
-              {weeks.map((week, weekIdx) => (
-                <div key={weekIdx} className="grid grid-cols-7 border-b border-border last:border-b-0">
-                  {week.map((day, dayIdx) => {
-                    const dayEvents = getEventsForDate(day);
-                    const dayTasks = getTasksForDate(day);
-                    const isCurrentMonth = isSameMonth(day, currentDate);
+            {/* Week View */}
+            {viewMode === 'week' && (
+              <div className="border border-border rounded-xl overflow-hidden bg-card" data-testid="card-week-grid">
+                {/* Day headers */}
+                <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border">
+                  <div className="border-r border-border" />
+                  {weekDays.map((day) => {
                     const isTodayDate = isToday(day);
-                    const isSelected = selectedDate && isSameDay(day, selectedDate);
-                    const dayLoad = getDayLoad(day);
-                    const hasItems = dayEvents.length > 0 || dayTasks.length > 0;
-                    const dateStr = format(day, 'yyyy-MM-dd');
-                    const isDragOver = dragOverDate === dateStr;
-
                     return (
                       <div
-                        key={dayIdx}
-                        onClick={() => handleDateClick(day)}
-                        onDragOver={(e) => handleDragOver(e, dateStr)}
-                        onDragLeave={handleDragLeave}
-                        onDrop={(e) => handleDrop(e, day)}
+                        key={day.toISOString()}
                         className={cn(
-                          "min-h-[100px] p-1.5 border-r border-border last:border-r-0 flex flex-col cursor-pointer transition-colors",
-                          !isCurrentMonth && "bg-muted/20",
-                          isSelected && "bg-accent/40",
-                          isDragOver && "bg-primary/5 ring-2 ring-inset ring-primary/30"
+                          "text-center py-2 border-r border-border last:border-r-0",
+                          isWeekend(day) && "bg-muted/30"
                         )}
-                        data-testid={`calendar-day-${dateStr}`}
                       >
-                        {/* Day number */}
-                        <div className="flex items-center justify-between mb-0.5">
-                          <span className={cn(
-                            "text-sm w-7 h-7 flex items-center justify-center rounded-full",
-                            isTodayDate && "bg-primary text-primary-foreground font-bold",
-                            !isTodayDate && isCurrentMonth && "text-foreground",
-                            !isCurrentMonth && "text-muted-foreground/40"
-                          )}>
-                            {isSameDay(day, startOfMonth(addMonths(currentDate, 1))) || isSameDay(day, startOfMonth(currentDate))
-                              ? format(day, 'MMM d')
-                              : format(day, 'd')}
-                          </span>
-                          {dayLoad.isOverloaded && isCurrentMonth && (
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <Warning className="h-3 w-3 text-destructive" weight="fill" />
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="text-xs">
-                                {Math.round(dayLoad.totalMinutes / 60 * 10) / 10}h / {CAPACITY_HOURS}h
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
+                        <div className="text-xs font-semibold text-muted-foreground tracking-wider">
+                          {format(day, 'EEE')}
                         </div>
-
-                        {/* Events and tasks */}
-                        <div className="space-y-0.5 flex-1 overflow-hidden">
-                          {dayEvents.slice(0, 4).map((event: CalendarEvent) => (
-                            <div
-                              key={event.id}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (event.provider !== 'local') setMeetingPrepEvent(event);
-                              }}
-                              className={cn(
-                                "text-[10px] leading-tight px-1.5 py-0.5 rounded truncate font-medium flex items-center gap-1",
-                                event.provider !== 'local' && "cursor-pointer"
-                              )}
-                              style={{
-                                backgroundColor: 'color-mix(in srgb, var(--primary) 15%, transparent)',
-                                color: 'var(--primary)'
-                              }}
-                              data-testid={`event-${event.id}`}
-                            >
-                              <span className="truncate">{event.title}</span>
-                              {!event.allDay && (
-                                <span className="text-[9px] opacity-70 flex-shrink-0">
-                                  {format(parseISO(event.startTime), 'H:mm')}
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                          {dayTasks.slice(0, 4 - Math.min(dayEvents.length, 4)).map((task) => (
-                            <div
-                              key={task.id}
-                              className="text-[10px] leading-tight px-1.5 py-0.5 rounded truncate font-medium flex items-center gap-1"
-                              style={{
-                                backgroundColor: 'color-mix(in srgb, var(--primary) 10%, transparent)',
-                                color: 'var(--foreground)',
-                                opacity: 0.8
-                              }}
-                              data-testid={`task-${task.id}`}
-                            >
-                              <span className="truncate">{task.title}</span>
-                            </div>
-                          ))}
-                          {(dayEvents.length + dayTasks.length) > 4 && (
-                            <div className="text-[9px] text-muted-foreground px-1.5 font-medium">
-                              +{dayEvents.length + dayTasks.length - 4} more
-                            </div>
-                          )}
+                        <div className={cn(
+                          "text-lg font-bold mt-0.5 inline-flex items-center justify-center w-8 h-8 rounded-full",
+                          isTodayDate && "bg-primary text-primary-foreground",
+                          !isTodayDate && "text-foreground"
+                        )}>
+                          {format(day, 'd')}
                         </div>
-
-                        {/* Capacity bar */}
-                        {hasItems && isCurrentMonth && (
-                          <div className="mt-auto pt-0.5">
-                            <div className="h-[2px] bg-muted rounded-full overflow-hidden">
-                              <div 
-                                style={{ width: `${Math.min(dayLoad.percentage, 100)}%` }} 
-                                className={cn(
-                                  "h-full rounded-full transition-all",
-                                  dayLoad.percentage >= 100 ? "bg-destructive" : dayLoad.percentage >= 75 ? "bg-warning" : "bg-success"
-                                )}
-                              />
-                            </div>
-                          </div>
-                        )}
                       </div>
                     );
                   })}
                 </div>
-              ))}
-            </div>
+
+                {/* All-day events row */}
+                {(() => {
+                  const allDayEvents = weekDays.map(day =>
+                    getEventsForDate(day).filter((e: CalendarEvent) => e.allDay)
+                  );
+                  const hasAnyAllDay = allDayEvents.some(arr => arr.length > 0);
+                  if (!hasAnyAllDay) return null;
+                  return (
+                    <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border" data-testid="week-allday-row">
+                      <div className="border-r border-border flex items-center justify-center">
+                        <span className="text-[9px] text-muted-foreground">All day</span>
+                      </div>
+                      {weekDays.map((day, i) => (
+                        <div key={i} className={cn(
+                          "p-1 border-r border-border last:border-r-0 min-h-[32px]",
+                          isWeekend(day) && "bg-muted/30"
+                        )}>
+                          {allDayEvents[i].map((event: CalendarEvent) => (
+                            <div
+                              key={event.id}
+                              onClick={() => { if (event.provider !== 'local') setMeetingPrepEvent(event); }}
+                              className="text-[10px] px-1.5 py-0.5 rounded truncate font-medium bg-card border border-border/50 mb-0.5 cursor-pointer"
+                              style={{ borderLeftWidth: '3px', borderLeftColor: getEventColor(event.provider) }}
+                              data-testid={`event-${event.id}`}
+                            >
+                              {event.title}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {/* Tasks without time row */}
+                {(() => {
+                  const tasksNoTime = weekDays.map(day => getTasksForDate(day));
+                  const hasAny = tasksNoTime.some(arr => arr.length > 0);
+                  if (!hasAny) return null;
+                  return (
+                    <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border" data-testid="week-tasks-row">
+                      <div className="border-r border-border flex items-center justify-center">
+                        <span className="text-[9px] text-muted-foreground">Tasks</span>
+                      </div>
+                      {weekDays.map((day, i) => (
+                        <div key={i} className={cn(
+                          "p-1 border-r border-border last:border-r-0 min-h-[28px]",
+                          isWeekend(day) && "bg-muted/30"
+                        )}>
+                          {tasksNoTime[i].slice(0, 3).map(task => (
+                            <div
+                              key={task.id}
+                              className="text-[9px] px-1 py-0.5 rounded truncate font-medium bg-card border border-border/50 mb-0.5"
+                              style={{ borderLeftWidth: '2px', borderLeftColor: 'color-mix(in srgb, var(--primary) 60%, transparent)' }}
+                              data-testid={`task-${task.id}`}
+                            >
+                              {task.title}
+                            </div>
+                          ))}
+                          {tasksNoTime[i].length > 3 && (
+                            <div className="text-[8px] text-muted-foreground px-1">+{tasksNoTime[i].length - 3}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {/* Time grid */}
+                <div className="overflow-y-auto max-h-[600px]" data-testid="week-time-grid">
+                  <div className="grid grid-cols-[60px_repeat(7,1fr)] relative">
+                    {/* Time labels column */}
+                    <div className="border-r border-border">
+                      {HOURS.map(hour => (
+                        <div key={hour} className="h-[60px] flex items-start justify-end pr-2 pt-0">
+                          <span className="text-[10px] text-muted-foreground -translate-y-2">
+                            {`${hour}:00`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Day columns */}
+                    {weekDays.map((day, dayIdx) => {
+                      const dayEvents = getEventsForDate(day).filter((e: CalendarEvent) => !e.allDay);
+                      const isTodayDate = isToday(day);
+                      const timePos = isTodayDate ? getCurrentTimePosition(6, 60) : null;
+
+                      return (
+                        <div
+                          key={dayIdx}
+                          className={cn(
+                            "border-r border-border last:border-r-0 relative",
+                            isWeekend(day) && "bg-muted/20"
+                          )}
+                          data-testid={`week-day-col-${format(day, 'yyyy-MM-dd')}`}
+                        >
+                          {HOURS.map(hour => (
+                            <div
+                              key={hour}
+                              className="h-[60px] border-b border-border/50 hover:bg-accent/20 transition-colors cursor-pointer"
+                              onClick={() => handleTimeSlotClick(day, hour)}
+                              onDragOver={(e) => handleDragOver(e, format(day, 'yyyy-MM-dd'))}
+                              onDragLeave={handleDragLeave}
+                              onDrop={(e) => handleDrop(e, day)}
+                              data-testid={`week-slot-${format(day, 'yyyy-MM-dd')}-${hour}`}
+                            />
+                          ))}
+
+                          {/* Positioned events */}
+                          {dayEvents.map((event: CalendarEvent) => {
+                            const startDate = parseISO(event.startTime);
+                            const endDate = parseISO(event.endTime);
+                            const startHour = getHours(startDate) + getMinutes(startDate) / 60;
+                            const endHour = getHours(endDate) + getMinutes(endDate) / 60;
+                            const top = Math.max((startHour - 6) * 60, 0);
+                            const height = Math.max((endHour - startHour) * 60, 20);
+
+                            return (
+                              <div
+                                key={event.id}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (event.provider !== 'local') setMeetingPrepEvent(event);
+                                }}
+                                className="absolute left-1 right-1 rounded px-1.5 py-0.5 overflow-hidden bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow cursor-pointer z-10"
+                                style={{
+                                  top: `${top}px`,
+                                  height: `${height}px`,
+                                  borderLeftWidth: '3px',
+                                  borderLeftColor: getEventColor(event.provider),
+                                }}
+                                data-testid={`event-${event.id}`}
+                              >
+                                <div className="text-[10px] font-semibold text-foreground truncate">{event.title}</div>
+                                <div className="text-[9px] text-muted-foreground">
+                                  {format(startDate, 'H:mm')} – {format(endDate, 'H:mm')}
+                                </div>
+                                {event.location && height > 40 && (
+                                  <div className="text-[9px] text-muted-foreground truncate">{event.location}</div>
+                                )}
+                              </div>
+                            );
+                          })}
+
+                          {/* Current time indicator */}
+                          {isTodayDate && timePos !== null && (
+                            <div
+                              className="absolute left-0 right-0 z-20 pointer-events-none"
+                              style={{ top: `${timePos}px` }}
+                              data-testid="current-time-indicator"
+                            >
+                              <div className="flex items-center">
+                                <div className="w-2 h-2 rounded-full bg-red-500 -ml-1" />
+                                <div className="flex-1 h-[2px] bg-red-500" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Day View */}
+            {viewMode === 'day' && (
+              <div className="border border-border rounded-xl overflow-hidden bg-card" data-testid="card-day-grid">
+                {/* Day header */}
+                <div className="border-b border-border p-3 flex items-center gap-3">
+                  <div className={cn(
+                    "text-2xl font-bold inline-flex items-center justify-center w-10 h-10 rounded-full",
+                    isToday(currentDate) && "bg-primary text-primary-foreground",
+                    !isToday(currentDate) && "text-foreground"
+                  )}>
+                    {format(currentDate, 'd')}
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-foreground">{format(currentDate, 'EEEE')}</div>
+                    <div className="text-xs text-muted-foreground">{format(currentDate, 'MMMM yyyy')}</div>
+                  </div>
+                </div>
+
+                {/* All-day events */}
+                {(() => {
+                  const allDayEvents = getEventsForDate(currentDate).filter((e: CalendarEvent) => e.allDay);
+                  const dayTasks = getTasksForDate(currentDate);
+                  if (allDayEvents.length === 0 && dayTasks.length === 0) return null;
+                  return (
+                    <div className="border-b border-border p-2 flex flex-wrap gap-1.5" data-testid="day-allday-row">
+                      {allDayEvents.map((event: CalendarEvent) => (
+                        <div
+                          key={event.id}
+                          onClick={() => { if (event.provider !== 'local') setMeetingPrepEvent(event); }}
+                          className="text-[11px] px-2 py-1 rounded font-medium bg-card border border-border/50 cursor-pointer"
+                          style={{ borderLeftWidth: '3px', borderLeftColor: getEventColor(event.provider) }}
+                          data-testid={`event-${event.id}`}
+                        >
+                          {event.title}
+                        </div>
+                      ))}
+                      {dayTasks.map(task => (
+                        <div
+                          key={task.id}
+                          className="text-[11px] px-2 py-1 rounded font-medium bg-card border border-border/50"
+                          style={{ borderLeftWidth: '3px', borderLeftColor: 'color-mix(in srgb, var(--primary) 60%, transparent)' }}
+                          data-testid={`task-${task.id}`}
+                        >
+                          {task.title}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {/* Time grid */}
+                <div className="overflow-y-auto max-h-[600px]" data-testid="day-time-grid">
+                  <div className="grid grid-cols-[60px_1fr] relative">
+                    <div className="border-r border-border">
+                      {HOURS.map(hour => (
+                        <div key={hour} className="h-[64px] flex items-start justify-end pr-2">
+                          <span className="text-[10px] text-muted-foreground -translate-y-2">
+                            {`${hour}:00`}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className={cn(
+                      "relative",
+                      isWeekend(currentDate) && "bg-muted/20"
+                    )}>
+                      {HOURS.map(hour => (
+                        <div
+                          key={hour}
+                          className="h-[64px] border-b border-border/50 hover:bg-accent/20 transition-colors cursor-pointer"
+                          onClick={() => handleTimeSlotClick(currentDate, hour)}
+                          onDragOver={(e) => handleDragOver(e, format(currentDate, 'yyyy-MM-dd'))}
+                          onDragLeave={handleDragLeave}
+                          onDrop={(e) => handleDrop(e, currentDate)}
+                          data-testid={`day-slot-${hour}`}
+                        />
+                      ))}
+
+                      {/* Events */}
+                      {getEventsForDate(currentDate).filter((e: CalendarEvent) => !e.allDay).map((event: CalendarEvent) => {
+                        const startDate = parseISO(event.startTime);
+                        const endDate = parseISO(event.endTime);
+                        const startHour = getHours(startDate) + getMinutes(startDate) / 60;
+                        const endHour = getHours(endDate) + getMinutes(endDate) / 60;
+                        const top = Math.max((startHour - 6) * 64, 0);
+                        const height = Math.max((endHour - startHour) * 64, 24);
+
+                        return (
+                          <div
+                            key={event.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (event.provider !== 'local') setMeetingPrepEvent(event);
+                            }}
+                            className="absolute left-2 right-2 rounded-lg px-2 py-1 overflow-hidden bg-card border border-border/60 shadow-sm hover:shadow-md transition-shadow cursor-pointer z-10"
+                            style={{
+                              top: `${top}px`,
+                              height: `${height}px`,
+                              borderLeftWidth: '3px',
+                              borderLeftColor: getEventColor(event.provider),
+                            }}
+                            data-testid={`event-${event.id}`}
+                          >
+                            <div className="text-xs font-semibold text-foreground truncate">{event.title}</div>
+                            <div className="text-[10px] text-muted-foreground">
+                              {format(startDate, 'H:mm')} – {format(endDate, 'H:mm')}
+                            </div>
+                            {event.location && height > 48 && (
+                              <div className="text-[10px] text-muted-foreground truncate mt-0.5">{event.location}</div>
+                            )}
+                          </div>
+                        );
+                      })}
+
+                      {/* Current time indicator */}
+                      {isToday(currentDate) && (() => {
+                        const pos = getCurrentTimePosition(6, 64);
+                        if (pos === null) return null;
+                        return (
+                          <div
+                            className="absolute left-0 right-0 z-20 pointer-events-none"
+                            style={{ top: `${pos}px` }}
+                            data-testid="current-time-indicator"
+                          >
+                            <div className="flex items-center">
+                              <div className="w-2.5 h-2.5 rounded-full bg-red-500 -ml-1" />
+                              <div className="flex-1 h-[2px] bg-red-500" />
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right sidebar */}
@@ -584,7 +976,6 @@ export default function CalendarPage() {
               </div>
 
               <div className="space-y-1.5">
-                {/* All toggle */}
                 <label className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
                     checked={showLists.inbox && showLists.reminders && customLists.every(l => showListIds[l.id] !== false)}
@@ -697,70 +1088,6 @@ export default function CalendarPage() {
               >
                 + Add task
               </button>
-            </div>
-
-            {/* Sync Status */}
-            <div className="glass-panel rounded-xl p-3" data-testid="card-sync-status">
-              <div className="flex items-center gap-1.5 mb-2">
-                <ArrowsClockwise className="h-3 w-3 text-muted-foreground" weight="bold" />
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Sync</span>
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <div className={cn(
-                      "w-1.5 h-1.5 rounded-full",
-                      googleProvider?.connected ? "bg-success" : "bg-muted-foreground/30"
-                    )} />
-                    <span className="text-[11px] text-foreground">Google Cal</span>
-                  </div>
-                  {googleProvider?.connected ? (
-                    <button
-                      onClick={() => syncMutation.mutate('google')}
-                      disabled={syncMutation.isPending}
-                      className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-                      data-testid="button-sync-google"
-                    >
-                      {syncMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Sync"}
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={() => navigate('/app/settings')}
-                      className="text-[10px] text-primary hover:text-primary/80 font-medium transition-colors"
-                      data-testid="link-connect-google"
-                    >
-                      Connect
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <div className={cn(
-                      "w-1.5 h-1.5 rounded-full",
-                      microsoftProvider?.connected ? "bg-success" : "bg-muted-foreground/30"
-                    )} />
-                    <span className="text-[11px] text-foreground">Outlook</span>
-                  </div>
-                  {microsoftProvider?.connected ? (
-                    <button
-                      onClick={() => syncMutation.mutate('microsoft')}
-                      disabled={syncMutation.isPending}
-                      className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-                      data-testid="button-sync-outlook"
-                    >
-                      {syncMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Sync"}
-                    </button>
-                  ) : (
-                    <button 
-                      onClick={() => navigate('/app/settings')}
-                      className="text-[10px] text-primary hover:text-primary/80 font-medium transition-colors"
-                      data-testid="link-connect-outlook"
-                    >
-                      Connect
-                    </button>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
         </div>
