@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -46,7 +46,11 @@ import {
   DotsSixVertical,
   Tray,
   BellRinging,
-  CalendarBlank
+  CalendarBlank,
+  CheckCircle,
+  Clock,
+  Flag,
+  ArrowSquareOut
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -128,6 +132,7 @@ export default function CalendarPage() {
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [quickAddDate, setQuickAddDate] = useState<Date | null>(null);
   const [meetingPrepEvent, setMeetingPrepEvent] = useState<CalendarEvent | null>(null);
+  const [selectedDetailItem, setSelectedDetailItem] = useState<TaskItem | null>(null);
   const [draggedItem, setDraggedItem] = useState<TaskItem | null>(null);
   const [dragOverDate, setDragOverDate] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('month');
@@ -308,6 +313,34 @@ export default function CalendarPage() {
     }
   });
 
+  const markItemComplete = useMutation({
+    mutationFn: async (item: TaskItem) => {
+      const endpoint = item.type === 'reminder'
+        ? `/api/personal/reminders/${item.id}`
+        : `/api/tasks/${item.id}`;
+      const method = item.type === 'reminder' ? 'PATCH' : 'PUT';
+      const body = item.type === 'reminder'
+        ? { isCompleted: true }
+        : { status: 'done' };
+      const response = await authenticatedFetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!response.ok) throw new Error("Failed to complete");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/personal/reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
+      setSelectedDetailItem(null);
+      toast({ title: "Marked as complete!" });
+    },
+    onError: () => {
+      toast({ title: "Failed to update", variant: "destructive" });
+    }
+  });
+
   const calendarDays = useMemo(() => {
     return eachDayOfInterval({ start: dateRange.start, end: dateRange.end });
   }, [dateRange]);
@@ -328,6 +361,11 @@ export default function CalendarPage() {
     setSelectedDate(day);
     setQuickAddDate(day);
     setQuickAddOpen(true);
+  };
+
+  const handleTaskClick = (e: React.MouseEvent, task: TaskItem) => {
+    e.stopPropagation();
+    setSelectedDetailItem(task);
   };
 
   const handleTimeSlotClick = (day: Date, hour: number) => {
@@ -593,7 +631,8 @@ export default function CalendarPage() {
                             {dayTasks.slice(0, 4 - Math.min(dayEvents.length, 4)).map((task) => (
                               <div
                                 key={task.id}
-                                className="text-[10px] leading-tight px-1.5 py-0.5 rounded truncate font-medium flex items-center gap-1 bg-card border border-border/50"
+                                onClick={(e) => handleTaskClick(e, task)}
+                                className="text-[10px] leading-tight px-1.5 py-0.5 rounded truncate font-medium flex items-center gap-1 bg-card border border-border/50 cursor-pointer hover:bg-accent/50"
                                 style={{
                                   borderLeftWidth: '3px',
                                   borderLeftColor: 'color-mix(in srgb, var(--primary) 60%, transparent)',
@@ -714,7 +753,8 @@ export default function CalendarPage() {
                           {tasksNoTime[i].slice(0, 3).map(task => (
                             <div
                               key={task.id}
-                              className="text-[9px] px-1 py-0.5 rounded truncate font-medium bg-card border border-border/50 mb-0.5"
+                              onClick={(e) => handleTaskClick(e, task)}
+                              className="text-[9px] px-1 py-0.5 rounded truncate font-medium bg-card border border-border/50 mb-0.5 cursor-pointer hover:bg-accent/50"
                               style={{ borderLeftWidth: '2px', borderLeftColor: 'color-mix(in srgb, var(--primary) 60%, transparent)' }}
                               data-testid={`task-${task.id}`}
                             >
@@ -867,7 +907,8 @@ export default function CalendarPage() {
                       {dayTasks.map(task => (
                         <div
                           key={task.id}
-                          className="text-[11px] px-2 py-1 rounded font-medium bg-card border border-border/50"
+                          onClick={(e) => handleTaskClick(e, task)}
+                          className="text-[11px] px-2 py-1 rounded font-medium bg-card border border-border/50 cursor-pointer hover:bg-accent/50"
                           style={{ borderLeftWidth: '3px', borderLeftColor: 'color-mix(in srgb, var(--primary) 60%, transparent)' }}
                           data-testid={`task-${task.id}`}
                         >
@@ -1151,6 +1192,114 @@ export default function CalendarPage() {
                     <span className="text-sm font-medium text-foreground">Take Notes</span>
                     <span className="text-[10px] text-muted-foreground text-center">Capture key points and actions</span>
                   </button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Task/Reminder Detail Dialog */}
+        <Dialog open={!!selectedDetailItem} onOpenChange={(open) => !open && setSelectedDetailItem(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-lg" data-testid="text-detail-title">
+                {selectedDetailItem?.type === 'reminder' ? (
+                  <BellRinging className="h-5 w-5 text-primary" weight="duotone" />
+                ) : (
+                  <CheckCircle className="h-5 w-5 text-primary" weight="duotone" />
+                )}
+                {selectedDetailItem?.type === 'reminder' ? 'Reminder' : 'Task'} Details
+              </DialogTitle>
+              <DialogDescription className="sr-only">View details of the selected item</DialogDescription>
+            </DialogHeader>
+            {selectedDetailItem && (
+              <div className="space-y-4 pt-2">
+                <div className="p-4 rounded-lg bg-accent/50 border border-border">
+                  <h3 className="font-semibold text-foreground text-base" data-testid="text-detail-item-title">
+                    {selectedDetailItem.title}
+                  </h3>
+                  {selectedDetailItem.text && selectedDetailItem.text !== selectedDetailItem.title && (
+                    <p className="text-sm text-muted-foreground mt-1.5" data-testid="text-detail-description">
+                      {selectedDetailItem.text}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {selectedDetailItem.dueDate && (
+                    <div className="flex items-center gap-2 p-3 rounded-lg border border-border bg-card">
+                      <Clock className="h-4 w-4 text-muted-foreground" weight="duotone" />
+                      <div>
+                        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Due</div>
+                        <div className="text-sm font-medium text-foreground" data-testid="text-detail-due-date">
+                          {format(parseISO(selectedDetailItem.dueDate), 'MMM d, yyyy')}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 p-3 rounded-lg border border-border bg-card">
+                    <Flag className="h-4 w-4 text-muted-foreground" weight="duotone" />
+                    <div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Priority</div>
+                      <div className="text-sm font-medium text-foreground capitalize" data-testid="text-detail-priority">
+                        {selectedDetailItem.priority === 'none' ? 'Normal' : selectedDetailItem.priority}
+                      </div>
+                    </div>
+                  </div>
+
+                  {selectedDetailItem.estimatedMinutes && (
+                    <div className="flex items-center gap-2 p-3 rounded-lg border border-border bg-card">
+                      <Timer className="h-4 w-4 text-muted-foreground" weight="duotone" />
+                      <div>
+                        <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Estimate</div>
+                        <div className="text-sm font-medium text-foreground" data-testid="text-detail-estimate">
+                          {selectedDetailItem.estimatedMinutes}m
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 p-3 rounded-lg border border-border bg-card">
+                    <div className={cn(
+                      "w-2 h-2 rounded-full",
+                      selectedDetailItem.status === 'done' || selectedDetailItem.status === 'completed' ? "bg-success" : "bg-warning"
+                    )} />
+                    <div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Status</div>
+                      <div className="text-sm font-medium text-foreground capitalize" data-testid="text-detail-status">
+                        {selectedDetailItem.status}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <Button
+                    onClick={() => markItemComplete.mutate(selectedDetailItem)}
+                    disabled={markItemComplete.isPending}
+                    className="flex-1 gap-2"
+                    data-testid="button-mark-complete"
+                  >
+                    <CheckCircle className="h-4 w-4" weight="bold" />
+                    {markItemComplete.isPending ? 'Completing...' : 'Mark Complete'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedDetailItem(null);
+                      if (selectedDetailItem.type === 'reminder') {
+                        navigate('/app/reminders');
+                      } else {
+                        navigate(`/app/task/${selectedDetailItem.id}`);
+                      }
+                    }}
+                    className="gap-2"
+                    data-testid="button-open-full"
+                  >
+                    <ArrowSquareOut className="h-4 w-4" weight="bold" />
+                    Open
+                  </Button>
                 </div>
               </div>
             )}
