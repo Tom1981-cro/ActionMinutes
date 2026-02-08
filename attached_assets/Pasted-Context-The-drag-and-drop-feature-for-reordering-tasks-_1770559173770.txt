@@ -1,0 +1,45 @@
+Context: The drag-and-drop feature (for reordering tasks within a list or moving tasks between lists/sections) should now work with the unified tasks. Previously, dragging between different task types might have been complex (e.g., moving a personal reminder into a project list wasn’t possible when they were separate). Now that all tasks share one model, we can simplify this logic.
+
+Prompt Instructions:
+
+Single List Model: Update the drag-and-drop handling code (likely in frontend state management and backend endpoints for reordering) to treat all tasks as part of a single collection. If the UI has separate sections (e.g., separate lists for personal vs project tasks), these are now just filtered views of the unified task set. Dragging a task from one section to another should result in updating that task’s attributes (rather than moving between tables).
+
+Moving Between Categories: If the app supports dragging a task between different contexts (for example, from the personal “Inbox” to a specific project, or vice versa), implement this by updating the task’s sourceType and sourceId fields:
+
+On drop, determine the target context. For instance, if a task is dropped into a project list, set sourceType = "project" and sourceId = <targetProjectId> for that task.
+
+If dropped into a personal tasks area (like a general inbox not tied to a project or meeting), set sourceType = "personal" and sourceId = NULL.
+
+If moving into a meeting context (though likely less common to drag into a past meeting’s tasks), you would set sourceType = "meeting" and sourceId to that meeting’s ID.
+
+Perform these updates through the unified tasks API (e.g., a PUT/PATCH to /api/tasks/{id} with the new sourceType and sourceId). The backend should handle the update accordingly.
+
+Reordering within a List: For drag-and-drop that reorders tasks within the same list (e.g., ordering tasks in a project), preserve this functionality using a common approach like an order or sortIndex field. If previously each table had its own ordering, you may introduce a single position field in the unified tasks table or manage ordering via the custom list relationship. Key points:
+
+If tasks in a project have an order, then tasks with the same sourceType="project" and same sourceId (project) should have an order index to reflect their sequence.
+
+Similarly, personal tasks (sourceType personal) might have an order if they’re shown in a list.
+
+Update the drag-and-drop handler to compute new positions for the affected tasks and send those updates to the backend. The backend should update the position (or equivalent) field for those tasks.
+
+If the app uses separate endpoints to reorder (for example, an endpoint like /api/tasks/reorder with an array of IDs in new order), unify that logic to handle tasks identified by ID, no matter the type.
+
+UI Feedback and State: Ensure that after a drag-and-drop operation, the frontend state is updated in the unified task list. For example, if a task’s sourceType changes because it was dragged to a new category, remove it from the old list in the UI and add it to the new list. Since the underlying data is unified, this might simply be achieved by refetching tasks or manipulating the local state (e.g., updating that task object’s sourceType/sourceId in a global store).
+
+Remove Legacy Drag Code: Eliminate any special-case code that was written to move items between different data sets. For instance, if there was a function to convert a PersonalReminder into a ProjectTask, that is no longer needed – now it’s just updating fields on a Task. This greatly simplifies drag-and-drop moves.
+
+Custom Lists and Dragging: If the app allows dragging tasks into custom lists or between custom lists (user-defined groupings), update that logic to use the unified model: dragging into a custom list likely creates a custom_list_items entry that references the task’s ID. This should work as before but ensure the code now references the task’s unified ID and uses a unified method to fetch or update tasks if needed.
+
+Testing: Manually test drag-and-drop thoroughly:
+
+Reorder tasks within the same project – ensure the order persists (check the updated positions in the DB).
+
+Move a task from the general “Inbox” (personal) to a project – ensure its sourceType/sourceId change, it disappears from the personal list and appears in the project list. The data in the database should reflect the new project association.
+
+Move a project task back to the personal inbox – set sourceType="personal", sourceId=NULL, check it shows up in Inbox and is removed from the project list.
+
+If possible, drag an action item (meeting task) to personal or project contexts – decide if this is allowed. (If not desired, the UI might restrict dragging of meeting-sourced tasks. If allowed, the task would lose its meeting association; that might not be ideal, so perhaps meeting tasks remain in their category.) Clarify the expected behavior and ensure the code enforces it (e.g., you might not allow changing sourceType for meeting tasks if you want to keep them linked to meeting transcripts).
+
+Verify that after any move, other related features still work (e.g., attachments and tags stay with the task since the task ID didn’t change, only its category did).
+
+By centralizing drag-and-drop logic on the unified task data, we make task movements much simpler and more reliable. One task object can now be reclassified or reordered without complex cross-table operations. The UI and backend should now be dealing with just one set of tasks, improving consistency and reducing code duplication.
