@@ -595,7 +595,7 @@ export default function CalendarPage() {
                       customLists.forEach(l => { newIds[l.id] = val; });
                       setShowListIds(newIds);
                     }}
-                    className="h-3.5 w-3.5"
+                    className="h-4 w-4 rounded-full"
                     data-testid="filter-all"
                   />
                   <span className="text-xs font-medium text-foreground">All</span>
@@ -607,7 +607,7 @@ export default function CalendarPage() {
                   <Checkbox
                     checked={showLists.inbox !== false}
                     onCheckedChange={() => toggleList('inbox')}
-                    className="h-3.5 w-3.5"
+                    className="h-4 w-4 rounded-full"
                     data-testid="filter-inbox"
                   />
                   <Tray className="h-3.5 w-3.5 text-muted-foreground" weight="duotone" />
@@ -619,7 +619,7 @@ export default function CalendarPage() {
                     <Checkbox
                       checked={showListIds[list.id] !== false}
                       onCheckedChange={() => toggleCustomList(list.id)}
-                      className="h-3.5 w-3.5"
+                      className="h-4 w-4 rounded-full"
                       data-testid={`filter-list-${list.id}`}
                     />
                     <div 
@@ -634,7 +634,7 @@ export default function CalendarPage() {
                   <Checkbox
                     checked={showLists.reminders !== false}
                     onCheckedChange={() => toggleList('reminders')}
-                    className="h-3.5 w-3.5"
+                    className="h-4 w-4 rounded-full"
                     data-testid="filter-reminders"
                   />
                   <BellRinging className="h-3.5 w-3.5 text-muted-foreground" weight="duotone" />
