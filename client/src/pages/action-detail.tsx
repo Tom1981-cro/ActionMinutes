@@ -278,7 +278,6 @@ export default function ActionDetailPage() {
           reminderAt: reminderAt?.toISOString() || null,
           notes: notes || null,
           tags,
-          recurrence: recurrence || null,
           confidenceOwner: 1,
           confidenceDueDate: 1,
         });

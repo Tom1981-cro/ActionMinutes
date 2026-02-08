@@ -37,7 +37,6 @@ interface Reminder {
   completedAt: string | null;
   priority: string;
   notes: string | null;
-  recurrence: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -184,7 +183,6 @@ export default function RemindersPage() {
   const [editNotes, setEditNotes] = useState("");
   const [editPriority, setEditPriority] = useState("normal");
   const [editBucket, setEditBucket] = useState<ReminderBucket>("today");
-  const [editRecurrence, setEditRecurrence] = useState<string>("none");
   const [showCompleted, setShowCompleted] = useState(false);
   const [draggedReminder, setDraggedReminder] = useState<Reminder | null>(null);
   const [dragOverBucket, setDragOverBucket] = useState<ReminderBucket | null>(null);
@@ -270,17 +268,13 @@ export default function RemindersPage() {
     setQuickAddText("");
   };
 
-  const handleComplete = async (reminder: Reminder) => {
-    const result = await updateReminder.mutateAsync({ 
+  const handleComplete = (reminder: Reminder) => {
+    updateReminder.mutate({ 
       id: reminder.id, 
       isCompleted: true,
       completedAt: new Date().toISOString(),
     });
-    if (result?.nextTask) {
-      toast({ title: "Nice work!", description: "Recurring task completed. Next occurrence created." });
-    } else {
-      toast({ title: "Nice work!", description: "Task completed" });
-    }
+    toast({ title: "Nice work!", description: "Task completed" });
   };
 
   const handleUncomplete = (reminder: Reminder) => {
@@ -347,7 +341,6 @@ export default function RemindersPage() {
     setEditNotes(reminder.notes || "");
     setEditPriority(reminder.priority);
     setEditBucket(reminder.bucket);
-    setEditRecurrence(reminder.recurrence || "none");
     setShowEditDialog(true);
   };
 
@@ -361,7 +354,6 @@ export default function RemindersPage() {
       priority: editPriority,
       bucket: editBucket,
       dueDate: dueDate?.toISOString() || null,
-      recurrence: editRecurrence === "none" ? null : editRecurrence,
     });
     setShowEditDialog(false);
     setEditingReminder(null);
@@ -476,19 +468,12 @@ export default function RemindersPage() {
                   </button>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground leading-snug">{reminder.title || reminder.text}</p>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {reminder.priority === 'high' && (
-                        <span className="text-xs text-red-400 flex items-center gap-1 mt-1">
-                          <FireSimple className="h-3 w-3" weight="fill" />
-                          High priority
-                        </span>
-                      )}
-                      {reminder.recurrence && reminder.recurrence !== 'none' && (
-                        <span className="text-xs text-blue-400 flex items-center gap-1 mt-1" data-testid={`recurrence-badge-${reminder.id}`}>
-                          ↻ {reminder.recurrence}
-                        </span>
-                      )}
-                    </div>
+                    {reminder.priority === 'high' && (
+                      <span className="text-xs text-red-400 flex items-center gap-1 mt-1">
+                        <FireSimple className="h-3 w-3" weight="fill" />
+                        High priority
+                      </span>
+                    )}
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -764,22 +749,6 @@ export default function RemindersPage() {
                         <span className={opt.color}>{opt.label}</span>
                       </SelectItem>
                     ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm text-muted-foreground">Repeat</label>
-                <Select value={editRecurrence} onValueChange={setEditRecurrence}>
-                  <SelectTrigger className="bg-accent border-border text-foreground" data-testid="select-edit-recurrence">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="glass-panel border-border">
-                    <SelectItem value="none" className="text-foreground focus:bg-accent focus:text-foreground">No repeat</SelectItem>
-                    <SelectItem value="daily" className="text-foreground focus:bg-accent focus:text-foreground">Daily</SelectItem>
-                    <SelectItem value="weekly" className="text-foreground focus:bg-accent focus:text-foreground">Weekly</SelectItem>
-                    <SelectItem value="biweekly" className="text-foreground focus:bg-accent focus:text-foreground">Every 2 weeks</SelectItem>
-                    <SelectItem value="monthly" className="text-foreground focus:bg-accent focus:text-foreground">Monthly</SelectItem>
-                    <SelectItem value="yearly" className="text-foreground focus:bg-accent focus:text-foreground">Yearly</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
