@@ -1,18 +1,14 @@
-import { useState, useMemo, useCallback, useRef } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authenticatedFetch } from "@/hooks/use-auth";
 import { useStore } from "@/lib/store";
 import { useLocation } from "wouter";
+import { QuickAdd } from "@/components/quick-add";
 import { 
   format, 
   startOfMonth, 
@@ -31,20 +27,18 @@ import {
 import { 
   CaretLeft, 
   CaretRight, 
-  GoogleLogo, 
-  MicrosoftOutlookLogo, 
-  Clock, 
   Plus,
   ArrowsClockwise,
   Warning,
   Lightning,
   NotePencil,
-  ArrowRight,
   Timer,
-  Funnel,
   Video,
   DotsSixVertical,
-  GearSix
+  Tray,
+  BellRinging,
+  DotsThree,
+  CalendarBlank
 } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -74,9 +68,19 @@ interface TaskItem {
   status: string;
   isCompleted?: boolean;
   type: 'task' | 'reminder';
+  listId?: string;
+}
+
+interface CustomList {
+  id: string;
+  name: string;
+  color?: string;
+  icon?: string;
 }
 
 const CAPACITY_HOURS = 8;
+const DAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const MINI_DAY_HEADERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 function getEventDurationMinutes(event: CalendarEvent): number {
   if (event.allDay) return 480;
@@ -90,12 +94,6 @@ function getEventDurationMinutes(event: CalendarEvent): number {
   }
 }
 
-function getLoadColor(percentage: number): string {
-  if (percentage >= 100) return "bg-destructive";
-  if (percentage >= 75) return "bg-warning";
-  return "bg-success";
-}
-
 export default function CalendarPage() {
   const queryClient = useQueryClient();
   const { user } = useStore();
@@ -103,26 +101,38 @@ export default function CalendarPage() {
   
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quickAddDate, setQuickAddDate] = useState<Date | null>(null);
   const [meetingPrepEvent, setMeetingPrepEvent] = useState<CalendarEvent | null>(null);
   const [draggedItem, setDraggedItem] = useState<TaskItem | null>(null);
   const [dragOverDate, setDragOverDate] = useState<string | null>(null);
-  const [newEvent, setNewEvent] = useState({
-    title: '',
-    description: '',
-    location: '',
-    startTime: '',
-    endTime: '',
-    allDay: false,
-    provider: 'local' as 'local' | 'google' | 'microsoft'
+
+  const [showLists, setShowLists] = useState<Record<string, boolean>>({
+    inbox: true,
+    reminders: true,
   });
+  const [showListIds, setShowListIds] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (customLists.length > 0) {
+      setShowListIds(prev => {
+        const next = { ...prev };
+        for (const list of customLists) {
+          if (!(list.id in next)) {
+            next[list.id] = true;
+          }
+        }
+        return next;
+      });
+    }
+  }, [customLists]);
 
   const dateRange = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
     return {
-      start: startOfWeek(monthStart, { weekStartsOn: 0 }),
-      end: endOfWeek(monthEnd, { weekStartsOn: 0 })
+      start: startOfWeek(monthStart, { weekStartsOn: 1 }),
+      end: endOfWeek(monthEnd, { weekStartsOn: 1 })
     };
   }, [currentDate]);
 
@@ -170,23 +180,40 @@ export default function CalendarPage() {
     enabled: !!user.id
   });
 
+  const { data: customLists = [] } = useQuery<CustomList[]>({
+    queryKey: ['custom-lists', user.id],
+    queryFn: async () => {
+      const res = await authenticatedFetch('/api/lists');
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!user.id
+  });
+
   const unifiedItems: TaskItem[] = useMemo(() => {
     const items: TaskItem[] = [];
-    for (const r of allReminders) {
-      if (r.deletedAt || r.isCompleted) continue;
-      items.push({
-        id: r.id,
-        title: r.text,
-        dueDate: r.dueDate || null,
-        estimatedMinutes: 30,
-        priority: r.priority || 'normal',
-        status: r.status || 'open',
-        isCompleted: r.isCompleted,
-        type: 'reminder'
-      });
+    if (showLists.reminders !== false) {
+      for (const r of allReminders) {
+        if (r.deletedAt || r.isCompleted) continue;
+        items.push({
+          id: r.id,
+          title: r.text,
+          dueDate: r.dueDate || null,
+          estimatedMinutes: 30,
+          priority: r.priority || 'normal',
+          status: r.status || 'open',
+          isCompleted: r.isCompleted,
+          type: 'reminder'
+        });
+      }
     }
     for (const t of allTasks) {
       if (t.deletedAt || t.status === 'done' || t.status === 'completed') continue;
+      if (t.listId) {
+        if (showListIds[t.listId] === false) continue;
+      } else {
+        if (showLists.inbox === false) continue;
+      }
       items.push({
         id: t.id,
         title: t.title,
@@ -194,11 +221,12 @@ export default function CalendarPage() {
         estimatedMinutes: t.estimatedMinutes || 30,
         priority: t.priority || 'medium',
         status: t.status || 'todo',
-        type: 'task'
+        type: 'task',
+        listId: t.listId
       });
     }
     return items;
-  }, [allReminders, allTasks]);
+  }, [allReminders, allTasks, showLists, showListIds]);
 
   const backlogItems = useMemo(() => {
     return unifiedItems.filter(item => !item.dueDate);
@@ -228,30 +256,6 @@ export default function CalendarPage() {
     const percentage = Math.min((totalMinutes / (CAPACITY_HOURS * 60)) * 100, 150);
     return { totalMinutes, percentage, isOverloaded: totalMinutes > CAPACITY_HOURS * 60 };
   };
-
-  const createEventMutation = useMutation({
-    mutationFn: async (eventData: typeof newEvent) => {
-      const response = await authenticatedFetch('/api/calendar/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(eventData)
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create event');
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/calendar/events'] });
-      setIsCreateOpen(false);
-      setNewEvent({ title: '', description: '', location: '', startTime: '', endTime: '', allDay: false, provider: 'local' });
-      toast.success("Event created");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    }
-  });
 
   const syncMutation = useMutation({
     mutationFn: async (provider: string) => {
@@ -303,6 +307,14 @@ export default function CalendarPage() {
     return eachDayOfInterval({ start: dateRange.start, end: dateRange.end });
   }, [dateRange]);
 
+  const miniCalDays = useMemo(() => {
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    const start = startOfWeek(monthStart, { weekStartsOn: 1 });
+    const end = endOfWeek(monthEnd, { weekStartsOn: 1 });
+    return eachDayOfInterval({ start, end });
+  }, [currentDate]);
+
   const getEventsForDate = (date: Date) => {
     return events.filter((event: CalendarEvent) => {
       const eventStart = parseISO(event.startTime);
@@ -310,17 +322,19 @@ export default function CalendarPage() {
     });
   };
 
+  const hasItemsOnDate = (date: Date): boolean => {
+    return getEventsForDate(date).length > 0 || getTasksForDate(date).length > 0;
+  };
+
   const goToToday = () => {
     setCurrentDate(new Date());
     setSelectedDate(new Date());
   };
 
-  const handleCreateEvent = () => {
-    if (!newEvent.title || !newEvent.startTime || !newEvent.endTime) {
-      toast.error("Please fill in required fields");
-      return;
-    }
-    createEventMutation.mutate(newEvent);
+  const handleDateClick = (day: Date) => {
+    setSelectedDate(day);
+    setQuickAddDate(day);
+    setQuickAddOpen(true);
   };
 
   const handleMeetingPrep = (event: CalendarEvent, action: 'agenda' | 'notes') => {
@@ -357,6 +371,14 @@ export default function CalendarPage() {
     }
   }, [draggedItem, assignTaskToDate]);
 
+  const toggleList = (key: string) => {
+    setShowLists(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleCustomList = (id: string) => {
+    setShowListIds(prev => ({ ...prev, [id]: prev[id] === false }));
+  };
+
   const googleProvider = providers.find((p: any) => p.id === 'google');
   const microsoftProvider = providers.find((p: any) => p.id === 'microsoft');
 
@@ -376,433 +398,460 @@ export default function CalendarPage() {
   return (
     <TooltipProvider>
       <div className="pb-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-5">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground" data-testid="text-calendar-title">
-              <span>{format(currentDate, "MMMM")}</span>{" "}
-              <span className="text-primary">{format(currentDate, "yyyy")}</span>
-            </h1>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-                className="h-8 w-8 rounded-lg"
-                data-testid="button-prev"
-              >
-                <CaretLeft className="h-4 w-4" weight="bold" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-                className="h-8 w-8 rounded-lg"
-                data-testid="button-next"
-              >
-                <CaretRight className="h-4 w-4" weight="bold" />
-              </Button>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={goToToday}
-              className="text-sm font-medium text-primary hover:text-primary"
-              data-testid="button-today"
-            >
-              Today
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5"
-              data-testid="button-filter"
-            >
-              <Funnel className="h-4 w-4" weight="duotone" />
-              Filter
-            </Button>
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2 btn-gradient" data-testid="button-create-event">
-                  <Plus className="h-4 w-4" weight="bold" />
-                  New Event
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create Event</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="event-title">Title *</Label>
-                    <Input
-                      id="event-title"
-                      value={newEvent.title}
-                      onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                      placeholder="Event title"
-                      data-testid="input-event-title"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="event-start">Start *</Label>
-                      <Input
-                        id="event-start"
-                        type="datetime-local"
-                        value={newEvent.startTime}
-                        onChange={(e) => setNewEvent({ ...newEvent, startTime: e.target.value })}
-                        data-testid="input-event-start"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="event-end">End *</Label>
-                      <Input
-                        id="event-end"
-                        type="datetime-local"
-                        value={newEvent.endTime}
-                        onChange={(e) => setNewEvent({ ...newEvent, endTime: e.target.value })}
-                        data-testid="input-event-end"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      id="event-allday"
-                      checked={newEvent.allDay}
-                      onCheckedChange={(checked) => setNewEvent({ ...newEvent, allDay: checked })}
-                      data-testid="switch-all-day"
-                    />
-                    <Label htmlFor="event-allday">All day event</Label>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="event-location">Location</Label>
-                    <Input
-                      id="event-location"
-                      value={newEvent.location}
-                      onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
-                      placeholder="Add location"
-                      data-testid="input-event-location"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="event-description">Description</Label>
-                    <Textarea
-                      id="event-description"
-                      value={newEvent.description}
-                      onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                      placeholder="Add description"
-                      data-testid="input-event-description"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="event-provider">Calendar</Label>
-                    <Select
-                      value={newEvent.provider}
-                      onValueChange={(value: 'local' | 'google' | 'microsoft') => setNewEvent({ ...newEvent, provider: value })}
-                    >
-                      <SelectTrigger id="event-provider" data-testid="select-provider">
-                        <SelectValue placeholder="Select calendar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="local">Local Calendar</SelectItem>
-                        {googleProvider?.connected && <SelectItem value="google">Google Calendar</SelectItem>}
-                        {microsoftProvider?.connected && <SelectItem value="microsoft">Outlook Calendar</SelectItem>}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex justify-end gap-2 pt-2">
-                    <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleCreateEvent}
-                      disabled={createEventMutation.isPending}
-                      data-testid="button-save-event"
-                    >
-                      {createEventMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create'}
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        {/* Main layout: Calendar grid + Sidebar */}
-        <div className="flex gap-5">
+        {/* Main layout: Calendar grid + Right sidebar */}
+        <div className="flex gap-0">
           {/* Calendar grid - flexible width */}
           <div className="flex-1 min-w-0">
-            <Card className="glass-panel rounded-2xl overflow-hidden" data-testid="card-calendar-grid">
-              <CardContent className="p-0">
-                {/* Day headers */}
-                <div className="grid grid-cols-7 border-b border-border">
-                  {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
-                    <div key={day} className="text-center text-xs font-semibold py-2.5 text-muted-foreground tracking-wider">
-                      {day}
-                    </div>
-                  ))}
+            {/* Header row inside grid area */}
+            <div className="flex items-center justify-between mb-3">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground" data-testid="text-calendar-title">
+                {format(currentDate, "MMMM yyyy")}
+              </h1>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => { setQuickAddDate(selectedDate || new Date()); setQuickAddOpen(true); }}
+                  data-testid="button-create-event"
+                >
+                  <Plus className="h-4 w-4" weight="bold" />
+                </Button>
+                <span className="text-sm text-muted-foreground">Month</span>
+                <div className="flex items-center gap-0.5">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setCurrentDate(subMonths(currentDate, 1))}
+                    className="h-7 w-7"
+                    data-testid="button-prev"
+                  >
+                    <CaretLeft className="h-4 w-4" weight="bold" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+                    className="h-7 w-7"
+                    data-testid="button-next"
+                  >
+                    <CaretRight className="h-4 w-4" weight="bold" />
+                  </Button>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={goToToday}
+                  className="text-sm font-medium"
+                  data-testid="button-today"
+                >
+                  Today
+                </Button>
+                <Button variant="ghost" size="icon" className="h-7 w-7" data-testid="button-more-options">
+                  <DotsThree className="h-4 w-4" weight="bold" />
+                </Button>
+              </div>
+            </div>
 
-                {/* Calendar rows */}
-                {weeks.map((week, weekIdx) => (
-                  <div key={weekIdx} className="grid grid-cols-7 border-b border-border last:border-b-0">
-                    {week.map((day, dayIdx) => {
-                      const dayEvents = getEventsForDate(day);
-                      const dayTasks = getTasksForDate(day);
-                      const isCurrentMonth = isSameMonth(day, currentDate);
-                      const isTodayDate = isToday(day);
-                      const isSelected = selectedDate && isSameDay(day, selectedDate);
-                      const dayLoad = getDayLoad(day);
-                      const hasItems = dayEvents.length > 0 || dayTasks.length > 0;
-                      const dateStr = format(day, 'yyyy-MM-dd');
-                      const isDragOver = dragOverDate === dateStr;
+            {/* Calendar table */}
+            <div className="border border-border rounded-xl overflow-hidden bg-card" data-testid="card-calendar-grid">
+              {/* Day headers */}
+              <div className="grid grid-cols-7 border-b border-border">
+                {DAY_HEADERS.map(day => (
+                  <div key={day} className="text-center text-xs font-semibold py-2 text-muted-foreground tracking-wider border-r border-border last:border-r-0">
+                    {day}
+                  </div>
+                ))}
+              </div>
 
-                      return (
-                        <div
-                          key={dayIdx}
-                          onClick={() => setSelectedDate(day)}
-                          onDragOver={(e) => handleDragOver(e, dateStr)}
-                          onDragLeave={handleDragLeave}
-                          onDrop={(e) => handleDrop(e, day)}
-                          className={cn(
-                            "min-h-[110px] p-1.5 border-r border-border last:border-r-0 flex flex-col cursor-pointer transition-colors",
-                            !isCurrentMonth && "bg-muted/30",
-                            isSelected && "bg-accent/50",
-                            isDragOver && "bg-primary/5 ring-2 ring-inset ring-primary/30"
+              {/* Calendar rows */}
+              {weeks.map((week, weekIdx) => (
+                <div key={weekIdx} className="grid grid-cols-7 border-b border-border last:border-b-0">
+                  {week.map((day, dayIdx) => {
+                    const dayEvents = getEventsForDate(day);
+                    const dayTasks = getTasksForDate(day);
+                    const isCurrentMonth = isSameMonth(day, currentDate);
+                    const isTodayDate = isToday(day);
+                    const isSelected = selectedDate && isSameDay(day, selectedDate);
+                    const dayLoad = getDayLoad(day);
+                    const hasItems = dayEvents.length > 0 || dayTasks.length > 0;
+                    const dateStr = format(day, 'yyyy-MM-dd');
+                    const isDragOver = dragOverDate === dateStr;
+
+                    return (
+                      <div
+                        key={dayIdx}
+                        onClick={() => handleDateClick(day)}
+                        onDragOver={(e) => handleDragOver(e, dateStr)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, day)}
+                        className={cn(
+                          "min-h-[100px] p-1.5 border-r border-border last:border-r-0 flex flex-col cursor-pointer transition-colors",
+                          !isCurrentMonth && "bg-muted/20",
+                          isSelected && "bg-accent/40",
+                          isDragOver && "bg-primary/5 ring-2 ring-inset ring-primary/30"
+                        )}
+                        data-testid={`calendar-day-${dateStr}`}
+                      >
+                        {/* Day number */}
+                        <div className="flex items-center justify-between mb-0.5">
+                          <span className={cn(
+                            "text-sm w-7 h-7 flex items-center justify-center rounded-full",
+                            isTodayDate && "bg-primary text-primary-foreground font-bold",
+                            !isTodayDate && isCurrentMonth && "text-foreground",
+                            !isCurrentMonth && "text-muted-foreground/40"
+                          )}>
+                            {isSameDay(day, startOfMonth(addMonths(currentDate, 1))) || isSameDay(day, startOfMonth(currentDate))
+                              ? format(day, 'MMM d')
+                              : format(day, 'd')}
+                          </span>
+                          {dayLoad.isOverloaded && isCurrentMonth && (
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Warning className="h-3 w-3 text-destructive" weight="fill" />
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-xs">
+                                {Math.round(dayLoad.totalMinutes / 60 * 10) / 10}h / {CAPACITY_HOURS}h
+                              </TooltipContent>
+                            </Tooltip>
                           )}
-                          data-testid={`calendar-day-${dateStr}`}
-                        >
-                          {/* Day number */}
-                          <div className="flex items-center justify-between mb-1">
-                            <span className={cn(
-                              "text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full",
-                              isTodayDate && "bg-primary text-primary-foreground font-bold",
-                              !isTodayDate && isCurrentMonth && "text-foreground",
-                              !isCurrentMonth && "text-muted-foreground/50"
-                            )}>
-                              {format(day, 'd')}
-                            </span>
-                            {dayLoad.isOverloaded && isCurrentMonth && (
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <Warning className="h-3 w-3 text-destructive" weight="fill" />
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="text-xs">
-                                  {Math.round(dayLoad.totalMinutes / 60 * 10) / 10}h / {CAPACITY_HOURS}h - Over capacity
-                                </TooltipContent>
-                              </Tooltip>
-                            )}
-                          </div>
+                        </div>
 
-                          {/* Events and tasks */}
-                          <div className="space-y-0.5 flex-1 overflow-hidden">
-                            {dayEvents.slice(0, 3).map((event: CalendarEvent) => (
-                              <div
-                                key={event.id}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (event.provider !== 'local') setMeetingPrepEvent(event);
-                                }}
-                                className={cn(
-                                  "text-[11px] leading-tight px-1.5 py-0.5 rounded truncate font-medium",
-                                  event.provider !== 'local' && "cursor-pointer",
-                                  event.provider === 'google' 
-                                    ? "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300" 
-                                    : event.provider === 'microsoft'
-                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300"
-                                    : "bg-primary/10 text-primary"
-                                )}
-                                data-testid={`event-${event.id}`}
-                              >
-                                {event.title}
-                              </div>
-                            ))}
-                            {dayTasks.slice(0, 3 - Math.min(dayEvents.length, 3)).map((task) => (
-                              <div
-                                key={task.id}
-                                className="text-[11px] leading-tight px-1.5 py-0.5 rounded truncate bg-accent border border-border text-foreground"
-                                data-testid={`task-${task.id}`}
-                              >
-                                {task.title}
-                              </div>
-                            ))}
-                            {(dayEvents.length + dayTasks.length) > 3 && (
-                              <div className="text-[10px] text-muted-foreground px-1.5 font-medium">
-                                +{dayEvents.length + dayTasks.length - 3} more
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Capacity bar */}
-                          {hasItems && isCurrentMonth && (
-                            <div className="mt-auto pt-1">
-                              <div className="h-[3px] bg-muted rounded-full overflow-hidden">
-                                <div 
-                                  style={{ width: `${Math.min(dayLoad.percentage, 100)}%` }} 
-                                  className={cn("h-full rounded-full transition-all", getLoadColor(dayLoad.percentage))}
-                                />
-                              </div>
+                        {/* Events and tasks */}
+                        <div className="space-y-0.5 flex-1 overflow-hidden">
+                          {dayEvents.slice(0, 4).map((event: CalendarEvent) => (
+                            <div
+                              key={event.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (event.provider !== 'local') setMeetingPrepEvent(event);
+                              }}
+                              className={cn(
+                                "text-[10px] leading-tight px-1.5 py-0.5 rounded truncate font-medium flex items-center gap-1",
+                                event.provider !== 'local' && "cursor-pointer"
+                              )}
+                              style={{
+                                backgroundColor: 'color-mix(in srgb, var(--primary) 15%, transparent)',
+                                color: 'var(--primary)'
+                              }}
+                              data-testid={`event-${event.id}`}
+                            >
+                              <span className="truncate">{event.title}</span>
+                              {!event.allDay && (
+                                <span className="text-[9px] opacity-70 flex-shrink-0">
+                                  {format(parseISO(event.startTime), 'H:mm')}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                          {dayTasks.slice(0, 4 - Math.min(dayEvents.length, 4)).map((task) => (
+                            <div
+                              key={task.id}
+                              className="text-[10px] leading-tight px-1.5 py-0.5 rounded truncate font-medium flex items-center gap-1"
+                              style={{
+                                backgroundColor: 'color-mix(in srgb, var(--primary) 10%, transparent)',
+                                color: 'var(--foreground)',
+                                opacity: 0.8
+                              }}
+                              data-testid={`task-${task.id}`}
+                            >
+                              <span className="truncate">{task.title}</span>
+                            </div>
+                          ))}
+                          {(dayEvents.length + dayTasks.length) > 4 && (
+                            <div className="text-[9px] text-muted-foreground px-1.5 font-medium">
+                              +{dayEvents.length + dayTasks.length - 4} more
                             </div>
                           )}
                         </div>
-                      );
-                    })}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+
+                        {/* Capacity bar */}
+                        {hasItems && isCurrentMonth && (
+                          <div className="mt-auto pt-0.5">
+                            <div className="h-[2px] bg-muted rounded-full overflow-hidden">
+                              <div 
+                                style={{ width: `${Math.min(dayLoad.percentage, 100)}%` }} 
+                                className={cn(
+                                  "h-full rounded-full transition-all",
+                                  dayLoad.percentage >= 100 ? "bg-destructive" : dayLoad.percentage >= 75 ? "bg-warning" : "bg-success"
+                                )}
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Right sidebar */}
-          <div className="w-[240px] flex-shrink-0 space-y-4">
-            {/* Sync Status */}
-            <Card className="glass-panel rounded-2xl" data-testid="card-sync-status">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-1.5 mb-3">
-                  <ArrowsClockwise className="h-3.5 w-3.5 text-muted-foreground" weight="bold" />
-                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Sync Status</span>
+          <div className="w-[220px] flex-shrink-0 pl-4 space-y-3">
+            {/* Mini calendar widget */}
+            <div className="glass-panel rounded-xl p-3" data-testid="card-mini-calendar">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-foreground">
+                  {format(currentDate, "MMMM yyyy")}
+                </span>
+                <div className="flex items-center gap-0.5">
+                  <button
+                    onClick={() => setCurrentDate(subMonths(currentDate, 1))}
+                    className="p-0.5 rounded hover:bg-accent transition-colors"
+                    data-testid="mini-cal-prev"
+                  >
+                    <CaretLeft className="h-3 w-3 text-muted-foreground" weight="bold" />
+                  </button>
+                  <button
+                    onClick={goToToday}
+                    className="px-1 text-[10px] font-medium text-primary hover:text-primary/80 transition-colors"
+                    data-testid="mini-cal-today"
+                  >
+                    O
+                  </button>
+                  <button
+                    onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+                    className="p-0.5 rounded hover:bg-accent transition-colors"
+                    data-testid="mini-cal-next"
+                  >
+                    <CaretRight className="h-3 w-3 text-muted-foreground" weight="bold" />
+                  </button>
                 </div>
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={cn(
-                        "w-2 h-2 rounded-full",
-                        googleProvider?.connected ? "bg-emerald-500" : "bg-muted-foreground/30"
-                      )} />
-                      <span className="text-sm text-foreground">Google Cal</span>
-                    </div>
-                    {googleProvider?.connected ? (
-                      <button
-                        onClick={() => syncMutation.mutate('google')}
-                        disabled={syncMutation.isPending}
-                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        data-testid="button-sync-google"
-                      >
-                        {syncMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Synced"}
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => navigate('/app/settings')}
-                        className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
-                        data-testid="link-connect-google"
-                      >
-                        Connect
-                      </button>
-                    )}
+              </div>
+              <div className="grid grid-cols-7 gap-0">
+                {MINI_DAY_HEADERS.map((d, i) => (
+                  <div key={i} className="text-center text-[9px] font-medium text-muted-foreground py-0.5">
+                    {d}
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className={cn(
-                        "w-2 h-2 rounded-full",
-                        microsoftProvider?.connected ? "bg-emerald-500" : "bg-muted-foreground/30"
-                      )} />
-                      <span className="text-sm text-foreground">Outlook</span>
-                    </div>
-                    {microsoftProvider?.connected ? (
-                      <button
-                        onClick={() => syncMutation.mutate('microsoft')}
-                        disabled={syncMutation.isPending}
-                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-                        data-testid="button-sync-outlook"
-                      >
-                        {syncMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Synced"}
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => navigate('/app/settings')}
-                        className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
-                        data-testid="link-connect-outlook"
-                      >
-                        Connect
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                ))}
+                {miniCalDays.map((day, i) => {
+                  const inMonth = isSameMonth(day, currentDate);
+                  const today = isToday(day);
+                  const selected = selectedDate && isSameDay(day, selectedDate);
+                  const hasItems = hasItemsOnDate(day);
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setSelectedDate(day);
+                        if (!isSameMonth(day, currentDate)) {
+                          setCurrentDate(startOfMonth(day));
+                        }
+                      }}
+                      className={cn(
+                        "text-[10px] w-full aspect-square flex items-center justify-center rounded-full relative transition-colors",
+                        today && "bg-primary text-primary-foreground font-bold",
+                        selected && !today && "bg-accent text-foreground font-semibold",
+                        !inMonth && "text-muted-foreground/30",
+                        inMonth && !today && !selected && "text-foreground hover:bg-accent"
+                      )}
+                      data-testid={`mini-day-${format(day, 'yyyy-MM-dd')}`}
+                    >
+                      {format(day, 'd')}
+                      {hasItems && inMonth && !today && (
+                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Show/hide filters */}
+            <div className="glass-panel rounded-xl p-3" data-testid="card-list-filters">
+              <div className="flex items-center gap-1.5 mb-2">
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Show</span>
+              </div>
+
+              <div className="space-y-1.5">
+                {/* All toggle */}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={showLists.inbox && showLists.reminders && customLists.every(l => showListIds[l.id] !== false)}
+                    onCheckedChange={(checked) => {
+                      const val = !!checked;
+                      setShowLists({ inbox: val, reminders: val });
+                      const newIds: Record<string, boolean> = {};
+                      customLists.forEach(l => { newIds[l.id] = val; });
+                      setShowListIds(newIds);
+                    }}
+                    className="h-3.5 w-3.5"
+                    data-testid="filter-all"
+                  />
+                  <span className="text-xs font-medium text-foreground">All</span>
+                </label>
+
+                <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-2 mb-1">Lists</div>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={showLists.inbox !== false}
+                    onCheckedChange={() => toggleList('inbox')}
+                    className="h-3.5 w-3.5"
+                    data-testid="filter-inbox"
+                  />
+                  <Tray className="h-3.5 w-3.5 text-muted-foreground" weight="duotone" />
+                  <span className="text-xs text-foreground">Inbox</span>
+                </label>
+
+                {customLists.map(list => (
+                  <label key={list.id} className="flex items-center gap-2 cursor-pointer">
+                    <Checkbox
+                      checked={showListIds[list.id] !== false}
+                      onCheckedChange={() => toggleCustomList(list.id)}
+                      className="h-3.5 w-3.5"
+                      data-testid={`filter-list-${list.id}`}
+                    />
+                    <div 
+                      className="w-3.5 h-3.5 rounded flex-shrink-0"
+                      style={{ backgroundColor: list.color || 'var(--muted-foreground)' }}
+                    />
+                    <span className="text-xs text-foreground truncate">{list.name}</span>
+                  </label>
+                ))}
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={showLists.reminders !== false}
+                    onCheckedChange={() => toggleList('reminders')}
+                    className="h-3.5 w-3.5"
+                    data-testid="filter-reminders"
+                  />
+                  <BellRinging className="h-3.5 w-3.5 text-muted-foreground" weight="duotone" />
+                  <span className="text-xs text-foreground">Reminders</span>
+                </label>
+
+                <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-2 mb-1">Tags</div>
+                <p className="text-[10px] text-muted-foreground">Tag filtering coming soon</p>
+              </div>
+            </div>
 
             {/* Unscheduled Tasks */}
-            <Card className="glass-panel rounded-2xl" data-testid="card-unscheduled-tasks">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <GearSix className="h-3.5 w-3.5 text-muted-foreground" weight="bold" />
-                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Unscheduled Tasks</span>
+            <div className="glass-panel rounded-xl p-3" data-testid="card-unscheduled-tasks">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Unscheduled</span>
+                <span className="text-[10px] text-muted-foreground">{backlogItems.length}</span>
+              </div>
+              
+              {backlogItems.length === 0 ? (
+                <div className="text-center py-3 text-muted-foreground">
+                  <CalendarBlank className="h-5 w-5 mx-auto mb-1 opacity-40" weight="duotone" />
+                  <p className="text-[10px]">All tasks scheduled</p>
                 </div>
-                <p className="text-[10px] text-muted-foreground mb-3">
-                  Drag these to the calendar to time-block your week.
-                </p>
-
-                {backlogItems.length === 0 ? (
-                  <div className="text-center py-4 text-muted-foreground">
-                    <p className="text-xs">All tasks scheduled</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 max-h-[calc(100vh-420px)] overflow-y-auto">
-                    {backlogItems.map((item) => (
-                      <div
-                        key={item.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, item)}
-                        className={cn(
-                          "group p-3 rounded-xl border bg-card border-border cursor-grab active:cursor-grabbing hover:border-primary/30 hover:shadow-sm transition-all",
-                          draggedItem?.id === item.id && "opacity-50 ring-1 ring-primary/30"
-                        )}
-                        data-testid={`backlog-item-${item.id}`}
-                      >
-                        <div className="flex items-start gap-2">
-                          <DotsSixVertical className="h-4 w-4 text-muted-foreground/40 mt-0.5 flex-shrink-0 group-hover:text-muted-foreground transition-colors" weight="bold" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-foreground leading-snug line-clamp-2" data-testid={`text-backlog-title-${item.id}`}>
-                              {item.title}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1.5">
-                              <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                                <Timer className="h-2.5 w-2.5" />
-                                {item.estimatedMinutes ? `${item.estimatedMinutes / 60}h` : "0.5h"}
-                              </span>
-                              <button
-                                className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                data-testid={`button-more-${item.id}`}
-                              >
-                                <DotsSixVertical className="h-3 w-3 text-muted-foreground rotate-90" weight="bold" />
-                              </button>
-                            </div>
+              ) : (
+                <div className="space-y-1.5 max-h-[280px] overflow-y-auto">
+                  {backlogItems.map((item) => (
+                    <div
+                      key={item.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, item)}
+                      className={cn(
+                        "group p-2 rounded-lg border bg-card border-border cursor-grab active:cursor-grabbing hover:border-primary/30 transition-all",
+                        draggedItem?.id === item.id && "opacity-50 ring-1 ring-primary/30"
+                      )}
+                      data-testid={`backlog-item-${item.id}`}
+                    >
+                      <div className="flex items-start gap-1.5">
+                        <DotsSixVertical className="h-3.5 w-3.5 text-muted-foreground/30 mt-0.5 flex-shrink-0 group-hover:text-muted-foreground transition-colors" weight="bold" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] font-medium text-foreground leading-snug line-clamp-2" data-testid={`text-backlog-title-${item.id}`}>
+                            {item.title}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
+                              <Timer className="h-2.5 w-2.5" />
+                              {item.estimatedMinutes ? `${item.estimatedMinutes}m` : "30m"}
+                            </span>
                           </div>
                         </div>
-                        {selectedDate && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="w-full mt-2 h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 transition-opacity text-primary hover:text-primary hover:bg-primary/5"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              assignTaskToDate.mutate({ item, date: selectedDate });
-                            }}
-                            disabled={assignTaskToDate.isPending}
-                            data-testid={`schedule-backlog-${item.id}`}
-                          >
-                            <ArrowRight className="h-3 w-3" weight="bold" />
-                            Schedule for {format(selectedDate, "MMM d")}
-                          </Button>
-                        )}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  ))}
+                </div>
+              )}
 
-                <button
-                  className="w-full mt-3 py-2 text-xs text-muted-foreground hover:text-foreground border border-dashed border-border hover:border-foreground/30 rounded-xl transition-colors text-center"
-                  onClick={() => setIsCreateOpen(true)}
-                  data-testid="button-add-backlog"
-                >
-                  + Add new backlog item
-                </button>
-              </CardContent>
-            </Card>
+              <button
+                className="w-full mt-2 py-1.5 text-[10px] text-muted-foreground hover:text-foreground border border-dashed border-border hover:border-foreground/30 rounded-lg transition-colors text-center"
+                onClick={() => { setQuickAddDate(null); setQuickAddOpen(true); }}
+                data-testid="button-add-backlog"
+              >
+                + Add task
+              </button>
+            </div>
+
+            {/* Sync Status */}
+            <div className="glass-panel rounded-xl p-3" data-testid="card-sync-status">
+              <div className="flex items-center gap-1.5 mb-2">
+                <ArrowsClockwise className="h-3 w-3 text-muted-foreground" weight="bold" />
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Sync</span>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className={cn(
+                      "w-1.5 h-1.5 rounded-full",
+                      googleProvider?.connected ? "bg-success" : "bg-muted-foreground/30"
+                    )} />
+                    <span className="text-[11px] text-foreground">Google Cal</span>
+                  </div>
+                  {googleProvider?.connected ? (
+                    <button
+                      onClick={() => syncMutation.mutate('google')}
+                      disabled={syncMutation.isPending}
+                      className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                      data-testid="button-sync-google"
+                    >
+                      {syncMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Sync"}
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => navigate('/app/settings')}
+                      className="text-[10px] text-primary hover:text-primary/80 font-medium transition-colors"
+                      data-testid="link-connect-google"
+                    >
+                      Connect
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <div className={cn(
+                      "w-1.5 h-1.5 rounded-full",
+                      microsoftProvider?.connected ? "bg-success" : "bg-muted-foreground/30"
+                    )} />
+                    <span className="text-[11px] text-foreground">Outlook</span>
+                  </div>
+                  {microsoftProvider?.connected ? (
+                    <button
+                      onClick={() => syncMutation.mutate('microsoft')}
+                      disabled={syncMutation.isPending}
+                      className="text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                      data-testid="button-sync-outlook"
+                    >
+                      {syncMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Sync"}
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => navigate('/app/settings')}
+                      className="text-[10px] text-primary hover:text-primary/80 font-medium transition-colors"
+                      data-testid="link-connect-outlook"
+                    >
+                      Connect
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* QuickAdd Modal */}
+        <QuickAdd 
+          isOpen={quickAddOpen} 
+          onOpenChange={setQuickAddOpen} 
+          defaultDate={quickAddDate}
+        />
 
         {/* Meeting Prep Dialog */}
         <Dialog open={!!meetingPrepEvent} onOpenChange={(open) => !open && setMeetingPrepEvent(null)}>

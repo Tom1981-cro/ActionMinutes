@@ -9,7 +9,7 @@ ActionMinutes is a personal productivity assistant designed to help users organi
 - **AI Extraction:** Converts meeting notes into tasks, decisions, and risks.
 - **Reminders:** Time-based task management.
 - **Journal:** Interactive two-column layout with inline Quick Reflection card (template pills: Morning Intention / Evening Wind-down / Weekly Win, mood selector, textarea, Save Draft), always-visible Mood vs. Output weekly chart, purple gradient Daily Prompt card with rotating prompts, enhanced entry feed with date+time+mood headers, suggested action bars with "+ Add Task", and signal tag pills. AI task extraction, meeting context linking, and mood x productivity analytics.
-- **Calendar:** Enhanced "Action Center" calendar with Google/Outlook integration, "Reality Check" capacity planning (8h daily load bars), unscheduled task backlog sidebar for time-blocking, and contextual meeting prep actions (Create Agenda / Take Notes).
+- **Calendar:** Enhanced "Action Center" calendar with Google/Outlook integration, "Reality Check" capacity planning (8h daily load bars), right sidebar with mini calendar widget, list/reminder filter checkboxes, and draggable unscheduled task backlog for time-blocking. Click on date opens QuickAdd with preselected date. Contextual meeting prep actions (Create Agenda / Take Notes).
 - **Notes:** Action-oriented capture system with masonry grid layout, AI "Text-to-Action" extraction pipeline, smart context linking to meetings, collection-based organization, color-coded cards, and right sidebar with Collections and Tags.
 - **Custom Lists:** User-defined organizational lists.
 - **Quick Add:** Instant information capture.

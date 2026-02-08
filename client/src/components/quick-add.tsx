@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 interface QuickAddProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  defaultDate?: Date | null;
 }
 
 type Destination = "inbox" | "reminders" | "meetings" | string;
@@ -45,7 +46,7 @@ const RECURRENCE_OPTIONS: { value: RecurrenceOption; label: string }[] = [
   { value: "yearly", label: "Yearly" },
 ];
 
-export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps) {
+export function QuickAdd({ isOpen: controlledOpen, onOpenChange, defaultDate }: QuickAddProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -122,7 +123,10 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange }: QuickAddProps
     if (isOpen && titleRef.current) {
       setTimeout(() => titleRef.current?.focus(), 100);
     }
-  }, [isOpen]);
+    if (isOpen && defaultDate) {
+      setDueDate(defaultDate);
+    }
+  }, [isOpen, defaultDate]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
