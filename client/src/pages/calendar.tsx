@@ -80,7 +80,6 @@ interface CustomList {
 
 const CAPACITY_HOURS = 8;
 const DAY_HEADERS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const MINI_DAY_HEADERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 function getEventDurationMinutes(event: CalendarEvent): number {
   if (event.allDay) return 480;
@@ -308,23 +307,11 @@ export default function CalendarPage() {
     return eachDayOfInterval({ start: dateRange.start, end: dateRange.end });
   }, [dateRange]);
 
-  const miniCalDays = useMemo(() => {
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(currentDate);
-    const start = startOfWeek(monthStart, { weekStartsOn: 1 });
-    const end = endOfWeek(monthEnd, { weekStartsOn: 1 });
-    return eachDayOfInterval({ start, end });
-  }, [currentDate]);
-
   const getEventsForDate = (date: Date) => {
     return events.filter((event: CalendarEvent) => {
       const eventStart = parseISO(event.startTime);
       return isSameDay(eventStart, date);
     });
-  };
-
-  const hasItemsOnDate = (date: Date): boolean => {
-    return getEventsForDate(date).length > 0 || getTasksForDate(date).length > 0;
   };
 
   const goToToday = () => {
@@ -590,75 +577,6 @@ export default function CalendarPage() {
 
           {/* Right sidebar */}
           <div className="w-[220px] flex-shrink-0 pl-4 space-y-3">
-            {/* Mini calendar widget */}
-            <div className="glass-panel rounded-xl p-3" data-testid="card-mini-calendar">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-foreground">
-                  {format(currentDate, "MMMM yyyy")}
-                </span>
-                <div className="flex items-center gap-0.5">
-                  <button
-                    onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-                    className="p-0.5 rounded hover:bg-accent transition-colors"
-                    data-testid="mini-cal-prev"
-                  >
-                    <CaretLeft className="h-3 w-3 text-muted-foreground" weight="bold" />
-                  </button>
-                  <button
-                    onClick={goToToday}
-                    className="px-1 text-[10px] font-medium text-primary hover:text-primary/80 transition-colors"
-                    data-testid="mini-cal-today"
-                  >
-                    O
-                  </button>
-                  <button
-                    onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-                    className="p-0.5 rounded hover:bg-accent transition-colors"
-                    data-testid="mini-cal-next"
-                  >
-                    <CaretRight className="h-3 w-3 text-muted-foreground" weight="bold" />
-                  </button>
-                </div>
-              </div>
-              <div className="grid grid-cols-7 gap-0">
-                {MINI_DAY_HEADERS.map((d, i) => (
-                  <div key={i} className="text-center text-[9px] font-medium text-muted-foreground py-0.5">
-                    {d}
-                  </div>
-                ))}
-                {miniCalDays.map((day, i) => {
-                  const inMonth = isSameMonth(day, currentDate);
-                  const today = isToday(day);
-                  const selected = selectedDate && isSameDay(day, selectedDate);
-                  const hasItems = hasItemsOnDate(day);
-                  return (
-                    <button
-                      key={i}
-                      onClick={() => {
-                        setSelectedDate(day);
-                        if (!isSameMonth(day, currentDate)) {
-                          setCurrentDate(startOfMonth(day));
-                        }
-                      }}
-                      className={cn(
-                        "text-[10px] w-full aspect-square flex items-center justify-center rounded-full relative transition-colors",
-                        today && "bg-primary text-primary-foreground font-bold",
-                        selected && !today && "bg-accent text-foreground font-semibold",
-                        !inMonth && "text-muted-foreground/30",
-                        inMonth && !today && !selected && "text-foreground hover:bg-accent"
-                      )}
-                      data-testid={`mini-day-${format(day, 'yyyy-MM-dd')}`}
-                    >
-                      {format(day, 'd')}
-                      {hasItems && inMonth && !today && (
-                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* Show/hide filters */}
             <div className="glass-panel rounded-xl p-3" data-testid="card-list-filters">
               <div className="flex items-center gap-1.5 mb-2">
