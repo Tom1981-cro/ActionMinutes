@@ -5,7 +5,7 @@
 ActionMinutes is a personal productivity assistant designed to help users organize their lives through a suite of integrated tools. It features notes, reminders, journaling, a calendar, and custom lists. A key highlight is its AI-powered capability to extract information from meeting notes, transforming them into actionable tasks. The application aims to enhance single-user personal productivity by centralizing various organizational aspects into a seamless experience.
 
 **Key Capabilities:**
-- **Inbox:** Central hub for all activities.
+- **Inbox:** "Triage & Clarity" processing station with List/Smart Group views, filter pills (All/Unread/Assigned/Snoozed), hover triage actions (Complete/Snooze/Delete), bulk operations bar, visual unread states (blue dot), AI-like smart grouping (Overdue/Waiting/Communication/Deep Work/Quick Wins), and inline TaskDetailModal (two-panel: content+sidebar with subtasks, attachments, activity feed).
 - **AI Extraction:** Converts meeting notes into tasks, decisions, and risks.
 - **Reminders:** Time-based task management.
 - **Journal:** Interactive two-column layout with inline Quick Reflection card (template pills: Morning Intention / Evening Wind-down / Weekly Win, mood selector, textarea, Save Draft), always-visible Mood vs. Output weekly chart, purple gradient Daily Prompt card with rotating prompts, enhanced entry feed with date+time+mood headers, suggested action bars with "+ Add Task", and signal tag pills. AI task extraction, meeting context linking, and mood x productivity analytics.

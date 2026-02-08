@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback } from "react";
-import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authenticatedFetch } from "@/hooks/use-auth";
 import { useStore } from "@/lib/store";
@@ -17,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SkeletonList } from "@/components/skeleton-loader";
 import { GettingStarted } from "@/components/getting-started";
+import { TaskDetailModal } from "@/components/task-detail-modal";
 
 type FilterType = "all" | "unread" | "assigned" | "snoozed";
 type ViewMode = "list" | "smart";
@@ -88,7 +88,6 @@ function classifyItem(item: UnifiedItem): string {
 }
 
 export default function InboxPage() {
-  const [, navigate] = useLocation();
   const { user } = useStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -98,6 +97,7 @@ export default function InboxPage() {
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [modalItem, setModalItem] = useState<UnifiedItem | null>(null);
 
   const { data: actionItems = [], isLoading: actionsLoading } = useActionItems();
   const { data: reminders = [], isLoading: remindersLoading } = useQuery({
@@ -284,9 +284,8 @@ export default function InboxPage() {
   }, []);
 
   const handleItemClick = useCallback((item: UnifiedItem) => {
-    const type = item.source === 'meeting' ? 'meeting' : 'reminder';
-    navigate(`/app/action/${type}/${item.realId}`);
-  }, [navigate]);
+    setModalItem(item);
+  }, []);
 
   const hasSelection = selectedIds.size > 0;
   const meetingCount = unifiedItems.filter(i => i.source === 'meeting' && !['done', 'completed'].includes(i.status)).length;
@@ -471,6 +470,20 @@ export default function InboxPage() {
       )}
 
       <QuickAdd isOpen={quickAddOpen} onOpenChange={setQuickAddOpen} />
+
+      {modalItem && (
+        <TaskDetailModal
+          open={!!modalItem}
+          onClose={() => setModalItem(null)}
+          itemId={modalItem.realId}
+          itemType={modalItem.source === "meeting" ? "meeting" : "reminder"}
+          categoryLabel={(() => {
+            const cat = classifyItem(modalItem);
+            const group = SMART_GROUPS.find(g => g.key === cat);
+            return group?.label;
+          })()}
+        />
+      )}
     </div>
   );
 }
@@ -518,7 +531,7 @@ function ItemCard({
     <div
       className={cn(
         "relative flex items-center gap-3 bg-card rounded-xl border-l-[3px] py-3 px-4 cursor-pointer transition-all group",
-        "hover:shadow-sm hover:bg-accent/30",
+        "hover:shadow-sm",
         borderColor,
         selected && "ring-1 ring-primary/50 bg-accent/20"
       )}
@@ -547,7 +560,7 @@ function ItemCard({
 
       <div className="flex-1 min-w-0" onClick={() => onClick(item)}>
         <div className="flex items-center justify-between gap-2">
-          <p className="text-sm font-medium text-foreground truncate">{item.text}</p>
+          <p className="text-sm font-medium text-foreground group-hover:text-primary truncate transition-colors">{item.text}</p>
 
           <div className="flex items-center gap-2 flex-shrink-0 group-hover:hidden">
             {item.status === "needs_review" && <StatusBadge status="needs_review" size="sm" />}
