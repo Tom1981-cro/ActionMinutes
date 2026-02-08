@@ -42,7 +42,7 @@ import {
 } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 interface CalendarEvent {
   id: string;
@@ -98,6 +98,7 @@ export default function CalendarPage() {
   const queryClient = useQueryClient();
   const { user } = useStore();
   const [, navigate] = useLocation();
+  const { toast } = useToast();
   
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
@@ -112,20 +113,6 @@ export default function CalendarPage() {
     reminders: true,
   });
   const [showListIds, setShowListIds] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    if (customLists.length > 0) {
-      setShowListIds(prev => {
-        const next = { ...prev };
-        for (const list of customLists) {
-          if (!(list.id in next)) {
-            next[list.id] = true;
-          }
-        }
-        return next;
-      });
-    }
-  }, [customLists]);
 
   const dateRange = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
@@ -189,6 +176,20 @@ export default function CalendarPage() {
     },
     enabled: !!user.id
   });
+
+  useEffect(() => {
+    if (customLists.length > 0) {
+      setShowListIds(prev => {
+        const next = { ...prev };
+        for (const list of customLists) {
+          if (!(list.id in next)) {
+            next[list.id] = true;
+          }
+        }
+        return next;
+      });
+    }
+  }, [customLists]);
 
   const unifiedItems: TaskItem[] = useMemo(() => {
     const items: TaskItem[] = [];
@@ -272,10 +273,10 @@ export default function CalendarPage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/calendar/events'] });
-      toast.success(`Synced ${data.synced} events`);
+      toast({ title: `Synced ${data.synced} events` });
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      toast({ title: error.message, variant: "destructive" });
     }
   });
 
@@ -296,10 +297,10 @@ export default function CalendarPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/personal/reminders'] });
       queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
-      toast.success("Task scheduled!");
+      toast({ title: "Task scheduled!" });
     },
     onError: () => {
-      toast.error("Failed to schedule task");
+      toast({ title: "Failed to schedule task", variant: "destructive" });
     }
   });
 
