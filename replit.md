@@ -72,4 +72,6 @@ A separate mobile application is developed using Expo React Native, connecting t
 
 ## Recent Changes
 
+- **February 2026:** Consolidated recurring tasks logic to work with the unified tasks table. All completion routes (PUT /api/tasks/:id, PATCH /api/actions/:id, PATCH /api/personal/reminders/:id, POST /api/tasks/:id/complete) now detect when a recurring task is marked done and automatically create the next occurrence as a new row in the tasks table. The `completeTaskWithRecurrence` method in storage.ts copies all relevant fields (title, description, tags, reminderAt, deadline, etc.) to the new occurrence with shifted due dates. Frontend pages (reminders, tasks, action-detail, action-edit-sheet) all expose a Repeat dropdown (daily/weekly/biweekly/monthly/yearly) and show a recurrence badge. No type-specific recurrence branching remains.
+- **February 2026:** Migrated from three separate task-like tables (action_items, personal_reminders, tasks) to a single unified tasks table. Frontend uses `title || text` fallback pattern. Storage layer provides backward-compatible wrappers.
 - **February 2026:** Created comprehensive User Guide and Developer Guide documentation in `docs/` folder. Developer Guide includes accurate API reference verified against actual routes, database schema audit, missing links/gaps analysis, and industry-standard feature suggestions.

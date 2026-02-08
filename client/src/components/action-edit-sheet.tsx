@@ -30,6 +30,7 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
   const [status, setStatus] = useState("open");
   const [reminderAt, setReminderAt] = useState("");
   const [notes, setNotes] = useState("");
+  const [recurrence, setRecurrence] = useState("none");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -42,6 +43,7 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
       setStatus(item.status || "open");
       setReminderAt(item.reminderAt ? format(new Date(item.reminderAt), "yyyy-MM-ddTHH:mm") : "");
       setNotes(item.notes || "");
+      setRecurrence(item.recurrence || "none");
     }
   }, [item, open]);
 
@@ -64,6 +66,7 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
           status,
           reminderAt: reminderAt ? new Date(reminderAt) : null,
           notes: notes || null,
+          recurrence: recurrence === "none" ? null : recurrence,
           confidenceOwner: 1,
           confidenceDueDate: 1,
         }
@@ -218,6 +221,23 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
                   className="h-12 text-base rounded-2xl border-border"
                   data-testid="input-reminder"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-base text-foreground">Repeat</Label>
+                <Select value={recurrence} onValueChange={setRecurrence}>
+                  <SelectTrigger className="h-12 text-base rounded-2xl border-border" data-testid="select-recurrence">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No repeat</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="biweekly">Every 2 weeks</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="yearly">Yearly</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

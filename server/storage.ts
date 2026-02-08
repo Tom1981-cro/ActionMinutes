@@ -228,7 +228,8 @@ export interface IStorage {
   completeTaskWithRecurrence(
     id: string, 
     task: Task, 
-    calculateNextOccurrence: (date: Date, recurrence: string) => Date
+    calculateNextOccurrence: (date: Date, recurrence: string) => Date,
+    additionalUpdates?: Partial<Task>
   ): Promise<{ completedTask: Task; nextTask?: Task }>;
   getActionedItems(userId: string): Promise<{ tasks: Task[] }>;
   getDeletedItems(userId: string): Promise<{ tasks: Task[] }>;
@@ -1191,15 +1192,22 @@ export class DatabaseStorage implements IStorage {
   async completeTaskWithRecurrence(
     id: string, 
     task: Task, 
-    calculateNextOccurrence: (date: Date, recurrence: string) => Date
+    calculateNextOccurrence: (date: Date, recurrence: string) => Date,
+    additionalUpdates?: Partial<Task>
   ): Promise<{ completedTask: Task; nextTask?: Task }> {
     return await db.transaction(async (tx) => {
+      const completionFields = {
+        status: 'done' as const, 
+        completedAt: new Date(),
+        isCompleted: true,
+        updatedAt: new Date(),
+      };
+      const updatePayload: any = {
+        ...(additionalUpdates || {}),
+        ...completionFields,
+      };
       const [completedTask] = await tx.update(tasks)
-        .set({ 
-          status: 'done', 
-          completedAt: new Date(),
-          updatedAt: new Date(),
-        })
+        .set(updatePayload)
         .where(eq(tasks.id, id))
         .returning();
       
@@ -1238,6 +1246,8 @@ export class DatabaseStorage implements IStorage {
             location: task.location,
             waitingFor: task.waitingFor,
             calendarEventId: task.calendarEventId,
+            reminderAt: task.reminderAt,
+            deadline: task.deadline,
             isCompleted: false,
           }).returning();
           nextTask = createdTask;

@@ -212,9 +212,13 @@ export default function TasksPage() {
       if (!res.ok) throw new Error("Failed to complete task");
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast({ title: "Task completed" });
+      if (data?.nextTask) {
+        toast({ title: "Task completed", description: "Next occurrence created." });
+      } else {
+        toast({ title: "Task completed" });
+      }
     },
     onError: () => {
       toast({ title: "Failed to complete task", variant: "destructive" });

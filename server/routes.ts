@@ -16,6 +16,7 @@ import { getAppConfig, getAppConfigAsync, checkConnectorStatus } from "./config"
 import { extractMeetingNotes, generateFollowUpDrafts, mapConfidenceToStatus, PROMPT_VERSION, isValidActionStatus, VALID_ACTION_STATUSES } from "./ai";
 import multer from "multer";
 import { extractTextFromImage, validateImageFile, MAX_FILE_SIZE } from "./ocr";
+import { calculateNextOccurrence } from "./tasks/nlp-parser";
 import { 
   transcribe, 
   validateAudioFile, 
@@ -1048,9 +1049,25 @@ Thanks!`,
         error: `Invalid status. Must be one of: ${VALID_ACTION_STATUSES.join(', ')}` 
       });
     }
-    const action = await storage.updateActionItem(req.params.id, updates);
-    if (!action) return res.status(404).json({ error: "Action item not found" });
-    res.json(action);
+    
+    const existingAction = await storage.getActionItem(req.params.id);
+    if (!existingAction) return res.status(404).json({ error: "Action item not found" });
+    
+    const isBeingCompleted = updates.status === 'done' && existingAction.status !== 'done';
+    const effectiveRecurrence = updates.recurrence !== undefined ? updates.recurrence : existingAction.recurrence;
+    const hasRecurrence = effectiveRecurrence && effectiveRecurrence !== 'none';
+    
+    if (isBeingCompleted && hasRecurrence) {
+      const { status: _s, ...userUpdates } = updates;
+      if (userUpdates.text !== undefined) { userUpdates.title = userUpdates.text; delete userUpdates.text; }
+      const mergedTask = { ...existingAction, ...userUpdates };
+      const result = await storage.completeTaskWithRecurrence(req.params.id, mergedTask as any, calculateNextOccurrence, userUpdates);
+      res.json({ ...result.completedTask, nextTask: result.nextTask || null });
+    } else {
+      const action = await storage.updateActionItem(req.params.id, updates);
+      if (!action) return res.status(404).json({ error: "Action item not found" });
+      res.json(action);
+    }
   });
 
   app.delete("/api/actions/:id", async (req, res) => {
@@ -1420,8 +1437,20 @@ Thanks!`,
     }
     delete updates.userId;
     
-    const updated = await storage.updatePersonalReminder(req.params.id, updates);
-    res.json(updated);
+    const isBeingCompleted = (updates.isCompleted === true || updates.status === 'done') && !reminder.isCompleted;
+    const effectiveRecurrence = updates.recurrence !== undefined ? updates.recurrence : reminder.recurrence;
+    const hasRecurrence = effectiveRecurrence && effectiveRecurrence !== 'none';
+    
+    if (isBeingCompleted && hasRecurrence) {
+      const { isCompleted: _ic, completedAt: _ca, status: _st, ...userUpdates } = updates;
+      if (userUpdates.text !== undefined) { userUpdates.title = userUpdates.text; delete userUpdates.text; }
+      const mergedTask = { ...reminder, ...userUpdates };
+      const result = await storage.completeTaskWithRecurrence(req.params.id, mergedTask as any, calculateNextOccurrence, userUpdates);
+      res.json({ ...result.completedTask, nextTask: result.nextTask || null });
+    } else {
+      const updated = await storage.updatePersonalReminder(req.params.id, updates);
+      res.json(updated);
+    }
   });
 
   app.delete("/api/personal/reminders/:id", async (req, res) => {
@@ -3158,8 +3187,19 @@ Thanks!`,
       updates.recurrenceEndDate = new Date(updates.recurrenceEndDate);
     }
     
-    const task = await storage.updateTask(id, updates);
-    res.json(task);
+    const isBeingCompleted = (updates.status === 'done' || updates.isCompleted === true) && existingTask.status !== 'done';
+    const effectiveRecurrence = updates.recurrence !== undefined ? updates.recurrence : existingTask.recurrence;
+    const hasRecurrence = effectiveRecurrence && effectiveRecurrence !== 'none';
+    
+    if (isBeingCompleted && hasRecurrence) {
+      const { status, isCompleted, completedAt, ...userUpdates } = updates;
+      const mergedTask = { ...existingTask, ...userUpdates };
+      const result = await storage.completeTaskWithRecurrence(id, mergedTask as any, calculateNextOccurrence, userUpdates);
+      res.json({ ...result.completedTask, nextTask: result.nextTask || null });
+    } else {
+      const task = await storage.updateTask(id, updates);
+      res.json(task);
+    }
   });
   
   app.post("/api/tasks/:id/complete", requireAuth, async (req, res) => {
@@ -3175,7 +3215,7 @@ Thanks!`,
     }
     
     const result = await storage.completeTaskWithRecurrence(id, task, calculateNextOccurrence);
-    res.json(result.completedTask);
+    res.json({ ...result.completedTask, nextTask: result.nextTask || null });
   });
   
   app.delete("/api/tasks/:id", requireAuth, async (req, res) => {
