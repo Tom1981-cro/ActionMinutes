@@ -147,6 +147,7 @@ export default function Layout({ children }: LayoutProps) {
 
   const actionToDoItems = [
     { href: "/app/inbox", label: "Inbox", icon: Tray },
+    { href: "/app/reminders", label: "Reminders", icon: Bell },
   ];
 
   const aiAssistantItems = [
