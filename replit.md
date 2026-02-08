@@ -9,7 +9,7 @@ ActionMinutes is a personal productivity assistant designed to help users organi
 - **AI Extraction:** Converts meeting notes into tasks, decisions, and risks.
 - **Reminders:** Time-based task management.
 - **Journal:** Daily reflection with AI prompts, actionable intelligence (AI task extraction from entries), meeting context linking, structured templates (Morning Intentions / Evening Wind-down), and mood x productivity analytics.
-- **Calendar:** Integration with Google and Outlook.
+- **Calendar:** Enhanced "Action Center" calendar with Google/Outlook integration, "Reality Check" capacity planning (8h daily load bars), unscheduled task backlog sidebar for time-blocking, and contextual meeting prep actions (Create Agenda / Take Notes).
 - **Notes:** Encrypted notes with tagging and linking.
 - **Custom Lists:** User-defined organizational lists.
 - **Quick Add:** Instant information capture.
@@ -40,6 +40,7 @@ A separate mobile application is developed using Expo React Native, connecting t
     - Settings page has theme switcher with color preview dots, light/dark toggle, and live ThemePreview component.
 - **Notes Module:** Features AES-256-GCM encryption for note content at rest, with searchable keyword indexing. Supports mood tracking, tags, bi-directional links, and attachments.
 - **Calendar Synchronization:** Adapters for Google Calendar and Microsoft Outlook, supporting CRUD operations for events, real-time sync via webhooks, and free/busy queries.
+- **Calendar Action Center:** Calendar page (`client/src/pages/calendar.tsx`) enhanced with: (1) Capacity load bars per day cell computing total from tasks (estimatedMinutes) + event durations vs 8h capacity, with green/amber/red coloring and overload warnings. (2) Toggleable "Unscheduled" backlog sidebar listing tasks/reminders without due dates, with one-click scheduling to selected date via PATCH/PUT API. (3) Meeting prep dialog for external events (Google/Outlook) offering "Create Agenda" (links to Notes) and "Take Notes" (links to Journal) with pre-filled meeting context.
 - **AI Summarization Service:** Structured summarization of transcripts, extracting concise summaries, key decisions, actionable tasks (with assignees, due dates, priority), sentiment analysis, and keywords.
 - **Voice Command Activation:** Speech-to-action interface for interacting with the summarization service.
 - **Audio Transcription:** Multi-provider support (Gemini, OpenAI Whisper API) for speech-to-text, with transcript storage, full-text search, and export options.
@@ -74,3 +75,4 @@ A separate mobile application is developed using Expo React Native, connecting t
 
 - **February 2026:** Created comprehensive User Guide and Developer Guide documentation in `docs/` folder. Developer Guide includes accurate API reference verified against actual routes, database schema audit, missing links/gaps analysis, and industry-standard feature suggestions.
 - **February 2026:** Added global search feature (Ctrl+F), ActionPlanner daily dashboard with weather widget, and four strategic journal enhancements: AI task extraction from entries, meeting context linking, structured templates (Morning Intentions / Evening Wind-down), and mood x productivity analytics dashboard.
+- **February 2026:** Enhanced Calendar into an "Action Center" with three strategic features: (1) "Reality Check" capacity planning with per-day load bars showing tasks+meetings vs 8h capacity (green/amber/red), (2) "Unscheduled" backlog sidebar for time-blocking tasks without dates by assigning them to selected days, (3) Contextual meeting prep for external calendar events (Google/Outlook) with "Create Agenda" and "Take Notes" actions linking to Notes/Journal. Unified view shows meetings and tasks side-by-side in day cells.
