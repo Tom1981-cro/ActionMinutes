@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState, useMemo, useCallback, useRef } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -24,46 +24,31 @@ import {
   subMonths, 
   startOfWeek, 
   endOfWeek,
-  addWeeks,
-  subWeeks,
-  addDays,
-  subDays,
-  eachHourOfInterval,
-  startOfDay,
-  endOfDay,
   isSameMonth,
   parseISO,
   differenceInMinutes
 } from "date-fns";
 import { 
-  Calendar as CalendarIcon, 
   CaretLeft, 
   CaretRight, 
   GoogleLogo, 
   MicrosoftOutlookLogo, 
-  CheckCircle, 
   Clock, 
-  Bell, 
-  Link as LinkIcon,
   Plus,
   ArrowsClockwise,
-  CalendarBlank,
-  ListBullets,
-  Rows,
   Warning,
   Lightning,
   NotePencil,
-  ListChecks,
   ArrowRight,
   Timer,
-  Tray,
-  Video
+  Funnel,
+  Video,
+  DotsSixVertical,
+  GearSix
 } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-type ViewMode = 'month' | 'week' | 'day';
 
 interface CalendarEvent {
   id: string;
@@ -111,23 +96,17 @@ function getLoadColor(percentage: number): string {
   return "bg-success";
 }
 
-function getLoadBgColor(percentage: number): string {
-  if (percentage >= 100) return "bg-destructive/10";
-  if (percentage >= 75) return "bg-warning/5";
-  return "";
-}
-
 export default function CalendarPage() {
   const queryClient = useQueryClient();
   const { user } = useStore();
   const [, navigate] = useLocation();
   
-  const [viewMode, setViewMode] = useState<ViewMode>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [showBacklog, setShowBacklog] = useState(true);
   const [meetingPrepEvent, setMeetingPrepEvent] = useState<CalendarEvent | null>(null);
+  const [draggedItem, setDraggedItem] = useState<TaskItem | null>(null);
+  const [dragOverDate, setDragOverDate] = useState<string | null>(null);
   const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
@@ -139,25 +118,13 @@ export default function CalendarPage() {
   });
 
   const dateRange = useMemo(() => {
-    if (viewMode === 'month') {
-      const monthStart = startOfMonth(currentDate);
-      const monthEnd = endOfMonth(currentDate);
-      return {
-        start: startOfWeek(monthStart, { weekStartsOn: 0 }),
-        end: endOfWeek(monthEnd, { weekStartsOn: 0 })
-      };
-    } else if (viewMode === 'week') {
-      return {
-        start: startOfWeek(currentDate, { weekStartsOn: 0 }),
-        end: endOfWeek(currentDate, { weekStartsOn: 0 })
-      };
-    } else {
-      return {
-        start: startOfDay(currentDate),
-        end: endOfDay(currentDate)
-      };
-    }
-  }, [viewMode, currentDate]);
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    return {
+      start: startOfWeek(monthStart, { weekStartsOn: 0 }),
+      end: endOfWeek(monthEnd, { weekStartsOn: 0 })
+    };
+  }, [currentDate]);
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['/api/calendar/events', dateRange.start.toISOString(), dateRange.end.toISOString()],
@@ -314,13 +281,10 @@ export default function CalendarPage() {
         ? `/api/personal/reminders/${item.id}`
         : `/api/tasks/${item.id}`;
       const method = item.type === 'reminder' ? 'PATCH' : 'PUT';
-      const body = item.type === 'reminder'
-        ? { dueDate: date.toISOString() }
-        : { dueDate: date.toISOString() };
       const response = await authenticatedFetch(endpoint, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify({ dueDate: date.toISOString() })
       });
       if (!response.ok) throw new Error("Failed to schedule task");
       return response.json();
@@ -339,36 +303,11 @@ export default function CalendarPage() {
     return eachDayOfInterval({ start: dateRange.start, end: dateRange.end });
   }, [dateRange]);
 
-  const hours = useMemo(() => {
-    return eachHourOfInterval({ start: startOfDay(currentDate), end: endOfDay(currentDate) });
-  }, [currentDate]);
-
   const getEventsForDate = (date: Date) => {
     return events.filter((event: CalendarEvent) => {
       const eventStart = parseISO(event.startTime);
       return isSameDay(eventStart, date);
     });
-  };
-
-  const getEventsForHour = (hour: Date) => {
-    return events.filter((event: CalendarEvent) => {
-      const eventStart = parseISO(event.startTime);
-      return eventStart.getHours() === hour.getHours() && isSameDay(eventStart, currentDate);
-    });
-  };
-
-  const selectedEvents = selectedDate ? getEventsForDate(selectedDate) : [];
-  const selectedTasks = selectedDate ? getTasksForDate(selectedDate) : [];
-  const selectedDayLoad = selectedDate ? getDayLoad(selectedDate) : null;
-
-  const navDirection = (direction: 'prev' | 'next') => {
-    if (viewMode === 'month') {
-      setCurrentDate(direction === 'prev' ? subMonths(currentDate, 1) : addMonths(currentDate, 1));
-    } else if (viewMode === 'week') {
-      setCurrentDate(direction === 'prev' ? subWeeks(currentDate, 1) : addWeeks(currentDate, 1));
-    } else {
-      setCurrentDate(direction === 'prev' ? subDays(currentDate, 1) : addDays(currentDate, 1));
-    }
   };
 
   const goToToday = () => {
@@ -384,18 +323,6 @@ export default function CalendarPage() {
     createEventMutation.mutate(newEvent);
   };
 
-  const getViewTitle = () => {
-    if (viewMode === 'month') {
-      return format(currentDate, "MMMM yyyy");
-    } else if (viewMode === 'week') {
-      const start = startOfWeek(currentDate, { weekStartsOn: 0 });
-      const end = endOfWeek(currentDate, { weekStartsOn: 0 });
-      return `${format(start, "MMM d")} - ${format(end, "MMM d, yyyy")}`;
-    } else {
-      return format(currentDate, "EEEE, MMMM d, yyyy");
-    }
-  };
-
   const handleMeetingPrep = (event: CalendarEvent, action: 'agenda' | 'notes') => {
     setMeetingPrepEvent(null);
     if (action === 'notes') {
@@ -405,10 +332,33 @@ export default function CalendarPage() {
     }
   };
 
+  const handleDragStart = useCallback((e: React.DragEvent, item: TaskItem) => {
+    setDraggedItem(item);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', item.id);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, dateStr: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverDate(dateStr);
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setDragOverDate(null);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, day: Date) => {
+    e.preventDefault();
+    setDragOverDate(null);
+    if (draggedItem) {
+      assignTaskToDate.mutate({ item: draggedItem, date: day });
+      setDraggedItem(null);
+    }
+  }, [draggedItem, assignTaskToDate]);
+
   const googleProvider = providers.find((p: any) => p.id === 'google');
   const microsoftProvider = providers.find((p: any) => p.id === 'microsoft');
-
-  const backlogTotalMinutes = backlogItems.reduce((sum, item) => sum + (item.estimatedMinutes || 30), 0);
 
   if (isLoading) {
     return (
@@ -418,67 +368,64 @@ export default function CalendarPage() {
     );
   }
 
+  const weeks: Date[][] = [];
+  for (let i = 0; i < calendarDays.length; i += 7) {
+    weeks.push(calendarDays.slice(i, i + 7));
+  }
+
   return (
     <TooltipProvider>
-      <div className="space-y-5 pb-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Calendar</h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Your unified schedule, tasks, and capacity planner
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant={showBacklog ? "secondary" : "outline"}
-              size="sm"
-              onClick={() => setShowBacklog(!showBacklog)}
-              className="gap-1.5"
-              data-testid="button-toggle-backlog"
-            >
-              <Tray className="h-4 w-4" weight="duotone" />
-              Backlog
-              {backlogItems.length > 0 && (
-                <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0 h-4">
-                  {backlogItems.length}
-                </Badge>
-              )}
-            </Button>
-
-            <div className="flex rounded-lg p-1 bg-muted">
+      <div className="pb-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground" data-testid="text-calendar-title">
+              <span>{format(currentDate, "MMMM")}</span>{" "}
+              <span className="text-primary">{format(currentDate, "yyyy")}</span>
+            </h1>
+            <div className="flex items-center gap-1">
               <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setViewMode('day')}
-                className={cn("h-8 px-3", viewMode === 'day' && "bg-card shadow-sm")}
-                data-testid="button-view-day"
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentDate(subMonths(currentDate, 1))}
+                className="h-8 w-8 rounded-lg"
+                data-testid="button-prev"
               >
-                <CalendarBlank className="h-4 w-4" weight="duotone" />
+                <CaretLeft className="h-4 w-4" weight="bold" />
               </Button>
               <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setViewMode('week')}
-                className={cn("h-8 px-3", viewMode === 'week' && "bg-card shadow-sm")}
-                data-testid="button-view-week"
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentDate(addMonths(currentDate, 1))}
+                className="h-8 w-8 rounded-lg"
+                data-testid="button-next"
               >
-                <Rows className="h-4 w-4" weight="duotone" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setViewMode('month')}
-                className={cn("h-8 px-3", viewMode === 'month' && "bg-card shadow-sm")}
-                data-testid="button-view-month"
-              >
-                <ListBullets className="h-4 w-4" weight="duotone" />
+                <CaretRight className="h-4 w-4" weight="bold" />
               </Button>
             </div>
-            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={goToToday}
+              className="text-sm font-medium text-primary hover:text-primary"
+              data-testid="button-today"
+            >
+              Today
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              data-testid="button-filter"
+            >
+              <Funnel className="h-4 w-4" weight="duotone" />
+              Filter
+            </Button>
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2" data-testid="button-create-event">
+                <Button className="gap-2 btn-gradient" data-testid="button-create-event">
                   <Plus className="h-4 w-4" weight="bold" />
                   New Event
                 </Button>
@@ -583,594 +530,281 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        <div className={cn("grid gap-5", showBacklog ? "lg:grid-cols-[1fr_280px]" : "lg:grid-cols-1")}>
-          <div className="space-y-5">
-            <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
-              <Card>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => navDirection('prev')}
-                        className="h-8 w-8"
-                        data-testid="button-prev"
-                      >
-                        <CaretLeft className="h-4 w-4" weight="bold" />
-                      </Button>
-                      <h2 className="text-lg font-bold min-w-[200px] text-center text-foreground">
-                        {getViewTitle()}
-                      </h2>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => navDirection('next')}
-                        className="h-8 w-8"
-                        data-testid="button-next"
-                      >
-                        <CaretRight className="h-4 w-4" weight="bold" />
-                      </Button>
+        {/* Main layout: Calendar grid + Sidebar */}
+        <div className="flex gap-5">
+          {/* Calendar grid - flexible width */}
+          <div className="flex-1 min-w-0">
+            <Card className="glass-panel rounded-2xl overflow-hidden" data-testid="card-calendar-grid">
+              <CardContent className="p-0">
+                {/* Day headers */}
+                <div className="grid grid-cols-7 border-b border-border">
+                  {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(day => (
+                    <div key={day} className="text-center text-xs font-semibold py-2.5 text-muted-foreground tracking-wider">
+                      {day}
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={goToToday}
-                      className="text-xs"
-                      data-testid="button-today"
-                    >
-                      Today
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {viewMode === 'month' && (
-                    <>
-                      <div className="grid grid-cols-7 gap-1 mb-2">
-                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                          <div key={day} className="text-center text-xs font-medium py-2 text-muted-foreground">
-                            {day}
-                          </div>
-                        ))}
-                      </div>
-                      <div className="grid grid-cols-7 gap-1">
-                        {calendarDays.map((day, index) => {
-                          const dayEvents = getEventsForDate(day);
-                          const dayTasks = getTasksForDate(day);
-                          const isCurrentMonth = isSameMonth(day, currentDate);
-                          const isSelected = selectedDate && isSameDay(day, selectedDate);
-                          const isTodayDate = isToday(day);
-                          const hasItems = dayEvents.length > 0 || dayTasks.length > 0;
-                          const dayLoad = getDayLoad(day);
+                  ))}
+                </div>
 
-                          return (
-                            <Tooltip key={index}>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={() => setSelectedDate(day)}
-                                  data-testid={`calendar-day-${format(day, 'yyyy-MM-dd')}`}
-                                  className={cn(
-                                    "relative min-h-[80px] p-1.5 rounded-lg transition-all flex flex-col items-start text-left group",
-                                    isCurrentMonth ? "" : "opacity-30",
-                                    isSelected
-                                      ? "bg-accent ring-2 ring-primary"
-                                      : "hover:bg-accent/50",
-                                    isTodayDate && !isSelected && "bg-accent",
-                                    dayLoad.isOverloaded && isCurrentMonth && "ring-1 ring-destructive/50",
-                                    getLoadBgColor(dayLoad.percentage)
-                                  )}
-                                >
-                                  <div className="flex items-center justify-between w-full mb-1">
-                                    <span className={cn(
-                                      "text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full",
-                                      isTodayDate && "bg-primary text-primary-foreground font-bold",
-                                      !isTodayDate && "text-foreground"
-                                    )}>
-                                      {format(day, 'd')}
-                                    </span>
-                                    {dayLoad.isOverloaded && isCurrentMonth && (
-                                      <Warning className="h-3 w-3 text-destructive" weight="fill" />
-                                    )}
-                                  </div>
+                {/* Calendar rows */}
+                {weeks.map((week, weekIdx) => (
+                  <div key={weekIdx} className="grid grid-cols-7 border-b border-border last:border-b-0">
+                    {week.map((day, dayIdx) => {
+                      const dayEvents = getEventsForDate(day);
+                      const dayTasks = getTasksForDate(day);
+                      const isCurrentMonth = isSameMonth(day, currentDate);
+                      const isTodayDate = isToday(day);
+                      const isSelected = selectedDate && isSameDay(day, selectedDate);
+                      const dayLoad = getDayLoad(day);
+                      const hasItems = dayEvents.length > 0 || dayTasks.length > 0;
+                      const dateStr = format(day, 'yyyy-MM-dd');
+                      const isDragOver = dragOverDate === dateStr;
 
-                                  <div className="space-y-0.5 w-full flex-1 overflow-hidden">
-                                    {dayEvents.slice(0, 2).map((event: CalendarEvent) => (
-                                      <div
-                                        key={event.id}
-                                        className={cn(
-                                          "text-[9px] leading-tight px-1 py-0.5 rounded truncate",
-                                          event.provider === 'google' 
-                                            ? "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300" 
-                                            : event.provider === 'microsoft'
-                                            ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300"
-                                            : "bg-primary/10 text-primary"
-                                        )}
-                                      >
-                                        {event.title}
-                                      </div>
-                                    ))}
-                                    {dayTasks.slice(0, 2).map((task) => (
-                                      <div
-                                        key={task.id}
-                                        className="text-[9px] leading-tight px-1 py-0.5 rounded truncate bg-card border border-border text-foreground"
-                                      >
-                                        {task.title}
-                                      </div>
-                                    ))}
-                                    {(dayEvents.length + dayTasks.length) > 4 && (
-                                      <div className="text-[9px] text-muted-foreground px-1">
-                                        +{dayEvents.length + dayTasks.length - 4} more
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {hasItems && isCurrentMonth && (
-                                    <div className="w-full mt-1">
-                                      <div className="h-1 bg-muted rounded-full overflow-hidden">
-                                        <div 
-                                          style={{ width: `${Math.min(dayLoad.percentage, 100)}%` }} 
-                                          className={cn("h-full rounded-full transition-all", getLoadColor(dayLoad.percentage))}
-                                        />
-                                      </div>
-                                    </div>
-                                  )}
-                                </button>
-                              </TooltipTrigger>
-                              {hasItems && isCurrentMonth && (
-                                <TooltipContent side="bottom" className="text-xs">
-                                  <div className="space-y-1">
-                                    <div className="font-medium">{format(day, "MMM d")}</div>
-                                    <div>{dayEvents.length} meeting{dayEvents.length !== 1 ? 's' : ''} + {dayTasks.length} task{dayTasks.length !== 1 ? 's' : ''}</div>
-                                    <div className={cn(
-                                      "font-medium",
-                                      dayLoad.isOverloaded ? "text-destructive" : "text-success"
-                                    )}>
-                                      {Math.round(dayLoad.totalMinutes / 60 * 10) / 10}h / {CAPACITY_HOURS}h capacity
-                                    </div>
-                                  </div>
-                                </TooltipContent>
-                              )}
-                            </Tooltip>
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
-
-                  {viewMode === 'week' && (
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-7 gap-2">
-                        {calendarDays.map((day, index) => {
-                          const dayEvents = getEventsForDate(day);
-                          const dayTasks = getTasksForDate(day);
-                          const isSelected = selectedDate && isSameDay(day, selectedDate);
-                          const isTodayDate = isToday(day);
-                          const dayLoad = getDayLoad(day);
-
-                          return (
-                            <div key={index} className="space-y-1">
-                              <button
-                                onClick={() => setSelectedDate(day)}
-                                className={cn(
-                                  "w-full text-center py-2 rounded-lg transition-colors",
-                                  isSelected ? "bg-accent" : "hover:bg-accent",
-                                  isTodayDate && "border-2 border-primary"
-                                )}
-                                data-testid={`week-day-${format(day, 'yyyy-MM-dd')}`}
-                              >
-                                <div className="text-xs text-muted-foreground">
-                                  {format(day, 'EEE')}
-                                </div>
-                                <div className={cn(
-                                  "text-lg font-bold",
-                                  isTodayDate ? "text-primary" : "text-foreground"
-                                )}>
-                                  {format(day, 'd')}
-                                </div>
-                                {(dayEvents.length > 0 || dayTasks.length > 0) && (
-                                  <div className="mt-1 mx-2">
-                                    <div className="h-1 bg-muted rounded-full overflow-hidden">
-                                      <div 
-                                        style={{ width: `${Math.min(dayLoad.percentage, 100)}%` }} 
-                                        className={cn("h-full rounded-full", getLoadColor(dayLoad.percentage))}
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-                              </button>
-                              <div className="space-y-1 min-h-[100px]">
-                                {dayEvents.map((event: CalendarEvent) => (
-                                  <div
-                                    key={event.id}
-                                    onClick={() => {
-                                      if (event.provider !== 'local') setMeetingPrepEvent(event);
-                                    }}
-                                    className={cn(
-                                      "p-1.5 rounded text-xs truncate",
-                                      event.provider !== 'local' && "cursor-pointer hover:ring-1 hover:ring-primary/30",
-                                      event.provider === 'google' 
-                                        ? "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300" 
-                                        : event.provider === 'microsoft'
-                                        ? "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300"
-                                        : "bg-accent text-primary"
-                                    )}
-                                    data-testid={`week-event-${event.id}`}
-                                  >
-                                    {event.title}
-                                  </div>
-                                ))}
-                                {dayTasks.map((task) => (
-                                  <div
-                                    key={task.id}
-                                    className="p-1.5 rounded text-xs truncate bg-card border border-border text-foreground"
-                                    data-testid={`week-task-${task.id}`}
-                                  >
-                                    {task.title}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {viewMode === 'day' && (
-                    <div className="space-y-1 max-h-[600px] overflow-y-auto">
-                      {hours.map((hour, index) => {
-                        const hourEvents = getEventsForHour(hour);
-                        return (
-                          <div key={index} className="flex gap-2 min-h-[50px]">
-                            <div className="w-16 text-xs text-right pr-2 py-1 text-muted-foreground">
-                              {format(hour, 'h:mm a')}
-                            </div>
-                            <div className="flex-1 border-t border-border py-1 space-y-1">
-                              {hourEvents.map((event: CalendarEvent) => (
-                                <div
-                                  key={event.id}
-                                  onClick={() => {
-                                    if (event.provider !== 'local') setMeetingPrepEvent(event);
-                                  }}
-                                  className={cn(
-                                    "p-2 rounded text-sm",
-                                    event.provider !== 'local' && "cursor-pointer hover:ring-1 hover:ring-primary/30",
-                                    event.provider === 'google' 
-                                      ? "bg-red-100 text-red-800 dark:bg-red-500/20 dark:text-red-300" 
-                                      : event.provider === 'microsoft'
-                                      ? "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300"
-                                      : "bg-accent text-primary"
-                                  )}
-                                  data-testid={`day-event-${event.id}`}
-                                >
-                                  <div className="font-medium flex items-center justify-between">
-                                    {event.title}
-                                    {event.provider !== 'local' && (
-                                      <Badge variant="secondary" className="text-[9px] px-1 py-0 ml-2">
-                                        {event.provider === 'google' ? 'Google' : 'Outlook'}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  {event.location && (
-                                    <div className="text-xs opacity-75">{event.location}</div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              <div className="space-y-4">
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center justify-between">
-                      <span>{selectedDate ? format(selectedDate, "EEE, MMM d") : "Select a date"}</span>
-                      {selectedDayLoad && (selectedEvents.length > 0 || selectedTasks.length > 0) && (
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <Badge 
-                              variant={selectedDayLoad.isOverloaded ? "destructive" : "secondary"} 
-                              className="text-[10px] gap-1"
-                              data-testid="badge-day-capacity"
-                            >
-                              <Timer className="h-3 w-3" weight="bold" />
-                              {Math.round(selectedDayLoad.totalMinutes / 60 * 10) / 10}h / {CAPACITY_HOURS}h
-                            </Badge>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {selectedDayLoad.isOverloaded 
-                              ? "This day is overloaded! Consider rescheduling some items."
-                              : "Daily capacity usage"}
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </CardTitle>
-                    {selectedDayLoad && (selectedEvents.length > 0 || selectedTasks.length > 0) && (
-                      <div className="mt-2">
-                        <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div 
-                            style={{ width: `${Math.min(selectedDayLoad.percentage, 100)}%` }} 
-                            className={cn(
-                              "h-full rounded-full transition-all duration-500",
-                              getLoadColor(selectedDayLoad.percentage)
-                            )}
-                          />
-                        </div>
-                        <div className="flex justify-between mt-1">
-                          <span className="text-[10px] text-muted-foreground">
-                            {selectedEvents.length} meeting{selectedEvents.length !== 1 ? 's' : ''} + {selectedTasks.length} task{selectedTasks.length !== 1 ? 's' : ''}
-                          </span>
-                          {selectedDayLoad.isOverloaded && (
-                            <span className="text-[10px] text-destructive font-medium flex items-center gap-0.5">
-                              <Warning className="h-3 w-3" weight="fill" />
-                              Over capacity
-                            </span>
+                      return (
+                        <div
+                          key={dayIdx}
+                          onClick={() => setSelectedDate(day)}
+                          onDragOver={(e) => handleDragOver(e, dateStr)}
+                          onDragLeave={handleDragLeave}
+                          onDrop={(e) => handleDrop(e, day)}
+                          className={cn(
+                            "min-h-[110px] p-1.5 border-r border-border last:border-r-0 flex flex-col cursor-pointer transition-colors",
+                            !isCurrentMonth && "bg-muted/30",
+                            isSelected && "bg-accent/50",
+                            isDragOver && "bg-primary/5 ring-2 ring-inset ring-primary/30"
                           )}
-                        </div>
-                      </div>
-                    )}
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {selectedEvents.length === 0 && selectedTasks.length === 0 ? (
-                      <div className="text-center py-6 text-muted-foreground">
-                        <CalendarIcon className="h-10 w-10 mx-auto mb-2 opacity-50" weight="duotone" />
-                        <p className="text-sm">No events for this day</p>
-                        <p className="text-xs mt-1">Schedule tasks from the backlog</p>
-                      </div>
-                    ) : (
-                      <>
-                        {selectedEvents.length > 0 && (
-                          <div className="space-y-2">
-                            <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                              <Video className="h-3 w-3" weight="duotone" />
-                              Meetings
-                            </div>
-                            {selectedEvents.map((event: CalendarEvent) => (
+                          data-testid={`calendar-day-${dateStr}`}
+                        >
+                          {/* Day number */}
+                          <div className="flex items-center justify-between mb-1">
+                            <span className={cn(
+                              "text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full",
+                              isTodayDate && "bg-primary text-primary-foreground font-bold",
+                              !isTodayDate && isCurrentMonth && "text-foreground",
+                              !isCurrentMonth && "text-muted-foreground/50"
+                            )}>
+                              {format(day, 'd')}
+                            </span>
+                            {dayLoad.isOverloaded && isCurrentMonth && (
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <Warning className="h-3 w-3 text-destructive" weight="fill" />
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="text-xs">
+                                  {Math.round(dayLoad.totalMinutes / 60 * 10) / 10}h / {CAPACITY_HOURS}h - Over capacity
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+
+                          {/* Events and tasks */}
+                          <div className="space-y-0.5 flex-1 overflow-hidden">
+                            {dayEvents.slice(0, 3).map((event: CalendarEvent) => (
                               <div
                                 key={event.id}
-                                className={cn(
-                                  "flex items-start gap-3 p-3 rounded-lg border transition-all",
-                                  event.provider !== 'local' && "cursor-pointer hover:ring-1 hover:ring-primary/30",
-                                  event.provider === 'google' 
-                                    ? "bg-red-50/50 border-red-200/50 dark:bg-red-500/5 dark:border-red-500/20"
-                                    : event.provider === 'microsoft'
-                                    ? "bg-blue-50/50 border-blue-200/50 dark:bg-blue-500/5 dark:border-blue-500/20"
-                                    : "bg-card border-border"
-                                )}
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   if (event.provider !== 'local') setMeetingPrepEvent(event);
                                 }}
+                                className={cn(
+                                  "text-[11px] leading-tight px-1.5 py-0.5 rounded truncate font-medium",
+                                  event.provider !== 'local' && "cursor-pointer",
+                                  event.provider === 'google' 
+                                    ? "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300" 
+                                    : event.provider === 'microsoft'
+                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300"
+                                    : "bg-primary/10 text-primary"
+                                )}
                                 data-testid={`event-${event.id}`}
                               >
-                                <div className={cn(
-                                  "mt-0.5 flex-shrink-0",
-                                  event.provider === 'google' ? "text-red-500" :
-                                  event.provider === 'microsoft' ? "text-blue-500" :
-                                  "text-primary"
-                                )}>
-                                  <Clock className="h-4 w-4" weight="duotone" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-foreground">
-                                    {event.title}
-                                  </p>
-                                  <p className="text-xs mt-0.5 text-muted-foreground">
-                                    {event.allDay ? 'All day' : `${format(parseISO(event.startTime), 'h:mm a')} - ${format(parseISO(event.endTime), 'h:mm a')}`}
-                                  </p>
-                                  {event.location && (
-                                    <p className="text-xs mt-0.5 text-muted-foreground">{event.location}</p>
-                                  )}
-                                  <div className="flex items-center gap-2 mt-1.5">
-                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                                      {event.provider === 'google' ? 'Google' : event.provider === 'microsoft' ? 'Outlook' : 'Local'}
-                                    </Badge>
-                                    {event.provider !== 'local' && (
-                                      <span className="text-[10px] text-primary font-medium">Click for prep actions</span>
-                                    )}
-                                  </div>
-                                </div>
+                                {event.title}
                               </div>
                             ))}
-                          </div>
-                        )}
-
-                        {selectedTasks.length > 0 && (
-                          <div className="space-y-2 mt-3">
-                            <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                              <ListChecks className="h-3 w-3" weight="duotone" />
-                              Tasks
-                            </div>
-                            {selectedTasks.map((task) => (
+                            {dayTasks.slice(0, 3 - Math.min(dayEvents.length, 3)).map((task) => (
                               <div
                                 key={task.id}
-                                className="flex items-center gap-3 p-2.5 rounded-lg border bg-card border-border"
-                                data-testid={`task-detail-${task.id}`}
+                                className="text-[11px] leading-tight px-1.5 py-0.5 rounded truncate bg-accent border border-border text-foreground"
+                                data-testid={`task-${task.id}`}
                               >
-                                <div className={cn(
-                                  "w-2 h-2 rounded-full flex-shrink-0",
-                                  task.priority === 'high' || task.priority === 'urgent' ? "bg-destructive" :
-                                  task.priority === 'medium' ? "bg-warning" : "bg-success"
-                                )} />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm text-foreground truncate">{task.title}</p>
-                                  <div className="flex items-center gap-2 mt-0.5">
-                                    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                                      <Timer className="h-3 w-3" />
-                                      {task.estimatedMinutes || 30}m
-                                    </span>
-                                    <Badge variant="outline" className="text-[9px] px-1 py-0 h-3.5">
-                                      {task.type}
-                                    </Badge>
-                                  </div>
-                                </div>
+                                {task.title}
                               </div>
                             ))}
+                            {(dayEvents.length + dayTasks.length) > 3 && (
+                              <div className="text-[10px] text-muted-foreground px-1.5 font-medium">
+                                +{dayEvents.length + dayTasks.length - 3} more
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
 
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <LinkIcon className="h-4 w-4" weight="duotone" />
-                      Calendar Integrations
-                    </CardTitle>
-                    <CardDescription>
-                      Sync your external calendars
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div
-                      className={cn(
-                        "w-full flex items-center gap-3 p-3 rounded-lg border transition-colors",
-                        googleProvider?.connected
-                          ? "bg-green-500/10 border-green-500/30"
-                          : "bg-card border-border"
-                      )}
-                    >
-                      <GoogleLogo className={cn("h-5 w-5", googleProvider?.connected ? "text-green-500" : "text-muted-foreground")} weight="duotone" />
-                      <div className="flex-1 text-left">
-                        <p className="text-sm font-medium text-foreground">Google Calendar</p>
-                        <p className="text-xs text-muted-foreground">
-                          {googleProvider?.connected ? "Connected" : "Not connected"}
-                        </p>
-                      </div>
-                      {googleProvider?.connected ? (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => syncMutation.mutate('google')}
-                          disabled={syncMutation.isPending}
-                          data-testid="button-sync-google"
-                        >
-                          {syncMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowsClockwise className="h-4 w-4" />}
-                        </Button>
-                      ) : (
-                        <CheckCircle className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-
-                    <div
-                      className={cn(
-                        "w-full flex items-center gap-3 p-3 rounded-lg border transition-colors",
-                        microsoftProvider?.connected
-                          ? "bg-green-500/10 border-green-500/30"
-                          : "bg-card border-border"
-                      )}
-                    >
-                      <MicrosoftOutlookLogo className={cn("h-5 w-5", microsoftProvider?.connected ? "text-green-500" : "text-muted-foreground")} weight="duotone" />
-                      <div className="flex-1 text-left">
-                        <p className="text-sm font-medium text-foreground">Outlook Calendar</p>
-                        <p className="text-xs text-muted-foreground">
-                          {microsoftProvider?.connected ? "Connected" : "Not connected"}
-                        </p>
-                      </div>
-                      {microsoftProvider?.connected ? (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => syncMutation.mutate('microsoft')}
-                          disabled={syncMutation.isPending}
-                          data-testid="button-sync-outlook"
-                        >
-                          {syncMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowsClockwise className="h-4 w-4" />}
-                        </Button>
-                      ) : (
-                        <CheckCircle className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </div>
-
-                    <p className="text-xs text-center pt-2 text-muted-foreground">
-                      Connect calendars via Settings &rarr; Integrations
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-
-          {showBacklog && (
-            <div className="space-y-4">
-              <Card className="sticky top-4">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Tray className="h-4 w-4" weight="duotone" />
-                    Unscheduled
-                  </CardTitle>
-                  <CardDescription className="flex items-center justify-between">
-                    <span>{backlogItems.length} task{backlogItems.length !== 1 ? 's' : ''}</span>
-                    <span className="text-[10px] flex items-center gap-1">
-                      <Timer className="h-3 w-3" />
-                      {Math.round(backlogTotalMinutes / 60 * 10) / 10}h total
-                    </span>
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {backlogItems.length === 0 ? (
-                    <div className="text-center py-6 text-muted-foreground">
-                      <CheckCircle className="h-8 w-8 mx-auto mb-2 opacity-50" weight="duotone" />
-                      <p className="text-xs">All tasks are scheduled!</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-[calc(100vh-300px)] overflow-y-auto">
-                      {backlogItems.map((item) => (
-                        <div
-                          key={item.id}
-                          className="group p-2.5 rounded-lg border bg-card border-border hover:border-primary/30 hover:shadow-sm transition-all"
-                          data-testid={`backlog-item-${item.id}`}
-                        >
-                          <div className="flex items-start gap-2">
-                            <div className={cn(
-                              "w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0",
-                              item.priority === 'high' || item.priority === 'urgent' ? "bg-destructive" :
-                              item.priority === 'medium' ? "bg-warning" : "bg-success"
-                            )} />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium text-foreground leading-snug line-clamp-2">
-                                {item.title}
-                              </p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                                  <Timer className="h-2.5 w-2.5" />
-                                  {item.estimatedMinutes || 30}m
-                                </span>
-                                <Badge variant="outline" className="text-[8px] px-1 py-0 h-3">
-                                  {item.type}
-                                </Badge>
+                          {/* Capacity bar */}
+                          {hasItems && isCurrentMonth && (
+                            <div className="mt-auto pt-1">
+                              <div className="h-[3px] bg-muted rounded-full overflow-hidden">
+                                <div 
+                                  style={{ width: `${Math.min(dayLoad.percentage, 100)}%` }} 
+                                  className={cn("h-full rounded-full transition-all", getLoadColor(dayLoad.percentage))}
+                                />
                               </div>
                             </div>
-                          </div>
-                          {selectedDate && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="w-full mt-2 h-7 text-[10px] gap-1 opacity-0 group-hover:opacity-100 transition-opacity text-primary hover:text-primary hover:bg-primary/5"
-                              onClick={() => assignTaskToDate.mutate({ item, date: selectedDate })}
-                              disabled={assignTaskToDate.isPending}
-                              data-testid={`schedule-backlog-${item.id}`}
-                            >
-                              <ArrowRight className="h-3 w-3" weight="bold" />
-                              Schedule for {format(selectedDate, "MMM d")}
-                            </Button>
                           )}
                         </div>
-                      ))}
+                      );
+                    })}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right sidebar */}
+          <div className="w-[240px] flex-shrink-0 space-y-4">
+            {/* Sync Status */}
+            <Card className="glass-panel rounded-2xl" data-testid="card-sync-status">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-1.5 mb-3">
+                  <ArrowsClockwise className="h-3.5 w-3.5 text-muted-foreground" weight="bold" />
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Sync Status</span>
+                </div>
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        googleProvider?.connected ? "bg-emerald-500" : "bg-muted-foreground/30"
+                      )} />
+                      <span className="text-sm text-foreground">Google Cal</span>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                    {googleProvider?.connected ? (
+                      <button
+                        onClick={() => syncMutation.mutate('google')}
+                        disabled={syncMutation.isPending}
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        data-testid="button-sync-google"
+                      >
+                        {syncMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Synced"}
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => navigate('/app/settings')}
+                        className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                        data-testid="link-connect-google"
+                      >
+                        Connect
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className={cn(
+                        "w-2 h-2 rounded-full",
+                        microsoftProvider?.connected ? "bg-emerald-500" : "bg-muted-foreground/30"
+                      )} />
+                      <span className="text-sm text-foreground">Outlook</span>
+                    </div>
+                    {microsoftProvider?.connected ? (
+                      <button
+                        onClick={() => syncMutation.mutate('microsoft')}
+                        disabled={syncMutation.isPending}
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                        data-testid="button-sync-outlook"
+                      >
+                        {syncMutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : "Synced"}
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => navigate('/app/settings')}
+                        className="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+                        data-testid="link-connect-outlook"
+                      >
+                        Connect
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Unscheduled Tasks */}
+            <Card className="glass-panel rounded-2xl" data-testid="card-unscheduled-tasks">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <GearSix className="h-3.5 w-3.5 text-muted-foreground" weight="bold" />
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Unscheduled Tasks</span>
+                </div>
+                <p className="text-[10px] text-muted-foreground mb-3">
+                  Drag these to the calendar to time-block your week.
+                </p>
+
+                {backlogItems.length === 0 ? (
+                  <div className="text-center py-4 text-muted-foreground">
+                    <p className="text-xs">All tasks scheduled</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[calc(100vh-420px)] overflow-y-auto">
+                    {backlogItems.map((item) => (
+                      <div
+                        key={item.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, item)}
+                        className={cn(
+                          "group p-3 rounded-xl border bg-card border-border cursor-grab active:cursor-grabbing hover:border-primary/30 hover:shadow-sm transition-all",
+                          draggedItem?.id === item.id && "opacity-50 ring-1 ring-primary/30"
+                        )}
+                        data-testid={`backlog-item-${item.id}`}
+                      >
+                        <div className="flex items-start gap-2">
+                          <DotsSixVertical className="h-4 w-4 text-muted-foreground/40 mt-0.5 flex-shrink-0 group-hover:text-muted-foreground transition-colors" weight="bold" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-foreground leading-snug line-clamp-2" data-testid={`text-backlog-title-${item.id}`}>
+                              {item.title}
+                            </p>
+                            <div className="flex items-center gap-2 mt-1.5">
+                              <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                <Timer className="h-2.5 w-2.5" />
+                                {item.estimatedMinutes ? `${item.estimatedMinutes / 60}h` : "0.5h"}
+                              </span>
+                              <button
+                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                data-testid={`button-more-${item.id}`}
+                              >
+                                <DotsSixVertical className="h-3 w-3 text-muted-foreground rotate-90" weight="bold" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        {selectedDate && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="w-full mt-2 h-6 text-[10px] gap-1 opacity-0 group-hover:opacity-100 transition-opacity text-primary hover:text-primary hover:bg-primary/5"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              assignTaskToDate.mutate({ item, date: selectedDate });
+                            }}
+                            disabled={assignTaskToDate.isPending}
+                            data-testid={`schedule-backlog-${item.id}`}
+                          >
+                            <ArrowRight className="h-3 w-3" weight="bold" />
+                            Schedule for {format(selectedDate, "MMM d")}
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <button
+                  className="w-full mt-3 py-2 text-xs text-muted-foreground hover:text-foreground border border-dashed border-border hover:border-foreground/30 rounded-xl transition-colors text-center"
+                  onClick={() => setIsCreateOpen(true)}
+                  data-testid="button-add-backlog"
+                >
+                  + Add new backlog item
+                </button>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
+        {/* Meeting Prep Dialog */}
         <Dialog open={!!meetingPrepEvent} onOpenChange={(open) => !open && setMeetingPrepEvent(null)}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
