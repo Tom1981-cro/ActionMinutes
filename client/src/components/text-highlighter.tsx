@@ -8,7 +8,6 @@ import {
   Plus, X, Check, Trash, User, ArrowRight, Sparkle
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 
 export interface HighlightedItem {
   id: string;
@@ -63,12 +62,9 @@ function SelectionToolbar({
   onClose: () => void;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 8, scale: 0.95 }}
+    <div
       className="fixed z-50"
-      style={{ top: position.top, left: position.left }}
+      style={{ top: position.top, left: position.left, animation: "popIn 0.2s ease-out forwards" }}
     >
       <Card className="glass-panel border-primary/30 shadow-xl shadow-black/30">
         <CardContent className="p-2 flex items-center gap-1">
@@ -105,7 +101,7 @@ function SelectionToolbar({
           </Button>
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }
 
@@ -124,10 +120,8 @@ function HighlightedItemCard({
   const [ownerInput, setOwnerInput] = useState(item.ownerName || "");
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
+    <div
+      style={{ animation: "slideInRight 0.3s ease-out forwards" }}
       className={cn(
         "p-3 rounded-xl border",
         config.bgColor,
@@ -195,7 +189,7 @@ function HighlightedItemCard({
           <Trash className="h-3.5 w-3.5" />
         </Button>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -421,11 +415,9 @@ export function TextHighlighter({
         </div>
 
         <div className="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
-          <AnimatePresence>
             {filteredHighlights.length === 0 ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+              <div
+                style={{ animation: "fadeIn 0.3s ease-out forwards" }}
                 className="text-center py-8"
               >
                 <HighlighterCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" weight="duotone" />
@@ -434,7 +426,7 @@ export function TextHighlighter({
                     ? "Select text from the notes to get started"
                     : "No items match this filter"}
                 </p>
-              </motion.div>
+              </div>
             ) : (
               filteredHighlights.map((item) => (
                 <HighlightedItemCard
@@ -445,7 +437,6 @@ export function TextHighlighter({
                 />
               ))
             )}
-          </AnimatePresence>
         </div>
 
         {highlights.length > 0 && onConfirm && (
@@ -462,19 +453,17 @@ export function TextHighlighter({
         )}
       </div>
 
-      <AnimatePresence>
-        {toolbarPosition && pendingSelection && (
-          <SelectionToolbar
-            position={toolbarPosition}
-            onSelect={addHighlight}
-            onClose={() => {
-              setToolbarPosition(null);
-              setPendingSelection(null);
-              window.getSelection()?.removeAllRanges();
-            }}
-          />
-        )}
-      </AnimatePresence>
+      {toolbarPosition && pendingSelection && (
+        <SelectionToolbar
+          position={toolbarPosition}
+          onSelect={addHighlight}
+          onClose={() => {
+            setToolbarPosition(null);
+            setPendingSelection(null);
+            window.getSelection()?.removeAllRanges();
+          }}
+        />
+      )}
     </div>
   );
 }
