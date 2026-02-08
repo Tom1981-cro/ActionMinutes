@@ -120,6 +120,101 @@ export async function summarizeJournalEntry(
   }
 }
 
+export const extractedActionsSchema = z.object({
+  actions: z.array(z.object({
+    text: z.string().describe("The actionable task extracted from the journal entry"),
+    priority: z.enum(['high', 'normal', 'low']).describe("Suggested priority based on urgency cues"),
+    context: z.string().describe("The phrase or sentence from the entry that triggered this action"),
+  })).max(5).describe("Potential tasks detected in the journal entry"),
+});
+
+export type ExtractedAction = z.infer<typeof extractedActionsSchema>['actions'][number];
+
+const EXTRACT_ACTIONS_PROMPT = `You are a productivity assistant. Scan the journal entry for any potential tasks, deadlines, commitments, or things the user is worried about that could become actionable items.
+
+Look for patterns like:
+- "I need to..." / "I should..." / "I have to..."
+- Deadline mentions: "by Friday", "before the meeting", "deadline"
+- Worries that imply action: "worried about the X deadline" → "Address X deadline"
+- Commitments: "promised to...", "agreed to..."
+- Follow-ups: "need to follow up", "waiting on", "check with"
+
+IMPORTANT:
+- Only extract genuinely actionable items, not vague feelings
+- Keep task text short and action-oriented (start with a verb)
+- If no actionable items are found, return an empty actions array
+- Maximum 5 actions per entry
+
+Respond ONLY with valid JSON:
+{
+  "actions": [
+    { "text": "Action description", "priority": "high|normal|low", "context": "original phrase from entry" }
+  ]
+}`;
+
+export async function extractActionsFromEntry(rawText: string): Promise<ExtractedAction[]> {
+  if (!rawText || rawText.trim().length < 15) {
+    return [];
+  }
+
+  try {
+    const openai = getOpenAI();
+    if (!openai) {
+      return extractActionsFallback(rawText);
+    }
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: EXTRACT_ACTIONS_PROMPT },
+        { role: "user", content: rawText },
+      ],
+      response_format: { type: "json_object" },
+      max_tokens: 400,
+      temperature: 0.2,
+    });
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) return [];
+
+    const parsed = JSON.parse(content);
+    const validated = extractedActionsSchema.safeParse(parsed);
+    if (!validated.success) return extractActionsFallback(rawText);
+
+    return validated.data.actions;
+  } catch (error) {
+    console.error('[JournalAI] Error extracting actions:', error);
+    return extractActionsFallback(rawText);
+  }
+}
+
+function extractActionsFallback(rawText: string): ExtractedAction[] {
+  const actions: ExtractedAction[] = [];
+  const patterns = [
+    { regex: /(?:i need to|i should|i have to|i must|need to)\s+(.+?)(?:\.|,|$)/gi, priority: 'normal' as const },
+    { regex: /(?:worried about|concerned about)\s+(?:the\s+)?(.+?)(?:\s+deadline|\s+issue|\.|,|$)/gi, priority: 'high' as const },
+    { regex: /(?:follow up|check with|reach out to|contact)\s+(.+?)(?:\.|,|$)/gi, priority: 'normal' as const },
+    { regex: /(?:promised to|agreed to|committed to)\s+(.+?)(?:\.|,|$)/gi, priority: 'high' as const },
+    { regex: /(?:deadline|due|by friday|by monday|by end of|before the)\s+(.+?)(?:\.|,|$)/gi, priority: 'high' as const },
+  ];
+
+  for (const { regex, priority } of patterns) {
+    let match;
+    while ((match = regex.exec(rawText)) !== null && actions.length < 5) {
+      const extracted = match[1].trim();
+      if (extracted.length > 5 && extracted.length < 100) {
+        actions.push({
+          text: extracted.charAt(0).toUpperCase() + extracted.slice(1),
+          priority,
+          context: match[0].trim(),
+        });
+      }
+    }
+  }
+
+  return actions;
+}
+
 export function getMockSummary(rawText: string): JournalSummary {
   const words = rawText.split(/\s+/).length;
   return {

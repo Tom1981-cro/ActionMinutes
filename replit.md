@@ -8,7 +8,7 @@ ActionMinutes is a personal productivity assistant designed to help users organi
 - **Inbox:** Central hub for all activities.
 - **AI Extraction:** Converts meeting notes into tasks, decisions, and risks.
 - **Reminders:** Time-based task management.
-- **Journal:** Daily reflection with AI prompts.
+- **Journal:** Daily reflection with AI prompts, actionable intelligence (AI task extraction from entries), meeting context linking, structured templates (Morning Intentions / Evening Wind-down), and mood x productivity analytics.
 - **Calendar:** Integration with Google and Outlook.
 - **Notes:** Encrypted notes with tagging and linking.
 - **Custom Lists:** User-defined organizational lists.
@@ -73,3 +73,4 @@ A separate mobile application is developed using Expo React Native, connecting t
 ## Recent Changes
 
 - **February 2026:** Created comprehensive User Guide and Developer Guide documentation in `docs/` folder. Developer Guide includes accurate API reference verified against actual routes, database schema audit, missing links/gaps analysis, and industry-standard feature suggestions.
+- **February 2026:** Added global search feature (Ctrl+F), ActionPlanner daily dashboard with weather widget, and four strategic journal enhancements: AI task extraction from entries, meeting context linking, structured templates (Morning Intentions / Evening Wind-down), and mood x productivity analytics dashboard.

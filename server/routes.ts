@@ -1250,6 +1250,123 @@ Thanks!`,
     }
   });
 
+  app.get("/api/personal/journal/analytics", async (req, res) => {
+    const userId = req.query.userId as string;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+
+    try {
+      const entries = await storage.getPersonalEntries(userId);
+      const reminders = await storage.getPersonalReminders(userId);
+
+      const moodEntries = entries
+        .filter((e: any) => e.mood)
+        .map((e: any) => ({
+          date: e.date,
+          mood: e.mood,
+          dayOfWeek: new Date(e.date).getDay(),
+        }));
+
+      const completedReminders = reminders
+        .filter((r: any) => r.isCompleted && r.completedAt)
+        .map((r: any) => ({
+          completedAt: r.completedAt,
+          dayOfWeek: new Date(r.completedAt).getDay(),
+        }));
+
+      const moodCounts: Record<string, number> = { good: 0, okay: 0, tough: 0 };
+      const moodByDay: Record<number, { good: number; okay: number; tough: number; total: number }> = {};
+      const tasksByDay: Record<number, number> = {};
+      const tasksByMoodDate: Record<string, { mood: string; tasksCompleted: number }> = {};
+
+      for (let d = 0; d < 7; d++) {
+        moodByDay[d] = { good: 0, okay: 0, tough: 0, total: 0 };
+        tasksByDay[d] = 0;
+      }
+
+      for (const entry of moodEntries) {
+        moodCounts[entry.mood] = (moodCounts[entry.mood] || 0) + 1;
+        moodByDay[entry.dayOfWeek][entry.mood as 'good' | 'okay' | 'tough']++;
+        moodByDay[entry.dayOfWeek].total++;
+
+        const dateKey = new Date(entry.date).toISOString().split('T')[0];
+        if (!tasksByMoodDate[dateKey]) {
+          tasksByMoodDate[dateKey] = { mood: entry.mood, tasksCompleted: 0 };
+        }
+      }
+
+      for (const task of completedReminders) {
+        tasksByDay[task.dayOfWeek]++;
+        const dateKey = new Date(task.completedAt).toISOString().split('T')[0];
+        if (tasksByMoodDate[dateKey]) {
+          tasksByMoodDate[dateKey].tasksCompleted++;
+        }
+      }
+
+      const moodProductivity: Record<string, { totalTasks: number; count: number }> = {};
+      for (const dateData of Object.values(tasksByMoodDate)) {
+        if (!moodProductivity[dateData.mood]) {
+          moodProductivity[dateData.mood] = { totalTasks: 0, count: 0 };
+        }
+        moodProductivity[dateData.mood].totalTasks += dateData.tasksCompleted;
+        moodProductivity[dateData.mood].count++;
+      }
+
+      const moodProductivityAvg: Record<string, number> = {};
+      for (const [mood, data] of Object.entries(moodProductivity)) {
+        moodProductivityAvg[mood] = data.count > 0 ? Math.round(data.totalTasks / data.count * 10) / 10 : 0;
+      }
+
+      let mostProductiveMood = '';
+      let highestAvg = 0;
+      for (const [mood, avg] of Object.entries(moodProductivityAvg)) {
+        if (avg > highestAvg) {
+          highestAvg = avg;
+          mostProductiveMood = mood;
+        }
+      }
+
+      let highestStressDay = 0;
+      let highestStressCount = 0;
+      for (let d = 0; d < 7; d++) {
+        if (moodByDay[d].tough > highestStressCount) {
+          highestStressCount = moodByDay[d].tough;
+          highestStressDay = d;
+        }
+      }
+
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+      const recentMoodTrend = moodEntries
+        .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 30)
+        .reverse()
+        .map((e: any) => ({
+          date: new Date(e.date).toISOString().split('T')[0],
+          mood: e.mood,
+          value: e.mood === 'good' ? 3 : e.mood === 'okay' ? 2 : 1,
+        }));
+
+      res.json({
+        moodCounts,
+        moodByDay,
+        tasksByDay,
+        moodProductivityAvg,
+        recentMoodTrend,
+        insights: {
+          mostProductiveMood: mostProductiveMood || null,
+          mostProductiveAvg: highestAvg,
+          highestStressDay: highestStressCount > 0 ? dayNames[highestStressDay] : null,
+          highestStressDayCount: highestStressCount,
+          totalEntries: entries.length,
+          totalMoodEntries: moodEntries.length,
+        },
+      });
+    } catch (error) {
+      console.error('[Journal] Analytics error:', error);
+      res.status(500).json({ error: "Failed to compute analytics" });
+    }
+  });
+
   app.get("/api/personal/journal/:id", async (req, res) => {
     const entry = await storage.getPersonalEntry(req.params.id);
     if (!entry) return res.status(404).json({ error: "Journal entry not found" });
@@ -1280,6 +1397,8 @@ Thanks!`,
         rawText,
         mood: req.body.mood,
         promptUsed: req.body.promptUsed,
+        templateUsed: req.body.templateUsed || null,
+        linkedMeetingId: req.body.linkedMeetingId || null,
         detectedSignals: analysis.signals,
         aiProcessed: false,
       });
@@ -1307,7 +1426,7 @@ Thanks!`,
       const user = await storage.getUser(userId);
       const personalAiEnabled = user?.personalAiEnabled !== false;
       
-      const { analyzeJournalEntry, summarizeJournalEntry, getMockSummary, detectSafetyRisk } = await import("./journal-ai");
+      const { analyzeJournalEntry, summarizeJournalEntry, getMockSummary, detectSafetyRisk, extractActionsFromEntry } = await import("./journal-ai");
       
       const analysis = await analyzeJournalEntry(entry.rawText);
       const safetyRisk = detectSafetyRisk(entry.rawText);
@@ -1319,27 +1438,53 @@ Thanks!`,
       if (!summary && entry.rawText.length >= 20) {
         summary = getMockSummary(entry.rawText);
       }
-      
-      if (summary) {
-        await storage.updatePersonalEntry(entry.id, {
-          summary: summary.summary,
-          top3: summary.top3,
-          nextSteps: summary.nextSteps,
-          detectedSignals: analysis.signals,
-          aiProcessed: true,
-        });
+
+      let extractedActions: any[] = [];
+      if (personalAiEnabled) {
+        extractedActions = await extractActionsFromEntry(entry.rawText);
       }
+      
+      const updateData: any = {
+        detectedSignals: analysis.signals,
+        aiProcessed: true,
+      };
+      if (summary) {
+        updateData.summary = summary.summary;
+        updateData.top3 = summary.top3;
+        updateData.nextSteps = summary.nextSteps;
+      }
+      if (extractedActions.length > 0) {
+        updateData.extractedActions = extractedActions.map((a: any) => JSON.stringify(a));
+      }
+      await storage.updatePersonalEntry(entry.id, updateData);
       
       res.json({
         signals: analysis.signals,
         prompts: analysis.prompts,
         safetyRisk,
         summary,
+        extractedActions,
         aiEnabled: personalAiEnabled,
       });
     } catch (error) {
       console.error('[JournalAI] Analysis error:', error);
       res.status(500).json({ error: "Failed to analyze entry" });
+    }
+  });
+
+  app.post("/api/personal/journal/extract-actions", async (req, res) => {
+    const userId = req.body.userId as string;
+    const text = req.body.text as string;
+    if (!userId) return res.status(400).json({ error: "userId is required" });
+    if (!text || text.length < 15) return res.json({ actions: [] });
+
+    try {
+      const { extractActionsFromEntry } = await import("./journal-ai");
+      const actions = await extractActionsFromEntry(text);
+      res.json({ actions });
+    } catch (error) {
+      console.error('[JournalAI] Extract actions error:', error);
+      res.status(500).json({ error: "Failed to extract actions" });
     }
   });
 

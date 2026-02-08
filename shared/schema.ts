@@ -211,7 +211,10 @@ export const personalEntries = pgTable("personal_entries", {
   nextSteps: text("next_steps").array(),
   mood: text("mood"), // good, okay, tough
   promptUsed: text("prompt_used"), // which smart prompt was used
+  templateUsed: text("template_used"), // morning_intentions, evening_winddown
+  linkedMeetingId: varchar("linked_meeting_id", { length: 36 }).references(() => meetings.id, { onDelete: 'set null' }),
   detectedSignals: text("detected_signals").array(), // overwhelm, deadlines, conflict, decision, avoidance
+  extractedActions: text("extracted_actions").array(), // AI-detected potential tasks from entry text
   aiProcessed: boolean("ai_processed").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
