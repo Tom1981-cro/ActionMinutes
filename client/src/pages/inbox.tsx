@@ -152,7 +152,7 @@ export default function InboxPage() {
     ...actionItems.map((item: any) => ({
       id: item.id,
       realId: item.id,
-      text: item.text,
+      text: item.title || item.text,
       dueDate: item.dueDate,
       ownerName: item.ownerName,
       status: item.status,
@@ -169,7 +169,7 @@ export default function InboxPage() {
       .map((item: any) => ({
         id: `reminder-${item.id}`,
         realId: item.id,
-        text: item.text,
+        text: item.title || item.text,
         dueDate: item.dueDate,
         ownerName: user.name,
         status: item.status || 'open',

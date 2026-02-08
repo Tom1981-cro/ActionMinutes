@@ -10,7 +10,9 @@ import { useLocation } from "wouter";
 
 interface ActionItem {
   id: string;
-  description: string;
+  title?: string;
+  text?: string;
+  description?: string;
   ownerName?: string;
   dueDate?: string;
   status: string;
@@ -69,7 +71,7 @@ function AgendaSection({
                 <CheckCircle className="h-4 w-4" weight="duotone" />
               </Button>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-foreground font-medium line-clamp-2">{item.description}</p>
+                <p className="text-sm text-foreground font-medium line-clamp-2">{item.title || item.text || item.description}</p>
                 <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground">
                   {item.ownerName && <span>{item.ownerName}</span>}
                   {item.ownerName && item.meetingTitle && <span>•</span>}

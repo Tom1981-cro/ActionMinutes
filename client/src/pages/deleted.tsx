@@ -23,7 +23,7 @@ function DeletedCard({ item, type, onRestore, onPermanentDelete }: {
   onRestore: () => void;
   onPermanentDelete: () => void;
 }) {
-  const title = type === 'task' ? item.title : item.text;
+  const title = item.title || item.text;
   const deletedDate = item.deletedAt ? new Date(item.deletedAt) : null;
 
   const priorityColor = item.priority === 'high' || item.priority === 'urgent' ? 'text-red-500' :

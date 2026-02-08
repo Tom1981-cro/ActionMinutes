@@ -352,7 +352,7 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-// ==================== TASKS ====================
+// ==================== TASKS (Unified: project tasks + action items + personal reminders) ====================
 export const tasks = pgTable("tasks", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
@@ -361,16 +361,30 @@ export const tasks = pgTable("tasks", {
   title: text("title").notNull(),
   description: text("description"),
   dueDate: timestamp("due_date"),
+  deadline: timestamp("deadline"),
   priority: text("priority").notNull().default('medium'),
   status: text("status").notNull().default('todo'),
   recurrence: text("recurrence"),
   recurrenceEndDate: timestamp("recurrence_end_date"),
   nextOccurrence: timestamp("next_occurrence"),
-  sourceType: text("source_type"),
+  sourceType: text("source_type").notNull().default('manual'),
   sourceId: varchar("source_id", { length: 36 }),
+  meetingId: varchar("meeting_id", { length: 36 }).references(() => meetings.id, { onDelete: 'set null' }),
   tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
   estimatedMinutes: integer("estimated_minutes"),
   position: integer("position").notNull().default(0),
+  bucket: text("bucket").notNull().default('sometime'),
+  ownerName: text("owner_name"),
+  ownerEmail: text("owner_email"),
+  ownerUserId: varchar("owner_user_id", { length: 36 }).references(() => users.id, { onDelete: 'set null' }),
+  confidenceOwner: real("confidence_owner"),
+  confidenceDueDate: real("confidence_due_date"),
+  notes: text("notes"),
+  location: text("location"),
+  waitingFor: text("waiting_for"),
+  reminderAt: timestamp("reminder_at"),
+  calendarEventId: varchar("calendar_event_id", { length: 36 }),
+  isCompleted: boolean("is_completed").notNull().default(false),
   completedAt: timestamp("completed_at"),
   deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -502,6 +516,7 @@ export const insertTaskSchema = createInsertSchema(tasks).omit({
   updatedAt: true,
   completedAt: true,
   deletedAt: true,
+  isCompleted: true,
 });
 
 // ==================== TYPES ====================
@@ -578,7 +593,7 @@ export type Task = typeof tasks.$inferSelect;
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
 export type RecurrencePattern = 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'yearly';
-export type TaskSourceType = 'manual' | 'meeting' | 'transcript' | 'email';
+export type TaskSourceType = 'manual' | 'meeting' | 'personal' | 'project' | 'transcript' | 'email';
 export type TranscriptionProvider = 'gemini' | 'whisper' | 'whisper-self-hosted';
 export type WhisperModelSize = 'tiny' | 'base' | 'small' | 'medium' | 'large';
 

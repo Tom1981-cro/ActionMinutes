@@ -139,7 +139,7 @@ BEGIN:VTODO
 UID:${action.id}
 DTSTAMP:${dtstamp}
 DUE:${actionDue}
-SUMMARY:${action.text}
+SUMMARY:${action.title}
 DESCRIPTION:${action.ownerName ? `Assigned to: ${action.ownerName}` : ''}
 END:VTODO`;
     });
@@ -1031,8 +1031,7 @@ Thanks!`,
 
   app.post("/api/actions", async (req, res) => {
     try {
-      const validatedAction = insertActionItemSchema.parse(req.body);
-      const action = await storage.createActionItem(validatedAction);
+      const action = await storage.createActionItem(req.body);
       res.json(action);
     } catch (error) {
       res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
@@ -1068,6 +1067,9 @@ Thanks!`,
       return res.status(404).json({ error: "Action item not found" });
     }
     
+    if (!action.meetingId) {
+      return res.status(400).json({ error: "Action item has no meeting" });
+    }
     const meeting = await storage.getMeeting(action.meetingId);
     if (!meeting) {
       return res.status(404).json({ error: "Meeting not found" });
@@ -1084,7 +1086,7 @@ Thanks!`,
     
     const existingTasks = await storage.getTasksBySource('meeting', meeting.id);
     const alreadyLinked = existingTasks.some(t => 
-      t.userId === userId && t.title === action.text
+      t.userId === userId && t.title === action.title
     );
     
     if (alreadyLinked) {
@@ -1098,7 +1100,7 @@ Thanks!`,
       userId,
       workspaceId: meeting.workspaceId || null,
       projectId: null,
-      title: action.text,
+      title: action.title,
       description: `From meeting: ${meeting.title}`,
       status: action.status === 'needs_review' ? 'pending' : 'todo',
       priority: taskPriority,
@@ -1108,6 +1110,7 @@ Thanks!`,
       nextOccurrence: null,
       sourceType: 'meeting',
       sourceId: meeting.id,
+      meetingId: meeting.id,
       tags: [],
       estimatedMinutes: null,
     });
@@ -1139,7 +1142,7 @@ Thanks!`,
     
     const createdTasks = [];
     for (const action of actions) {
-      if (existingTitles.has(action.text)) continue;
+      if (existingTitles.has(action.title)) continue;
       
       const taskPriority = (action.confidenceOwner || 0) >= 0.8 ? 'high' : 
                            (action.confidenceOwner || 0) >= 0.5 ? 'medium' : 'low';
@@ -1148,7 +1151,7 @@ Thanks!`,
         userId,
         workspaceId: meeting.workspaceId || null,
         projectId: null,
-        title: action.text,
+        title: action.title,
         description: `From meeting: ${meeting.title}`,
         status: action.status === 'needs_review' ? 'pending' : 'todo',
         priority: taskPriority,
@@ -1158,6 +1161,7 @@ Thanks!`,
         nextOccurrence: null,
         sourceType: 'meeting',
         sourceId: meetingId,
+        meetingId: meetingId,
         tags: [],
         estimatedMinutes: null,
       });
@@ -1611,7 +1615,7 @@ Thanks!`,
       await storage.removeItemByReminderId(req.params.id);
       await storage.addItemToList({
         listId: targetListId,
-        reminderId: req.params.id,
+        taskId: req.params.id,
         position: 0,
       });
       res.json({ listId: targetListId, listName: targetList.name, listIcon: targetList.icon });
@@ -1627,8 +1631,12 @@ Thanks!`,
     if (!actionItem) {
       return res.status(404).json({ error: "Action item not found" });
     }
-    const meeting = await storage.getMeeting(actionItem.meetingId);
-    if (!meeting || meeting.userId !== userId) {
+    if (actionItem.meetingId) {
+      const meeting = await storage.getMeeting(actionItem.meetingId);
+      if (!meeting || meeting.userId !== userId) {
+        return res.status(404).json({ error: "Action item not found" });
+      }
+    } else if (actionItem.userId !== userId) {
       return res.status(404).json({ error: "Action item not found" });
     }
     const listItem = await storage.getListItemByActionItemId(req.params.id);
@@ -1646,8 +1654,12 @@ Thanks!`,
     if (!actionItem) {
       return res.status(404).json({ error: "Action item not found" });
     }
-    const meeting = await storage.getMeeting(actionItem.meetingId);
-    if (!meeting || meeting.userId !== userId) {
+    if (actionItem.meetingId) {
+      const meeting = await storage.getMeeting(actionItem.meetingId);
+      if (!meeting || meeting.userId !== userId) {
+        return res.status(404).json({ error: "Action item not found" });
+      }
+    } else if (actionItem.userId !== userId) {
       return res.status(404).json({ error: "Action item not found" });
     }
 
@@ -1659,7 +1671,7 @@ Thanks!`,
       await storage.removeItemByActionItemId(req.params.id);
       await storage.addItemToList({
         listId: targetListId,
-        actionItemId: req.params.id,
+        taskId: req.params.id,
         position: 0,
       });
       res.json({ listId: targetListId, listName: targetList.name, listIcon: targetList.icon });
@@ -2984,6 +2996,9 @@ Thanks!`,
     const workspaceId = req.query.workspaceId as string;
     const projectId = req.query.projectId as string;
     const status = req.query.status as string;
+    const sourceType = req.query.sourceType as string;
+    const bucket = req.query.bucket as string;
+    const meetingId = req.query.meetingId as string;
     
     if (workspaceId) {
       const hasAccess = await checkWorkspaceAccess(userId, workspaceId, 'workspace', 'read');
@@ -2996,13 +3011,16 @@ Thanks!`,
       workspaceId: workspaceId || undefined,
       projectId: projectId || undefined,
       status: status || undefined,
+      sourceType: sourceType || undefined,
+      bucket: bucket || undefined,
+      meetingId: meetingId || undefined,
     });
     res.json(tasks);
   });
   
   app.post("/api/tasks", requireAuth, async (req, res) => {
     const userId = req.userId!;
-    const { workspaceId, projectId, title, description, dueDate, priority, status, recurrence, recurrenceEndDate, sourceType, sourceId, tags, estimatedMinutes } = req.body;
+    const { workspaceId, projectId, title, description, dueDate, deadline, priority, status, recurrence, recurrenceEndDate, sourceType, sourceId, meetingId, tags, estimatedMinutes, bucket, ownerName, ownerEmail, ownerUserId, confidenceOwner, confidenceDueDate, notes, location, waitingFor, reminderAt, calendarEventId } = req.body;
     
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
       return res.status(400).json({ error: "title is required" });
@@ -3037,16 +3055,29 @@ Thanks!`,
       title: title.trim(),
       description: description || null,
       dueDate: dueDate ? new Date(dueDate) : null,
+      deadline: deadline ? new Date(deadline) : null,
       priority: priority || 'medium',
       status: status || 'todo',
       recurrence: recurrence || null,
       recurrenceEndDate: recurrenceEndDate ? new Date(recurrenceEndDate) : null,
       nextOccurrence,
-      sourceType: sourceType || null,
+      sourceType: sourceType || 'manual',
       sourceId: sourceId || null,
+      meetingId: meetingId || null,
       tags: Array.isArray(tags) ? tags : [],
       estimatedMinutes: typeof estimatedMinutes === 'number' ? estimatedMinutes : null,
       position: 0,
+      bucket: bucket || 'sometime',
+      ownerName: ownerName || null,
+      ownerEmail: ownerEmail || null,
+      ownerUserId: ownerUserId || null,
+      confidenceOwner: confidenceOwner ?? null,
+      confidenceDueDate: confidenceDueDate ?? null,
+      notes: notes || null,
+      location: location || null,
+      waitingFor: waitingFor || null,
+      reminderAt: reminderAt ? new Date(reminderAt) : null,
+      calendarEventId: calendarEventId || null,
     });
     res.status(201).json(task);
   });
@@ -3178,15 +3209,8 @@ Thanks!`,
   app.post("/api/deleted/:type/:id/restore", requireAuth, async (req, res) => {
     const userId = req.userId!;
     const { type, id } = req.params;
-    if (type === 'task') {
-      const task = await storage.getTask(id);
-      if (!task || task.userId !== userId) return res.status(404).json({ error: "Not found" });
-    } else if (type === 'reminder') {
-      const reminder = await storage.getPersonalReminder(id);
-      if (!reminder || reminder.userId !== userId) return res.status(404).json({ error: "Not found" });
-    } else {
-      return res.status(400).json({ error: "Invalid type" });
-    }
+    const task = await storage.getTask(id);
+    if (!task || task.userId !== userId) return res.status(404).json({ error: "Not found" });
     await storage.restoreItem(type, id);
     res.json({ success: true });
   });
@@ -3194,17 +3218,9 @@ Thanks!`,
   app.delete("/api/deleted/:type/:id/permanent", requireAuth, async (req, res) => {
     const userId = req.userId!;
     const { type, id } = req.params;
-    if (type === 'task') {
-      const task = await storage.getTask(id);
-      if (!task || task.userId !== userId) return res.status(404).json({ error: "Not found" });
-      await storage.deleteTask(id);
-    } else if (type === 'reminder') {
-      const reminder = await storage.getPersonalReminder(id);
-      if (!reminder || reminder.userId !== userId) return res.status(404).json({ error: "Not found" });
-      await storage.deletePersonalReminder(id);
-    } else {
-      return res.status(400).json({ error: "Invalid type" });
-    }
+    const task = await storage.getTask(id);
+    if (!task || task.userId !== userId) return res.status(404).json({ error: "Not found" });
+    await storage.deleteTask(id);
     res.status(204).send();
   });
 
@@ -3442,7 +3458,7 @@ Thanks!`,
       const result = await generateFollowUpDrafts(
         meeting.title,
         meeting.summary || "",
-        actionItems.map(a => ({ text: a.text, ownerName: a.ownerName || undefined })),
+        actionItems.map(a => ({ text: a.title, ownerName: a.ownerName || undefined })),
         decisions.map(d => ({ text: d.text })),
         user.tone
       );

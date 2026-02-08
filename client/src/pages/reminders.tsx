@@ -29,7 +29,8 @@ type ReminderBucket = 'today' | 'tomorrow' | 'next_week' | 'next_month' | 'somet
 interface Reminder {
   id: string;
   userId: string;
-  text: string;
+  title: string;
+  text?: string;
   bucket: ReminderBucket;
   dueDate: string | null;
   isCompleted: boolean;
@@ -157,7 +158,7 @@ export function generateICS(reminders: Reminder[]): string {
     lines.push(`UID:${uid}`);
     lines.push(`DTSTART;VALUE=DATE:${dateStr}`);
     lines.push(`DTEND;VALUE=DATE:${endDateStr}`);
-    lines.push(`SUMMARY:${reminder.text.replace(/[,;\\]/g, ' ')}`);
+    lines.push(`SUMMARY:${(reminder.title || reminder.text || '').replace(/[,;\\]/g, ' ')}`);
     if (reminder.notes) {
       lines.push(`DESCRIPTION:${reminder.notes.replace(/[,;\\]/g, ' ').replace(/\n/g, '\\n')}`);
     }
@@ -336,7 +337,7 @@ export default function RemindersPage() {
 
   const openEditDialog = (reminder: Reminder) => {
     setEditingReminder(reminder);
-    setEditText(reminder.text);
+    setEditText(reminder.title || reminder.text || '');
     setEditNotes(reminder.notes || "");
     setEditPriority(reminder.priority);
     setEditBucket(reminder.bucket);
@@ -466,7 +467,7 @@ export default function RemindersPage() {
                     <Circle className="h-5 w-5 text-muted-foreground hover:text-green-400" weight="regular" />
                   </button>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground leading-snug">{reminder.text}</p>
+                    <p className="text-sm text-foreground leading-snug">{reminder.title || reminder.text}</p>
                     {reminder.priority === 'high' && (
                       <span className="text-xs text-red-400 flex items-center gap-1 mt-1">
                         <FireSimple className="h-3 w-3" weight="fill" />
@@ -673,7 +674,7 @@ export default function RemindersPage() {
                   >
                     <CheckCircle className="h-5 w-5 text-green-400" weight="fill" />
                   </button>
-                  <span className="text-sm text-muted-foreground line-through flex-1">{reminder.text}</span>
+                  <span className="text-sm text-muted-foreground line-through flex-1">{reminder.title || reminder.text}</span>
                   {reminder.completedAt && (
                     <span className="text-xs text-muted-foreground">
                       {format(new Date(reminder.completedAt), 'MMM d')}

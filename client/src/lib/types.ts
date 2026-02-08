@@ -53,16 +53,25 @@ export interface ClarifyingQuestion {
 export interface ActionItem {
   id: string;
   meetingId: string;
-  text: string;
+  title: string;
+  text?: string;
   ownerName: string | null;
   ownerEmail: string | null;
-  dueDate: string | null; // ISO string
+  dueDate: string | null;
   status: ActionItemStatus;
-  confidenceOwner: number; // 0-1
-  confidenceDueDate: number; // 0-1
+  confidenceOwner: number;
+  confidenceDueDate: number;
   tags: string[];
   notes?: string;
-  reminderAt?: string | null; // ISO string
+  description?: string;
+  reminderAt?: string | null;
+  sourceType?: string;
+  bucket?: string;
+  priority?: string;
+  location?: string;
+  waitingFor?: string | null;
+  recurrence?: string | null;
+  isCompleted?: boolean;
 }
 
 export interface FollowUpDraft {
