@@ -305,7 +305,7 @@ export interface IStorage {
   removeItemByActionItemId(actionItemId: string): Promise<void>;
   updateListItemPosition(id: string, position: number): Promise<void>;
   reorderListItems(listId: string, itemIds: string[]): Promise<void>;
-  reorderTasks(taskIds: string[]): Promise<void>;
+  reorderTasks(taskIds: string[], userId: string): Promise<void>;
   moveItemToList(itemId: string, fromListId: string, toListId: string): Promise<void>;
   
   // Global Tags
@@ -1615,12 +1615,12 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async reorderTasks(taskIds: string[]): Promise<void> {
+  async reorderTasks(taskIds: string[], userId: string): Promise<void> {
     await db.transaction(async (tx) => {
       for (let i = 0; i < taskIds.length; i++) {
         await tx.update(tasks)
           .set({ position: i })
-          .where(eq(tasks.id, taskIds[i]));
+          .where(and(eq(tasks.id, taskIds[i]), eq(tasks.userId, userId)));
       }
     });
   }

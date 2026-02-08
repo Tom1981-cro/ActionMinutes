@@ -1645,10 +1645,11 @@ Thanks!`,
   });
 
   app.post("/api/tasks/reorder", requireAuth, async (req, res) => {
+    const userId = req.userId!;
     const { taskIds } = req.body;
     if (!Array.isArray(taskIds)) return res.status(400).json({ error: "taskIds array required" });
     
-    await storage.reorderTasks(taskIds);
+    await storage.reorderTasks(taskIds, userId);
     res.json({ success: true });
   });
 

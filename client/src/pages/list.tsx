@@ -52,9 +52,7 @@ type CustomList = {
 type CustomListItem = {
   id: string;
   listId: string;
-  reminderId?: string;
   taskId?: string;
-  actionItemId?: string;
   position: number;
   task?: {
     id: string;
@@ -71,8 +69,6 @@ type CustomListItem = {
     sourceType?: string;
     tags?: string[];
   };
-  reminder?: any;
-  actionItem?: any;
 };
 
 function SortableTaskCard({ item, listId, listName }: { item: CustomListItem; listId: string; listName: string }) {
@@ -94,17 +90,15 @@ function SortableTaskCard({ item, listId, listName }: { item: CustomListItem; li
 
   const [, navigate] = useLocation();
   const t = item.task;
-  const r = item.reminder;
-  const a = item.actionItem;
 
-  const text = t?.title || t?.text || r?.text || a?.text || "";
-  const dueDate = t?.dueDate || r?.dueDate || a?.dueDate;
-  const status = t?.status || (t?.isCompleted ? 'done' : undefined) || r?.status || (r?.isCompleted ? 'done' : undefined) || a?.status || 'open';
-  const ownerName = t?.ownerName || r?.ownerName || a?.ownerName;
-  const priority = t?.priority || r?.priority;
-  const description = t?.description || r?.description;
-  const waitingFor = t?.waitingFor || r?.waitingFor;
-  const sourceType = t?.sourceType || (r ? 'personal' : a ? 'meeting' : 'personal');
+  const text = t?.title || t?.text || "";
+  const dueDate = t?.dueDate;
+  const status = t?.status || (t?.isCompleted ? 'done' : undefined) || 'open';
+  const ownerName = t?.ownerName;
+  const priority = t?.priority;
+  const description = t?.description;
+  const waitingFor = t?.waitingFor;
+  const sourceType = t?.sourceType || 'personal';
 
   const isOverdue = dueDate && new Date(dueDate) < new Date();
   const priorityColor = priority === 'high' || priority === 'urgent' ? 'text-red-500' :
@@ -112,7 +106,7 @@ function SortableTaskCard({ item, listId, listName }: { item: CustomListItem; li
     priority === 'low' ? 'text-emerald-500' : '';
 
   const handleClick = () => {
-    const taskId = t?.id || r?.id || a?.id;
+    const taskId = t?.id;
     if (!taskId) return;
     if (sourceType === 'meeting') {
       navigate(`/app/action/meeting/${taskId}?from=list&listId=${listId}&listName=${encodeURIComponent(listName)}`);
@@ -121,7 +115,7 @@ function SortableTaskCard({ item, listId, listName }: { item: CustomListItem; li
     }
   };
 
-  if (!t && !r && !a) return null;
+  if (!t) return null;
 
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
@@ -285,20 +279,16 @@ export default function ListPage() {
   const activeItems = useMemo(() => {
     return list?.items?.filter(i => {
       const t = i.task;
-      if (t) return !t.isCompleted && t.status !== 'done' && t.status !== 'completed';
-      if (i.reminder) return !i.reminder.isCompleted;
-      if (i.actionItem) return i.actionItem.status !== 'done' && i.actionItem.status !== 'completed';
-      return false;
+      if (!t) return false;
+      return !t.isCompleted && t.status !== 'done' && t.status !== 'completed';
     }) || [];
   }, [list?.items]);
 
   const completedItems = useMemo(() => {
     return list?.items?.filter(i => {
       const t = i.task;
-      if (t) return t.isCompleted || t.status === 'done' || t.status === 'completed';
-      if (i.reminder) return i.reminder.isCompleted;
-      if (i.actionItem) return i.actionItem.status === 'done' || i.actionItem.status === 'completed';
-      return false;
+      if (!t) return false;
+      return t.isCompleted || t.status === 'done' || t.status === 'completed';
     }) || [];
   }, [list?.items]);
 
