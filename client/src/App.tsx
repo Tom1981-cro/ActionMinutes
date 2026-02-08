@@ -47,6 +47,23 @@ function PageLoader() {
   );
 }
 
+function RootRedirect() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (!isLoading) {
+      setLocation(isAuthenticated ? "/app/inbox" : "/login", { replace: true });
+    }
+  }, [isLoading, isAuthenticated, setLocation]);
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
+}
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
@@ -77,9 +94,9 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function Router() {
   return (
     <Switch>
-      {/* Root redirects to app */}
+      {/* Root redirects to login or inbox based on auth */}
       <Route path="/">
-        <Redirect to="/app/inbox" />
+        <RootRedirect />
       </Route>
       <Route path="/login">
         <Suspense fallback={<PageLoader />}><div className="page-enter"><AuthPage /></div></Suspense>
