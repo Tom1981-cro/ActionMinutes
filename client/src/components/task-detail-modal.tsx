@@ -726,7 +726,10 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                         <button
                           key={s.value}
                           onClick={() => setStatus(s.value)}
-                          className="px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors bg-primary hover:bg-primary/90 text-primary-foreground pt-[0px] pb-[0px]"
+                          className={cn(
+                            "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors",
+                            status === s.value ? s.className : "bg-muted text-muted-foreground hover:bg-accent border border-transparent"
+                          )}
                           data-testid={`status-${s.value}`}
                         >
                           {s.label}
@@ -1079,6 +1082,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
           </>
         )}
       </div>
+
       <DatePickerModal
         open={showDatePicker}
         onOpenChange={setShowDatePicker}
