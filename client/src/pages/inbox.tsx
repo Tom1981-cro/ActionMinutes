@@ -477,16 +477,11 @@ export default function InboxPage() {
           onClose={() => setModalItem(null)}
           itemId={modalItem.realId}
           itemType={modalItem.source === "meeting" ? "meeting" : "reminder"}
-          onNavigatePrev={() => {
-            const items = viewMode === "list" ? sortedItems : filteredItems;
-            const idx = items.findIndex(i => i.id === modalItem.id);
-            if (idx > 0) setModalItem(items[idx - 1]);
-          }}
-          onNavigateNext={() => {
-            const items = viewMode === "list" ? sortedItems : filteredItems;
-            const idx = items.findIndex(i => i.id === modalItem.id);
-            if (idx >= 0 && idx < items.length - 1) setModalItem(items[idx + 1]);
-          }}
+          categoryLabel={(() => {
+            const cat = classifyItem(modalItem);
+            const group = SMART_GROUPS.find(g => g.key === cat);
+            return group?.label;
+          })()}
         />
       )}
     </div>
