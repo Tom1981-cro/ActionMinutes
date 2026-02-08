@@ -603,7 +603,7 @@ export default function CalendarPage() {
 
                 <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-2 mb-1">Lists</div>
 
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-2 cursor-pointer mt-[0px] mb-[0px] text-[12px]">
                   <Checkbox
                     checked={showLists.inbox !== false}
                     onCheckedChange={() => toggleList('inbox')}
