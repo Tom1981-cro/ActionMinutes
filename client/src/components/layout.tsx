@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
   BookOpenText, CaretDown, CaretRight, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X, DotsThree, Trash, Lightning,
-  CheckCircle, Archive, MagnifyingGlass,
+  CheckCircle, Archive, MagnifyingGlass, Compass,
   House, Briefcase, UsersThree, Heart, GraduationCap, PaintBrush, Flower, Barbell, ChatCircle, UserCircle
 } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
@@ -227,6 +227,15 @@ export default function Layout({ children }: LayoutProps) {
               <MagnifyingGlass className="h-4 w-4" weight="bold" />
             </button>
           </div>
+
+          <Link
+            href="/app/planner"
+            data-testid="nav-planner"
+            className={location === "/app/planner" ? "navItemActive" : "navItem"}
+          >
+            <Compass className={cn("nav-icon", location === "/app/planner" && "text-primary")} weight="duotone" />
+            <span className="text-foreground">Action<span className="text-primary font-semibold">Planner</span></span>
+          </Link>
 
           <div className="pt-3 pb-0.5 px-3 flex items-center justify-between">
             <button onClick={() => toggleSection('actionToDo')} className="flex items-center gap-1 group/hdr">

@@ -27,6 +27,7 @@ const StoreScreensPage = React.lazy(() => import("@/pages/store-screens"));
 const MarketingPage = React.lazy(() => import("@/pages/marketing"));
 const TestingGuidePage = React.lazy(() => import("@/pages/testing-guide"));
 const AgendaPage = React.lazy(() => import("@/pages/agenda"));
+const PlannerPage = React.lazy(() => import("@/pages/planner"));
 const GuidePage = React.lazy(() => import("@/pages/guide"));
 const AboutPage = React.lazy(() => import("@/pages/about"));
 const TasksPage = React.lazy(() => import("@/pages/tasks"));
@@ -134,6 +135,11 @@ function Router() {
       </Route>
 
       {/* Protected app routes */}
+      <Route path="/app/planner">
+        <ProtectedRoute>
+          <Layout><Suspense fallback={<PageLoader />}><PlannerPage /></Suspense></Layout>
+        </ProtectedRoute>
+      </Route>
       <Route path="/app/inbox">
         <ProtectedRoute>
           <Layout><Suspense fallback={<PageLoader />}><InboxPage /></Suspense></Layout>
