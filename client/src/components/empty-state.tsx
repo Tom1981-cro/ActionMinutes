@@ -7,6 +7,7 @@ import {
   LightbulbFilament, CheckCircle, ArrowRight
 } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 type EmptyStateVariant = 
   | "inbox" 
@@ -155,15 +156,27 @@ export function EmptyState({
   const Icon = config.icon;
 
   return (
-    <div
-      style={{ animation: "fadeUp 0.4s ease-out forwards" }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
     >
       <Card className="glass-panel border-dashed border-border rounded-2xl overflow-hidden">
         <CardContent className="py-12 px-6 md:px-12">
           <div className="max-w-md mx-auto text-center space-y-6">
-            <div className="mx-auto h-20 w-20 bg-accent rounded-2xl flex items-center justify-center shadow-token animate-glow-pulse">
+            <motion.div 
+              className="mx-auto h-20 w-20 bg-accent rounded-2xl flex items-center justify-center shadow-token"
+              animate={{ 
+                boxShadow: [
+                  "0 0 20px rgba(139, 92, 246, 0.2)",
+                  "0 0 30px rgba(139, 92, 246, 0.3)",
+                  "0 0 20px rgba(139, 92, 246, 0.2)"
+                ]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
               <Icon className="h-10 w-10 text-primary" weight="duotone" />
-            </div>
+            </motion.div>
 
             <div className="space-y-2">
               <h3 className="text-xl font-semibold text-foreground">{config.title}</h3>
@@ -180,14 +193,16 @@ export function EmptyState({
                 </p>
                 <ul className="space-y-2">
                   {config.tips.map((tip, index) => (
-                    <li 
+                    <motion.li 
                       key={index}
                       className="flex items-start gap-2 text-sm text-foreground"
-                      style={{ animation: `fadeIn 0.3s ease-out ${0.1 * (index + 1)}s both` }}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 * (index + 1) }}
                     >
                       <Sparkle className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" weight="fill" />
                       {tip}
-                    </li>
+                    </motion.li>
                   ))}
                 </ul>
               </div>
@@ -220,7 +235,7 @@ export function EmptyState({
           </div>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   );
 }
 

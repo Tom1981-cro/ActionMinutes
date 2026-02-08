@@ -8,6 +8,7 @@ import {
 } from "@phosphor-icons/react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface GettingStartedStep {
   id: string;
@@ -126,9 +127,12 @@ export function GettingStarted({
   if (!isVisible) return null;
 
   return (
-      <div
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
         className={className}
-        style={{ animation: "fadeUp 0.3s ease-out forwards" }}
       >
         <Card className="glass-panel border-primary/30 rounded-2xl overflow-hidden">
           <CardHeader className="pb-3">
@@ -171,16 +175,17 @@ export function GettingStarted({
               
               return (
                 <Link key={step.id} href={step.href}>
-                  <div
+                  <motion.div
                     onClick={() => markStepCompleted(step.id)}
                     className={cn(
-                      "flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer group hover:translate-x-1",
+                      "flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer group",
                       step.completed 
                         ? "bg-emerald-500/10 border border-emerald-500/20" 
                         : isNext
                         ? "bg-accent border border-primary/30 hover:bg-accent"
                         : "bg-muted border border-border hover:bg-accent"
                     )}
+                    whileHover={{ x: 4 }}
                     data-testid={`step-${step.id}`}
                   >
                     <div className={cn(
@@ -219,25 +224,27 @@ export function GettingStarted({
                         isNext ? "text-primary" : "text-muted-foreground"
                       )} weight="bold" />
                     )}
-                  </div>
+                  </motion.div>
                 </Link>
               );
             })}
             
             {allCompleted && (
-              <div
-                style={{ animation: "scaleIn 0.3s ease-out forwards" }}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
                 className="flex items-center gap-2 p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20"
               >
                 <Sparkle className="h-5 w-5 text-emerald-400" weight="fill" />
                 <p className="text-sm text-emerald-300">
                   You're all set up! This panel will hide automatically.
                 </p>
-              </div>
+              </motion.div>
             )}
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 

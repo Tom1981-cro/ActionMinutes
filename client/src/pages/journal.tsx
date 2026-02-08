@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SkeletonList } from "@/components/skeleton-loader";
 import { EmptyState } from "@/components/empty-state";
@@ -326,27 +327,35 @@ export default function JournalPage() {
                   const MoodIcon = mood.icon;
                   
                   return (
-                    <button
+                    <motion.button
                       key={mood.value}
                       onClick={() => setSelectedMood(mood.value)}
                       className={cn(
-                        "flex-1 py-4 rounded-xl border-2 transition-all hover:scale-105 active:scale-95",
+                        "flex-1 py-4 rounded-xl border-2 transition-colors",
                         isSelected 
                           ? mood.bgSelected
                           : `border-border ${mood.bgHover}`
                       )}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       data-testid={`mood-${mood.value}`}
                     >
-                      <div
-                        style={{ transform: isSelected ? "scale(1.1)" : "scale(1)", transition: "transform 0.3s" }}
+                      <motion.div
+                        animate={isSelected ? { scale: [1, 1.2, 1.1] } : { scale: 1 }}
+                        transition={isSelected ? { 
+                          type: "spring", 
+                          stiffness: 400, 
+                          damping: 10,
+                          duration: 0.3 
+                        } : {}}
                       >
                         <MoodIcon className={cn("h-8 w-8 mx-auto", mood.color)} weight="duotone" />
-                      </div>
+                      </motion.div>
                       <span className={cn(
                         "text-xs mt-2 block transition-colors",
                         isSelected ? "text-foreground" : "text-muted-foreground"
                       )}>{mood.label}</span>
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
@@ -406,9 +415,13 @@ export default function JournalPage() {
             </div>
 
             {/* Conditional checkbox for "Tough" mood */}
+            <AnimatePresence>
               {selectedMood === 'tough' && (
-                <div
-                  style={{ animation: "fadeIn 0.2s ease-out forwards" }}
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
                   <div className="flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
@@ -425,8 +438,9 @@ export default function JournalPage() {
                       Would you like to move today's low-priority tasks to tomorrow?
                     </label>
                   </div>
-                </div>
+                </motion.div>
               )}
+            </AnimatePresence>
             
             <div className="flex gap-2 pt-2">
               <Button 

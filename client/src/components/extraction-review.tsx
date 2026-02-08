@@ -14,6 +14,7 @@ import {
 } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import { getAISettings } from "./ai-settings";
 
 export interface ExtractedItem {
@@ -103,9 +104,10 @@ function ExtractedItemCard({
 
   if (item.status === "rejected") {
     return (
-      <div
+      <motion.div
+        initial={{ opacity: 1, height: "auto" }}
+        animate={{ opacity: 0.5, height: "auto" }}
         className="relative"
-        style={{ opacity: 0.5 }}
       >
         <Card className="glass-panel border-red-500/20 opacity-50">
           <CardContent className="p-4">
@@ -123,7 +125,7 @@ function ExtractedItemCard({
             </div>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
     );
   }
 
@@ -181,8 +183,10 @@ function ExtractedItemCard({
   }
 
   return (
-    <div
-      style={{ animation: "fadeUp 0.3s ease-out forwards" }}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20 }}
     >
       <Card className={cn(
         "glass-panel transition-all",
@@ -275,7 +279,7 @@ function ExtractedItemCard({
           </div>
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   );
 }
 
@@ -385,6 +389,7 @@ export function ExtractionReviewPanel({
                     Action Items ({actionItems.length})
                   </span>
                 </div>
+                <AnimatePresence>
                   {actionItems.map((item) => (
                     <ExtractedItemCard
                       key={item.id}
@@ -394,6 +399,7 @@ export function ExtractionReviewPanel({
                       onEdit={(updates) => updateItem(item.id, updates)}
                     />
                   ))}
+                </AnimatePresence>
               </div>
             )}
 
@@ -405,6 +411,7 @@ export function ExtractionReviewPanel({
                     Decisions ({decisions.length})
                   </span>
                 </div>
+                <AnimatePresence>
                   {decisions.map((item) => (
                     <ExtractedItemCard
                       key={item.id}
@@ -414,6 +421,7 @@ export function ExtractionReviewPanel({
                       onEdit={(updates) => updateItem(item.id, updates)}
                     />
                   ))}
+                </AnimatePresence>
               </div>
             )}
 
@@ -425,6 +433,7 @@ export function ExtractionReviewPanel({
                     Risks ({risks.length})
                   </span>
                 </div>
+                <AnimatePresence>
                   {risks.map((item) => (
                     <ExtractedItemCard
                       key={item.id}
@@ -434,6 +443,7 @@ export function ExtractionReviewPanel({
                       onEdit={(updates) => updateItem(item.id, updates)}
                     />
                   ))}
+                </AnimatePresence>
               </div>
             )}
           </div>

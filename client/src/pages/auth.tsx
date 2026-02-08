@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth, forgotPassword, resetPassword } from "@/hooks/use-auth";
 import { useLocation, useSearch, Link } from "wouter";
 import { Loader2, Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { motion } from "framer-motion";
 import { Brain, Sparkle, Lightning, CheckCircle } from "@phosphor-icons/react";
 import logoIcon from "@assets/am_logo_1767300370565.png";
 import { Button } from "@/components/ui/button";
@@ -25,8 +26,10 @@ function BrandingPanel() {
       </div>
 
       <div className="relative z-10 space-y-8">
-        <div
-          style={{ animation: "fadeUp 0.6s ease-out forwards" }}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
           <h1 className="text-4xl xl:text-5xl font-bold text-foreground leading-tight">
             Turn messy meetings into{" "}
@@ -37,11 +40,13 @@ function BrandingPanel() {
           <p className="mt-4 text-lg text-muted-foreground max-w-md">
             AI-powered meeting notes that extract action items, decisions, and follow-ups in under 60 seconds.
           </p>
-        </div>
+        </motion.div>
 
-        <div 
+        <motion.div 
           className="space-y-4"
-          style={{ animation: "fadeIn 0.6s ease-out 0.3s both" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
         >
           <div className="flex items-center gap-3 text-foreground">
             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-accent border border-primary/30">
@@ -61,12 +66,14 @@ function BrandingPanel() {
             </div>
             <span>Track tasks until they're done</span>
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      <div 
+      <motion.div 
         className="relative z-10"
-        style={{ animation: "fadeIn 0.6s ease-out 0.5s both" }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
       >
         <div className="flex items-center gap-4">
           <div className="flex -space-x-2">
@@ -83,7 +90,7 @@ function BrandingPanel() {
             <span className="text-foreground font-medium">2,000+</span> teams ship faster with ActionMinutes
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -201,8 +208,10 @@ export default function AuthPage() {
         </div>
 
         <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full">
-          <div
-            style={{ animation: "fadeUp 0.4s ease-out forwards" }}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
           >
             <h2 className="text-2xl font-bold text-foreground mb-2">
               {mode === "login" && "Welcome back"}
@@ -216,7 +225,7 @@ export default function AuthPage() {
               {mode === "forgot" && "Enter your email to receive a reset link"}
               {mode === "reset" && "Choose a strong password for your account"}
             </p>
-          </div>
+          </motion.div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {mode === "register" && (

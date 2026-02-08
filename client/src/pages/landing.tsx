@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import { useState, useEffect } from "react";
 import { 
   Brain, BookOpen, ArrowRight, Sparkle, Bell, Calendar, NotePencil, ListBullets,
@@ -59,7 +60,12 @@ function HeroMockup() {
   }, []);
 
   return (
-    <div className="relative animate-fade-slide-in">
+    <motion.div
+      className="relative"
+      initial={{ opacity: 0, x: 50 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 1, delay: 0.4 }}
+    >
       <div className="relative">
         <div className="absolute inset-0 bg-primary/30 rounded-3xl blur-3xl scale-95" />
         
@@ -96,47 +102,49 @@ function HeroMockup() {
           </div>
 
           <div className="mt-6 pt-6 border-t border-border flex items-center justify-between">
-            <div 
+            <motion.div 
               className="flex items-center gap-2"
-              style={{ 
-                opacity: showBadge ? 1 : 0, 
-                transform: showBadge ? "scale(1)" : "scale(0.8)",
-                transition: "opacity 0.3s, transform 0.3s"
-              }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={showBadge ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
             >
               <div className="flex items-center gap-2 bg-emerald-500/20 border border-emerald-500/30 rounded-full px-3 py-1.5">
                 <CheckCircle className="h-4 w-4 text-emerald-400" weight="fill" />
                 <span className="text-xs text-emerald-300 font-semibold">Tasks Created!</span>
               </div>
-            </div>
+            </motion.div>
             <div className="text-xs text-muted-foreground font-mono">organized</div>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 function MouseGlow() {
-  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const springX = useSpring(mouseX, { stiffness: 50, damping: 20 });
+  const springY = useSpring(mouseY, { stiffness: 50, damping: 20 });
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      setPos({ x: e.clientX, y: e.clientY });
+      mouseX.set(e.clientX);
+      mouseY.set(e.clientY);
     };
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+  }, [mouseX, mouseY]);
 
   return (
-    <div
+    <motion.div
       className="fixed pointer-events-none z-0 w-[500px] h-[500px] rounded-full"
       style={{
-        left: pos.x,
-        top: pos.y,
-        transform: "translate(-50%, -50%)",
-        transition: "left 0.15s ease-out, top 0.15s ease-out",
+        x: springX,
+        y: springY,
+        translateX: "-50%",
+        translateY: "-50%",
         background: "radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%)",
       }}
     />
@@ -163,9 +171,12 @@ function PricingSection() {
   return (
     <section className="py-24 px-4 relative" id="pricing">
       <div className="container max-w-5xl mx-auto">
-        <div 
+        <motion.div 
           className="text-center mb-12"
-          style={{ animation: "fadeUp 0.6s ease-out forwards" }}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
         >
           <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
             Simple Pricing
@@ -200,12 +211,16 @@ function PricingSection() {
               <span className="bg-emerald-500/20 text-emerald-400 text-xs px-2 py-0.5 rounded-full">Save 20%</span>
             </button>
           </div>
-        </div>
+        </motion.div>
 
         <div className="grid md:grid-cols-2 gap-6 lg:gap-8 items-start max-w-3xl mx-auto">
-          <div 
+          <motion.div 
             className="bg-accent backdrop-blur-xl border border-border rounded-3xl p-8 hover:bg-accent transition-all"
-            style={{ animation: "fadeUp 0.6s ease-out forwards" }}
+            variants={floatUpVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            custom={0}
           >
             <h3 className="text-xl font-bold text-foreground mb-2">Free</h3>
             <p className="text-muted-foreground text-sm mb-6">Get started with the essentials.</p>
@@ -241,11 +256,15 @@ function PricingSection() {
             >
               Start for Free
             </Link>
-          </div>
+          </motion.div>
 
-          <div 
+          <motion.div 
             className="relative bg-accent backdrop-blur-xl border-2 border-primary rounded-3xl p-8 hover:bg-accent transition-all md:scale-105 md:-my-4"
-            style={{ animation: "fadeUp 0.6s ease-out 0.1s both" }}
+            variants={floatUpVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            custom={1}
           >
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="bg-primary text-primary-foreground text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
@@ -300,12 +319,25 @@ function PricingSection() {
               <span className="absolute inset-0 bg-primary opacity-0 group-hover:opacity-100 transition-opacity" />
               <span className="relative">Get Pro</span>
             </Link>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
   );
 }
+
+const floatUpVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: (delay: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      delay: delay * 0.1,
+      ease: "easeOut" as const
+    }
+  })
+};
 
 const features = [
   {
@@ -396,36 +428,44 @@ export default function LandingPage() {
         <div className="container max-w-6xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
             <div className="text-center lg:text-left">
-              <div
-                style={{ animation: "fadeUp 0.8s ease-out forwards" }}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
               >
                 <div className="inline-flex items-center gap-2 bg-accent border border-primary/20 rounded-full px-4 py-1.5 mb-8">
                   <Sparkle className="h-4 w-4 text-primary" weight="fill" />
                   <span className="text-sm text-primary">Your Personal Productivity Assistant</span>
                 </div>
-              </div>
+              </motion.div>
 
-              <h1 
+              <motion.h1 
                 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[1.1] tracking-tight"
-                style={{ animation: "fadeUp 0.8s ease-out 0.2s both" }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
               >
                 Organize{" "}
                 <span className="text-primary">
                   Everything.
                 </span>
-              </h1>
+              </motion.h1>
 
-              <p 
+              <motion.p 
                 className="text-lg md:text-xl text-muted-foreground max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed"
-                style={{ animation: "fadeUp 0.8s ease-out 0.4s both" }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
               >
                 Notes, reminders, journal, calendar—all in one place. 
                 Plus AI that turns meeting chaos into{" "}
                 <span className="text-foreground font-medium">actionable tasks</span>.
-              </p>
+              </motion.p>
 
-              <div
-                style={{ animation: "fadeUp 0.8s ease-out 0.6s both" }}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.6 }}
               >
                 <Link 
                   href="/login"
@@ -440,7 +480,7 @@ export default function LandingPage() {
                   </span>
                 </Link>
                 <p className="mt-4 text-sm text-muted-foreground">No credit card required</p>
-              </div>
+              </motion.div>
             </div>
 
             <HeroMockup />
@@ -450,9 +490,12 @@ export default function LandingPage() {
 
       <section className="py-24 px-4 relative">
         <div className="container max-w-6xl mx-auto">
-          <div 
+          <motion.div 
             className="text-center mb-16"
-            style={{ animation: "fadeUp 0.6s ease-out forwards" }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
               Everything You Need
@@ -460,7 +503,7 @@ export default function LandingPage() {
             <p className="text-muted-foreground text-lg max-w-xl mx-auto">
               Personal productivity tools that work together seamlessly.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {features.map((feature, index) => {
@@ -477,12 +520,16 @@ export default function LandingPage() {
               };
               
               return (
-                <div 
+                <motion.div 
                   key={feature.title}
                   className={`bg-accent backdrop-blur-sm border rounded-2xl p-6 group hover:bg-accent transition-all duration-300 ${
                     feature.highlight ? 'border-fuchsia-500/40 ring-1 ring-fuchsia-500/20' : 'border-border'
                   }`}
-                  style={{ animation: `fadeUp 0.6s ease-out ${index * 0.1}s both` }}
+                  variants={floatUpVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-50px" }}
+                  custom={index}
                 >
                   <div className={`w-12 h-12 bg-gradient-to-br ${colorClasses[feature.color]} border rounded-xl flex items-center justify-center mb-4`}>
                     <Icon className={`h-6 w-6 ${colorClasses[feature.color].split(' ').pop()}`} weight="duotone" />
@@ -496,7 +543,7 @@ export default function LandingPage() {
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     {feature.description}
                   </p>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -505,9 +552,12 @@ export default function LandingPage() {
 
       <section className="py-24 px-4 relative">
         <div className="container max-w-4xl mx-auto">
-          <div 
+          <motion.div 
             className="text-center mb-20"
-            style={{ animation: "fadeUp 0.6s ease-out forwards" }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
               How It Works
@@ -515,14 +565,18 @@ export default function LandingPage() {
             <p className="text-muted-foreground text-lg">
               From thought to done in seconds.
             </p>
-          </div>
+          </motion.div>
 
           <div className="relative">
             <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-primary/50 via-primary/30 to-primary/50 md:-translate-x-1/2" />
 
-            <div 
+            <motion.div 
               className="relative flex items-center mb-16 md:mb-24"
-              style={{ animation: "fadeUp 0.6s ease-out forwards" }}
+              variants={floatUpVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              custom={0}
             >
               <div className="absolute left-8 md:left-1/2 w-4 h-4 bg-primary rounded-full md:-translate-x-1/2 ring-4 ring-ring/20" />
               <div className="ml-20 md:ml-0 md:w-1/2 md:pr-16 md:text-right">
@@ -532,11 +586,15 @@ export default function LandingPage() {
                   Quick-add thoughts, paste notes, upload photos, or record voice. Everything lands in your Inbox.
                 </p>
               </div>
-            </div>
+            </motion.div>
 
-            <div 
+            <motion.div 
               className="relative flex items-center mb-16 md:mb-24"
-              style={{ animation: "fadeUp 0.6s ease-out 0.1s both" }}
+              variants={floatUpVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              custom={1}
             >
               <div className="absolute left-8 md:left-1/2 w-4 h-4 bg-fuchsia-500 rounded-full md:-translate-x-1/2 ring-4 ring-fuchsia-500/20" />
               <div className="ml-20 md:ml-auto md:w-1/2 md:pl-16">
@@ -546,11 +604,15 @@ export default function LandingPage() {
                   Review your inbox. Move items to reminders, add to lists, or let AI extract tasks from meeting notes.
                 </p>
               </div>
-            </div>
+            </motion.div>
 
-            <div 
+            <motion.div 
               className="relative flex items-center"
-              style={{ animation: "fadeUp 0.6s ease-out 0.2s both" }}
+              variants={floatUpVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              custom={2}
             >
               <div className="absolute left-8 md:left-1/2 w-4 h-4 bg-primary rounded-full md:-translate-x-1/2 ring-4 ring-ring/20" />
               <div className="ml-20 md:ml-0 md:w-1/2 md:pr-16 md:text-right">
@@ -560,7 +622,7 @@ export default function LandingPage() {
                   Check off tasks, reflect in your journal, and watch your productivity soar.
                 </p>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -569,9 +631,12 @@ export default function LandingPage() {
 
       <section className="py-24 px-4 relative">
         <div className="container max-w-4xl mx-auto">
-          <div 
+          <motion.div 
             className="relative text-center"
-            style={{ animation: "scaleIn 0.6s ease-out forwards" }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
           >
             <div className="absolute inset-0 bg-primary/20 rounded-3xl blur-3xl" />
             <div className="relative bg-accent backdrop-blur-xl border border-border rounded-3xl p-12 md:p-16">
@@ -594,7 +659,7 @@ export default function LandingPage() {
                 </span>
               </Link>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import {
   Plus, SpinnerGap, CheckCircle, Circle, Trash, 
   ListBullets, Kanban, FunnelSimple, CaretDown, Calendar,
   Lightning, Clock, Tag, FolderSimple, Repeat, MagicWand, 
-  ArrowsDownUp, DotsSixVertical
+  ArrowsDownUp
 } from "@phosphor-icons/react";
 import { format, isToday, isTomorrow, isPast, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -25,23 +25,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 interface Task {
   id: string;
@@ -139,7 +122,7 @@ export default function TasksPage() {
   const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterProject, setFilterProject] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"dueDate" | "priority" | "created" | "custom">("dueDate");
+  const [sortBy, setSortBy] = useState<"dueDate" | "priority" | "created">("dueDate");
   
   const [quickAddInput, setQuickAddInput] = useState("");
   const [parsedTask, setParsedTask] = useState<ParsedTaskResult | null>(null);
@@ -332,37 +315,13 @@ export default function TasksPage() {
     }
   };
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
-
-  const reorderMutation = useMutation({
-    mutationFn: async (taskIds: string[]) => {
-      const res = await authenticatedFetch(`/api/tasks/reorder`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taskIds }),
-      });
-      if (!res.ok) throw new Error('Failed to reorder');
-      return res.json();
-    },
-    onError: () => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      toast({ title: "Failed to reorder", variant: "destructive" });
-    },
-  });
-
   const filteredTasks = tasks.filter(task => {
     if (filterStatus !== "all" && task.status !== filterStatus) return false;
     if (filterProject !== "all" && task.projectId !== filterProject) return false;
     return true;
   });
 
-  const sortedTasks = useMemo(() => [...filteredTasks].sort((a, b) => {
-    if (sortBy === "custom") {
-      return a.position - b.position;
-    }
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
     if (sortBy === "dueDate") {
       if (!a.dueDate && !b.dueDate) return 0;
       if (!a.dueDate) return 1;
@@ -375,28 +334,7 @@ export default function TasksPage() {
       return priorityA - priorityB;
     }
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  }), [filteredTasks, sortBy]);
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = sortedTasks.findIndex(t => t.id === active.id);
-    const newIndex = sortedTasks.findIndex(t => t.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    const newOrder = arrayMove(sortedTasks, oldIndex, newIndex);
-
-    queryClient.setQueryData(["tasks", user?.id], (old: Task[] | undefined) => {
-      if (!old) return old;
-      return old.map(t => {
-        const idx = newOrder.findIndex(n => n.id === t.id);
-        return idx >= 0 ? { ...t, position: idx } : t;
-      });
-    });
-
-    reorderMutation.mutate(newOrder.map(t => t.id));
-  };
+  });
 
   const tasksByStatus = {
     todo: sortedTasks.filter(t => t.status === "todo"),
@@ -567,7 +505,7 @@ export default function TasksPage() {
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="gap-1.5 h-8 bg-accent border-border">
               <ArrowsDownUp className="h-4 w-4" />
-              Sort: {sortBy === "dueDate" ? "Due Date" : sortBy === "priority" ? "Priority" : sortBy === "custom" ? "Custom" : "Created"}
+              Sort: {sortBy === "dueDate" ? "Due Date" : sortBy === "priority" ? "Priority" : "Created"}
               <CaretDown className="h-3 w-3" />
             </Button>
           </DropdownMenuTrigger>
@@ -575,11 +513,6 @@ export default function TasksPage() {
             <DropdownMenuItem onClick={() => setSortBy("dueDate")}>Due Date</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setSortBy("priority")}>Priority</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setSortBy("created")}>Created</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setSortBy("custom")}>
-              <DotsSixVertical className="h-4 w-4 mr-1" />
-              Custom (drag to reorder)
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -599,24 +532,6 @@ export default function TasksPage() {
                 <h3 className="text-sm font-medium text-foreground mb-1">No tasks yet</h3>
                 <p className="text-muted-foreground text-sm">Add your first task using natural language above</p>
               </div>
-            ) : sortBy === "custom" ? (
-              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                <SortableContext items={sortedTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-                  <div className="divide-y divide-border">
-                    {sortedTasks.map(task => (
-                      <SortableTaskRow
-                        key={task.id}
-                        task={task}
-                        project={getProjectById(task.projectId)}
-                        onComplete={() => completeTaskMutation.mutate(task.id)}
-                        onUpdate={(updates) => updateTaskMutation.mutate({ id: task.id, updates })}
-                        onDelete={() => deleteTaskMutation.mutate(task.id)}
-                        onSelect={() => setSelectedTask(task)}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
             ) : (
               <div className="divide-y divide-border">
                 {sortedTasks.map(task => (
@@ -692,22 +607,6 @@ export default function TasksPage() {
   );
 }
 
-function SortableTaskRow({ 
-  task, project, onComplete, onUpdate, onDelete, onSelect,
-}: { 
-  task: Task; project?: Project; onComplete: () => void;
-  onUpdate: (updates: Partial<Task>) => void; onDelete: () => void; onSelect: () => void;
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
-  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1, zIndex: isDragging ? 50 : 'auto' as any };
-
-  return (
-    <div ref={setNodeRef} style={style} {...attributes}>
-      <TaskRow task={task} project={project} onComplete={onComplete} onUpdate={onUpdate} onDelete={onDelete} onSelect={onSelect} dragListeners={listeners} />
-    </div>
-  );
-}
-
 function TaskRow({ 
   task, 
   project,
@@ -715,7 +614,6 @@ function TaskRow({
   onUpdate, 
   onDelete,
   onSelect,
-  dragListeners,
 }: { 
   task: Task;
   project?: Project;
@@ -723,7 +621,6 @@ function TaskRow({
   onUpdate: (updates: Partial<Task>) => void;
   onDelete: () => void;
   onSelect: () => void;
-  dragListeners?: any;
 }) {
   const isDone = task.status === "done";
   
@@ -734,15 +631,6 @@ function TaskRow({
         isDone && "opacity-50"
       )}
     >
-      {dragListeners && (
-        <button
-          className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors touch-none flex-shrink-0"
-          {...dragListeners}
-          data-testid={`drag-handle-task-${task.id}`}
-        >
-          <DotsSixVertical className="h-5 w-5" weight="bold" />
-        </button>
-      )}
       <button
         onClick={isDone ? undefined : onComplete}
         className={cn(

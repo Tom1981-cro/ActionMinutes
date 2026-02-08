@@ -2,7 +2,21 @@ import { Link } from "wouter";
 import { ArrowLeft, Heart, Lightning, Shield, Target, Users } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { motion } from "framer-motion";
 import logoIcon from "@assets/am_logo_1767300370565.png";
+
+const floatUpVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (delay: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      delay: delay * 0.1,
+      ease: "easeOut" as const
+    }
+  })
+};
 
 export default function AboutPage() {
   return (
@@ -33,9 +47,11 @@ export default function AboutPage() {
       </header>
 
       <main className="relative z-10 max-w-4xl mx-auto px-6 py-16 space-y-16">
-        <div 
+        <motion.div 
           className="text-center space-y-4"
-          style={{ animation: "fadeUp 0.6s ease-out forwards" }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
           <h1 className="text-4xl md:text-5xl font-bold">
             About ActionMinutes
@@ -43,10 +59,13 @@ export default function AboutPage() {
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             A personal productivity assistant built to help you organize your life—one thought at a time.
           </p>
-        </div>
+        </motion.div>
 
-        <div
-          style={{ animation: "fadeUp 0.5s ease-out 0.1s both" }}
+        <motion.div
+          variants={floatUpVariants}
+          initial="hidden"
+          animate="visible"
+          custom={1}
         >
           <Card className="bg-card border-border rounded-2xl overflow-hidden">
             <CardContent className="p-8 md:p-10 space-y-6">
@@ -69,11 +88,14 @@ export default function AboutPage() {
               </div>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <div
-            style={{ animation: "fadeUp 0.5s ease-out 0.2s both" }}
+          <motion.div
+            variants={floatUpVariants}
+            initial="hidden"
+            animate="visible"
+            custom={2}
           >
             <Card className="h-full bg-card border-border rounded-2xl overflow-hidden">
               <CardContent className="p-6 space-y-4">
@@ -87,10 +109,13 @@ export default function AboutPage() {
                 </p>
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
 
-          <div
-            style={{ animation: "fadeUp 0.5s ease-out 0.3s both" }}
+          <motion.div
+            variants={floatUpVariants}
+            initial="hidden"
+            animate="visible"
+            custom={3}
           >
             <Card className="h-full bg-card border-border rounded-2xl overflow-hidden">
               <CardContent className="p-6 space-y-4">
@@ -104,10 +129,13 @@ export default function AboutPage() {
                 </p>
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
 
-          <div
-            style={{ animation: "fadeUp 0.5s ease-out 0.4s both" }}
+          <motion.div
+            variants={floatUpVariants}
+            initial="hidden"
+            animate="visible"
+            custom={4}
           >
             <Card className="h-full bg-card border-border rounded-2xl overflow-hidden">
               <CardContent className="p-6 space-y-4">
@@ -121,10 +149,13 @@ export default function AboutPage() {
                 </p>
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
 
-          <div
-            style={{ animation: "fadeUp 0.5s ease-out 0.5s both" }}
+          <motion.div
+            variants={floatUpVariants}
+            initial="hidden"
+            animate="visible"
+            custom={5}
           >
             <Card className="h-full bg-card border-border rounded-2xl overflow-hidden">
               <CardContent className="p-6 space-y-4">
@@ -138,12 +169,15 @@ export default function AboutPage() {
                 </p>
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
         </div>
 
-        <div 
+        <motion.div 
           className="text-center space-y-6"
-          style={{ animation: "fadeUp 0.5s ease-out 0.6s both" }}
+          variants={floatUpVariants}
+          initial="hidden"
+          animate="visible"
+          custom={6}
         >
           <h2 className="text-2xl font-bold">Ready to get organized?</h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -161,7 +195,7 @@ export default function AboutPage() {
               </Button>
             </Link>
           </div>
-        </div>
+        </motion.div>
       </main>
 
       <footer className="relative z-10 border-t border-border py-8">

@@ -14,6 +14,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authenticatedFetch } from "@/hooks/use-auth";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { SkeletonList } from "@/components/skeleton-loader";
 import { EmptyState } from "@/components/empty-state";
@@ -249,8 +250,11 @@ export default function NotesPage() {
     const colors = getColorClasses(note.color);
     
     return (
-      <div
-        style={{ animation: "fadeUp 0.3s ease-out forwards" }}
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
         data-testid={`note-card-${note.id}`}
       >
         <div 
@@ -311,7 +315,7 @@ export default function NotesPage() {
             </DropdownMenu>
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   };
   
@@ -356,9 +360,11 @@ export default function NotesPage() {
             />
           ) : (
             <div className="grid gap-3 md:grid-cols-2">
+              <AnimatePresence>
                 {notes.map(note => (
                   <NoteCard key={note.id} note={note} />
                 ))}
+              </AnimatePresence>
             </div>
           )}
         </div>

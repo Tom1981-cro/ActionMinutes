@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRoute, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { 
   ListBullets, Plus, PencilSimple, Check, X,
-  ArrowRight, Flag, User, Hourglass, DotsSixVertical,
+  ArrowRight, Flag, User, Hourglass,
   House, Briefcase, UsersThree, Heart, GraduationCap, PaintBrush, Flower, Barbell, ChatCircle, UserCircle
 } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
@@ -15,24 +15,8 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import { authenticatedFetch } from "@/hooks/use-auth";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 const LIST_ICON_MAP: Record<string, PhosphorIcon> = {
   home: House, work: Briefcase, family: UsersThree, health: Heart,
@@ -52,12 +36,13 @@ type CustomList = {
 type CustomListItem = {
   id: string;
   listId: string;
+  reminderId?: string;
   taskId?: string;
+  actionItemId?: string;
   position: number;
-  task?: {
+  reminder?: {
     id: string;
-    title: string;
-    text?: string;
+    text: string;
     dueDate?: string;
     isCompleted: boolean;
     status?: string;
@@ -66,39 +51,28 @@ type CustomListItem = {
     description?: string;
     ownerName?: string;
     waitingFor?: string;
-    sourceType?: string;
+  };
+  actionItem?: {
+    id: string;
+    text: string;
+    dueDate?: string;
+    status?: string;
+    ownerName?: string;
     tags?: string[];
   };
 };
 
-function SortableTaskCard({ item, listId, listName }: { item: CustomListItem; listId: string; listName: string }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: item.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 50 : 'auto' as any,
-  };
-
+function TaskCard({ item, listId, listName }: { item: CustomListItem; listId: string; listName: string }) {
   const [, navigate] = useLocation();
-  const t = item.task;
+  const r = item.reminder;
+  const a = item.actionItem;
+  if (!r && !a) return null;
 
-  const text = t?.title || t?.text || "";
-  const dueDate = t?.dueDate;
-  const status = t?.status || (t?.isCompleted ? 'done' : undefined) || 'open';
-  const ownerName = t?.ownerName;
-  const priority = t?.priority;
-  const description = t?.description;
-  const waitingFor = t?.waitingFor;
-  const sourceType = t?.sourceType || 'personal';
+  const text = r?.text || a?.text || "";
+  const dueDate = r?.dueDate || a?.dueDate;
+  const status = r?.status || (r?.isCompleted ? 'done' : undefined) || a?.status || 'open';
+  const ownerName = r?.ownerName || a?.ownerName;
+  const priority = r?.priority;
 
   const isOverdue = dueDate && new Date(dueDate) < new Date();
   const priorityColor = priority === 'high' || priority === 'urgent' ? 'text-red-500' :
@@ -106,88 +80,67 @@ function SortableTaskCard({ item, listId, listName }: { item: CustomListItem; li
     priority === 'low' ? 'text-emerald-500' : '';
 
   const handleClick = () => {
-    const taskId = t?.id;
-    if (!taskId) return;
-    if (sourceType === 'meeting') {
-      navigate(`/app/action/meeting/${taskId}?from=list&listId=${listId}&listName=${encodeURIComponent(listName)}`);
-    } else {
-      navigate(`/app/action/reminder/${taskId}?from=list&listId=${listId}&listName=${encodeURIComponent(listName)}`);
+    if (r) {
+      navigate(`/app/action/reminder/${r.id}?from=list&listId=${listId}&listName=${encodeURIComponent(listName)}`);
+    } else if (a) {
+      navigate(`/app/action/meeting/${a.id}?from=list&listId=${listId}&listName=${encodeURIComponent(listName)}`);
     }
   };
 
-  if (!t) return null;
-
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
-      <Card
-        className={cn(
-          "glass-panel hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl",
-          isDragging && "shadow-xl ring-2 ring-primary/30"
-        )}
-        onClick={handleClick}
-        data-testid={`card-list-item-${item.id}`}
-      >
-        <CardContent className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
-          <div className="flex items-start gap-2">
-            <button
-              className="mt-0.5 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground transition-colors touch-none"
-              onClick={(e) => e.stopPropagation()}
-              {...listeners}
-              data-testid={`drag-handle-${item.id}`}
-            >
-              <DotsSixVertical className="h-5 w-5" weight="bold" />
-            </button>
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
-                <p className="text-sm font-medium leading-snug text-foreground group-hover:text-primary transition-colors flex-1 min-w-0">
-                  {text}
-                </p>
-                <div className="flex items-center justify-between sm:justify-end gap-2">
-                  <StatusBadge status={status} size="sm" />
-                  {dueDate && (
-                    <span className={cn("text-xs sm:hidden", isOverdue ? "text-destructive" : "text-muted-foreground")}>
-                      {format(new Date(dueDate), "d MMM")}
-                    </span>
-                  )}
-                </div>
-              </div>
-              {dueDate && (
-                <span className={cn("text-xs hidden sm:block mt-1", isOverdue ? "text-destructive" : "text-muted-foreground")}>
-                  {format(new Date(dueDate), "d MMM yyyy")}
-                  {isOverdue && " (overdue)"}
-                </span>
-              )}
-              {description && (
-                <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-snug">{description}</p>
-              )}
-            </div>
+    <Card
+      className="glass-panel hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl"
+      onClick={handleClick}
+      data-testid={`card-list-item-${item.id}`}
+    >
+      <CardContent className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
+          <p className="text-sm font-medium leading-snug text-foreground group-hover:text-primary transition-colors flex-1 min-w-0">
+            {text}
+          </p>
+          <div className="flex items-center justify-between sm:justify-end gap-2">
+            <StatusBadge status={status} size="sm" />
+            {dueDate && (
+              <span className={cn("text-xs sm:hidden", isOverdue ? "text-destructive" : "text-muted-foreground")}>
+                {format(new Date(dueDate), "d MMM")}
+              </span>
+            )}
           </div>
-        </CardContent>
-        <CardFooter className="pt-0 px-4 pb-4 md:px-6 md:pb-4 text-xs text-muted-foreground flex justify-between items-center">
-          <span className="flex items-center gap-3 flex-wrap">
-            {ownerName && (
-              <span className="flex items-center gap-1">
-                <User className="h-3.5 w-3.5" weight="duotone" />
-                {ownerName}
-              </span>
-            )}
-            {waitingFor && (
-              <span className="flex items-center gap-1 text-amber-500">
-                <Hourglass className="h-3.5 w-3.5" weight="duotone" />
-                {waitingFor}
-              </span>
-            )}
-            {priority && priority !== 'normal' && priority !== 'none' && (
-              <span className={cn("flex items-center gap-1", priorityColor)}>
-                <Flag className="h-3.5 w-3.5" weight="fill" />
-                {priority}
-              </span>
-            )}
+        </div>
+        {dueDate && (
+          <span className={cn("text-xs hidden sm:block mt-1", isOverdue ? "text-destructive" : "text-muted-foreground")}>
+            {format(new Date(dueDate), "d MMM yyyy")}
+            {isOverdue && " (overdue)"}
           </span>
-          <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-primary" weight="bold" />
-        </CardFooter>
-      </Card>
-    </div>
+        )}
+        {r?.description && (
+          <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-snug">{r.description}</p>
+        )}
+      </CardContent>
+      <CardFooter className="pt-0 px-4 pb-4 md:px-6 md:pb-4 text-xs text-muted-foreground flex justify-between items-center">
+        <span className="flex items-center gap-3 flex-wrap">
+          {ownerName && (
+            <span className="flex items-center gap-1">
+              <User className="h-3.5 w-3.5" weight="duotone" />
+              {ownerName}
+            </span>
+          )}
+          {r?.waitingFor && (
+            <span className="flex items-center gap-1 text-amber-500">
+              <Hourglass className="h-3.5 w-3.5" weight="duotone" />
+              {r.waitingFor}
+            </span>
+          )}
+          {priority && priority !== 'normal' && priority !== 'none' && (
+            <span className={cn("flex items-center gap-1", priorityColor)}>
+              <Flag className="h-3.5 w-3.5" weight="fill" />
+              {priority}
+            </span>
+          )}
+        </span>
+        <ArrowRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-primary" weight="bold" />
+      </CardFooter>
+    </Card>
   );
 }
 
@@ -201,11 +154,6 @@ export default function ListPage() {
   const [editName, setEditName] = useState("");
   const [newTaskText, setNewTaskText] = useState("");
   const [isAddingTask, setIsAddingTask] = useState(false);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
 
   const { data: list, isLoading } = useQuery<CustomList>({
     queryKey: ['custom-list', listId],
@@ -260,61 +208,6 @@ export default function ListPage() {
     },
   });
 
-  const reorderMutation = useMutation({
-    mutationFn: async (itemIds: string[]) => {
-      const res = await authenticatedFetch(`/api/lists/${listId}/reorder`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemIds }),
-      });
-      if (!res.ok) throw new Error('Failed to reorder');
-      return res.json();
-    },
-    onError: () => {
-      queryClient.invalidateQueries({ queryKey: ['custom-list', listId] });
-      toast({ title: "Failed to reorder", variant: "destructive" });
-    },
-  });
-
-  const activeItems = useMemo(() => {
-    return list?.items?.filter(i => {
-      const t = i.task;
-      if (!t) return false;
-      return !t.isCompleted && t.status !== 'done' && t.status !== 'completed';
-    }) || [];
-  }, [list?.items]);
-
-  const completedItems = useMemo(() => {
-    return list?.items?.filter(i => {
-      const t = i.task;
-      if (!t) return false;
-      return t.isCompleted || t.status === 'done' || t.status === 'completed';
-    }) || [];
-  }, [list?.items]);
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = activeItems.findIndex(i => i.id === active.id);
-    const newIndex = activeItems.findIndex(i => i.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    const newOrder = arrayMove(activeItems, oldIndex, newIndex);
-
-    queryClient.setQueryData(['custom-list', listId], (old: CustomList | undefined) => {
-      if (!old?.items) return old;
-      const completedIds = new Set(completedItems.map(i => i.id));
-      const reorderedItems = [
-        ...newOrder.map((item, idx) => ({ ...item, position: idx })),
-        ...old.items.filter(i => completedIds.has(i.id)),
-      ];
-      return { ...old, items: reorderedItems };
-    });
-
-    reorderMutation.mutate(newOrder.map(i => i.id));
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-5 pb-6">
@@ -334,6 +227,16 @@ export default function ListPage() {
   }
 
   const IconComp = list.icon ? (LIST_ICON_MAP[list.icon] || ListBullets) : ListBullets;
+  const activeItems = list.items?.filter(i => {
+    if (i.reminder) return !i.reminder.isCompleted;
+    if (i.actionItem) return i.actionItem.status !== 'done' && i.actionItem.status !== 'completed';
+    return false;
+  }) || [];
+  const completedItems = list.items?.filter(i => {
+    if (i.reminder) return i.reminder.isCompleted;
+    if (i.actionItem) return i.actionItem.status === 'done' || i.actionItem.status === 'completed';
+    return false;
+  }) || [];
 
   return (
     <div className="space-y-5 pb-6">
@@ -450,15 +353,20 @@ export default function ListPage() {
           </CardContent>
         </Card>
       ) : (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={activeItems.map(i => i.id)} strategy={verticalListSortingStrategy}>
-            <section className="space-y-2">
-              {activeItems.map((item) => (
-                <SortableTaskCard key={item.id} item={item} listId={list.id} listName={list.name} />
-              ))}
-            </section>
-          </SortableContext>
-        </DndContext>
+        <section className="space-y-2">
+          <AnimatePresence>
+            {activeItems.map((item) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+              >
+                <TaskCard item={item} listId={list.id} listName={list.name} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </section>
       )}
 
       {completedItems.length > 0 && (
@@ -467,7 +375,9 @@ export default function ListPage() {
             Completed ({completedItems.length})
           </h3>
           {completedItems.map((item) => (
-            <SortableTaskCard key={item.id} item={item} listId={list.id} listName={list.name} />
+            <div key={item.id}>
+              <TaskCard item={item} listId={list.id} listName={list.name} />
+            </div>
           ))}
         </section>
       )}
