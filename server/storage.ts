@@ -46,7 +46,7 @@ import {
   type TaskAttachment, type InsertTaskAttachment
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, or, isNull, ilike, gte, lte, inArray, lt, not } from "drizzle-orm";
+import { eq, and, desc, or, isNull, ilike, gte, lte, inArray, lt, not, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -304,6 +304,9 @@ export interface IStorage {
   removeItemByTaskId(taskId: string): Promise<void>;
   removeItemByActionItemId(actionItemId: string): Promise<void>;
   updateListItemPosition(id: string, position: number): Promise<void>;
+  reorderListItems(listId: string, itemIds: string[]): Promise<void>;
+  reorderTasks(taskIds: string[]): Promise<void>;
+  moveItemToList(itemId: string, fromListId: string, toListId: string): Promise<void>;
   
   // Global Tags
   getGlobalTags(userId: string): Promise<GlobalTag[]>;
@@ -1600,6 +1603,37 @@ export class DatabaseStorage implements IStorage {
     await db.update(customListItems)
       .set({ position })
       .where(eq(customListItems.id, id));
+  }
+
+  async reorderListItems(listId: string, itemIds: string[]): Promise<void> {
+    await db.transaction(async (tx) => {
+      for (let i = 0; i < itemIds.length; i++) {
+        await tx.update(customListItems)
+          .set({ position: i })
+          .where(and(eq(customListItems.id, itemIds[i]), eq(customListItems.listId, listId)));
+      }
+    });
+  }
+
+  async reorderTasks(taskIds: string[]): Promise<void> {
+    await db.transaction(async (tx) => {
+      for (let i = 0; i < taskIds.length; i++) {
+        await tx.update(tasks)
+          .set({ position: i })
+          .where(eq(tasks.id, taskIds[i]));
+      }
+    });
+  }
+
+  async moveItemToList(itemId: string, fromListId: string, toListId: string): Promise<void> {
+    const maxPosResult = await db.select({ maxPos: sql<number>`COALESCE(MAX(${customListItems.position}), -1)` })
+      .from(customListItems)
+      .where(eq(customListItems.listId, toListId));
+    const nextPos = (maxPosResult[0]?.maxPos ?? -1) + 1;
+    
+    await db.update(customListItems)
+      .set({ listId: toListId, position: nextPos })
+      .where(and(eq(customListItems.id, itemId), eq(customListItems.listId, fromListId)));
   }
 
   async getCustomListItemsWithDetails(listId: string, userId: string): Promise<(CustomListItem & { reminder?: any; task?: any; actionItem?: any })[]> {

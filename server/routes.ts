@@ -1614,6 +1614,44 @@ Thanks!`,
     res.json({ success: true });
   });
 
+  app.post("/api/lists/:id/reorder", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const list = await storage.getCustomList(req.params.id);
+    if (!list) return res.status(404).json({ error: "List not found" });
+    if (list.userId !== userId) return res.status(403).json({ error: "Access denied" });
+    
+    const { itemIds } = req.body;
+    if (!Array.isArray(itemIds)) return res.status(400).json({ error: "itemIds array required" });
+    
+    await storage.reorderListItems(req.params.id, itemIds);
+    res.json({ success: true });
+  });
+
+  app.post("/api/lists/:id/items/:itemId/move", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const fromList = await storage.getCustomList(req.params.id);
+    if (!fromList) return res.status(404).json({ error: "Source list not found" });
+    if (fromList.userId !== userId) return res.status(403).json({ error: "Access denied" });
+    
+    const { toListId } = req.body;
+    if (!toListId) return res.status(400).json({ error: "toListId required" });
+    
+    const toList = await storage.getCustomList(toListId);
+    if (!toList) return res.status(404).json({ error: "Target list not found" });
+    if (toList.userId !== userId) return res.status(403).json({ error: "Access denied" });
+    
+    await storage.moveItemToList(req.params.itemId, req.params.id, toListId);
+    res.json({ success: true });
+  });
+
+  app.post("/api/tasks/reorder", requireAuth, async (req, res) => {
+    const { taskIds } = req.body;
+    if (!Array.isArray(taskIds)) return res.status(400).json({ error: "taskIds array required" });
+    
+    await storage.reorderTasks(taskIds);
+    res.json({ success: true });
+  });
+
   app.get("/api/reminders/:id/list", requireAuth, async (req, res) => {
     const userId = req.userId!;
     const reminder = await storage.getPersonalReminder(req.params.id);
