@@ -554,7 +554,10 @@ export default function Layout({ children }: LayoutProps) {
       </header>
 
       <main className="flex-1 overflow-auto pb-20 md:pb-0">
-        <div className="container max-w-4xl mx-auto p-4 md:p-8 animate-in fade-in duration-500">
+        <div className={cn(
+          "mx-auto p-4 md:p-8 animate-in fade-in duration-500",
+          location === '/app/calendar' ? "max-w-full" : "container max-w-4xl"
+        )}>
           {children}
         </div>
       </main>
