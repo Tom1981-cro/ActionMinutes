@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut, Sun, Moon, 
   BookOpenText, CaretDown, CaretRight, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X, DotsThree, Trash, Lightning,
-  CheckCircle, Archive,
+  CheckCircle, Archive, MagnifyingGlass,
   House, Briefcase, UsersThree, Heart, GraduationCap, PaintBrush, Flower, Barbell, ChatCircle, UserCircle
 } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
@@ -14,6 +14,7 @@ import { useTheme } from "@/theme/useTheme";
 import { useAuth, authenticatedFetch } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { QuickAdd } from "@/components/quick-add";
+import { SearchModal } from "@/components/search-modal";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -78,8 +79,20 @@ export default function Layout({ children }: LayoutProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<CustomList | null>(null);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const toggleSection = (section: string) => setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   const { data: customLists = [] } = useQuery<CustomList[]>({
     queryKey: ['custom-lists', user.id],
@@ -196,14 +209,24 @@ export default function Layout({ children }: LayoutProps) {
           </span>
         </div>
         <nav className="flex-1 overflow-y-auto flex flex-col gap-px">
-          <button
-            onClick={() => setQuickAddOpen(true)}
-            className="navItem w-full group"
-            data-testid="nav-addaction"
-          >
-            <Lightning className="nav-icon text-primary" weight="fill" />
-            <span className="text-foreground">Add<span className="text-primary font-semibold">Action</span></span>
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setQuickAddOpen(true)}
+              className="navItem flex-1 group"
+              data-testid="nav-addaction"
+            >
+              <Lightning className="nav-icon text-primary" weight="fill" />
+              <span className="text-foreground">Add<span className="text-primary font-semibold">Action</span></span>
+            </button>
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+              data-testid="nav-search"
+              title="Search (Ctrl+F)"
+            >
+              <MagnifyingGlass className="h-4 w-4" weight="bold" />
+            </button>
+          </div>
 
           <div className="pt-3 pb-0.5 px-3 flex items-center justify-between">
             <button onClick={() => toggleSection('actionToDo')} className="flex items-center gap-1 group/hdr">
@@ -583,6 +606,7 @@ export default function Layout({ children }: LayoutProps) {
       </nav>
 
       <QuickAdd isOpen={quickAddOpen} onOpenChange={setQuickAddOpen} />
+      <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
 
       <Dialog open={createDialogOpen} onOpenChange={(open) => { setCreateDialogOpen(open); if (!open) { setNewListName(""); setNewListIcon(null); } }}>
         <DialogContent className="sm:max-w-md">

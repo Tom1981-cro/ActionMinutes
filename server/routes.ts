@@ -2,14 +2,17 @@ import fs from "fs";
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
 import { 
   insertUserSchema, insertMeetingSchema, insertActionItemSchema, 
   insertFollowUpDraftSchema, insertAttendeeSchema, insertDecisionSchema,
   insertRiskSchema, insertClarifyingQuestionSchema,
   insertWorkspaceSchema, insertWorkspaceMemberSchema, insertWorkspaceInviteSchema,
   insertCalendarExportSchema, insertAiAuditLogSchema, insertFeedbackSchema,
+  meetings, personalReminders, notes, transcripts,
   type WorkspaceRole
 } from "@shared/schema";
+import { eq, and, or, desc, ilike, isNull } from "drizzle-orm";
 import { z } from "zod";
 import crypto from "crypto";
 import { getAppConfig, getAppConfigAsync, checkConnectorStatus } from "./config";
@@ -3631,6 +3634,104 @@ Thanks!`,
   app.delete("/api/tags/:id", requireAuth, async (req, res) => {
     await storage.deleteGlobalTag(req.params.id);
     res.json({ success: true });
+  });
+
+  // ==================== GLOBAL SEARCH ROUTE ====================
+  app.get("/api/search", requireAuth, async (req, res) => {
+    const userId = req.userId!;
+    const q = (req.query.q as string || "").trim();
+    if (!q || q.length < 2) {
+      return res.json({ meetings: [], tasks: [], notes: [], transcripts: [] });
+    }
+
+    const searchTerm = `%${q}%`;
+
+    try {
+      const [meetingResults, taskResults, noteResults, transcriptResults] = await Promise.all([
+        db.select({
+          id: meetings.id,
+          title: meetings.title,
+          date: meetings.date,
+          summary: meetings.summary,
+        })
+        .from(meetings)
+        .where(and(
+          eq(meetings.userId, userId),
+          or(
+            ilike(meetings.title, searchTerm),
+            ilike(meetings.rawNotes, searchTerm),
+            ilike(meetings.summary, searchTerm)
+          )
+        ))
+        .orderBy(desc(meetings.date))
+        .limit(8),
+
+        db.select({
+          id: personalReminders.id,
+          text: personalReminders.text,
+          bucket: personalReminders.bucket,
+          dueDate: personalReminders.dueDate,
+          priority: personalReminders.priority,
+          isCompleted: personalReminders.isCompleted,
+        })
+        .from(personalReminders)
+        .where(and(
+          eq(personalReminders.userId, userId),
+          isNull(personalReminders.deletedAt),
+          or(
+            ilike(personalReminders.text, searchTerm),
+            ilike(personalReminders.notes, searchTerm),
+            ilike(personalReminders.description, searchTerm)
+          )
+        ))
+        .orderBy(desc(personalReminders.createdAt))
+        .limit(8),
+
+        db.select({
+          id: notes.id,
+          title: notes.title,
+          isJournal: notes.isJournal,
+          createdAt: notes.createdAt,
+        })
+        .from(notes)
+        .where(and(
+          eq(notes.userId, userId),
+          or(
+            ilike(notes.title, searchTerm),
+            ilike(notes.contentPlaintext, searchTerm)
+          )
+        ))
+        .orderBy(desc(notes.createdAt))
+        .limit(8),
+
+        db.select({
+          id: transcripts.id,
+          title: transcripts.title,
+          meetingId: transcripts.meetingId,
+          createdAt: transcripts.createdAt,
+        })
+        .from(transcripts)
+        .where(and(
+          eq(transcripts.userId, userId),
+          or(
+            ilike(transcripts.title, searchTerm),
+            ilike(transcripts.text, searchTerm)
+          )
+        ))
+        .orderBy(desc(transcripts.createdAt))
+        .limit(8),
+      ]);
+
+      res.json({
+        meetings: meetingResults,
+        tasks: taskResults,
+        notes: noteResults,
+        transcripts: transcriptResults,
+      });
+    } catch (error) {
+      console.error("[search] Error:", error);
+      res.status(500).json({ error: "Search failed" });
+    }
   });
 
   // ==================== USER LOCATIONS ROUTES ====================
