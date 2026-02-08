@@ -17,7 +17,7 @@ interface ActionedData {
 
 function ActionedCard({ item, type }: { item: any; type: 'task' | 'reminder' }) {
   const [, navigate] = useLocation();
-  const title = item.title || item.text;
+  const title = type === 'task' ? item.title : item.text;
   const completedDate = item.completedAt ? new Date(item.completedAt) : null;
 
   const priorityColor = item.priority === 'high' || item.priority === 'urgent' ? 'text-red-500' :

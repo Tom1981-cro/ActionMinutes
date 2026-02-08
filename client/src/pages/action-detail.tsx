@@ -201,7 +201,7 @@ export default function ActionDetailPage() {
 
   useEffect(() => {
     if (item) {
-      setText(item.title || item.text || "");
+      setText(item.text || "");
       setDescription(item.description || "");
       setOwnerName(item.ownerName || "");
       setOwnerEmail(item.ownerEmail || "");
@@ -463,7 +463,7 @@ export default function ActionDetailPage() {
         </div>
       </div>
       <h1 className="text-base font-bold tracking-tight text-foreground leading-snug" data-testid="text-task-title">
-        {text || item.title || item.text || "Untitled task"}
+        {text || item.text || "Untitled task"}
       </h1>
       <div className="flex gap-2 flex-wrap items-center" data-testid="status-buttons">
         {STATUSES.map((s) => (

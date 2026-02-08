@@ -143,7 +143,7 @@ export function generateVoiceResponse(command: VoiceCommand, success: boolean, d
         return "No action items were found in this transcript.";
       }
       const taskCount = data.tasks.length;
-      return `There are ${taskCount} action items. ${data.tasks.slice(0, 3).map((t: any, i: number) => `${i + 1}: ${t.text || t.title}`).join(". ")}`;
+      return `There are ${taskCount} action items. ${data.tasks.slice(0, 3).map((t: any, i: number) => `${i + 1}: ${t.text}`).join(". ")}`;
     
     case "list_decisions":
       if (!data?.decisions?.length) {

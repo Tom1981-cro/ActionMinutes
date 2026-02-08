@@ -35,7 +35,7 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
 
   useEffect(() => {
     if (item && open) {
-      setText(item.title || item.text || "");
+      setText(item.text || "");
       setOwnerName(item.ownerName || "");
       setOwnerEmail(item.ownerEmail || "");
       setDueDate(item.dueDate ? format(new Date(item.dueDate), "yyyy-MM-dd") : "");

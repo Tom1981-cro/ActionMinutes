@@ -104,7 +104,7 @@ Rules:
 function getDraftPrompt(
   meetingTitle: string,
   summary: string,
-  actionItems: { text?: string; title?: string; ownerName?: string }[],
+  actionItems: { text: string; ownerName?: string }[],
   decisions: { text: string }[],
   owners: string[],
   userTone: string
@@ -118,7 +118,7 @@ DECISIONS:
 ${decisions.map(d => `- ${d.text}`).join("\n")}
 
 ACTION ITEMS:
-${actionItems.map(a => `- ${a.text || a.title} (Owner: ${a.ownerName || "Unassigned"})`).join("\n")}
+${actionItems.map(a => `- ${a.text} (Owner: ${a.ownerName || "Unassigned"})`).join("\n")}
 
 Generate these drafts:
 1. One GROUP email to all attendees summarizing the meeting
@@ -204,7 +204,7 @@ export function generateMockExtraction(rawNotes: string): ExtractionOutput {
 export function generateMockDrafts(
   meetingTitle: string,
   summary: string,
-  actionItems: { text?: string; title?: string; ownerName?: string }[],
+  actionItems: { text: string; ownerName?: string }[],
   owners: string[]
 ): DraftOutput {
   const drafts: DraftOutput["drafts"] = [];
@@ -212,7 +212,7 @@ export function generateMockDrafts(
   drafts.push({
     type: "group",
     subject: `Follow-up: ${meetingTitle}`,
-    body: `Hi team,\n\nThank you for attending today's meeting.\n\n${summary}\n\nKey action items:\n${actionItems.slice(0, 3).map(a => `- ${a.text || a.title}`).join("\n")}\n\nPlease let me know if you have any questions.\n\nBest regards`,
+    body: `Hi team,\n\nThank you for attending today's meeting.\n\n${summary}\n\nKey action items:\n${actionItems.slice(0, 3).map(a => `- ${a.text}`).join("\n")}\n\nPlease let me know if you have any questions.\n\nBest regards`,
   });
 
   for (const owner of owners) {
@@ -222,7 +222,7 @@ export function generateMockDrafts(
         type: "individual",
         recipientName: owner,
         subject: `Your Action Items from ${meetingTitle}`,
-        body: `Hi ${owner},\n\nFollowing our meeting, here are your action items:\n\n${ownerActions.map(a => `- ${a.text || a.title}`).join("\n")}\n\nPlease reach out if you need any clarification.\n\nThanks`,
+        body: `Hi ${owner},\n\nFollowing our meeting, here are your action items:\n\n${ownerActions.map(a => `- ${a.text}`).join("\n")}\n\nPlease reach out if you need any clarification.\n\nThanks`,
       });
     }
   }
