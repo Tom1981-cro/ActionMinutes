@@ -1,0 +1,128 @@
+Goal: Migrate to a single tasks table schema that includes fields from action_items, personal_reminders, and project tasks, then update backend and frontend to use this unified model.
+
+Prompt Instructions:
+
+Database Schema Migration: Using Drizzle ORM, define a new tasks table with all necessary columns:
+
+id – Primary key (integer).
+
+userId – Foreign key to users table.
+
+workspaceId – Nullable FK (if tasks can belong to a workspace; use NULL for personal tasks).
+
+title – Text for task title.
+
+description – Text for task details/notes.
+
+dueDate – Date/DateTime for deadline (nullable).
+
+completedAt – DateTime when task was completed (nullable).
+
+deletedAt – DateTime when task was soft-deleted (nullable).
+
+status – Enum or text for status (e.g. "open", "done", etc.).
+
+priority – Integer or enum for priority level.
+
+repeat – Text/enum for recurrence pattern (e.g. none, daily, weekly, monthly).
+
+sourceType – Enum (values: "meeting", "personal", "project"), indicates origin of the task.
+
+sourceId – Nullable FK: if sourceType="meeting", this references a meetingId (action item origin); if "project", references a projectId; if "personal", likely NULL.
+
+confidence – Nullable float or int (AI extraction confidence from meetings).
+
+ownerId – User ID of the task’s owner or assignee (may be same as userId or different if assigning tasks).
+
+Timestamps: createdAt and updatedAt for record keeping.
+
+Use Drizzle’s schema definition to create this table. Ensure sourceType is implemented as a database enum type if supported (e.g. using pgEnum in Drizzle for PostgreSQL) so that values are constrained. Also add foreign key constraints for sourceId referencing the meetings or projects table as appropriate (you may need to allow it to reference either, or handle logic in code since a single FK can’t reference two tables – alternatively, keep it a nullable field without an FK constraint and rely on sourceType to interpret it).
+
+Data Migration Script: Write a custom migration or script to copy all existing records from the old tables into the new tasks table. (Drizzle allows custom migration steps for data.) The migration should:
+
+Copy Action Items: For each record in action_items, insert a new row in tasks with the same id (if possible), userId, workspaceId (if applicable), title/description, due date, etc. Set sourceType = "meeting", sourceId = meetingId from the action item, and copy over the confidence value.
+
+Copy Personal Reminders: For each record in personal_reminders, insert into tasks with corresponding fields. Use sourceType = "personal" and set sourceId = NULL. If personal_reminders had any unique fields (e.g. maybe a simple reminderDate), map them to dueDate or repeat as appropriate.
+
+Copy Project Tasks: For each record in the existing tasks table (the old project-specific tasks), insert into the new table. Use sourceType = "project", and set sourceId = projectId (assuming the old tasks had a projectId field).
+
+Preserve IDs: If possible, keep the same primary id values for each task during insertion so that references from other tables remain valid. This might require temporarily disabling auto-increment or using database-specific strategies (for example, enabling identity insert in SQL Server, or in Postgres using SET session_replication_role = replica to allow manual IDs, or manually setting the sequence value). By preserving IDs, you avoid breaking foreign key links. If ID conflicts occur (e.g., if the different tables had overlapping ID ranges), resolve by offsetting IDs for one source or by recording a mapping. For instance, ensure all new id values are unique – you could add an offset to one category (e.g., add 100000 to personal reminders IDs) if needed to avoid collision. If preserving exact IDs is not feasible, store the old ID and source in temporary columns or a mapping table to update references in the next step.
+
+Update Related References (Attachments/Tags): If there are other tables referencing the old task IDs (for example, an attachments table or a tags table linking to personal_reminders or action_items), update them to reference the new unified tasks. This may involve:
+
+Adding a taskId column in those tables to replace older foreign keys.
+
+Running migration queries to set taskId based on the old ID and type (using the mapping from step 2 if IDs were changed).
+
+Dropping the old foreign key columns (e.g., if attachments had personalReminderId or actionItemId columns).
+Ensure that after migration, attachments, tags, and other related records point to the correct tasks.id so that no functionality is lost. This is critical for maintaining continuity of data (all existing file attachments, tags, etc., must still be associated with the correct unified task).
+
+Backend API Updates: Refactor the backend to use the new tasks table for all task operations. This includes:
+
+Endpoints: Unify any separate API endpoints into a single set of task endpoints (for example, replace /api/personal/reminders, /api/actions (action items), and /api/tasks (project tasks) with a consolidated /api/tasks endpoint). Ensure this unified endpoint can filter or group tasks by sourceType if needed (e.g., query params like ?sourceType=personal to get only personal tasks, etc.).
+
+Services/Controllers: Update service layer logic that was previously branching based on task type. For example, if there were separate functions or services for each type (like createActionItem, createReminder, etc.), consolidate them into a single createTask logic that takes sourceType into account. Use the sourceType and sourceId fields to handle any type-specific behavior. For instance, if sourceType = "meeting", you might ensure sourceId (meetingId) is provided and link any AI extraction specifics; if sourceType = "project", ensure sourceId corresponds to an existing project; if personal, no additional link is needed.
+
+Data Models: Adjust any ORM models or TypeScript types to match the new schema. Remove or refactor the old models (ActionItem, PersonalReminder, etc.) into one unified Task model interface. Make sure all fields (including those that were exclusive to one type, like confidence for meeting tasks) are present in the new model so nothing is lost.
+
+Frontend Logic Updates: Update the frontend code to fetch and manage tasks from the unified API. Key changes:
+
+Single Fetch: Replace any multiple fetch calls (e.g., fetching personal reminders from one endpoint and project tasks from another) with a single call to the unified /api/tasks. The frontend should retrieve all tasks (or relevant filtered tasks) in one go.
+
+Task Lists and Filters: Adjust components that display tasks (Inbox, project task lists, personal task lists, meeting action items lists, etc.) to use the unified data structure. For example, if previously the Inbox combined action_items and personal_reminders, it can now directly show all tasks where sourceType is personal or meeting (or any criteria needed) from the single source. Use filtering on sourceType or other fields in the front-end as needed rather than relying on separate lists.
+
+Task Detail Views: Ensure that viewing a task’s details works regardless of its source. Since all tasks have a common structure, the detail view component can be unified. If there were conditional displays (like showing confidence or meeting info only for action items), update the component to handle those fields when present (e.g., if task.sourceType === 'meeting', show the meeting context or confidence score).
+
+Creating/Editing Tasks: Update any forms or modals for adding/editing tasks. These should now hit the unified endpoint and include sourceType (and sourceId if needed) in the payload. For instance, a “Add Personal Reminder” form would actually create a task with sourceType = personal, and a “Add Project Task” form would set sourceType = project and include the project’s id. The UI can remain largely the same, but under the hood it’s calling the unified API.
+
+Deprecate Redundant Code: Identify and phase out any backend routes, database tables, or logic that are now obsolete:
+
+Remove or deprecate the old API endpoints (/api/personal/reminders, etc.) by returning a deprecation message or proxying them to the new /api/tasks for a transitional period. Mark them as deprecated in documentation.
+
+Deprecate old data models and types. For example, if you had a PersonalReminder type, replace its usage with the new Task type. Eliminate any checks like “if item is a reminder vs task” – such conditionals should no longer be needed once everything is a unified Task.
+
+If the old tables (action_items, personal_reminders) are no longer used after migration, plan to drop them in a future migration. (Do not drop immediately in the same migration that copies data; ensure everything works with the new table first, possibly after the parallel run period.)
+
+Task Recurrence, Attachments, Tags, Custom Lists: Ensure that all auxiliary features continue to function with the unified model:
+
+Recurrence: The repeat field in the new tasks table should drive recurring task logic. Verify that any scheduled job or trigger that creates new occurrences of recurring tasks looks at the unified tasks now. (We will update the recurrence feature prompt separately, but make sure the data is in place: e.g. tasks with repeat !== 'none' are recognized.)
+
+Attachments: After migrating attachments to reference taskId, verify file uploads/downloads still link to the correct task. The attachment UI should fetch by unified task ID.
+
+Tags: If tags were associated with tasks or reminders, unify their reference. All tags should now link via a taskId. Test that adding/removing tags on a task works no matter the sourceType.
+
+Custom Lists: The custom_list_items table (or similar) that links tasks to user-defined lists should now use the unified taskId. Update this schema if needed (e.g., replace any old reminderId/taskId fields with a single taskId). Migrate existing list entries: for example, if a custom list item previously stored a personal_reminder’s ID, it should now store the new unified task’s ID for that reminder. Update any logic that queries custom lists to join with the unified tasks table.
+
+Unified Task Interface (Shared Schema): In the codebase (likely in a shared types or schema file, e.g. shared/schema.ts), define a single Task TypeScript interface or Zod schema that represents the unified task model. Include all the fields listed above (id, title, dueDate, etc., including new ones like sourceType, sourceId, confidence). Replace usages of older interfaces with this new Task where appropriate. This ensures frontend and backend code use a consistent view of task objects. Having a shared Task type will also aid the AI and developers in treating tasks uniformly.
+
+Testing All Workflows: After making these changes, thoroughly test every major task workflow to catch any regressions:
+
+Task Creation: Create tasks of each type (personal, meeting action item via AI extraction, project task) and verify they save correctly to the unified table and appear in the UI. For AI-extracted meeting tasks, confirm confidence and meeting links are stored properly (sourceId and sourceType="meeting").
+
+Editing/Updating: Edit titles, descriptions, due dates, etc., for tasks and ensure changes persist and show for all types.
+
+Completing Tasks: Mark tasks as complete and ensure completedAt is set. Verify completed tasks maybe move to a done list or hide as before.
+
+Deleting Tasks: Delete (soft delete) tasks and ensure deletedAt is set and they disappear from active lists. Check that restoring or permanently deleting works if those features exist.
+
+Recurring Tasks: Create a task with a repeat schedule (e.g. daily) and confirm that the recurrence logic (e.g. auto-generation of the next occurrence) still functions (this will be handled by updated recurrence code – see the recurring tasks prompt).
+
+Attachments & Tags: Attach a file to a task and add a tag; ensure they are retrievable and correctly linked via the new task ID.
+
+Custom Lists: Add tasks to a custom list, move tasks between lists if that’s a feature, and ensure the list displays correctly using the unified tasks.
+
+Meeting Integration: Run a meeting through the AI pipeline to extract action items. Ensure those items are created in the unified tasks table with the correct meeting sourceId and show up in the meeting’s context in the UI.
+
+Search/Filtering: If the app supports searching tasks or filtering by project/meeting, test that those still work using the new schema (likely adjustments to queries using sourceType and sourceId).
+
+Deployment and Parallel Run: Adopt a safe rollout strategy for this major change. Deploy the new unified model in parallel with the old system for a short transition period. For example:
+
+Deploy the new code and keep the old API endpoints functional (they can internally read/write from the new tasks table if possible, or use the old tables synchronized with the new one). Mark the old APIs as deprecated in responses or logs.
+
+Run a parallel system for about one week: both old and new APIs operate, and data is kept in sync. This can be achieved by writing to both the old and new tables on any change during the interim, or simply by relying on the migrated data if no writes are expected to old tables. The goal is to ensure no data loss and allow quick rollback if a critical issue arises.
+
+After confidence that the unified model works in production (all tasks appear correctly, no issues from users), finalize the switch: update the frontend to exclusively use new /api/tasks endpoints (if it wasn’t already), and stop writing to old tables.
+
+Finally, remove old tables and code in a cleanup migration after the transition period.
+
+By following these steps, the ActionMinutes app will have a robust Unified Task Model. This simplifies maintenance (one table and codepath for all tasks) and aligns with relational design best practices (distinguishing task types by data instead of separate structures). The unified model will support all existing features (AI meeting tasks, personal reminders, project tasks) under one schema, making future enhancements (like reporting, cross-task views) much easier.
