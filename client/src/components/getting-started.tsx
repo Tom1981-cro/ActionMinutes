@@ -8,7 +8,7 @@ import {
 } from "@phosphor-icons/react";
 import { Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "@/lib/motion-shim";
 
 interface GettingStartedStep {
   id: string;

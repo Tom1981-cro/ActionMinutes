@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "@/lib/motion-shim";
 import { useState, useEffect } from "react";
 import { 
   Brain, BookOpen, ArrowRight, Sparkle, Bell, Calendar, NotePencil, ListBullets,
