@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authenticatedFetch } from "@/hooks/use-auth";
 import { useStore } from "@/lib/store";
 import { useActionItems } from "@/lib/hooks";
@@ -98,40 +98,24 @@ export default function InboxPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [modalItem, setModalItem] = useState<UnifiedItem | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data: actionItems = [], isLoading: actionsLoading } = useActionItems();
-  const { data: reminders = [], isLoading: remindersLoading } = useQuery({
-    queryKey: ["reminders", user.id],
-    queryFn: async () => {
-      const response = await authenticatedFetch(`/api/personal/reminders?userId=${user.id}`);
-      if (!response.ok) throw new Error("Failed to fetch reminders");
-      return response.json();
-    },
-    enabled: !!user.id,
-  });
 
-  const isLoading = actionsLoading || remindersLoading;
+  const isLoading = actionsLoading;
 
   const invalidateAll = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["reminders", user.id] });
     queryClient.invalidateQueries({ queryKey: ["actions", user.id] });
+    queryClient.invalidateQueries({ queryKey: ["actions"] });
   }, [queryClient, user.id]);
 
   const completeMutation = useMutation({
     mutationFn: async (item: UnifiedItem) => {
-      if (item.source === "meeting") {
-        await authenticatedFetch(`/api/actions/${item.realId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "done" }),
-        });
-      } else {
-        await authenticatedFetch(`/api/personal/reminders/${item.realId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isCompleted: true, userId: user.id }),
-        });
-      }
+      await authenticatedFetch(`/api/actions/${item.realId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "done" }),
+      });
     },
     onSuccess: () => {
       invalidateAll();
@@ -142,19 +126,11 @@ export default function InboxPage() {
   const snoozeMutation = useMutation({
     mutationFn: async (item: UnifiedItem) => {
       const tomorrow = addDays(new Date(), 1);
-      if (item.source === "meeting") {
-        await authenticatedFetch(`/api/actions/${item.realId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dueDate: tomorrow.toISOString() }),
-        });
-      } else {
-        await authenticatedFetch(`/api/personal/reminders/${item.realId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dueDate: tomorrow.toISOString(), userId: user.id }),
-        });
-      }
+      await authenticatedFetch(`/api/actions/${item.realId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dueDate: tomorrow.toISOString() }),
+      });
     },
     onSuccess: () => {
       invalidateAll();
@@ -164,11 +140,7 @@ export default function InboxPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (item: UnifiedItem) => {
-      if (item.source === "meeting") {
-        await authenticatedFetch(`/api/actions/${item.realId}`, { method: "DELETE" });
-      } else {
-        await authenticatedFetch(`/api/personal/reminders/${item.realId}?userId=${user.id}`, { method: "DELETE" });
-      }
+      await authenticatedFetch(`/api/actions/${item.realId}`, { method: "DELETE" });
     },
     onSuccess: () => {
       invalidateAll();
@@ -177,41 +149,26 @@ export default function InboxPage() {
   });
 
   const unifiedItems: UnifiedItem[] = useMemo(() => [
-    ...actionItems.map((item: any) => ({
-      id: item.id,
-      realId: item.id,
-      text: item.text,
-      dueDate: item.dueDate,
-      ownerName: item.ownerName,
-      status: item.status,
-      source: 'meeting' as const,
-      confidenceOwner: item.confidenceOwner,
-      confidenceDueDate: item.confidenceDueDate,
-      waitingFor: item.waitingFor,
-      priority: item.priority,
-      notes: item.notes,
-      description: item.notes,
-      createdAt: item.createdAt || null,
-      estimatedMinutes: item.estimatedMinutes,
-    })),
-    ...reminders
-      .filter((r: any) => !r.isCompleted && r.status !== 'done')
+    ...actionItems
+      .filter((item: any) => !['done', 'completed'].includes(item.status) && !item.deletedAt)
       .map((item: any) => ({
-        id: `reminder-${item.id}`,
+        id: item.id,
         realId: item.id,
         text: item.text,
         dueDate: item.dueDate,
-        ownerName: user.name,
-        status: item.status || 'open',
-        source: 'quickadd' as const,
+        ownerName: item.ownerName,
+        status: item.status,
+        source: (item.source === 'quickadd' ? 'quickadd' : 'meeting') as 'meeting' | 'quickadd',
+        confidenceOwner: item.confidenceOwner,
+        confidenceDueDate: item.confidenceDueDate,
         waitingFor: item.waitingFor,
         priority: item.priority,
         notes: item.notes,
-        description: item.description,
+        description: item.notes,
         createdAt: item.createdAt || null,
-        estimatedMinutes: item.estimatedMinutes ?? 30,
+        estimatedMinutes: item.estimatedMinutes,
       })),
-  ], [actionItems, reminders, user.name]);
+  ], [actionItems]);
 
   const filteredItems = useMemo(() => {
     let items = unifiedItems;
@@ -220,6 +177,8 @@ export default function InboxPage() {
     if (filter === "snoozed") items = items.filter(i => i.status === "waiting");
     return items;
   }, [unifiedItems, filter, user.name]);
+
+  const PAGE_SIZE = 10;
 
   const sortedItems = useMemo(() => {
     return [...filteredItems].sort((a, b) => {
@@ -235,19 +194,29 @@ export default function InboxPage() {
     });
   }, [filteredItems]);
 
+  const totalPages = Math.ceil(sortedItems.length / PAGE_SIZE);
+  const paginatedItems = sortedItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const paginatedFilteredItems = useMemo(() => {
+    return filteredItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  }, [filteredItems, currentPage]);
+
+  const smartGroupTotalPages = Math.ceil(filteredItems.length / PAGE_SIZE);
+
   const smartGroups = useMemo(() => {
+    const paginated = filteredItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
     const assigned = new Set<string>();
     const groups: Record<string, UnifiedItem[]> = {};
     SMART_GROUPS.forEach(g => { groups[g.key] = []; });
 
-    for (const item of filteredItems) {
+    for (const item of paginated) {
       if (assigned.has(item.id)) continue;
       const group = classifyItem(item);
       groups[group].push(item);
       assigned.add(item.id);
     }
     return groups;
-  }, [filteredItems]);
+  }, [filteredItems, currentPage]);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds(prev => {
@@ -357,7 +326,7 @@ export default function InboxPage() {
           return (
             <button
               key={f}
-              onClick={() => setFilter(f)}
+              onClick={() => { setFilter(f); setCurrentPage(1); }}
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-medium transition-colors",
                 filter === f
@@ -377,19 +346,48 @@ export default function InboxPage() {
           {sortedItems.length === 0 ? (
             <EmptyInbox />
           ) : (
-            sortedItems.map(item => (
-              <ItemCard
-                key={item.id}
-                item={item}
-                selected={selectedIds.has(item.id)}
-                hasSelection={hasSelection}
-                onToggleSelect={toggleSelect}
-                onClick={handleItemClick}
-                onComplete={i => completeMutation.mutate(i)}
-                onSnooze={i => snoozeMutation.mutate(i)}
-                onDelete={i => deleteMutation.mutate(i)}
-              />
-            ))
+            <>
+              {paginatedItems.map(item => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  selected={selectedIds.has(item.id)}
+                  hasSelection={hasSelection}
+                  onToggleSelect={toggleSelect}
+                  onClick={handleItemClick}
+                  onComplete={i => completeMutation.mutate(i)}
+                  onSnooze={i => snoozeMutation.mutate(i)}
+                  onDelete={i => deleteMutation.mutate(i)}
+                />
+              ))}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="h-8 rounded-lg text-xs"
+                    data-testid="pagination-prev"
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="h-8 rounded-lg text-xs"
+                    data-testid="pagination-next"
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
       ) : (
@@ -431,7 +429,6 @@ export default function InboxPage() {
                         onComplete={i => completeMutation.mutate(i)}
                         onSnooze={i => snoozeMutation.mutate(i)}
                         onDelete={i => deleteMutation.mutate(i)}
-                        categoryBadge={group}
                       />
                     ))}
                   </div>
@@ -440,6 +437,33 @@ export default function InboxPage() {
             );
           })}
           {filteredItems.length === 0 && <EmptyInbox />}
+          {smartGroupTotalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="h-8 rounded-lg text-xs"
+                data-testid="pagination-prev"
+              >
+                Previous
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Page {currentPage} of {smartGroupTotalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(smartGroupTotalPages, p + 1))}
+                disabled={currentPage === smartGroupTotalPages}
+                className="h-8 rounded-lg text-xs"
+                data-testid="pagination-next"
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
@@ -477,11 +501,6 @@ export default function InboxPage() {
           onClose={() => setModalItem(null)}
           itemId={modalItem.realId}
           itemType={modalItem.source === "meeting" ? "meeting" : "reminder"}
-          categoryLabel={(() => {
-            const cat = classifyItem(modalItem);
-            const group = SMART_GROUPS.find(g => g.key === cat);
-            return group?.label;
-          })()}
         />
       )}
     </div>
@@ -511,12 +530,11 @@ interface ItemCardProps {
   onComplete: (item: UnifiedItem) => void;
   onSnooze: (item: UnifiedItem) => void;
   onDelete: (item: UnifiedItem) => void;
-  categoryBadge?: SmartGroup;
 }
 
 function ItemCard({
   item, selected, hasSelection, onToggleSelect, onClick,
-  onComplete, onSnooze, onDelete, categoryBadge
+  onComplete, onSnooze, onDelete
 }: ItemCardProps) {
   const itemOverdue = isOverdue(item.dueDate);
   const unread = isUnread(item.createdAt);
@@ -567,11 +585,6 @@ function ItemCard({
             {item.priority === "high" && (
               <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium bg-red-500/15 text-red-600 border-red-500/25 dark:text-red-400">
                 High Priority
-              </span>
-            )}
-            {categoryBadge && (
-              <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium", categoryBadge.badgeColor)}>
-                {categoryBadge.label}
               </span>
             )}
           </div>

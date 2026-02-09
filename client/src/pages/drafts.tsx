@@ -10,6 +10,8 @@ import { EnvelopeSimple, Copy, PaperPlaneTilt, SpinnerGap, Check, CaretDown, Car
 import { useToast } from "@/hooks/use-toast";
 import { useDrafts, useUpdateDraft, useIntegrations, useCreateGmailDraft, useCreateOutlookDraft } from "@/lib/hooks";
 
+const PAGE_SIZE = 10;
+
 export default function DraftsPage() {
   const { data: drafts = [], isLoading } = useDrafts();
   const { data: integrations } = useIntegrations();
@@ -19,6 +21,10 @@ export default function DraftsPage() {
   const { toast } = useToast();
   const [activeDraftIndex, setActiveDraftIndex] = useState(0);
   const [copiedType, setCopiedType] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(drafts.length / PAGE_SIZE);
+  const paginatedDrafts = drafts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const handleCopyBody = (body: string, draftId: string) => {
     navigator.clipboard.writeText(body);
@@ -193,7 +199,7 @@ export default function DraftsPage() {
           </div>
 
           <div className="hidden md:grid gap-5">
-            {drafts.map((draft: any) => (
+            {paginatedDrafts.map((draft: any) => (
               <Card key={draft.id} className="glass-panel rounded-2xl overflow-hidden" data-testid={`card-draft-${draft.id}`}>
                 <CardHeader className="bg-muted pb-4 border-b border-border space-y-4 px-6 pt-5">
                   <div className="grid md:grid-cols-2 gap-4">
@@ -311,6 +317,33 @@ export default function DraftsPage() {
                 </div>
               </Card>
             ))}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="h-8 rounded-lg text-xs"
+                  data-testid="pagination-prev"
+                >
+                  Previous
+                </Button>
+                <span className="text-xs text-muted-foreground">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="h-8 rounded-lg text-xs"
+                  data-testid="pagination-next"
+                >
+                  Next
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

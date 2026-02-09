@@ -1,5 +1,7 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   ArrowRight, User, Flag, CheckCircle
 } from "@phosphor-icons/react";
@@ -76,8 +78,11 @@ function ActionedCard({ item, type }: { item: any; type: 'task' | 'reminder' }) 
   );
 }
 
+const PAGE_SIZE = 10;
+
 export default function ActionedPage() {
   const { user } = useStore();
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data, isLoading } = useQuery<ActionedData>({
     queryKey: ["actioned", user.id],
@@ -97,6 +102,9 @@ export default function ActionedPage() {
     const bDate = b.completedAt ? new Date(b.completedAt).getTime() : 0;
     return bDate - aDate;
   });
+
+  const totalPages = Math.ceil(allItems.length / PAGE_SIZE);
+  const paginatedItems = allItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div className="space-y-6">
@@ -118,9 +126,36 @@ export default function ActionedPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {allItems.map((item) => (
+          {paginatedItems.map((item) => (
             <ActionedCard key={`${item._type}-${item.id}`} item={item} type={item._type} />
           ))}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="h-8 rounded-lg text-xs"
+                data-testid="pagination-prev"
+              >
+                Previous
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="h-8 rounded-lg text-xs"
+                data-testid="pagination-next"
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

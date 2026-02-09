@@ -11,10 +11,16 @@ import { EmptyState } from "@/components/empty-state";
 import { SkeletonList } from "@/components/skeleton-loader";
 import { SAMPLE_MEETINGS, isDemoMode, enableDemoMode, disableDemoMode } from "@/lib/sample-data";
 
+const PAGE_SIZE = 10;
+
 export default function MeetingsPage() {
   const { data: meetings = [], isLoading } = useMeetings();
   const [, navigate] = useLocation();
   const [showDemo, setShowDemo] = useState(isDemoMode());
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(meetings.length / PAGE_SIZE);
+  const paginatedMeetings = meetings.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   if (isLoading) {
     return (
@@ -129,7 +135,7 @@ export default function MeetingsPage() {
           </>
         )}
         
-        {meetings.map((meeting: any) => (
+        {paginatedMeetings.map((meeting: any) => (
           <Link key={meeting.id} href={meeting.parseState === 'draft' ? `/app/capture?id=${meeting.id}` : `/app/meeting/${meeting.id}`}>
             <Card className="glass-panel hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl" data-testid={`card-meeting-${meeting.id}`}>
               <CardHeader className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
@@ -174,6 +180,33 @@ export default function MeetingsPage() {
             </Card>
           </Link>
         ))}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-3 pt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="h-8 rounded-lg text-xs"
+              data-testid="pagination-prev"
+            >
+              Previous
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="h-8 rounded-lg text-xs"
+              data-testid="pagination-next"
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

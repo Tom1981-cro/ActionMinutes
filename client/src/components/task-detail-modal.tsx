@@ -70,10 +70,9 @@ interface TaskDetailModalProps {
   onClose: () => void;
   itemId: string;
   itemType: "meeting" | "reminder";
-  categoryLabel?: string;
 }
 
-export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel }: TaskDetailModalProps) {
+export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailModalProps) {
   const { user } = useStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -110,6 +109,9 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showDeadlinePicker, setShowDeadlinePicker] = useState(false);
   const [listDropdownOpen, setListDropdownOpen] = useState(false);
+  const [newTagInput, setNewTagInput] = useState("");
+  const [customReminderDate, setCustomReminderDate] = useState("");
+  const [customReminderTime, setCustomReminderTime] = useState("09:00");
 
   const { data: item, isLoading } = useQuery({
     queryKey: [itemType === "meeting" ? "action" : "reminder", itemId],
@@ -238,12 +240,24 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
       setRecurrence(item.recurrence || null);
       setWaitingFor(item.waitingFor || "");
 
+      if (item.reminderAt) {
+        const ra = new Date(item.reminderAt);
+        setCustomReminderDate(format(ra, "yyyy-MM-dd"));
+        setCustomReminderTime(format(ra, "HH:mm"));
+      }
+
       const existingSubtasks = parseSubtasks(item.description || item.notes || "");
       if (existingSubtasks.length > 0) {
         setSubtasks(existingSubtasks);
       }
     }
   }, [item]);
+
+  useEffect(() => {
+    if (reminder === "custom") {
+      setShowCustomReminderPicker(true);
+    }
+  }, [reminder]);
 
   const parseSubtasks = (text: string): Subtask[] => {
     const lines = text.split("\n");
@@ -335,6 +349,9 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
     try {
       const finalDueDate = combineDateTime(dueDate, dueTime);
       const finalDeadline = deadline;
+      const computedReminderAt = reminder === "custom" && customReminderDate
+        ? new Date(`${customReminderDate}T${customReminderTime || "09:00"}:00`).toISOString()
+        : reminderAt?.toISOString() || null;
 
       if (itemType === "meeting") {
         await api.actions.update(itemId, {
@@ -343,7 +360,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
           ownerEmail: ownerEmail || null,
           dueDate: finalDueDate?.toISOString() || null,
           status,
-          reminderAt: reminderAt?.toISOString() || null,
+          reminderAt: computedReminderAt,
           notes: description || notes || null,
           tags,
           confidenceOwner: 1,
@@ -360,7 +377,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
             deadline: finalDeadline?.toISOString() || null,
             status,
             priority: priority === "none" ? "normal" : priority,
-            reminderAt: reminderAt?.toISOString() || null,
+            reminderAt: computedReminderAt,
             reminderMode: reminder || null,
             notes: notes || null,
             tags,
@@ -510,15 +527,60 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
       >
         <div className="flex items-center justify-between px-6 pt-4 pb-3 border-b border-border flex-shrink-0">
           <div className="flex items-center gap-2">
+            <Popover open={listDropdownOpen} onOpenChange={setListDropdownOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className={cn(
+                    "flex items-center gap-1.5 h-7 px-2.5 rounded-lg border text-[11px] transition-colors",
+                    currentListId ? "bg-primary/10 border-primary/30 text-primary" : "border-border text-muted-foreground hover:bg-accent"
+                  )}
+                  data-testid="button-list-picker"
+                >
+                  {currentListId ? (
+                    <ListBullets className="h-3.5 w-3.5" />
+                  ) : (
+                    <Tray className="h-3.5 w-3.5" />
+                  )}
+                  <span className="truncate max-w-[120px]">{currentListName || "Inbox"}</span>
+                  <CaretDown className="h-3 w-3 flex-shrink-0" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-1.5" align="start">
+                <div className="space-y-0.5">
+                  <button
+                    onClick={() => currentListId && moveToList.mutate(null)}
+                    className={cn(
+                      "w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors text-left",
+                      !currentListId ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
+                    )}
+                    data-testid="move-to-inbox"
+                  >
+                    <Tray className="h-3.5 w-3.5" />
+                    Inbox
+                    {!currentListId && <span className="ml-auto text-[10px] text-primary">current</span>}
+                  </button>
+                  {allLists.map((list) => (
+                    <button
+                      key={list.id}
+                      onClick={() => list.id !== currentListId && moveToList.mutate(list.id)}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-colors text-left",
+                        list.id === currentListId ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
+                      )}
+                      data-testid={`move-to-list-${list.id}`}
+                    >
+                      <ListBullets className="h-3.5 w-3.5" />
+                      {list.name}
+                      {list.id === currentListId && <span className="ml-auto text-[10px] text-primary">current</span>}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
             {itemType === "meeting" && item?.meetingId && (
               <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-primary/10 text-primary border border-primary/30 font-semibold">
                 <Lightning className="h-3 w-3" weight="fill" />
                 From meeting
-              </span>
-            )}
-            {categoryLabel && (
-              <span className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                {categoryLabel}
               </span>
             )}
             {createdAtLabel && (
@@ -557,7 +619,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                   <input
                     value={text}
                     onChange={(e) => setText(e.target.value)}
-                    className="text-lg font-semibold text-foreground bg-transparent border-none outline-none w-full placeholder:text-muted-foreground"
+                    className="text-base font-semibold text-foreground bg-transparent border-none outline-none w-full placeholder:text-muted-foreground"
                     placeholder="Task title..."
                     data-testid="input-task-title"
                   />
@@ -577,7 +639,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Add a description..."
-                    className="min-h-[70px] resize-none border-none bg-transparent px-0 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0 shadow-none"
+                    className="min-h-[70px] resize-none border-none bg-transparent px-0 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0 shadow-none"
                     data-testid="textarea-description"
                   />
                 </div>
@@ -668,7 +730,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Additional context or details..."
-                    className="min-h-[60px] resize-none border-none bg-transparent px-0 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0 shadow-none"
+                    className="min-h-[60px] resize-none border-none bg-transparent px-0 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0 shadow-none"
                     data-testid="input-notes"
                   />
                 </div>
@@ -727,7 +789,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                           key={s.value}
                           onClick={() => setStatus(s.value)}
                           className={cn(
-                            "px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors",
+                            "px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors",
                             status === s.value ? s.className : "bg-muted text-muted-foreground hover:bg-accent border border-transparent"
                           )}
                           data-testid={`status-${s.value}`}
@@ -748,7 +810,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                         value={waitingFor}
                         onChange={(e) => setWaitingFor(e.target.value)}
                         placeholder="Who or what?"
-                        className="h-8 text-[12px] rounded-lg"
+                        className="h-7 text-[11px] rounded-lg"
                         data-testid="input-waiting-for"
                       />
                     </div>
@@ -766,7 +828,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                       <input
                         value={ownerName}
                         onChange={(e) => setOwnerName(e.target.value)}
-                        className="bg-transparent border-none outline-none text-[12px] text-foreground w-full"
+                        className="bg-transparent border-none outline-none text-[11px] text-foreground w-full"
                         placeholder="Unassigned"
                         data-testid="input-assignee"
                       />
@@ -782,7 +844,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                       value={ownerEmail}
                       onChange={(e) => setOwnerEmail(e.target.value)}
                       placeholder="name@email.com"
-                      className="h-8 text-[12px] rounded-lg"
+                      className="h-7 text-[11px] rounded-lg"
                       data-testid="input-owner-email"
                     />
                   </div>
@@ -796,7 +858,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                       type="button"
                       onClick={() => setShowDatePicker(true)}
                       className={cn(
-                        "flex items-center gap-2 w-full h-8 px-2.5 rounded-lg border text-[12px] transition-colors text-left",
+                        "flex items-center gap-2 w-full h-7 px-2.5 rounded-lg border text-[11px] transition-colors text-left",
                         dueDate ? "border-primary/30 bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
                       )}
                       data-testid="button-due-date"
@@ -815,7 +877,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                       type="button"
                       onClick={() => setShowDatePicker(true)}
                       className={cn(
-                        "flex items-center gap-2 w-full h-8 px-2.5 rounded-lg border text-[12px] transition-colors text-left",
+                        "flex items-center gap-2 w-full h-7 px-2.5 rounded-lg border text-[11px] transition-colors text-left",
                         getDurationLabel() ? "border-primary/30 bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
                       )}
                       data-testid="button-duration"
@@ -831,34 +893,19 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                       Deadline
                     </label>
                     <Popover open={showDeadlinePicker} onOpenChange={setShowDeadlinePicker}>
-                      <div className="flex items-center gap-1">
-                        <Input
-                          type="date"
-                          value={deadlineInput}
-                          onChange={(e) => {
-                            setDeadlineInput(e.target.value);
-                            if (e.target.value) {
-                              setDeadline(new Date(e.target.value));
-                            } else {
-                              setDeadline(null);
-                            }
-                          }}
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
                           className={cn(
-                            "h-8 text-[12px] rounded-lg flex-1",
-                            deadline ? "border-red-500/30 bg-red-500/5" : ""
+                            "flex items-center gap-2 w-full h-7 px-2.5 rounded-lg border text-[11px] transition-colors text-left",
+                            deadline ? "border-red-500/30 bg-red-500/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
                           )}
-                          data-testid="input-deadline"
-                        />
-                        <PopoverTrigger asChild>
-                          <button
-                            type="button"
-                            className="h-8 w-8 flex items-center justify-center rounded-lg border border-border hover:bg-accent transition-colors flex-shrink-0"
-                            data-testid="button-deadline-calendar"
-                          >
-                            <CalendarBlank className="h-3.5 w-3.5 text-muted-foreground" />
-                          </button>
-                        </PopoverTrigger>
-                      </div>
+                          data-testid="button-deadline"
+                        >
+                          <Timer className="h-3.5 w-3.5 flex-shrink-0" />
+                          {deadline ? format(deadline, "d MMM yyyy") : "Set deadline"}
+                        </button>
+                      </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 bg-card border-border rounded-xl overflow-hidden" align="start">
                         <Calendar
                           mode="single"
@@ -879,7 +926,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                       Reminder
                     </label>
                     <Select value={reminder} onValueChange={(v) => setReminder(v)}>
-                      <SelectTrigger className="h-8 text-[12px] rounded-lg" data-testid="select-reminder">
+                      <SelectTrigger className="h-7 text-[11px] rounded-lg" data-testid="select-reminder">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -888,6 +935,26 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                         ))}
                       </SelectContent>
                     </Select>
+                    {reminder === "custom" && (
+                      <div className="space-y-1.5 mt-1">
+                        <div className="flex gap-1">
+                          <Input
+                            type="date"
+                            value={customReminderDate}
+                            onChange={(e) => setCustomReminderDate(e.target.value)}
+                            className="h-7 text-[11px] rounded-lg flex-1"
+                            data-testid="input-custom-reminder-date"
+                          />
+                          <Input
+                            type="time"
+                            value={customReminderTime}
+                            onChange={(e) => setCustomReminderTime(e.target.value)}
+                            className="h-7 text-[11px] rounded-lg w-24"
+                            data-testid="input-custom-reminder-time"
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -896,7 +963,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                       Repeat
                     </label>
                     <Select value={recurrence || "none"} onValueChange={(v) => setRecurrence(v === "none" ? null : v)}>
-                      <SelectTrigger className="h-8 text-[12px] rounded-lg" data-testid="select-recurrence">
+                      <SelectTrigger className="h-7 text-[11px] rounded-lg" data-testid="select-recurrence">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -919,7 +986,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                           type="button"
                           onClick={() => setPriority(p.value)}
                           className={cn(
-                            "px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors",
+                            "px-2 py-0.5 rounded-full text-[10px] font-medium transition-colors",
                             priority === p.value
                               ? `${p.bg} ${p.color} border`
                               : "bg-muted text-muted-foreground hover:bg-accent border border-transparent"
@@ -941,7 +1008,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
                       placeholder="Add location..."
-                      className="h-8 text-[12px] rounded-lg"
+                      className="h-7 text-[11px] rounded-lg"
                       data-testid="input-location"
                     />
                   </div>
@@ -957,7 +1024,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                           key={tag.id}
                           variant="secondary"
                           className={cn(
-                            "cursor-pointer transition-colors text-[11px] px-2 py-0.5",
+                            "cursor-pointer transition-colors text-[10px] px-2 py-0.5",
                             tags.includes(tag.name)
                               ? "bg-accent text-primary hover:bg-accent/80"
                               : "bg-muted text-muted-foreground hover:bg-accent hover:text-primary"
@@ -974,7 +1041,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                         <Badge
                           key={tag}
                           variant="secondary"
-                          className="bg-accent text-primary text-[11px] px-2 py-0.5 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+                          className="bg-accent text-primary text-[10px] px-2 py-0.5 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
                           onClick={() => setTags(prev => prev.filter(t => t !== tag))}
                           data-testid={`tag-custom-${tag}`}
                         >
@@ -985,63 +1052,36 @@ export function TaskDetailModal({ open, onClose, itemId, itemType, categoryLabel
                         <span className="text-[11px] text-muted-foreground">No tags</span>
                       )}
                     </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
-                      <ListBullets className="h-3 w-3" />
-                      List
-                    </label>
-                    <Popover open={listDropdownOpen} onOpenChange={setListDropdownOpen}>
-                      <PopoverTrigger asChild>
-                        <button
-                          className={cn(
-                            "flex items-center gap-2 w-full h-8 px-2.5 rounded-lg border text-[12px] transition-colors text-left",
-                            currentListId ? "bg-primary/10 border-primary/30 text-primary" : "border-border text-muted-foreground hover:bg-accent"
-                          )}
-                          data-testid="button-list-picker"
-                        >
-                          {currentListId ? (
-                            <ListBullets className="h-3.5 w-3.5" />
-                          ) : (
-                            <Tray className="h-3.5 w-3.5" />
-                          )}
-                          <span className="flex-1 truncate">{currentListName || "Inbox"}</span>
-                          <CaretDown className="h-3 w-3 flex-shrink-0" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-48 p-1.5" align="start">
-                        <div className="space-y-0.5">
-                          <button
-                            onClick={() => currentListId && moveToList.mutate(null)}
-                            className={cn(
-                              "w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors text-left",
-                              !currentListId ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
-                            )}
-                            data-testid="move-to-inbox"
-                          >
-                            <Tray className="h-3.5 w-3.5" />
-                            Inbox
-                            {!currentListId && <span className="ml-auto text-[10px] text-primary">current</span>}
-                          </button>
-                          {allLists.map((list) => (
-                            <button
-                              key={list.id}
-                              onClick={() => list.id !== currentListId && moveToList.mutate(list.id)}
-                              className={cn(
-                                "w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-colors text-left",
-                                list.id === currentListId ? "bg-primary/10 text-primary" : "hover:bg-accent text-foreground"
-                              )}
-                              data-testid={`move-to-list-${list.id}`}
-                            >
-                              <ListBullets className="h-3.5 w-3.5" />
-                              {list.name}
-                              {list.id === currentListId && <span className="ml-auto text-[10px] text-primary">current</span>}
-                            </button>
-                          ))}
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                    <div className="flex items-center gap-1 mt-1">
+                      <input
+                        value={newTagInput}
+                        onChange={(e) => setNewTagInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && newTagInput.trim()) {
+                            const tag = newTagInput.trim();
+                            if (!tags.includes(tag)) setTags(prev => [...prev, tag.startsWith("#") ? tag : `#${tag}`]);
+                            setNewTagInput("");
+                          }
+                          if (e.key === "Escape") setNewTagInput("");
+                        }}
+                        placeholder="Add tag..."
+                        className="flex-1 text-[10px] bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground/50"
+                        data-testid="input-add-tag"
+                      />
+                      <button
+                        onClick={() => {
+                          if (newTagInput.trim()) {
+                            const tag = newTagInput.trim();
+                            if (!tags.includes(tag)) setTags(prev => [...prev, tag.startsWith("#") ? tag : `#${tag}`]);
+                            setNewTagInput("");
+                          }
+                        }}
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                        data-testid="button-add-tag"
+                      >
+                        <Plus className="h-3 w-3" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -96,10 +97,13 @@ function DeletedCard({ item, type, onRestore, onPermanentDelete }: {
   );
 }
 
+const PAGE_SIZE = 10;
+
 export default function DeletedPage() {
   const { user } = useStore();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
 
   const { data, isLoading } = useQuery<DeletedData>({
     queryKey: ["deleted", user.id],
@@ -174,7 +178,7 @@ export default function DeletedPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {allItems.map((item) => (
+          {allItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE).map((item) => (
             <DeletedCard 
               key={`${item._type}-${item.id}`} 
               item={item} 
@@ -183,6 +187,33 @@ export default function DeletedPage() {
               onPermanentDelete={() => permanentDeleteMutation.mutate({ type: item._type, id: item.id })}
             />
           ))}
+          {Math.ceil(allItems.length / PAGE_SIZE) > 1 && (
+            <div className="flex items-center justify-center gap-3 pt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="h-8 rounded-lg text-xs"
+                data-testid="pagination-prev"
+              >
+                Previous
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Page {currentPage} of {Math.ceil(allItems.length / PAGE_SIZE)}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(p => Math.min(Math.ceil(allItems.length / PAGE_SIZE), p + 1))}
+                disabled={currentPage === Math.ceil(allItems.length / PAGE_SIZE)}
+                className="h-8 rounded-lg text-xs"
+                data-testid="pagination-next"
+              >
+                Next
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
