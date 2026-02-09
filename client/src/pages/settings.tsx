@@ -181,6 +181,39 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
   const [isManaging, setIsManaging] = useState(false);
   const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
   const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly");
+  const [appearanceSubTab, setAppearanceSubTab] = useState<"theme" | "display">("theme");
+  const [smartListSettings, setSmartListSettings] = useState(() =>
+    getLocalStorage("am.smartListSettings", {
+      all: "show", today: "show", tomorrow: "show", next7Days: "show", assignedToMe: "show",
+      inbox: "show", summary: "show", tags: "show", filters: "show", completed: "show", wontDo: "show", trash: "show",
+    })
+  );
+  const [notificationSettings, setNotificationSettings] = useState(() =>
+    getLocalStorage("am.notificationSettings", {
+      dailyNotifications: true, dailyAlertTime: "09:00", webReminder: true, emailNotifications: false,
+    })
+  );
+  const [dateTimeSettings, setDateTimeSettings] = useState(() =>
+    getLocalStorage("am.dateTimeSettings", {
+      timeFormat: "12", startWeekOn: "sunday", additionalCalendar: "none", showWeekNumbers: false, timeZone: true,
+    })
+  );
+  const [displaySettings, setDisplaySettings] = useState(() =>
+    getLocalStorage("am.displaySettings", { interfaceStyle: "card", fontSize: "normal" })
+  );
+  const [moreSettings, setMoreSettings] = useState(() =>
+    getLocalStorage("am.moreSettings", {
+      language: "en", dateRecognition: true, removeDateText: false, tagRecognition: true, removeTagText: false,
+      urlParsing: true, defaultDate: "none", defaultDateMode: "date", defaultDuration: "none",
+      defaultRemindersDueTime: "none", defaultRemindersAllDay: "none", defaultPriority: "none",
+      defaultTag: "none", defaultList: "inbox", defaultAddTo: "bottom", overdueSection: "top", showMiniCalendar: true,
+    })
+  );
+  const [collaborateSettings, setCollaborateSettings] = useState(() =>
+    getLocalStorage("am.collaborateSettings", {
+      autoAcceptInvites: false, notifyComplete: true, notifyAdd: true, notifyDelete: true,
+    })
+  );
 
   useEffect(() => {
     if (initialTab) setActiveTab(initialTab);
@@ -261,9 +294,31 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     toast({ title: "Coming Soon", description: `${feature} will be available in a future update.` });
   };
 
-  const AccountTab = () => {
-    const { data: integrations } = useIntegrations();
-    const googleConnected = integrations?.google?.connected;
+  const { data: integrationsData, isLoading: integrationsLoading, refetch: refetchIntegrations } = useIntegrations();
+  const { data: appConfig } = useAppConfig();
+  const disconnectIntegration = useDisconnectIntegration();
+  const { canUseEmailIntegrations, isFree } = usePlan();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get("success");
+    const error = params.get("error");
+    if (success === "google") {
+      toast({ title: "Gmail Connected", description: "You can now send emails directly from ActionMinutes." });
+      refetchIntegrations();
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (success === "microsoft") {
+      toast({ title: "Outlook Connected", description: "You can now send emails directly from ActionMinutes." });
+      refetchIntegrations();
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (error) {
+      toast({ title: "Connection Failed", description: "Could not connect to your email account.", variant: "destructive" });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
+  const renderAccountTab = () => {
+    const googleConnected = integrationsData?.google?.connected;
 
     return (
       <div className="space-y-6">
@@ -347,7 +402,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     );
   };
 
-  const PremiumTab = () => {
+  const renderPremiumTab = () => {
     if (isPro) {
       return (
         <div className="space-y-6">
@@ -463,7 +518,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     );
   };
 
-  const FeaturesTab = () => (
+  const renderFeaturesTab = () => (
     <div className="space-y-6">
       <div className="space-y-2">
         <h2 className="text-xl font-semibold text-foreground" data-testid="text-features-title">Hi, welcome to ActionMinutes! 👋</h2>
@@ -524,27 +579,12 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     </div>
   );
 
-  const SmartListTab = () => {
-    const [settings, setSettings] = useState(() =>
-      getLocalStorage("am.smartListSettings", {
-        all: "show",
-        today: "show",
-        tomorrow: "show",
-        next7Days: "show",
-        assignedToMe: "show",
-        inbox: "show",
-        summary: "show",
-        tags: "show",
-        filters: "show",
-        completed: "show",
-        wontDo: "show",
-        trash: "show",
-      })
-    );
+  const renderSmartListTab = () => {
+    const settings = smartListSettings;
 
     const updateSetting = (key: string, value: string) => {
       const next = { ...settings, [key]: value };
-      setSettings(next);
+      setSmartListSettings(next);
       setLocalStorage("am.smartListSettings", next);
     };
 
@@ -591,19 +631,12 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     );
   };
 
-  const NotificationsTab = () => {
-    const [settings, setSettings] = useState(() =>
-      getLocalStorage("am.notificationSettings", {
-        dailyNotifications: true,
-        dailyAlertTime: "09:00",
-        webReminder: true,
-        emailNotifications: false,
-      })
-    );
+  const renderNotificationsTab = () => {
+    const settings = notificationSettings;
 
     const updateSetting = (key: string, value: any) => {
       const next = { ...settings, [key]: value };
-      setSettings(next);
+      setNotificationSettings(next);
       setLocalStorage("am.notificationSettings", next);
     };
 
@@ -635,20 +668,12 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     );
   };
 
-  const DateTimeTab = () => {
-    const [settings, setSettings] = useState(() =>
-      getLocalStorage("am.dateTimeSettings", {
-        timeFormat: "12",
-        startWeekOn: "sunday",
-        additionalCalendar: "none",
-        showWeekNumbers: false,
-        timeZone: true,
-      })
-    );
+  const renderDateTimeTab = () => {
+    const settings = dateTimeSettings;
 
     const updateSetting = (key: string, value: any) => {
       const next = { ...settings, [key]: value };
-      setSettings(next);
+      setDateTimeSettings(next);
       setLocalStorage("am.dateTimeSettings", next);
     };
 
@@ -702,11 +727,9 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     );
   };
 
-  const AppearanceTab = () => {
-    const [subTab, setSubTab] = useState<"theme" | "display">("theme");
-    const [displaySettings, setDisplaySettings] = useState(() =>
-      getLocalStorage("am.displaySettings", { interfaceStyle: "card", fontSize: "normal" })
-    );
+  const renderAppearanceTab = () => {
+    const subTab = appearanceSubTab;
+    const setSubTab = setAppearanceSubTab;
 
     const updateDisplay = (key: string, value: string) => {
       const next = { ...displaySettings, [key]: value };
@@ -843,32 +866,12 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     );
   };
 
-  const MoreTab = () => {
-    const [settings, setSettings] = useState(() =>
-      getLocalStorage("am.moreSettings", {
-        language: "en",
-        dateRecognition: true,
-        removeDateText: false,
-        tagRecognition: true,
-        removeTagText: false,
-        urlParsing: true,
-        defaultDate: "none",
-        defaultDateMode: "date",
-        defaultDuration: "none",
-        defaultRemindersDueTime: "none",
-        defaultRemindersAllDay: "none",
-        defaultPriority: "none",
-        defaultTag: "none",
-        defaultList: "inbox",
-        defaultAddTo: "bottom",
-        overdueSection: "top",
-        showMiniCalendar: true,
-      })
-    );
+  const renderMoreTab = () => {
+    const settings = moreSettings;
 
     const updateSetting = (key: string, value: any) => {
       const next = { ...settings, [key]: value };
-      setSettings(next);
+      setMoreSettings(next);
       setLocalStorage("am.moreSettings", next);
     };
 
@@ -886,7 +889,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
         defaultAddTo: "bottom",
         overdueSection: "top",
       };
-      setSettings(defaults);
+      setMoreSettings(defaults);
       setLocalStorage("am.moreSettings", defaults);
       toast({ title: "Defaults Reset", description: "Task defaults have been reset." });
     };
@@ -1052,29 +1055,9 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     );
   };
 
-  const IntegrationsTab = () => {
-    const { data: integrations, isLoading, refetch } = useIntegrations();
-    const { data: config } = useAppConfig();
-    const disconnectIntegration = useDisconnectIntegration();
-    const { canUseEmailIntegrations, isFree } = usePlan();
-
-    useEffect(() => {
-      const params = new URLSearchParams(window.location.search);
-      const success = params.get("success");
-      const error = params.get("error");
-      if (success === "google") {
-        toast({ title: "Gmail Connected", description: "You can now send emails directly from ActionMinutes." });
-        refetch();
-        window.history.replaceState({}, "", window.location.pathname);
-      } else if (success === "microsoft") {
-        toast({ title: "Outlook Connected", description: "You can now send emails directly from ActionMinutes." });
-        refetch();
-        window.history.replaceState({}, "", window.location.pathname);
-      } else if (error) {
-        toast({ title: "Connection Failed", description: "Could not connect to your email account.", variant: "destructive" });
-        window.history.replaceState({}, "", window.location.pathname);
-      }
-    }, []);
+  const renderIntegrationsTab = () => {
+    const integrations = integrationsData;
+    const config = appConfig;
 
     const handleConnect = async (provider: "google" | "microsoft") => {
       try {
@@ -1225,19 +1208,12 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     );
   };
 
-  const CollaborateTab = () => {
-    const [settings, setSettings] = useState(() =>
-      getLocalStorage("am.collaborateSettings", {
-        autoAcceptInvites: false,
-        notifyComplete: true,
-        notifyAdd: true,
-        notifyDelete: true,
-      })
-    );
+  const renderCollaborateTab = () => {
+    const settings = collaborateSettings;
 
     const updateSetting = (key: string, value: any) => {
       const next = { ...settings, [key]: value };
-      setSettings(next);
+      setCollaborateSettings(next);
       setLocalStorage("am.collaborateSettings", next);
     };
 
@@ -1272,7 +1248,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     );
   };
 
-  const ShortcutsTab = () => {
+  const renderShortcutsTab = () => {
     const shortcuts = [
       {
         group: "General",
@@ -1336,7 +1312,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     );
   };
 
-  const AboutTab = () => (
+  const renderAboutTab = () => (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-foreground" data-testid="text-about-title">About ActionMinutes</h2>
 
@@ -1382,19 +1358,19 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
 
   const renderTab = () => {
     switch (activeTab) {
-      case "account": return <AccountTab />;
-      case "premium": return <PremiumTab />;
-      case "features": return <FeaturesTab />;
-      case "smartlist": return <SmartListTab />;
-      case "notifications": return <NotificationsTab />;
-      case "datetime": return <DateTimeTab />;
-      case "appearance": return <AppearanceTab />;
-      case "more": return <MoreTab />;
-      case "integrations": return <IntegrationsTab />;
-      case "collaborate": return <CollaborateTab />;
-      case "shortcuts": return <ShortcutsTab />;
-      case "about": return <AboutTab />;
-      default: return <AccountTab />;
+      case "account": return renderAccountTab();
+      case "premium": return renderPremiumTab();
+      case "features": return renderFeaturesTab();
+      case "smartlist": return renderSmartListTab();
+      case "notifications": return renderNotificationsTab();
+      case "datetime": return renderDateTimeTab();
+      case "appearance": return renderAppearanceTab();
+      case "more": return renderMoreTab();
+      case "integrations": return renderIntegrationsTab();
+      case "collaborate": return renderCollaborateTab();
+      case "shortcuts": return renderShortcutsTab();
+      case "about": return renderAboutTab();
+      default: return renderAccountTab();
     }
   };
 
