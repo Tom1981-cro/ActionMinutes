@@ -632,7 +632,7 @@ export default function Layout({ children }: LayoutProps) {
 
       <QuickAdd isOpen={quickAddOpen} onOpenChange={setQuickAddOpen} />
       <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
-      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} initialTab={settingsTab} />
+      {settingsOpen && <SettingsModal open={settingsOpen} onOpenChange={(v) => { setSettingsOpen(v); if (!v) setSettingsTab(undefined); }} initialTab={settingsTab} />}
 
       <Dialog open={createDialogOpen} onOpenChange={(open) => { setCreateDialogOpen(open); if (!open) { setNewListName(""); setNewListIcon(null); } }}>
         <DialogContent className="sm:max-w-md">
