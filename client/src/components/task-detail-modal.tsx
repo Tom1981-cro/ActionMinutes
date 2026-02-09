@@ -807,7 +807,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                         value={waitingFor}
                         onChange={(e) => setWaitingFor(e.target.value)}
                         placeholder="Who or what?"
-                        className="h-7 text-[11px] rounded-lg"
+                        className="h-7 text-[10px] rounded-lg"
                         data-testid="input-waiting-for"
                       />
                     </div>
@@ -825,7 +825,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                       <input
                         value={ownerName}
                         onChange={(e) => setOwnerName(e.target.value)}
-                        className="bg-transparent border-none outline-none text-[11px] text-foreground w-full"
+                        className="bg-transparent border-none outline-none text-[10px] text-foreground w-full"
                         placeholder="Unassigned"
                         data-testid="input-assignee"
                       />
@@ -841,7 +841,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                       value={ownerEmail}
                       onChange={(e) => setOwnerEmail(e.target.value)}
                       placeholder="name@email.com"
-                      className="h-7 text-[11px] rounded-lg"
+                      className="h-7 text-[10px] rounded-lg"
                       data-testid="input-owner-email"
                     />
                   </div>
@@ -855,7 +855,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                       type="button"
                       onClick={() => setShowDatePicker(true)}
                       className={cn(
-                        "flex items-center gap-2 w-full h-7 px-2.5 rounded-lg border text-[11px] transition-colors text-left",
+                        "flex items-center gap-2 w-full h-7 px-2.5 rounded-lg border text-[10px] transition-colors text-left",
                         dueDate ? "border-primary/30 bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
                       )}
                       data-testid="button-due-date"
@@ -874,7 +874,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                       type="button"
                       onClick={() => setShowDatePicker(true)}
                       className={cn(
-                        "flex items-center gap-2 w-full h-7 px-2.5 rounded-lg border text-[11px] transition-colors text-left",
+                        "flex items-center gap-2 w-full h-7 px-2.5 rounded-lg border text-[10px] transition-colors text-left",
                         getDurationLabel() ? "border-primary/30 bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
                       )}
                       data-testid="button-duration"
@@ -894,7 +894,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                         <button
                           type="button"
                           className={cn(
-                            "flex items-center gap-2 w-full h-7 px-2.5 rounded-lg border text-[11px] transition-colors text-left",
+                            "flex items-center gap-2 w-full h-7 px-2.5 rounded-lg border text-[10px] transition-colors text-left",
                             deadline ? "border-red-500/30 bg-red-500/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
                           )}
                           data-testid="button-deadline"
@@ -923,7 +923,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                       Reminder
                     </label>
                     <Select value={reminder} onValueChange={(v) => setReminder(v)}>
-                      <SelectTrigger className="h-7 text-[11px] rounded-lg" data-testid="select-reminder">
+                      <SelectTrigger className="h-7 text-[10px] rounded-lg" data-testid="select-reminder">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -939,14 +939,14 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                             type="date"
                             value={customReminderDate}
                             onChange={(e) => setCustomReminderDate(e.target.value)}
-                            className="h-7 text-[11px] rounded-lg flex-1"
+                            className="h-7 text-[10px] rounded-lg flex-1"
                             data-testid="input-custom-reminder-date"
                           />
                           <Input
                             type="time"
                             value={customReminderTime}
                             onChange={(e) => setCustomReminderTime(e.target.value)}
-                            className="h-7 text-[11px] rounded-lg w-24"
+                            className="h-7 text-[10px] rounded-lg w-24"
                             data-testid="input-custom-reminder-time"
                           />
                         </div>
@@ -960,7 +960,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                       Repeat
                     </label>
                     <Select value={recurrence || "none"} onValueChange={(v) => setRecurrence(v === "none" ? null : v)}>
-                      <SelectTrigger className="h-7 text-[11px] rounded-lg" data-testid="select-recurrence">
+                      <SelectTrigger className="h-7 text-[10px] rounded-lg" data-testid="select-recurrence">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1005,7 +1005,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
                       placeholder="Add location..."
-                      className="h-7 text-[11px] rounded-lg"
+                      className="h-7 text-[10px] rounded-lg"
                       data-testid="input-location"
                     />
                   </div>
