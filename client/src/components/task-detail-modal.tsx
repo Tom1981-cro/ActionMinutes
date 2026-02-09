@@ -786,7 +786,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                           variant={status === s.value ? "default" : "outline"}
                           onClick={() => setStatus(s.value)}
                           className={cn(
-                            "h-8 rounded-xl text-[12px] px-4",
+                            "h-8 rounded-xl text-[12px] px-2.5",
                             status === s.value ? s.className : "bg-[#edeaf5] border-border text-muted-foreground hover:bg-[#e0dced]"
                           )}
                           data-testid={`status-${s.value}`}
