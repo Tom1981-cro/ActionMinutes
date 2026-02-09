@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import logoIcon from "@assets/am_logo_1767300370565.png";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -140,13 +141,13 @@ function SettingRow({
   return (
     <div
       className={cn(
-        "flex items-center justify-between py-3 px-4",
+        "flex items-center justify-between py-2 px-3",
         !last && "border-b border-border"
       )}
       data-testid={testId}
     >
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-foreground">{label}</p>
+        <p className="text-xs text-foreground">{label}</p>
         {description && (
           <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
         )}
@@ -321,14 +322,14 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     const googleConnected = integrationsData?.google?.connected;
 
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-2xl font-bold text-primary" data-testid="avatar-user">
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-lg font-bold text-primary" data-testid="avatar-user">
             {user.name?.charAt(0)?.toUpperCase() || "U"}
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-foreground" data-testid="text-user-name">{user.name || "User"}</h2>
-            <p className="text-sm text-muted-foreground" data-testid="text-user-email">{user.email}</p>
+            <h2 className="text-sm font-semibold text-foreground" data-testid="text-user-name">{user.name || "User"}</h2>
+            <p className="text-xs text-muted-foreground" data-testid="text-user-email">{user.email}</p>
             {isPro && (
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="secondary" className="text-xs" data-testid="badge-pro">
@@ -405,11 +406,11 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
   const renderPremiumTab = () => {
     if (isPro) {
       return (
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 p-6 bg-card rounded-xl border border-border">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border">
             <Crown className="h-8 w-8 text-amber-400" weight="fill" />
             <div>
-              <h2 className="text-lg font-semibold text-foreground" data-testid="text-premium-status">You are already a Premium user!</h2>
+              <h2 className="text-sm font-semibold text-foreground" data-testid="text-premium-status">You are already a Premium user!</h2>
               <p className="text-sm text-muted-foreground">
                 Status: {isActive ? "Active" : subscriptionStatus} {isPastDue && <span className="text-amber-400">— Payment past due</span>}
               </p>
@@ -442,7 +443,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
                 { title: "Advanced Templates", desc: "Access premium meeting templates for various use cases." },
                 { title: "Priority Support", desc: "Get faster responses and dedicated support channels." },
               ].map((f) => (
-                <div key={f.title} className="p-4 bg-card rounded-xl border border-border" data-testid={`card-feature-${f.title.toLowerCase().replace(/\s/g, "-")}`}>
+                <div key={f.title} className="p-3 bg-card rounded-xl border border-border" data-testid={`card-feature-${f.title.toLowerCase().replace(/\s/g, "-")}`}>
                   <p className="text-sm font-medium text-foreground">{f.title}</p>
                   <p className="text-xs text-muted-foreground mt-1">{f.desc}</p>
                 </div>
@@ -454,15 +455,15 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     }
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         {subscriptionError && (
           <div className="p-3 bg-red-500/10 text-red-400 rounded-xl text-sm border border-red-500/30" data-testid="subscription-error">
             {subscriptionError}
           </div>
         )}
-        <div className="bg-card rounded-xl border border-border p-6 max-w-md">
+        <div className="bg-card rounded-xl border border-border p-4 max-w-md">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold text-foreground">Pro</h2>
+            <h2 className="text-sm font-semibold text-foreground">Pro</h2>
             <span className="bg-accent text-primary text-xs font-medium px-2 py-1 rounded-full">Recommended</span>
           </div>
           <p className="text-sm text-muted-foreground mb-4">Unlock your full productivity</p>
@@ -519,9 +520,9 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
   };
 
   const renderFeaturesTab = () => (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <div className="space-y-2">
-        <h2 className="text-xl font-semibold text-foreground" data-testid="text-features-title">Hi, welcome to ActionMinutes! 👋</h2>
+        <h2 className="text-sm font-semibold text-foreground" data-testid="text-features-title">Hi, welcome to ActionMinutes! 👋</h2>
         <p className="text-sm text-muted-foreground leading-relaxed">
           ActionMinutes transforms your messy meeting notes into actionable outputs.
           Simply capture your notes, and we'll extract clear action items with owners and due dates,
@@ -604,8 +605,8 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     );
 
     return (
-      <div className="space-y-6">
-        <h2 className="text-lg font-semibold text-foreground" data-testid="text-smartlist-title">Smart List</h2>
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-foreground" data-testid="text-smartlist-title">Smart List</h2>
 
         <SettingCard>
           <SmartListSelect settingKey="all" label="All" />
@@ -641,8 +642,8 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     };
 
     return (
-      <div className="space-y-6">
-        <h2 className="text-lg font-semibold text-foreground" data-testid="text-notifications-title">Notifications</h2>
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-foreground" data-testid="text-notifications-title">Notifications</h2>
 
         <SettingCard>
           <SettingRow label="Daily Notifications" description="ActionMinutes can remind you of today's tasks at a specific time every day." testId="row-daily-notifications">
@@ -678,8 +679,8 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     };
 
     return (
-      <div className="space-y-6">
-        <h2 className="text-lg font-semibold text-foreground" data-testid="text-datetime-title">Date & Time</h2>
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-foreground" data-testid="text-datetime-title">Date & Time</h2>
 
         <SettingCard>
           <SettingRow label="Time Format" testId="row-time-format">
@@ -738,7 +739,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     };
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         <div className="flex gap-1 bg-muted rounded-lg p-1">
           <button
             onClick={() => setSubTab("theme")}
@@ -757,7 +758,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
         </div>
 
         {subTab === "theme" && (
-          <div className="space-y-6">
+          <div className="space-y-3">
             <SettingCard>
               <SettingRow label="Follow System Dark Mode" last testId="row-follow-system">
                 <Select value={mode === "dark" ? "open" : "close"} onValueChange={(v) => setMode(v === "open" ? "dark" : "light")}>
@@ -782,7 +783,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
                   </button>
                 )}
               </div>
-              <div className="flex flex-wrap gap-4">
+              <div className="flex flex-wrap gap-3">
                 {THEMES.map((t) => (
                   <button
                     key={t.id}
@@ -809,7 +810,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
               <button
                 onClick={() => setMode("light")}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all border",
+                  "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all border",
                   mode === "light" ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:bg-accent/50"
                 )}
                 data-testid="button-mode-light"
@@ -820,7 +821,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
               <button
                 onClick={() => setMode("dark")}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all border",
+                  "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all border",
                   mode === "dark" ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:bg-accent/50"
                 )}
                 data-testid="button-mode-dark"
@@ -833,7 +834,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
         )}
 
         {subTab === "display" && (
-          <div className="space-y-6">
+          <div className="space-y-3">
             <SettingCard>
               <SettingRow label="Interface Style" testId="row-interface-style">
                 <Select value={displaySettings.interfaceStyle} onValueChange={(v) => updateDisplay("interfaceStyle", v)}>
@@ -895,7 +896,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     };
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         <SettingCard>
           <SettingRow label="Language" last testId="row-language">
             <Select value={settings.language} onValueChange={(v) => updateSetting("language", v)}>
@@ -1082,7 +1083,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     const microsoftConfigured = integrations?.microsoft?.configured;
 
     const IntegrationCard = ({ name, desc, onAction, actionLabel }: { name: string; desc: string; onAction: () => void; actionLabel: string }) => (
-      <div className="flex items-center justify-between p-4 border-b border-border last:border-b-0">
+      <div className="flex items-center justify-between p-2.5 border-b border-border last:border-b-0">
         <div>
           <p className="text-sm font-medium text-foreground">{name}</p>
           <p className="text-xs text-muted-foreground">{desc}</p>
@@ -1094,7 +1095,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     );
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-foreground">Calendar</h3>
           <SettingCard>
@@ -1129,7 +1130,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
               Email integrations are currently disabled.
             </div>
           ) : isFree && !canUseEmailIntegrations ? (
-            <div className="p-4 bg-card rounded-xl border border-border">
+            <div className="p-3 bg-card rounded-xl border border-border">
               <p className="text-sm text-muted-foreground mb-3">Email integrations require a Pro plan.</p>
               <Button size="sm" onClick={() => setTab("premium")} data-testid="button-upgrade-for-email">
                 <Crown className="h-4 w-4 mr-1" weight="fill" /> Upgrade
@@ -1218,7 +1219,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     };
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         <SettingCard>
           <SettingRow label="Auto Accept Invites" description="Automatically accept invitations to shared lists" last testId="row-auto-accept">
             <Switch checked={settings.autoAcceptInvites} onCheckedChange={(v) => updateSetting("autoAcceptInvites", v)} data-testid="switch-auto-accept" />
@@ -1278,8 +1279,8 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     ];
 
     return (
-      <div className="space-y-6">
-        <h2 className="text-lg font-semibold text-foreground" data-testid="text-shortcuts-title">Keyboard Shortcuts</h2>
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-foreground" data-testid="text-shortcuts-title">Keyboard Shortcuts</h2>
 
         {shortcuts.map((group) => (
           <div key={group.group} className="space-y-2">
@@ -1313,10 +1314,10 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
   };
 
   const renderAboutTab = () => (
-    <div className="space-y-6">
-      <h2 className="text-lg font-semibold text-foreground" data-testid="text-about-title">About ActionMinutes</h2>
+    <div className="space-y-3">
+      <h2 className="text-sm font-semibold text-foreground" data-testid="text-about-title">About ActionMinutes</h2>
 
-      <div className="p-4 bg-card rounded-xl border border-border">
+      <div className="p-3 bg-card rounded-xl border border-border">
         <p className="text-sm text-foreground leading-relaxed">
           ActionMinutes transforms your messy meeting notes into actionable outputs.
           Simply capture your notes, and we'll extract clear action items with owners and due dates,
@@ -1380,6 +1381,10 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
         <DialogContent className="max-w-4xl w-[90vw] h-[80vh] p-0 gap-0 overflow-hidden flex flex-row" data-testid="settings-modal">
           <DialogTitle className="sr-only">Settings</DialogTitle>
           <aside className="w-[200px] bg-card border-r border-border overflow-y-auto shrink-0 py-2" data-testid="settings-sidebar">
+            <div className="flex items-center gap-2.5 px-4 py-2 mb-1">
+              <img src={logoIcon} alt="ActionMinutes" className="w-6 h-6 rounded-md" />
+              <span className="text-xs font-semibold text-foreground">Settings</span>
+            </div>
             {SIDEBAR_ITEMS.map((item) => {
               const Icon = item.icon;
               const isActiveItem = activeTab === item.id;
@@ -1388,19 +1393,19 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
                   key={item.id}
                   onClick={() => setTab(item.id)}
                   className={cn(
-                    "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
+                    "w-full flex items-center gap-2.5 px-4 py-1.5 text-xs transition-colors",
                     isActiveItem ? "bg-accent text-foreground font-medium" : "text-muted-foreground hover:bg-accent/50"
                   )}
                   data-testid={`sidebar-${item.id}`}
                 >
-                  <Icon className="h-4 w-4 shrink-0" weight={isActiveItem ? "fill" : "regular"} />
+                  <Icon className="h-3.5 w-3.5 shrink-0" weight={isActiveItem ? "fill" : "regular"} />
                   {item.label}
                 </button>
               );
             })}
           </aside>
 
-          <main className="flex-1 p-6 overflow-y-auto" data-testid="settings-content">
+          <main className="flex-1 p-4 overflow-y-auto" data-testid="settings-content">
             <div className="max-w-2xl">
               {renderTab()}
             </div>
