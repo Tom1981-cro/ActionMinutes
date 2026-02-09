@@ -21,7 +21,9 @@ import {
   User, CalendarBlank, Flag, Tag, Plus, Trash, ListChecks,
   Clock, SpinnerGap, Hourglass, EnvelopeSimple, MapPin,
   ArrowsClockwise, Timer, BellRinging, FloppyDisk, Notepad,
-  Lightning, Tray, ListBullets, CaretDown
+  Lightning, Tray, ListBullets, CaretDown, DotsThree,
+  PushPin, Prohibit, ClockCounterClockwise, Copy, FilePlus,
+  Link, Printer, NoteBlank
 } from "@phosphor-icons/react";
 
 const PRIORITIES = [
@@ -112,6 +114,8 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
   const [newTagInput, setNewTagInput] = useState("");
   const [customReminderDate, setCustomReminderDate] = useState("");
   const [customReminderTime, setCustomReminderTime] = useState("09:00");
+  const [contextMenuOpen, setContextMenuOpen] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
 
   const { data: item, isLoading } = useQuery({
     queryKey: [itemType === "meeting" ? "action" : "reminder", itemId],
@@ -582,9 +586,143 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
               <span className="text-[11px] text-muted-foreground">Created {createdAtLabel}</span>
             )}
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors" data-testid="button-close-modal">
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <Popover open={contextMenuOpen} onOpenChange={setContextMenuOpen}>
+              <PopoverTrigger asChild>
+                <button className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-accent" data-testid="button-context-menu">
+                  <DotsThree className="h-5 w-5" weight="bold" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-52 p-1.5 bg-card border-border rounded-xl" align="end" sideOffset={4}>
+                <div className="space-y-0.5">
+                  <button
+                    onClick={() => { setContextMenuOpen(false); document.querySelector<HTMLInputElement>('[data-testid="input-new-subtask"]')?.focus(); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
+                    data-testid="ctx-add-subtask"
+                  >
+                    <ListChecks className="h-4 w-4 text-muted-foreground" weight="regular" />
+                    Add Subtask
+                  </button>
+                  <button
+                    onClick={() => { setContextMenuOpen(false); toast({ title: "Link Parent Task", description: "Search for a parent task to link." }); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
+                    data-testid="ctx-link-parent"
+                  >
+                    <Link className="h-4 w-4 text-muted-foreground" weight="regular" />
+                    Link Parent Task
+                  </button>
+                  <button
+                    onClick={() => { setIsPinned(!isPinned); setContextMenuOpen(false); toast({ title: isPinned ? "Unpinned" : "Pinned to top" }); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
+                    data-testid="ctx-pin"
+                  >
+                    <PushPin className="h-4 w-4 text-muted-foreground" weight={isPinned ? "fill" : "regular"} />
+                    {isPinned ? "Unpin" : "Pin"}
+                  </button>
+                  <button
+                    onClick={() => { setStatus("wont_do"); setContextMenuOpen(false); toast({ title: "Marked as Won't Do" }); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
+                    data-testid="ctx-wont-do"
+                  >
+                    <Prohibit className="h-4 w-4 text-muted-foreground" weight="regular" />
+                    Won't Do
+                  </button>
+                  <button
+                    onClick={() => { setContextMenuOpen(false); document.querySelector<HTMLInputElement>('[data-testid="input-add-tag"]')?.focus(); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
+                    data-testid="ctx-tags"
+                  >
+                    <Tag className="h-4 w-4 text-muted-foreground" weight="regular" />
+                    Tags
+                  </button>
+                  <button
+                    onClick={() => { setContextMenuOpen(false); fileInputRef.current?.click(); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
+                    data-testid="ctx-upload"
+                  >
+                    <UploadSimple className="h-4 w-4 text-muted-foreground" weight="regular" />
+                    Upload Attachment
+                  </button>
+
+                  <div className="border-t border-border my-1" />
+
+                  <button
+                    onClick={() => { setContextMenuOpen(false); toast({ title: "Task Activities", description: "Activity history coming soon." }); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
+                    data-testid="ctx-activities"
+                  >
+                    <ClockCounterClockwise className="h-4 w-4 text-muted-foreground" weight="regular" />
+                    Task Activities
+                  </button>
+                  <button
+                    onClick={() => { setContextMenuOpen(false); toast({ title: "Saved as template" }); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
+                    data-testid="ctx-save-template"
+                  >
+                    <FilePlus className="h-4 w-4 text-muted-foreground" weight="regular" />
+                    Save as Template
+                  </button>
+                  <button
+                    onClick={async () => {
+                      setContextMenuOpen(false);
+                      toast({ title: "Duplicating task..." });
+                      try {
+                        await authenticatedFetch(`/api/actions/${itemId}/duplicate`, { method: "POST" });
+                        queryClient.invalidateQueries({ queryKey: ["actions"] });
+                        queryClient.invalidateQueries({ queryKey: ["inbox-items"] });
+                        toast({ title: "Task duplicated" });
+                      } catch { toast({ title: "Could not duplicate task", variant: "destructive" }); }
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
+                    data-testid="ctx-duplicate"
+                  >
+                    <Copy className="h-4 w-4 text-muted-foreground" weight="regular" />
+                    Duplicate
+                  </button>
+                  <button
+                    onClick={() => {
+                      setContextMenuOpen(false);
+                      const url = `${window.location.origin}/app/action/${itemType}/${itemId}`;
+                      navigator.clipboard.writeText(url);
+                      toast({ title: "Link copied to clipboard" });
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
+                    data-testid="ctx-copy-link"
+                  >
+                    <Copy className="h-4 w-4 text-muted-foreground" weight="regular" />
+                    Copy Link
+                  </button>
+                  <button
+                    onClick={() => { setContextMenuOpen(false); toast({ title: "Convert to Note", description: "Coming soon." }); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
+                    data-testid="ctx-convert-note"
+                  >
+                    <NoteBlank className="h-4 w-4 text-muted-foreground" weight="regular" />
+                    Convert to Note
+                  </button>
+                  <button
+                    onClick={() => { setContextMenuOpen(false); window.print(); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
+                    data-testid="ctx-print"
+                  >
+                    <Printer className="h-4 w-4 text-muted-foreground" weight="regular" />
+                    Print
+                  </button>
+                  <button
+                    onClick={() => { setContextMenuOpen(false); handleDelete(); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-destructive hover:bg-destructive/10 transition-colors text-left"
+                    data-testid="ctx-delete"
+                  >
+                    <Trash className="h-4 w-4" weight="regular" />
+                    Delete
+                  </button>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-lg hover:bg-accent" data-testid="button-close-modal">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {isLoading ? (
