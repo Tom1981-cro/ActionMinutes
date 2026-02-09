@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { useLocation } from "wouter";
 import { Lightning, Sparkle, Crown, ArrowRight, Lock } from "@phosphor-icons/react";
+import { openSettingsModal } from "@/pages/settings";
 
 interface UpgradePromptProps {
   feature: 'ai_extraction' | 'transcription' | 'email_integration' | 'analytics';
@@ -41,14 +41,13 @@ export function UpgradePrompt({
   variant = 'card',
   onUpgrade 
 }: UpgradePromptProps) {
-  const [, navigate] = useLocation();
   const message = featureMessages[feature];
   
   const handleUpgrade = () => {
     if (onUpgrade) {
       onUpgrade();
     } else {
-      navigate("/app/settings?tab=subscription");
+      openSettingsModal("premium");
     }
   };
   

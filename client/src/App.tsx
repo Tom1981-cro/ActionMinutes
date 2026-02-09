@@ -15,7 +15,7 @@ const MeetingsPage = React.lazy(() => import("@/pages/meetings"));
 const CapturePage = React.lazy(() => import("@/pages/capture"));
 const ExtractionPage = React.lazy(() => import("@/pages/extraction"));
 const DraftsPage = React.lazy(() => import("@/pages/drafts"));
-const SettingsPage = React.lazy(() => import("@/pages/settings"));
+// Settings is now a modal rendered in Layout, not a standalone page
 const SettingsPrivacyPage = React.lazy(() => import("@/pages/settings-privacy"));
 const SettingsTermsPage = React.lazy(() => import("@/pages/settings-terms"));
 const SupportPage = React.lazy(() => import("@/pages/support"));
@@ -166,9 +166,7 @@ function Router() {
         </ProtectedRoute>
       </Route>
       <Route path="/app/settings">
-        <ProtectedRoute>
-          <Layout><Suspense fallback={<PageLoader />}><SettingsPage /></Suspense></Layout>
-        </ProtectedRoute>
+        <Redirect to="/app/inbox" />
       </Route>
       <Route path="/app/journal">
         <ProtectedRoute>
@@ -274,7 +272,7 @@ function Router() {
         <Redirect to="/app/drafts" />
       </Route>
       <Route path="/settings">
-        <Redirect to="/app/settings" />
+        <Redirect to="/app/inbox" />
       </Route>
       <Route path="/journal">
         <Redirect to="/app/journal" />

@@ -11,10 +11,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useStore } from "@/lib/store";
 import { useUpdateUser, useIntegrations, useDisconnectIntegration, useAppConfig } from "@/lib/hooks";
-import { Link, useSearch } from "wouter";
-import { useLocation } from "wouter";
+import { Link } from "wouter";
 import {
   User,
   Crown,
@@ -75,7 +79,11 @@ import { format } from "date-fns";
 
 const ADMIN_EMAIL = "tomi.vida@gmail.com";
 
-type TabId =
+export function openSettingsModal(tab?: TabId) {
+  window.dispatchEvent(new CustomEvent("open-settings", { detail: { tab } }));
+}
+
+export type TabId =
   | "account"
   | "premium"
   | "features"
@@ -156,20 +164,27 @@ function SettingCard({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function SettingsPage() {
+interface SettingsModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  initialTab?: TabId;
+}
+
+export default function SettingsModal({ open, onOpenChange, initialTab }: SettingsModalProps) {
   const { user, updateUser: updateLocalUser } = useStore();
   const updateUser = useUpdateUser();
   const { geoData } = useGeoData();
-  const search = useSearch();
   const { toast } = useToast();
-  const [, navigate] = useLocation();
-  const tabParam = new URLSearchParams(search).get("tab") as TabId | null;
-  const activeTab: TabId = tabParam && SIDEBAR_ITEMS.some((i) => i.id === tabParam) ? tabParam : "account";
+  const [activeTab, setActiveTab] = useState<TabId>(initialTab || "account");
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [isManaging, setIsManaging] = useState(false);
   const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
   const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly");
+
+  useEffect(() => {
+    if (initialTab) setActiveTab(initialTab);
+  }, [initialTab]);
 
   const isAdmin = user.email === ADMIN_EMAIL;
   const currencySymbol = geoData?.isEU ? "€" : "$";
@@ -239,7 +254,7 @@ export default function SettingsPage() {
   const { theme: currentTheme, mode, setTheme: applyTheme, setMode, resetTheme } = useTheme();
 
   const setTab = (tab: TabId) => {
-    navigate(`/settings?tab=${tab}`, { replace: true });
+    setActiveTab(tab);
   };
 
   const comingSoon = (feature: string) => {
@@ -1042,7 +1057,6 @@ export default function SettingsPage() {
     const { data: config } = useAppConfig();
     const disconnectIntegration = useDisconnectIntegration();
     const { canUseEmailIntegrations, isFree } = usePlan();
-    const [location] = useLocation();
 
     useEffect(() => {
       const params = new URLSearchParams(window.location.search);
@@ -1051,16 +1065,16 @@ export default function SettingsPage() {
       if (success === "google") {
         toast({ title: "Gmail Connected", description: "You can now send emails directly from ActionMinutes." });
         refetch();
-        window.history.replaceState({}, "", "/settings?tab=integrations");
+        window.history.replaceState({}, "", window.location.pathname);
       } else if (success === "microsoft") {
         toast({ title: "Outlook Connected", description: "You can now send emails directly from ActionMinutes." });
         refetch();
-        window.history.replaceState({}, "", "/settings?tab=integrations");
+        window.history.replaceState({}, "", window.location.pathname);
       } else if (error) {
         toast({ title: "Connection Failed", description: "Could not connect to your email account.", variant: "destructive" });
-        window.history.replaceState({}, "", "/settings?tab=integrations");
+        window.history.replaceState({}, "", window.location.pathname);
       }
-    }, [location]);
+    }, []);
 
     const handleConnect = async (provider: "google" | "microsoft") => {
       try {
@@ -1385,35 +1399,40 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-64px)] overflow-hidden">
-      <aside className="w-[220px] bg-card border-r border-border overflow-y-auto shrink-0 py-2" data-testid="settings-sidebar">
-        {SIDEBAR_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setTab(item.id)}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
-                isActive ? "bg-accent text-foreground font-medium" : "text-muted-foreground hover:bg-accent/50"
-              )}
-              data-testid={`sidebar-${item.id}`}
-            >
-              <Icon className="h-4 w-4 shrink-0" weight={isActive ? "fill" : "regular"} />
-              {item.label}
-            </button>
-          );
-        })}
-      </aside>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl w-[90vw] h-[80vh] p-0 gap-0 overflow-hidden flex flex-row" data-testid="settings-modal">
+          <DialogTitle className="sr-only">Settings</DialogTitle>
+          <aside className="w-[200px] bg-card border-r border-border overflow-y-auto shrink-0 py-2" data-testid="settings-sidebar">
+            {SIDEBAR_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isActiveItem = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setTab(item.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
+                    isActiveItem ? "bg-accent text-foreground font-medium" : "text-muted-foreground hover:bg-accent/50"
+                  )}
+                  data-testid={`sidebar-${item.id}`}
+                >
+                  <Icon className="h-4 w-4 shrink-0" weight={isActiveItem ? "fill" : "regular"} />
+                  {item.label}
+                </button>
+              );
+            })}
+          </aside>
 
-      <main className="flex-1 p-6 overflow-y-auto" data-testid="settings-content">
-        <div className="max-w-2xl">
-          {renderTab()}
-        </div>
-      </main>
+          <main className="flex-1 p-6 overflow-y-auto" data-testid="settings-content">
+            <div className="max-w-2xl">
+              {renderTab()}
+            </div>
+          </main>
+        </DialogContent>
+      </Dialog>
 
       <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
-    </div>
+    </>
   );
 }

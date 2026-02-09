@@ -15,6 +15,7 @@ import { useAuth, authenticatedFetch } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { QuickAdd } from "@/components/quick-add";
 import { SearchModal } from "@/components/search-modal";
+import SettingsModal, { type TabId as SettingsTabId } from "@/pages/settings";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,6 +81,8 @@ export default function Layout({ children }: LayoutProps) {
   const [listToDelete, setListToDelete] = useState<CustomList | null>(null);
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<SettingsTabId | undefined>();
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const toggleSection = (section: string) => setCollapsedSections(prev => ({ ...prev, [section]: !prev[section] }));
 
@@ -92,6 +95,16 @@ export default function Layout({ children }: LayoutProps) {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.tab) setSettingsTab(detail.tab);
+      setSettingsOpen(true);
+    };
+    window.addEventListener("open-settings", handler);
+    return () => window.removeEventListener("open-settings", handler);
   }, []);
 
   const { data: customLists = [] } = useQuery<CustomList[]>({
@@ -450,7 +463,7 @@ export default function Layout({ children }: LayoutProps) {
                 )}
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => setLocation("/app/settings")}
+                onClick={() => setSettingsOpen(true)}
                 className="rounded-lg cursor-pointer"
                 data-testid="menu-settings"
               >
@@ -529,7 +542,7 @@ export default function Layout({ children }: LayoutProps) {
                 )}
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => setLocation("/app/settings")}
+                onClick={() => setSettingsOpen(true)}
                 className="rounded-lg cursor-pointer"
                 data-testid="mobile-menu-settings"
               >
@@ -619,6 +632,7 @@ export default function Layout({ children }: LayoutProps) {
 
       <QuickAdd isOpen={quickAddOpen} onOpenChange={setQuickAddOpen} />
       <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+      <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} initialTab={settingsTab} />
 
       <Dialog open={createDialogOpen} onOpenChange={(open) => { setCreateDialogOpen(open); if (!open) { setNewListName(""); setNewListIcon(null); } }}>
         <DialogContent className="sm:max-w-md">

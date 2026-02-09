@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth, forgotPassword, resetPassword } from "@/hooks/use-auth";
 import { useLocation, useSearch, Link } from "wouter";
+import { openSettingsModal } from "@/pages/settings";
 import { Loader2, Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { Brain, Sparkle, Lightning, CheckCircle } from "@phosphor-icons/react";
@@ -122,7 +123,7 @@ export default function AuthPage() {
         setLocation("/app/onboarding");
       } else if (planParam) {
         sessionStorage.removeItem('justRegistered');
-        setLocation("/app/settings?tab=subscription");
+        openSettingsModal("premium");
       } else {
         sessionStorage.removeItem('justRegistered');
         setLocation("/app/inbox");

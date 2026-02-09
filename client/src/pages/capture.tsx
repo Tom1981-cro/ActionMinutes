@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useStore } from "@/lib/store";
+import { openSettingsModal } from "@/pages/settings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -193,7 +194,7 @@ export default function CapturePage() {
         description: "Upgrade to Pro for unlimited extractions.", 
         variant: "destructive" 
       });
-      setLocation("/app/settings?tab=subscription");
+      openSettingsModal("premium");
       return;
     }
     

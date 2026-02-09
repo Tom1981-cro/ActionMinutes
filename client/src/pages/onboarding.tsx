@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { useLocation } from "wouter";
+import { openSettingsModal } from "@/pages/settings";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -58,7 +59,7 @@ export default function OnboardingPage() {
     const pendingPlan = sessionStorage.getItem('pendingPlan');
     if (pendingPlan) {
       sessionStorage.removeItem('pendingPlan');
-      setLocation("/app/settings?tab=subscription");
+      openSettingsModal("premium");
     } else {
       setLocation("/app/inbox");
     }
