@@ -253,11 +253,6 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
     }
   }, [item]);
 
-  useEffect(() => {
-    if (reminder === "custom") {
-      setShowCustomReminderPicker(true);
-    }
-  }, [reminder]);
 
   const parseSubtasks = (text: string): Subtask[] => {
     const lines = text.split("\n");
@@ -783,19 +778,21 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                 <div className="p-4 space-y-4">
                   <div className="space-y-2">
                     <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Status</label>
-                    <div className="flex gap-1.5 flex-wrap">
+                    <div className="flex gap-2 flex-wrap">
                       {STATUSES.map((s) => (
-                        <button
+                        <Button
                           key={s.value}
+                          size="sm"
+                          variant={status === s.value ? "default" : "outline"}
                           onClick={() => setStatus(s.value)}
                           className={cn(
-                            "px-2 py-0.5 rounded-lg text-[10px] font-medium transition-colors",
-                            status === s.value ? s.className : "bg-muted text-muted-foreground hover:bg-accent border border-transparent"
+                            "h-8 rounded-xl text-[12px] px-4",
+                            status === s.value ? s.className : "border-border"
                           )}
                           data-testid={`status-${s.value}`}
                         >
                           {s.label}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
