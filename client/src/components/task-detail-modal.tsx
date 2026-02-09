@@ -785,7 +785,10 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                           size="sm"
                           variant={status === s.value ? "default" : "outline"}
                           onClick={() => setStatus(s.value)}
-                          className="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-[0.98] btn-gradient font-semibold min-h-8 h-8 rounded-xl text-[12px] px-4 bg-primary hover:bg-primary/90 text-primary-foreground pl-[10px] pr-[10px]"
+                          className={cn(
+                            "h-8 rounded-xl text-[12px] px-4",
+                            status === s.value ? s.className : "bg-[#edeaf5] border-border text-muted-foreground hover:bg-[#e0dced]"
+                          )}
                           data-testid={`status-${s.value}`}
                         >
                           {s.label}
