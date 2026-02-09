@@ -16,15 +16,16 @@ import { useToast } from "@/hooks/use-toast";
 interface DeletedData {
   tasks: any[];
   reminders: any[];
+  actions: any[];
 }
 
 function DeletedCard({ item, type, onRestore, onPermanentDelete }: { 
   item: any; 
-  type: 'task' | 'reminder';
+  type: 'task' | 'reminder' | 'action';
   onRestore: () => void;
   onPermanentDelete: () => void;
 }) {
-  const title = type === 'task' ? item.title : item.text;
+  const title = type === 'task' ? (item.title || item.text) : item.text;
   const deletedDate = item.deletedAt ? new Date(item.deletedAt) : null;
 
   const priorityColor = item.priority === 'high' || item.priority === 'urgent' ? 'text-red-500' :
@@ -152,6 +153,7 @@ export default function DeletedPage() {
   const allItems = [
     ...(data?.tasks || []).map(t => ({ ...t, _type: 'task' as const })),
     ...(data?.reminders || []).map(r => ({ ...r, _type: 'reminder' as const })),
+    ...(data?.actions || []).map(a => ({ ...a, _type: 'action' as const })),
   ].sort((a, b) => {
     const aDate = a.deletedAt ? new Date(a.deletedAt).getTime() : 0;
     const bDate = b.deletedAt ? new Date(b.deletedAt).getTime() : 0;

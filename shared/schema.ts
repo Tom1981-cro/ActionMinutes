@@ -180,6 +180,8 @@ export const actionItems = pgTable("action_items", {
   subtasks: jsonb("subtasks"),
   notes: text("notes"),
   reminderAt: timestamp("reminder_at"),
+  completedAt: timestamp("completed_at"),
+  deletedAt: timestamp("deleted_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

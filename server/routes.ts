@@ -1055,6 +1055,12 @@ Thanks!`,
         error: `Invalid status. Must be one of: ${VALID_ACTION_STATUSES.join(', ')}` 
       });
     }
+    if (updates.status === 'done' && !updates.completedAt) {
+      updates.completedAt = new Date();
+    }
+    if (updates.status && updates.status !== 'done') {
+      updates.completedAt = null;
+    }
     const action = await storage.updateActionItem(req.params.id, updates);
     if (!action) return res.status(404).json({ error: "Action item not found" });
     res.json(action);
@@ -3335,6 +3341,9 @@ Thanks!`,
     } else if (type === 'reminder') {
       const reminder = await storage.getPersonalReminder(id);
       if (!reminder || reminder.userId !== userId) return res.status(404).json({ error: "Not found" });
+    } else if (type === 'action') {
+      const action = await storage.getActionItem(id);
+      if (!action) return res.status(404).json({ error: "Not found" });
     } else {
       return res.status(400).json({ error: "Invalid type" });
     }
@@ -3353,6 +3362,10 @@ Thanks!`,
       const reminder = await storage.getPersonalReminder(id);
       if (!reminder || reminder.userId !== userId) return res.status(404).json({ error: "Not found" });
       await storage.deletePersonalReminder(id);
+    } else if (type === 'action') {
+      const action = await storage.getActionItem(id);
+      if (!action) return res.status(404).json({ error: "Not found" });
+      await storage.permanentDeleteActionItem(id);
     } else {
       return res.status(400).json({ error: "Invalid type" });
     }
