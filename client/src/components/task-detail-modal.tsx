@@ -250,9 +250,17 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
         setCustomReminderTime(format(ra, "HH:mm"));
       }
 
-      const existingSubtasks = parseSubtasks(item.description || item.notes || "");
-      if (existingSubtasks.length > 0) {
-        setSubtasks(existingSubtasks);
+      if (Array.isArray(item.subtasks) && item.subtasks.length > 0) {
+        setSubtasks(item.subtasks.map((s: any) => ({
+          id: s.id || crypto.randomUUID(),
+          text: s.text || "",
+          completed: !!s.completed,
+        })));
+      } else {
+        const existingSubtasks = parseSubtasks(item.description || item.notes || "");
+        if (existingSubtasks.length > 0) {
+          setSubtasks(existingSubtasks);
+        }
       }
     }
   }, [item]);
@@ -352,6 +360,10 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
         ? new Date(`${customReminderDate}T${customReminderTime || "09:00"}:00`).toISOString()
         : reminderAt?.toISOString() || null;
 
+      const subtasksPayload = subtasks.length > 0
+        ? subtasks.map(s => ({ id: s.id, text: s.text, completed: s.completed }))
+        : null;
+
       if (itemType === "meeting") {
         await api.actions.update(itemId, {
           text,
@@ -360,7 +372,9 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
           dueDate: finalDueDate?.toISOString() || null,
           status,
           reminderAt: computedReminderAt,
-          notes: description || notes || null,
+          description: description || null,
+          subtasks: subtasksPayload,
+          notes: notes || null,
           tags,
           confidenceOwner: 1,
           confidenceDueDate: 1,

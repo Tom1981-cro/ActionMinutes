@@ -176,6 +176,8 @@ export const actionItems = pgTable("action_items", {
   confidenceOwner: real("confidence_owner").notNull().default(0),
   confidenceDueDate: real("confidence_due_date").notNull().default(0),
   tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
+  description: text("description"),
+  subtasks: jsonb("subtasks"),
   notes: text("notes"),
   reminderAt: timestamp("reminder_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),

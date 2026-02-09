@@ -1047,6 +1047,9 @@ Thanks!`,
     if (updates.dueDate && typeof updates.dueDate === 'string') {
       updates.dueDate = new Date(updates.dueDate);
     }
+    if (updates.reminderAt && typeof updates.reminderAt === 'string') {
+      updates.reminderAt = new Date(updates.reminderAt);
+    }
     if (updates.status && !isValidActionStatus(updates.status)) {
       return res.status(400).json({ 
         error: `Invalid status. Must be one of: ${VALID_ACTION_STATUSES.join(', ')}` 
