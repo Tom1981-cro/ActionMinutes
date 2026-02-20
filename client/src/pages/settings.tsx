@@ -73,7 +73,6 @@ import { authenticatedFetch } from "@/hooks/use-auth";
 import { FeedbackModal } from "@/components/feedback-modal";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/theme/useTheme";
-import { THEMES, DEFAULT_THEME, type ThemeId } from "@/theme/theme-types";
 import { useToast } from "@/hooks/use-toast";
 import { usePlan } from "@/hooks/use-plan";
 import { format } from "date-fns";
@@ -182,7 +181,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
   const [isManaging, setIsManaging] = useState(false);
   const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
   const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("monthly");
-  const [appearanceSubTab, setAppearanceSubTab] = useState<"theme" | "display">("theme");
+  const [_appearanceSubTab, _setAppearanceSubTab] = useState<"theme" | "display">("theme");
   const [smartListSettings, setSmartListSettings] = useState(() =>
     getLocalStorage("am.smartListSettings", {
       all: "show", today: "show", tomorrow: "show", next7Days: "show", assignedToMe: "show",
@@ -729,9 +728,6 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
   };
 
   const renderAppearanceTab = () => {
-    const subTab = appearanceSubTab;
-    const setSubTab = setAppearanceSubTab;
-
     const updateDisplay = (key: string, value: string) => {
       const next = { ...displaySettings, [key]: value };
       setDisplaySettings(next);
@@ -740,129 +736,32 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
 
     return (
       <div className="space-y-3">
-        <div className="flex gap-1 bg-muted rounded-lg p-1">
-          <button
-            onClick={() => setSubTab("theme")}
-            className={cn("flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all", subTab === "theme" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground")}
-            data-testid="button-subtab-theme"
-          >
-            Theme
-          </button>
-          <button
-            onClick={() => setSubTab("display")}
-            className={cn("flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all", subTab === "display" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground")}
-            data-testid="button-subtab-display"
-          >
-            Display
-          </button>
-        </div>
-
-        {subTab === "theme" && (
-          <div className="space-y-3">
-            <SettingCard>
-              <SettingRow label="Follow System Dark Mode" last testId="row-follow-system">
-                <Select value={mode === "dark" ? "open" : "close"} onValueChange={(v) => setMode(v === "open" ? "dark" : "light")}>
-                  <SelectTrigger className="w-[120px]" data-testid="select-follow-system">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="close">Close</SelectItem>
-                  </SelectContent>
-                </Select>
-              </SettingRow>
-            </SettingCard>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-foreground">Theme</h3>
-                {currentTheme !== DEFAULT_THEME && (
-                  <button onClick={resetTheme} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1" data-testid="button-reset-theme">
-                    <ArrowCounterClockwise className="h-3.5 w-3.5" weight="bold" />
-                    Reset
-                  </button>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-3">
-                {THEMES.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => applyTheme(t.id)}
-                    className="flex flex-col items-center gap-2 group"
-                    data-testid={`theme-swatch-${t.id}`}
-                  >
-                    <div
-                      className={cn(
-                        "w-10 h-10 rounded-full border-2 transition-all",
-                        currentTheme === t.id ? "border-primary ring-2 ring-primary/30" : "border-border group-hover:border-primary/50"
-                      )}
-                      style={{ background: `linear-gradient(135deg, ${t.preview.primary}, ${t.preview.accent})` }}
-                    />
-                    <span className={cn("text-xs", currentTheme === t.id ? "text-foreground font-medium" : "text-muted-foreground")}>
-                      {t.name.split(" ")[0]}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => setMode("light")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all border",
-                  mode === "light" ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:bg-accent/50"
-                )}
-                data-testid="button-mode-light"
-              >
-                <Sun className="h-4 w-4" weight={mode === "light" ? "fill" : "regular"} />
-                Light
-              </button>
-              <button
-                onClick={() => setMode("dark")}
-                className={cn(
-                  "flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all border",
-                  mode === "dark" ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:bg-accent/50"
-                )}
-                data-testid="button-mode-dark"
-              >
-                <Moon className="h-4 w-4" weight={mode === "dark" ? "fill" : "regular"} />
-                Dark
-              </button>
-            </div>
-          </div>
-        )}
-
-        {subTab === "display" && (
-          <div className="space-y-3">
-            <SettingCard>
-              <SettingRow label="Interface Style" testId="row-interface-style">
-                <Select value={displaySettings.interfaceStyle} onValueChange={(v) => updateDisplay("interfaceStyle", v)}>
-                  <SelectTrigger className="w-[140px]" data-testid="select-interface-style">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="card">Card</SelectItem>
-                    <SelectItem value="compact">Compact</SelectItem>
-                    <SelectItem value="list">List</SelectItem>
-                  </SelectContent>
-                </Select>
-              </SettingRow>
-              <SettingRow label="Font Size" last testId="row-font-size">
-                <Select value={displaySettings.fontSize} onValueChange={(v) => updateDisplay("fontSize", v)}>
-                  <SelectTrigger className="w-[140px]" data-testid="select-font-size">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="small">Small</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="large">Large</SelectItem>
-                  </SelectContent>
-                </Select>
-              </SettingRow>
-            </SettingCard>
-          </div>
-        )}
+        <SettingCard>
+          <SettingRow label="Interface Style" testId="row-interface-style">
+            <Select value={displaySettings.interfaceStyle} onValueChange={(v) => updateDisplay("interfaceStyle", v)}>
+              <SelectTrigger className="w-[140px]" data-testid="select-interface-style">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="card">Card</SelectItem>
+                <SelectItem value="compact">Compact</SelectItem>
+                <SelectItem value="list">List</SelectItem>
+              </SelectContent>
+            </Select>
+          </SettingRow>
+          <SettingRow label="Font Size" last testId="row-font-size">
+            <Select value={displaySettings.fontSize} onValueChange={(v) => updateDisplay("fontSize", v)}>
+              <SelectTrigger className="w-[140px]" data-testid="select-font-size">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="small">Small</SelectItem>
+                <SelectItem value="normal">Normal</SelectItem>
+                <SelectItem value="large">Large</SelectItem>
+              </SelectContent>
+            </Select>
+          </SettingRow>
+        </SettingCard>
       </div>
     );
   };
@@ -1378,12 +1277,12 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl w-[90vw] h-[80vh] p-0 gap-0 overflow-hidden flex flex-row" data-testid="settings-modal">
+        <DialogContent className="max-w-4xl w-[90vw] h-[80vh] p-0 gap-0 overflow-hidden flex flex-row bg-white" data-testid="settings-modal">
           <DialogTitle className="sr-only">Settings</DialogTitle>
-          <aside className="w-[200px] bg-card border-r border-border overflow-y-auto shrink-0 py-2" data-testid="settings-sidebar">
+          <aside className="w-[200px] bg-[#FAFAF8] border-r border-[#E5E5E0] overflow-y-auto shrink-0 py-2" data-testid="settings-sidebar">
             <div className="flex items-center gap-2.5 px-4 py-2 mb-1">
-              <img src={logoIcon} alt="ActionMinutes" className="w-6 h-6 rounded-md" />
-              <span className="text-xs font-semibold text-foreground">Settings</span>
+              <img src={logoIcon} alt="ActionMinutes" className="w-6 h-6 rounded-lg" />
+              <span className="text-xs font-semibold text-[#1A1A1A]">Settings</span>
             </div>
             {SIDEBAR_ITEMS.map((item) => {
               const Icon = item.icon;
@@ -1394,7 +1293,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
                   onClick={() => setTab(item.id)}
                   className={cn(
                     "w-full flex items-center gap-2.5 px-4 py-1.5 text-xs transition-colors",
-                    isActiveItem ? "bg-accent text-foreground font-medium" : "text-muted-foreground hover:bg-accent/50"
+                    isActiveItem ? "bg-amber-50 text-amber-700 font-medium" : "text-[#6B7280] hover:bg-[#F5F5F0]"
                   )}
                   data-testid={`sidebar-${item.id}`}
                 >
