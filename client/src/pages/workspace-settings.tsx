@@ -19,7 +19,7 @@ const roleIcons: Record<string, any> = {
 };
 
 const roleColors: Record<string, string> = {
-  owner: "bg-amber-50 text-amber-700 border-amber-200",
+  owner: "bg-violet-50 text-violet-700 border-violet-200",
   admin: "bg-purple-50 text-purple-700 border-purple-200",
   member: "bg-indigo-50 text-indigo-700 border-indigo-200",
   viewer: "bg-muted text-muted-foreground border-border",
@@ -213,17 +213,17 @@ export default function WorkspaceSettingsPage({ workspaceId }: { workspaceId: st
             {invites.filter((i: any) => !i.acceptedAt).map((invite: any) => (
               <div 
                 key={invite.id} 
-                className="flex items-center justify-between p-3 rounded-xl bg-amber-50 border border-amber-100"
+                className="flex items-center justify-between p-3 rounded-xl bg-violet-50 border border-violet-100"
                 data-testid={`invite-${invite.id}`}
               >
                 <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-amber-500" />
+                  <Mail className="h-5 w-5 text-violet-500" />
                   <div>
                     <p className="font-medium text-foreground">{invite.email}</p>
                     <p className="text-sm text-muted-foreground">Invited as {invite.role}</p>
                   </div>
                 </div>
-                <Badge variant="outline" className="rounded-full bg-amber-50 text-amber-700 border-amber-200">
+                <Badge variant="outline" className="rounded-full bg-violet-50 text-violet-700 border-violet-200">
                   Pending
                 </Badge>
               </div>

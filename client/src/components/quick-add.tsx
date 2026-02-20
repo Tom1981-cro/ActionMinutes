@@ -32,7 +32,7 @@ type RecurrenceOption = "daily" | "weekly" | "biweekly" | "monthly" | "yearly" |
 
 const PRIORITIES: { value: Priority; label: string; color: string; icon: string }[] = [
   { value: "high", label: "High", color: "text-red-500", icon: "🔴" },
-  { value: "normal", label: "Normal", color: "text-amber-500", icon: "🟡" },
+  { value: "normal", label: "Normal", color: "text-violet-500", icon: "🟡" },
   { value: "low", label: "Low", color: "text-emerald-500", icon: "🟢" },
   { value: "none", label: "None", color: "text-muted-foreground", icon: "⚪" },
 ];

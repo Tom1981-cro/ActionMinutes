@@ -28,7 +28,7 @@ import { SkeletonList } from "@/components/skeleton-loader";
 
 const PRIORITIES = [
   { value: "high", label: "High", color: "text-red-500", bg: "bg-red-500/15 border-red-500/25" },
-  { value: "normal", label: "Normal", color: "text-amber-500", bg: "bg-amber-500/15 border-amber-500/25" },
+  { value: "normal", label: "Normal", color: "text-violet-500", bg: "bg-violet-600/15 border-violet-500/25" },
   { value: "low", label: "Low", color: "text-emerald-500", bg: "bg-emerald-500/15 border-emerald-500/25" },
   { value: "none", label: "None", color: "text-muted-foreground", bg: "bg-muted border-border" },
 ];
@@ -37,7 +37,7 @@ const STATUSES = [
   { value: "open", label: "Open", className: "bg-primary hover:bg-primary/90 text-primary-foreground" },
   { value: "needs_review", label: "Review", className: "bg-sky-500 hover:bg-sky-600 text-white" },
   { value: "done", label: "Done", className: "bg-emerald-500 hover:bg-emerald-600 text-white" },
-  { value: "waiting", label: "Waiting", className: "bg-amber-500 hover:bg-amber-600 text-white" },
+  { value: "waiting", label: "Waiting", className: "bg-violet-600 hover:bg-violet-700 text-white" },
 ];
 
 const RECURRENCE_OPTIONS = [

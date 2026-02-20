@@ -1009,7 +1009,7 @@ export default function CapturePage() {
                   return (
                     <span key={index}>
                       {isActionLine ? (
-                        <span className="bg-amber-400/20 rounded px-1 -mx-1">{line}</span>
+                        <span className="bg-violet-500/20 rounded px-1 -mx-1">{line}</span>
                       ) : (
                         line
                       )}
@@ -1047,7 +1047,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                 setSelectedActions(new Set(detectedActions.map((_, i) => i)));
                 setShowReviewActions(true);
               }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/20 border border-amber-500/30 text-amber-300 hover:bg-amber-500/30 transition-all w-full justify-center"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600/20 border border-violet-500/30 text-violet-300 hover:bg-violet-600/30 transition-all w-full justify-center"
               data-testid="button-review-actions"
             >
               <ListChecks className="h-5 w-5" weight="duotone" />
@@ -1208,7 +1208,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
         <DialogContent className="border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-2">
-              <WarningCircle className="h-5 w-5 text-amber-400" weight="duotone" />
+              <WarningCircle className="h-5 w-5 text-violet-400" weight="duotone" />
               Recording Consent Required
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -1340,7 +1340,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
         <DialogContent className="border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-2">
-              <ListChecks className="h-5 w-5 text-amber-400" weight="duotone" />
+              <ListChecks className="h-5 w-5 text-violet-400" weight="duotone" />
               Review Detected Actions
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -1356,7 +1356,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                   className={cn(
                     "flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer",
                     selectedActions.has(index)
-                      ? "bg-amber-500/20 border-amber-500/30"
+                      ? "bg-violet-600/20 border-violet-500/30"
                       : "bg-muted border-border hover:bg-accent"
                   )}
                   onClick={() => {
@@ -1380,7 +1380,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                       }
                       setSelectedActions(newSelected);
                     }}
-                    className="mt-0.5 border-amber-400/50 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                    className="mt-0.5 border-violet-400/50 data-[state=checked]:bg-violet-600 data-[state=checked]:border-violet-500"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">

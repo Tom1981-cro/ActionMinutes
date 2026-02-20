@@ -188,7 +188,7 @@ export function EmptyState({
             {config.tips.length > 0 && (
               <div className="bg-muted rounded-xl p-4 text-left space-y-2">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <LightbulbFilament className="h-4 w-4 text-amber-400" weight="fill" />
+                  <LightbulbFilament className="h-4 w-4 text-violet-400" weight="fill" />
                   Quick tips
                 </p>
                 <ul className="space-y-2">

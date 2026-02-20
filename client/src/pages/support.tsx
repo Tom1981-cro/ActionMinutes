@@ -48,7 +48,7 @@ export default function SupportPage() {
     {
       icon: Bell,
       text: "Organize reminders by time: Today, Tomorrow, Next Week, Someday",
-      color: "text-amber-400"
+      color: "text-violet-400"
     },
     {
       icon: Brain,
@@ -131,7 +131,7 @@ export default function SupportPage() {
         <Card className="bg-card border-border rounded-2xl overflow-hidden">
           <CardHeader className="bg-muted border-b border-border">
             <CardTitle className="text-lg text-foreground flex items-center gap-2">
-              <Question className="h-5 w-5 text-amber-400" weight="duotone" />
+              <Question className="h-5 w-5 text-violet-400" weight="duotone" />
               Frequently Asked Questions
             </CardTitle>
           </CardHeader>

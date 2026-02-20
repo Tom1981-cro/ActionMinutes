@@ -48,7 +48,7 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
     <div className={cn(
       "flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium",
       isLow 
-        ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+        ? "bg-violet-600/20 text-violet-400 border border-violet-500/30"
         : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
     )}>
       {isLow ? (
@@ -70,7 +70,7 @@ function ItemTypeIcon({ type }: { type: ExtractedItem["type"] }) {
   const colors = {
     action: "text-primary",
     decision: "text-emerald-400",
-    risk: "text-amber-400",
+    risk: "text-violet-400",
   };
   const Icon = icons[type];
   return <Icon className={cn("h-5 w-5", colors[type])} weight="duotone" />;
@@ -428,7 +428,7 @@ export function ExtractionReviewPanel({
             {risks.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Warning className="h-4 w-4 text-amber-400" />
+                  <Warning className="h-4 w-4 text-violet-400" />
                   <span className="text-sm font-medium text-foreground">
                     Risks ({risks.length})
                   </span>

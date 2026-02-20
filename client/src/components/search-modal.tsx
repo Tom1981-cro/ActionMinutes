@@ -253,7 +253,7 @@ function buildItemList(query: string, results: SearchResult | null): ListItem[] 
         content: highlightMatch(n.title, query),
         path: `/notes/${n.id}`,
         icon: NotePencil,
-        iconClass: "text-amber-500",
+        iconClass: "text-violet-500",
         badge: n.isJournal ? "Journal" : undefined,
       });
     });

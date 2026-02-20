@@ -195,7 +195,7 @@ export default function AgendaPage() {
             title="Today"
             icon={Sun}
             items={todayItems}
-            accentColor="bg-amber-500"
+            accentColor="bg-violet-600"
             onMarkDone={handleMarkDone}
             onTap={handleTap}
           />

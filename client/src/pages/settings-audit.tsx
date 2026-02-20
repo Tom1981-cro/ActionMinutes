@@ -13,11 +13,11 @@ export default function SettingsAuditPage() {
 
   if (config && !config.features.aiEnabled) {
     return (
-      <Card className="bg-amber-50 border-amber-200 rounded-xl">
+      <Card className="bg-violet-50 border-violet-200 rounded-xl">
         <CardContent className="py-8 text-center">
-          <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-4" />
-          <h3 className="font-semibold text-amber-800 mb-2">AI Features Disabled</h3>
-          <p className="text-amber-700 text-sm">
+          <AlertTriangle className="h-10 w-10 text-violet-500 mx-auto mb-4" />
+          <h3 className="font-semibold text-violet-800 mb-2">AI Features Disabled</h3>
+          <p className="text-violet-700 text-sm">
             AI audit logging is unavailable because AI features are disabled. Set AI_FEATURE_ENABLED=true to enable.
           </p>
         </CardContent>

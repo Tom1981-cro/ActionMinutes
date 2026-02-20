@@ -31,12 +31,12 @@ A separate mobile application is developed using Expo React Native, connecting t
 - **UI/UX Design:** Clean white top navigation bar with logo left, nav links center, and user actions right. Mobile bottom tab bar with 5 tabs (Inbox, Capture, Calendar, Journal, Notes). Additional pages accessible via user dropdown menu. Actioned and Deleted views in dropdown menu.
 - **Soft Delete:** Tasks and personal reminders support soft deletion via `deletedAt` timestamp. Deleted items viewable and restorable from the Deleted page. Actioned page shows completed items.
 - **Meeting Source Card:** Extraction page shows a "Source" card at top displaying linked transcripts with AI summaries (from transcript_summaries) and meeting notes.
-- **Design System:** Single light theme with minimal white/amber aesthetic. Architecture:
-    - `client/src/index.css`: CSS variable definitions for all semantic tokens (--color-background: #FFFFFF, --color-primary: #F59E0B amber, --color-muted: #F5F5F0 warm grey, --color-foreground: #1A1A1A charcoal, --color-border: #E5E5E0).
+- **Design System:** Single light theme with minimal white/purple aesthetic matching the app logo. Architecture:
+    - `client/src/index.css`: CSS variable definitions for all semantic tokens (--color-background: #FFFFFF, --color-primary: #8B5CF6 violet, --color-muted: #F5F5F0 warm grey, --color-foreground: #1A1A1A charcoal, --color-border: #E5E5E0).
     - Inter font from Google Fonts, typography scale 32/24/18/16/14px.
     - White cards with 12px radius and subtle shadow (0 2px 8px rgba(0,0,0,0.06)).
-    - Amber buttons (#F59E0B bg, black text, 8px radius, 600 weight).
-    - Light grey inputs (#F5F5F0) with amber focus rings.
+    - Purple buttons (#8B5CF6 bg, white text, 8px radius, 600 weight). Violet palette: 50/100/200/300/400/500/600/700.
+    - Light grey inputs (#F5F5F0) with violet focus rings.
     - No dark mode, no multi-theme system, no gradients, no glassmorphism.
     - `client/src/theme/` files kept as minimal no-ops to avoid breaking imports.
 - **Notes Module:** Features AES-256-GCM encryption for note content at rest, with searchable keyword indexing. Supports mood tracking, tags, bi-directional links, and attachments. Notes page (`client/src/pages/notes.tsx`) redesigned as action-oriented capture system: (1) Masonry grid layout (CSS columns) with color-coded cards using semantic CSS tokens via `color-mix()`. (2) Create New card with action icons (voice, checklist, template). (3) Search bar with filter pills (All/Work/Personal/Meeting). (4) Right sidebar with Collections and Tags sections. (5) Smart context linking via `meetingId` column — notes linked to meetings show meeting badge. (6) AI "Text-to-Action" extraction via POST `/api/notes/:id/extract-actions` — scans note content and creates tasks in inbox. (7) Grid/list view toggle. (8) Collection-based organization via `collection` column on notes table.

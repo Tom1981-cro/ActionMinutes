@@ -196,7 +196,7 @@ export default function TranscriptsPage() {
     switch (sentiment) {
       case "positive": return <SmileyWink className="h-4 w-4 text-emerald-400" weight="duotone" />;
       case "negative": return <SmileySad className="h-4 w-4 text-red-400" weight="duotone" />;
-      default: return <SmileyMeh className="h-4 w-4 text-amber-400" weight="duotone" />;
+      default: return <SmileyMeh className="h-4 w-4 text-violet-400" weight="duotone" />;
     }
   };
 
@@ -204,7 +204,7 @@ export default function TranscriptsPage() {
     switch (sentiment) {
       case "positive": return "text-emerald-400 bg-emerald-500/20 border-emerald-500/30";
       case "negative": return "text-red-400 bg-red-500/20 border-red-500/30";
-      case "mixed": return "text-amber-400 bg-amber-500/20 border-amber-500/30";
+      case "mixed": return "text-violet-400 bg-violet-600/20 border-violet-500/30";
       default: return "text-muted-foreground bg-accent border-border";
     }
   };
@@ -213,7 +213,7 @@ export default function TranscriptsPage() {
     switch (priority) {
       case "urgent": return "bg-red-500/20 text-red-300 border-red-500/30";
       case "high": return "bg-orange-500/20 text-orange-300 border-orange-500/30";
-      case "medium": return "bg-amber-500/20 text-amber-300 border-amber-500/30";
+      case "medium": return "bg-violet-600/20 text-violet-300 border-violet-500/30";
       default: return "bg-accent text-muted-foreground border-border";
     }
   };

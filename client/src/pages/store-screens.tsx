@@ -89,17 +89,17 @@ const screens = [
     </div>
     <div className="bg-card rounded-2xl p-5 border border-border">
      <div className="flex items-start gap-3">
-      <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0">
-       <div className="w-3 h-3 bg-amber-500 rounded-full" />
+      <div className="w-8 h-8 bg-violet-100 rounded-full flex items-center justify-center flex-shrink-0">
+       <div className="w-3 h-3 bg-violet-600 rounded-full" />
       </div>
       <div className="flex-1">
        <div className="font-medium text-foreground">Update Jira roadmap</div>
        <div className="text-sm text-muted-foreground mt-1">Mike • No due date</div>
        <div className="flex items-center gap-2 mt-2">
         <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
-         <div className="h-full bg-amber-500 rounded-full" style={{ width:"62%" }} />
+         <div className="h-full bg-violet-600 rounded-full" style={{ width:"62%" }} />
         </div>
-        <span className="text-xs font-medium text-amber-600">62%</span>
+        <span className="text-xs font-medium text-violet-600">62%</span>
        </div>
       </div>
      </div>
@@ -169,7 +169,7 @@ const screens = [
      <div key={i} className="bg-card rounded-xl p-4 border border-border flex items-center gap-3">
       <div className={cn(
       "w-4 h-4 rounded border-2 flex-shrink-0",
-       task.priority ==="high" ?"border-red-400" : task.priority ==="medium" ?"border-amber-400" :"border-border"
+       task.priority ==="high" ?"border-red-400" : task.priority ==="medium" ?"border-violet-400" :"border-border"
       )} />
       <div className="flex-1 min-w-0">
        <div className="font-medium text-foreground truncate">{task.title}</div>
@@ -177,7 +177,7 @@ const screens = [
       </div>
       <div className={cn(
       "text-xs font-medium px-2 py-1 rounded-full",
-       task.due ==="Today" ?"bg-red-50 text-red-600" : task.due ==="Tomorrow" ?"bg-amber-50 text-amber-600" :"bg-muted text-muted-foreground"
+       task.due ==="Today" ?"bg-red-50 text-red-600" : task.due ==="Tomorrow" ?"bg-violet-50 text-violet-600" :"bg-muted text-muted-foreground"
       )}>
        {task.due}
       </div>
@@ -241,7 +241,7 @@ const screens = [
       Feeling overwhelmed with the product launch. Need to delegate more of the technical tasks to the team...
      </div>
      <div className="flex gap-2 mt-4">
-      <span className="px-2 py-1 bg-amber-50 text-amber-600 rounded-full text-xs font-medium">overwhelm</span>
+      <span className="px-2 py-1 bg-violet-50 text-violet-600 rounded-full text-xs font-medium">overwhelm</span>
       <span className="px-2 py-1 bg-accent text-primary rounded-full text-xs font-medium">delegation</span>
      </div>
     </div>

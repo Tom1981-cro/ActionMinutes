@@ -141,7 +141,7 @@ export function ActionEditSheet({ item, open, onOpenChange }: ActionEditSheetPro
                 size="sm"
                 variant={status === "waiting" ? "default" : "outline"}
                 onClick={() => handleQuickStatus("waiting")}
-                className={`flex-1 h-10 rounded-xl ${status === "waiting" ? "bg-amber-500 hover:bg-amber-600 text-white" : "border-border text-amber-600 dark:text-amber-400"}`}
+                className={`flex-1 h-10 rounded-xl ${status === "waiting" ? "bg-violet-600 hover:bg-violet-700 text-white" : "border-border text-violet-600 dark:text-violet-400"}`}
               >
                 Waiting
               </Button>

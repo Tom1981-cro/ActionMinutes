@@ -19,7 +19,7 @@ export const THEMES: ThemeConfig[] = [
     name: "ActionMinutes",
     description: "Clean, modern productivity design.",
     bestFor: "All users",
-    preview: { primary: "#F59E0B", accent: "#F59E0B", bg: "#FFFFFF" },
+    preview: { primary: "#8B5CF6", accent: "#8B5CF6", bg: "#FFFFFF" },
   },
 ];
 

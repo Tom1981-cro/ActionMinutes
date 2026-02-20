@@ -29,7 +29,7 @@ function DeletedCard({ item, type, onRestore, onPermanentDelete }: {
   const deletedDate = item.deletedAt ? new Date(item.deletedAt) : null;
 
   const priorityColor = item.priority === 'high' || item.priority === 'urgent' ? 'text-red-500' :
-    item.priority === 'normal' || item.priority === 'medium' ? 'text-amber-500' :
+    item.priority === 'normal' || item.priority === 'medium' ? 'text-violet-500' :
     item.priority === 'low' ? 'text-emerald-500' : '';
 
   return (

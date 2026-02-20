@@ -41,11 +41,11 @@ export default function SettingsIntegrationsPage() {
 
   if (config && !config.features.integrationsEnabled) {
     return (
-      <Card className="bg-amber-500/10 border-amber-500/30 rounded-xl">
+      <Card className="bg-violet-600/10 border-violet-500/30 rounded-xl">
         <CardContent className="py-8 text-center">
-          <AlertTriangle className="h-10 w-10 text-amber-400 mx-auto mb-4" />
-          <h3 className="font-semibold text-amber-300 mb-2">Integrations Disabled</h3>
-          <p className="text-amber-400/80 text-sm">
+          <AlertTriangle className="h-10 w-10 text-violet-400 mx-auto mb-4" />
+          <h3 className="font-semibold text-violet-300 mb-2">Integrations Disabled</h3>
+          <p className="text-violet-400/80 text-sm">
             Email integrations are currently disabled. Set INTEGRATIONS_FEATURE_ENABLED=true to enable this feature.
           </p>
         </CardContent>
@@ -172,8 +172,8 @@ export default function SettingsIntegrationsPage() {
                 Connect Gmail
               </Button>
             ) : (
-              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-                <p className="text-sm text-amber-400">
+              <div className="p-3 bg-violet-600/10 border border-violet-500/30 rounded-lg">
+                <p className="text-sm text-violet-400">
                   Gmail integration requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to be configured.
                 </p>
               </div>
@@ -243,8 +243,8 @@ export default function SettingsIntegrationsPage() {
                 Connect Outlook
               </Button>
             ) : (
-              <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg">
-                <p className="text-sm text-amber-400">
+              <div className="p-3 bg-violet-600/10 border border-violet-500/30 rounded-lg">
+                <p className="text-sm text-violet-400">
                   Outlook integration requires MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET to be configured.
                 </p>
               </div>

@@ -195,8 +195,8 @@ export default function MobileBuildGuidePage() {
             </ol>
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-            <p className="text-sm text-amber-800 flex items-start gap-2">
+          <div className="bg-violet-50 border border-violet-200 rounded-lg p-3">
+            <p className="text-sm text-violet-800 flex items-start gap-2">
               <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <span>
                 For App Store submission, you'll need to create an app in 
@@ -244,8 +244,8 @@ export default function MobileBuildGuidePage() {
             </ol>
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-            <p className="text-sm text-amber-800 flex items-start gap-2">
+          <div className="bg-violet-50 border border-violet-200 rounded-lg p-3">
+            <p className="text-sm text-violet-800 flex items-start gap-2">
               <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <span>
                 Store your keystore file securely. You'll need the same keystore for all future updates.

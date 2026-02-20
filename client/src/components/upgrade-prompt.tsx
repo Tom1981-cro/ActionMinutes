@@ -145,7 +145,7 @@ export function UsageBadge({ used, limit, unlimited, label }: UsageBadgeProps) {
       variant="secondary" 
       className={`
         ${isExceeded ? 'bg-red-500/20 text-red-300 border-red-500/30' : ''}
-        ${isWarning && !isExceeded ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : ''}
+        ${isWarning && !isExceeded ? 'bg-violet-600/20 text-violet-300 border-violet-500/30' : ''}
         ${!isWarning ? 'bg-green-500/20 text-green-300 border-green-500/30' : ''}
       `}
     >

@@ -25,7 +25,7 @@ interface FeedbackModalProps {
 
 const feedbackTypes = [
   { value: "bug", label: "Bug", icon: Bug, color: "text-red-500" },
-  { value: "feature", label: "Feature", icon: Lightbulb, color: "text-amber-500" },
+  { value: "feature", label: "Feature", icon: Lightbulb, color: "text-violet-500" },
   { value: "ux", label: "UX Issue", icon: Palette, color: "text-purple-500" },
   { value: "other", label: "Other", icon: Question, color: "text-muted-foreground" },
 ];

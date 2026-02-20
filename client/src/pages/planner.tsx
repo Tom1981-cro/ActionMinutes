@@ -548,7 +548,7 @@ export default function PlannerPage() {
 
           <button
             onClick={() => navigate('/app/journal')}
-            className="w-full bg-amber-400 rounded-2xl p-5 text-[#1A1A1A] shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative overflow-hidden group cursor-pointer text-left hover:shadow-md transition-shadow"
+            className="w-full bg-violet-500 rounded-2xl p-5 text-[#1A1A1A] shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative overflow-hidden group cursor-pointer text-left hover:shadow-md transition-shadow"
             data-testid="planner-daily-review"
           >
             <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">

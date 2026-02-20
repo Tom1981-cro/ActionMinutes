@@ -511,7 +511,7 @@ export default function LandingPage() {
               const colorClasses: Record<string, string> = {
                 violet: "bg-violet-50 border-violet-200 text-violet-600",
                 fuchsia: "bg-fuchsia-50 border-fuchsia-200 text-fuchsia-600",
-                amber: "bg-amber-50 border-amber-200 text-amber-600",
+                amber: "bg-violet-50 border-violet-200 text-violet-600",
                 emerald: "bg-emerald-50 border-emerald-200 text-emerald-600",
                 blue: "bg-blue-50 border-blue-200 text-blue-600",
                 pink: "bg-pink-50 border-pink-200 text-pink-600",
@@ -523,7 +523,7 @@ export default function LandingPage() {
                 <motion.div 
                   key={feature.title}
                   className={`bg-white border rounded-2xl p-6 group hover:bg-[#FAFAF8] transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
-                    feature.highlight ? 'border-amber-300 ring-1 ring-amber-200' : 'border-[#E5E5E0]'
+                    feature.highlight ? 'border-violet-300 ring-1 ring-violet-200' : 'border-[#E5E5E0]'
                   }`}
                   variants={floatUpVariants}
                   initial="hidden"
@@ -537,7 +537,7 @@ export default function LandingPage() {
                   <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
                     {feature.title}
                     {feature.highlight && (
-                      <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">AI</span>
+                      <span className="text-xs bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full font-medium">AI</span>
                     )}
                   </h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
@@ -568,7 +568,7 @@ export default function LandingPage() {
           </motion.div>
 
           <div className="relative">
-            <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-amber-200 md:-translate-x-1/2" />
+            <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-violet-200 md:-translate-x-1/2" />
 
             <motion.div 
               className="relative flex items-center mb-16 md:mb-24"

@@ -181,8 +181,8 @@ export default function ExtractionPage() {
     if (!aiEnabled) {
       return (
         <div className="flex flex-col items-center justify-center h-[60vh] space-y-4 px-4">
-          <div className="h-16 w-16 bg-amber-500/20 rounded-2xl flex items-center justify-center">
-            <Warning className="h-8 w-8 text-amber-400" weight="duotone" />
+          <div className="h-16 w-16 bg-violet-600/20 rounded-2xl flex items-center justify-center">
+            <Warning className="h-8 w-8 text-violet-400" weight="duotone" />
           </div>
           <h2 className="text-xl font-semibold text-foreground text-center">AI Extraction Unavailable</h2>
           <p className="text-muted-foreground text-base text-center max-w-md">
@@ -620,7 +620,7 @@ export default function ExtractionPage() {
                         )}
                         <StatusBadge status={item.status} size="sm" />
                         {(item.confidenceOwner ?? 1) < 0.7 && (
-                          <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-amber-500/20 text-amber-300 border-amber-500/30">
+                          <span className="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium bg-violet-600/20 text-violet-300 border-violet-500/30">
                             <Warning className="h-3 w-3" weight="fill" />
                             Low confidence
                           </span>
@@ -673,7 +673,7 @@ export default function ExtractionPage() {
             <Card className="rounded-2xl">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
                 <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
-                  <Warning className="h-4 w-4 text-amber-400" weight="duotone" />
+                  <Warning className="h-4 w-4 text-violet-400" weight="duotone" />
                   Risks
                   {risks.length > 0 && (
                     <Badge variant="outline" className="rounded-full bg-accent text-foreground border-border">{risks.length}</Badge>
@@ -689,7 +689,7 @@ export default function ExtractionPage() {
                       key={risk.id} 
                       className={`border rounded-xl p-4 transition-colors ${
                         risk.severity === 'high' ? 'bg-red-500/10 border-red-500/30' :
-                        risk.severity === 'medium' ? 'bg-amber-500/10 border-amber-500/30' :
+                        risk.severity === 'medium' ? 'bg-violet-600/10 border-violet-500/30' :
                         'bg-muted border-border'
                       }`}
                       data-testid={`risk-${risk.id}`}

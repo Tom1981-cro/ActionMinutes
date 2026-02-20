@@ -53,7 +53,7 @@ export function ReleaseReadinessPanel() {
     return (
       <Card className="bg-card border-border rounded-xl">
         <CardContent className="py-6">
-          <div className="flex items-center gap-3 text-amber-600">
+          <div className="flex items-center gap-3 text-violet-600">
             <AlertTriangle className="h-5 w-5" />
             <span>Unable to check configuration status</span>
           </div>
@@ -81,7 +81,7 @@ export function ReleaseReadinessPanel() {
             readyCount === totalCount 
               ? "bg-indigo-100 text-indigo-700" 
               : readyCount > 2 
-                ? "bg-amber-100 text-amber-700"
+                ? "bg-violet-100 text-violet-700"
                 : "bg-muted text-foreground"
           )}>
             {readyCount}/{totalCount} ready

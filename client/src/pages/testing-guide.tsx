@@ -224,7 +224,7 @@ export default function TestingGuidePage() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-amber-500" />
+                <AlertCircle className="h-5 w-5 text-violet-500" />
                 Deploy Gate
               </CardTitle>
               <CardDescription>

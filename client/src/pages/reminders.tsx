@@ -55,9 +55,9 @@ const BUCKETS: {
     value: "today", 
     label: "Today", 
     icon: Sun, 
-    color: "text-amber-400", 
-    bgColor: "bg-amber-500/20",
-    glowColor: "shadow-amber-500/20",
+    color: "text-violet-400", 
+    bgColor: "bg-violet-600/20",
+    glowColor: "shadow-violet-500/20",
     emptyIcon: FireSimple,
     emptyText: "All clear!",
     emptySubtext: "Nothing urgent today"

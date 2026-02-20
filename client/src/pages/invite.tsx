@@ -100,8 +100,8 @@ export default function InvitePage() {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center mb-4">
-              <Clock className="h-6 w-6 text-amber-600" />
+            <div className="mx-auto h-12 w-12 rounded-full bg-violet-100 flex items-center justify-center mb-4">
+              <Clock className="h-6 w-6 text-violet-600" />
             </div>
             <CardTitle>Invite Expired</CardTitle>
             <CardDescription>

@@ -187,7 +187,7 @@ export default function Layout({ children }: LayoutProps) {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
       </div>
     );
   }
@@ -198,7 +198,7 @@ export default function Layout({ children }: LayoutProps) {
     }
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-amber-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
       </div>
     );
   }
@@ -213,7 +213,7 @@ export default function Layout({ children }: LayoutProps) {
             <img src={logoIcon} alt="ActionMinutes" className="w-7 h-7 rounded-lg" />
             <span className="text-lg font-semibold tracking-tight hidden sm:inline">
               <span className="text-[#1A1A1A]">Action</span>
-              <span className="text-amber-500">Minutes</span>
+              <span className="text-violet-500">Minutes</span>
             </span>
           </Link>
 
@@ -229,7 +229,7 @@ export default function Layout({ children }: LayoutProps) {
                   className={cn(
                     "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-amber-50 text-amber-700"
+                      ? "bg-violet-50 text-violet-700"
                       : "text-[#6B7280] hover:text-[#1A1A1A] hover:bg-[#F5F5F0]"
                   )}
                 >
@@ -244,7 +244,7 @@ export default function Layout({ children }: LayoutProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setQuickAddOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-400 text-[#1A1A1A] text-sm font-semibold hover:bg-amber-500 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500 text-[#1A1A1A] text-sm font-semibold hover:bg-violet-600 transition-colors"
               data-testid="nav-addaction"
             >
               <Lightning className="h-4 w-4" weight="fill" />
@@ -266,7 +266,7 @@ export default function Layout({ children }: LayoutProps) {
                   className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[#F5F5F0] transition-colors"
                   data-testid="button-user-menu"
                 >
-                  <div className="w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center text-[#1A1A1A] text-xs font-semibold">
+                  <div className="w-7 h-7 rounded-full bg-violet-500 flex items-center justify-center text-[#1A1A1A] text-xs font-semibold">
                     {(user.name || "U").charAt(0).toUpperCase()}
                   </div>
                   <CaretDown className="h-3 w-3 text-[#9CA3AF] hidden sm:block" />
@@ -282,7 +282,7 @@ export default function Layout({ children }: LayoutProps) {
                   className="cursor-pointer"
                   data-testid="menu-planner"
                 >
-                  <Compass className="h-4 w-4 mr-2 text-amber-500" />
+                  <Compass className="h-4 w-4 mr-2 text-violet-500" />
                   Planner
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -334,7 +334,7 @@ export default function Layout({ children }: LayoutProps) {
                   className="cursor-pointer"
                   data-testid="menu-create-list"
                 >
-                  <Plus className="h-4 w-4 mr-2 text-amber-500" />
+                  <Plus className="h-4 w-4 mr-2 text-violet-500" />
                   New List
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -398,7 +398,7 @@ export default function Layout({ children }: LayoutProps) {
                 data-testid={`tab-${item.label.toLowerCase()}`}
                 className={cn(
                   "flex flex-col items-center justify-center flex-1 h-full py-1.5 transition-colors",
-                  isActive ? "text-amber-500" : "text-[#9CA3AF]"
+                  isActive ? "text-violet-500" : "text-[#9CA3AF]"
                 )}
               >
                 <Icon className="h-5 w-5 mb-0.5" weight={isActive ? "fill" : "regular"} />
@@ -451,7 +451,7 @@ export default function Layout({ children }: LayoutProps) {
                       className={cn(
                         "flex flex-col items-center gap-1 p-2.5 rounded-lg border-2 transition-all",
                         isSelected
-                          ? "border-amber-400 bg-amber-50 text-amber-700"
+                          ? "border-violet-400 bg-violet-50 text-violet-700"
                           : "border-transparent bg-[#F5F5F0] hover:bg-[#E5E5E0] text-[#6B7280] hover:text-[#1A1A1A]"
                       )}
                       data-testid={`icon-${opt.id}`}

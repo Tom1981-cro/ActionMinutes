@@ -104,7 +104,7 @@ export default function GuidePage() {
   const colorClasses: Record<string, { bg: string; text: string; border: string }> = {
     violet: { bg: "bg-violet-500/20", text: "text-violet-400", border: "border-violet-500/30" },
     fuchsia: { bg: "bg-fuchsia-500/20", text: "text-fuchsia-400", border: "border-fuchsia-500/30" },
-    amber: { bg: "bg-amber-500/20", text: "text-amber-400", border: "border-amber-500/30" },
+    amber: { bg: "bg-violet-600/20", text: "text-violet-400", border: "border-violet-500/30" },
     emerald: { bg: "bg-emerald-500/20", text: "text-emerald-400", border: "border-emerald-500/30" },
     blue: { bg: "bg-blue-500/20", text: "text-blue-400", border: "border-blue-500/30" },
     pink: { bg: "bg-pink-500/20", text: "text-pink-400", border: "border-pink-500/30" },

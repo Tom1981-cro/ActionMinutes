@@ -59,14 +59,14 @@ const typeIcons: Record<string, typeof Bug> = {
 
 const typeColors: Record<string, string> = {
   bug: "text-red-500 bg-red-50",
-  feature: "text-amber-500 bg-amber-50",
+  feature: "text-violet-500 bg-violet-50",
   ux: "text-purple-500 bg-purple-50",
   other: "text-muted-foreground bg-muted",
 };
 
 const statusColors: Record<string, string> = {
   new: "bg-blue-100 text-blue-700",
-  in_progress: "bg-amber-100 text-amber-700",
+  in_progress: "bg-violet-100 text-violet-700",
   done: "bg-green-100 text-green-700",
 };
 

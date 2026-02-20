@@ -32,7 +32,7 @@ const statusConfig: Record<string, {
   waiting: {
     label: 'Waiting',
     icon: Clock,
-    className: 'bg-amber-500/15 text-amber-600 border-amber-500/25 dark:text-amber-400',
+    className: 'bg-violet-600/15 text-violet-600 border-violet-500/25 dark:text-violet-400',
   },
   needs_review: {
     label: 'Needs Review',
@@ -88,7 +88,7 @@ export function StatusBadge({ status, className, size = 'md' }: StatusBadgeProps
 export function SeverityBadge({ severity, className }: { severity: string; className?: string }) {
   const config: Record<string, { label: string; className: string }> = {
     high: { label: 'High', className: 'bg-destructive/15 text-destructive border-destructive/25' },
-    medium: { label: 'Medium', className: 'bg-amber-500/15 text-amber-600 border-amber-500/25 dark:text-amber-400' },
+    medium: { label: 'Medium', className: 'bg-violet-600/15 text-violet-600 border-violet-500/25 dark:text-violet-400' },
     low: { label: 'Low', className: 'bg-secondary text-muted-foreground border-border' },
   };
   

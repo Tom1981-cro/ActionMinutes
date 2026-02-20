@@ -47,9 +47,9 @@ const TYPE_CONFIG: Record<HighlightType, { label: string; icon: typeof ListCheck
   risk: {
     label: "Risk",
     icon: Warning,
-    color: "text-amber-400",
-    bgColor: "bg-amber-500/20",
-    borderColor: "border-amber-500/40",
+    color: "text-violet-400",
+    bgColor: "bg-violet-600/20",
+    borderColor: "border-violet-500/40",
   },
 };
 

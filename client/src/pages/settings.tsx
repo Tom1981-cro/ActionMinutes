@@ -402,11 +402,11 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
       return (
         <div className="space-y-3">
           <div className="flex items-center gap-3 p-4 bg-card rounded-xl border border-border">
-            <Crown className="h-8 w-8 text-amber-400" weight="fill" />
+            <Crown className="h-8 w-8 text-violet-400" weight="fill" />
             <div>
               <h2 className="text-sm font-semibold text-foreground" data-testid="text-premium-status">You are already a Premium user!</h2>
               <p className="text-sm text-muted-foreground">
-                Status: {isActive ? "Active" : subscriptionStatus} {isPastDue && <span className="text-amber-400">— Payment past due</span>}
+                Status: {isActive ? "Active" : subscriptionStatus} {isPastDue && <span className="text-violet-400">— Payment past due</span>}
               </p>
             </div>
           </div>
@@ -1020,7 +1020,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-foreground">Email</h3>
           {config && !config.features.integrationsEnabled ? (
-            <div className="p-4 bg-amber-500/10 text-amber-400 rounded-xl text-sm border border-amber-500/30">
+            <div className="p-4 bg-violet-600/10 text-violet-400 rounded-xl text-sm border border-violet-500/30">
               Email integrations are currently disabled.
             </div>
           ) : isFree && !canUseEmailIntegrations ? (
@@ -1059,8 +1059,8 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
               </div>
               <div className="flex items-center justify-between p-4 border-b border-border">
                 <div className="flex items-center gap-3">
-                  <div className="p-1.5 bg-amber-500/20 rounded-lg">
-                    <EnvelopeSimple className="h-4 w-4 text-amber-400" />
+                  <div className="p-1.5 bg-violet-600/20 rounded-lg">
+                    <EnvelopeSimple className="h-4 w-4 text-violet-400" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Spark</p>
@@ -1288,7 +1288,7 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
                   onClick={() => setTab(item.id)}
                   className={cn(
                     "w-full flex items-center gap-2.5 px-4 py-1.5 text-xs transition-colors",
-                    isActiveItem ? "bg-amber-50 text-amber-700 font-medium" : "text-[#6B7280] hover:bg-[#F5F5F0]"
+                    isActiveItem ? "bg-violet-50 text-violet-700 font-medium" : "text-[#6B7280] hover:bg-[#F5F5F0]"
                   )}
                   data-testid={`sidebar-${item.id}`}
                 >

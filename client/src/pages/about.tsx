@@ -139,8 +139,8 @@ export default function AboutPage() {
           >
             <Card className="h-full bg-card border-border rounded-2xl overflow-hidden">
               <CardContent className="p-6 space-y-4">
-                <div className="p-2.5 w-fit rounded-xl bg-amber-500/20">
-                  <Target className="h-5 w-5 text-amber-400" weight="duotone" />
+                <div className="p-2.5 w-fit rounded-xl bg-violet-600/20">
+                  <Target className="h-5 w-5 text-violet-400" weight="duotone" />
                 </div>
                 <h3 className="text-lg font-bold">Focus on What Matters</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">

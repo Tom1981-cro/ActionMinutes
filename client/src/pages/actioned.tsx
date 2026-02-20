@@ -46,7 +46,7 @@ function ActionedCard({
   const completedDate = item.completedAt ? new Date(item.completedAt) : null;
 
   const priorityColor = item.priority === 'high' || item.priority === 'urgent' ? 'text-red-500' :
-    item.priority === 'normal' || item.priority === 'medium' ? 'text-amber-500' :
+    item.priority === 'normal' || item.priority === 'medium' ? 'text-violet-500' :
     item.priority === 'low' ? 'text-emerald-500' : '';
 
   return (

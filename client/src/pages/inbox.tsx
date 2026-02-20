@@ -48,7 +48,7 @@ type SmartGroup = {
 
 const SMART_GROUPS: SmartGroup[] = [
   { key: "overdue", label: "OVERDUE", icon: WarningCircle, badgeColor: "bg-red-500/15 text-red-600 dark:text-red-400" },
-  { key: "waiting", label: "WAITING ON OTHERS", icon: Hourglass, badgeColor: "bg-amber-500/15 text-amber-600 dark:text-amber-400" },
+  { key: "waiting", label: "WAITING ON OTHERS", icon: Hourglass, badgeColor: "bg-violet-600/15 text-violet-600 dark:text-violet-400" },
   { key: "communication", label: "COMMUNICATION", icon: Tray, badgeColor: "bg-blue-500/15 text-blue-600 dark:text-blue-400" },
   { key: "deepwork", label: "DEEP WORK", icon: Sparkle, badgeColor: "bg-purple-500/15 text-purple-600 dark:text-purple-400" },
   { key: "quickwins", label: "QUICK WINS", icon: Lightning, badgeColor: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400" },
@@ -600,7 +600,7 @@ function ItemCard({
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onSnooze(item); }}
-              className="p-1.5 rounded-lg hover:bg-amber-500/15 text-muted-foreground hover:text-amber-600 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-violet-600/15 text-muted-foreground hover:text-violet-600 transition-colors"
               title="Snooze to tomorrow"
               data-testid={`action-snooze-${item.id}`}
             >
@@ -641,7 +641,7 @@ function ItemCard({
             </span>
           )}
           {item.waitingFor && (
-            <span className="flex items-center gap-1 text-amber-500">
+            <span className="flex items-center gap-1 text-violet-500">
               <Hourglass className="h-3.5 w-3.5" weight="duotone" />
               {item.waitingFor}
             </span>

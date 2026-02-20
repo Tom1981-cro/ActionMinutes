@@ -190,7 +190,7 @@ export default function MarketingPage() {
                   purple: "bg-accent text-primary",
                   teal: "bg-accent text-primary",
                   green: "bg-green-50 text-green-600",
-                  amber: "bg-amber-50 text-amber-600",
+                  amber: "bg-violet-50 text-violet-600",
                   rose: "bg-accent text-primary",
                 };
                 return (

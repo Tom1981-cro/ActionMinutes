@@ -21,7 +21,7 @@ import { EmptyState } from "@/components/empty-state";
 
 const MOOD_OPTIONS = [
   { value: "good", icon: Smiley, label: "Good", color: "text-emerald-400", bgSelected: "bg-emerald-500/20 border-emerald-500/50", bgHover: "hover:bg-emerald-500/10" },
-  { value: "okay", icon: SmileyMeh, label: "Okay", color: "text-amber-400", bgSelected: "bg-amber-500/20 border-amber-500/50", bgHover: "hover:bg-amber-500/10" },
+  { value: "okay", icon: SmileyMeh, label: "Okay", color: "text-violet-400", bgSelected: "bg-violet-600/20 border-violet-500/50", bgHover: "hover:bg-violet-600/10" },
   { value: "tough", icon: SmileySad, label: "Tough", color: "text-red-400", bgSelected: "bg-red-500/20 border-red-500/50", bgHover: "hover:bg-red-500/10" },
 ];
 
@@ -43,7 +43,7 @@ const SIGNAL_LABELS: Record<string, string> = {
 
 const PRIORITY_COLORS: Record<string, string> = {
   high: "bg-red-500/20 text-red-400 border-red-500/30",
-  normal: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+  normal: "bg-violet-600/20 text-violet-400 border-violet-500/30",
   low: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
 };
 
@@ -52,9 +52,9 @@ const TEMPLATES = [
     id: "morning",
     title: "Morning Intention",
     icon: SunHorizon,
-    color: "text-amber-500",
-    pillBg: "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20",
-    pillBgSelected: "bg-amber-500/20 border-amber-500/50 text-amber-700 dark:text-amber-300 ring-2 ring-amber-500/30",
+    color: "text-violet-500",
+    pillBg: "bg-violet-600/10 border-violet-500/30 text-violet-600 dark:text-violet-400 hover:bg-violet-600/20",
+    pillBgSelected: "bg-violet-600/20 border-violet-500/50 text-violet-700 dark:text-violet-300 ring-2 ring-violet-500/30",
     content: `🌅 Morning Intentions
 
 **Today I want to focus on:**
@@ -630,8 +630,8 @@ export default function JournalPage() {
 
               {/* Safety message */}
               {safetyMessage && (
-                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-sm flex items-start gap-3">
-                  <Heart className="h-5 w-5 flex-shrink-0 mt-0.5 text-amber-400" weight="fill" />
+                <div className="p-3 bg-violet-600/10 border border-violet-500/30 rounded-xl text-sm flex items-start gap-3">
+                  <Heart className="h-5 w-5 flex-shrink-0 mt-0.5 text-violet-400" weight="fill" />
                   <div>
                     <p className="font-medium text-foreground">You matter</p>
                     <p className="mt-1 text-muted-foreground">{safetyMessage}</p>
@@ -715,7 +715,7 @@ export default function JournalPage() {
                     className="overflow-hidden space-y-2"
                   >
                     <label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                      <Lightning className="h-3.5 w-3.5 text-amber-400" weight="fill" />
+                      <Lightning className="h-3.5 w-3.5 text-violet-400" weight="fill" />
                       Detected actions
                     </label>
                     <div className="space-y-1.5">
@@ -856,7 +856,7 @@ export default function JournalPage() {
                             <span className={cn(
                               "flex items-center",
                               entry.mood === 'good' ? 'text-emerald-400' : 
-                              entry.mood === 'okay' ? 'text-amber-400' : 'text-red-400'
+                              entry.mood === 'okay' ? 'text-violet-400' : 'text-red-400'
                             )} data-testid={`mood-indicator-${entry.id}`}>
                               {entry.mood === 'good' && <Smiley className="h-5 w-5" weight="fill" />}
                               {entry.mood === 'okay' && <SmileyMeh className="h-5 w-5" weight="fill" />}
@@ -996,7 +996,7 @@ export default function JournalPage() {
                         <div className="bg-emerald-400 transition-all" style={{ width: `${Math.round(((analytics.moodCounts.good || 0) / ((analytics.moodCounts.good || 0) + (analytics.moodCounts.okay || 0) + (analytics.moodCounts.tough || 0))) * 100)}%` }} />
                       )}
                       {(analytics.moodCounts.okay || 0) > 0 && (
-                        <div className="bg-amber-400 transition-all" style={{ width: `${Math.round(((analytics.moodCounts.okay || 0) / ((analytics.moodCounts.good || 0) + (analytics.moodCounts.okay || 0) + (analytics.moodCounts.tough || 0))) * 100)}%` }} />
+                        <div className="bg-violet-500 transition-all" style={{ width: `${Math.round(((analytics.moodCounts.okay || 0) / ((analytics.moodCounts.good || 0) + (analytics.moodCounts.okay || 0) + (analytics.moodCounts.tough || 0))) * 100)}%` }} />
                       )}
                       {(analytics.moodCounts.tough || 0) > 0 && (
                         <div className="bg-red-400 transition-all" style={{ width: `${Math.round(((analytics.moodCounts.tough || 0) / ((analytics.moodCounts.good || 0) + (analytics.moodCounts.okay || 0) + (analytics.moodCounts.tough || 0))) * 100)}%` }} />
@@ -1004,7 +1004,7 @@ export default function JournalPage() {
                     </div>
                     <div className="flex justify-between text-[10px] text-muted-foreground">
                       <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" /> Good</span>
-                      <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" /> Okay</span>
+                      <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-violet-500 inline-block" /> Okay</span>
                       <span className="flex items-center gap-0.5"><span className="w-1.5 h-1.5 rounded-full bg-red-400 inline-block" /> Tough</span>
                     </div>
                   </div>
@@ -1027,7 +1027,7 @@ export default function JournalPage() {
                     <span className={cn(
                       "ml-auto flex items-center gap-1 text-sm",
                       viewingEntry.mood === 'good' ? 'text-emerald-400' : 
-                      viewingEntry.mood === 'okay' ? 'text-amber-400' : 'text-red-400'
+                      viewingEntry.mood === 'okay' ? 'text-violet-400' : 'text-red-400'
                     )}>
                       {viewingEntry.mood === 'good' && <Smiley className="h-4 w-4" weight="duotone" />}
                       {viewingEntry.mood === 'okay' && <SmileyMeh className="h-4 w-4" weight="duotone" />}
@@ -1128,7 +1128,7 @@ export default function JournalPage() {
                       className="space-y-2"
                     >
                       <div className="flex items-center gap-2">
-                        <Lightning className="h-4 w-4 text-amber-400" weight="fill" />
+                        <Lightning className="h-4 w-4 text-violet-400" weight="fill" />
                         <span className="text-sm font-medium text-foreground">Extracted Actions</span>
                       </div>
                       {viewActions.map((action, i) => {
@@ -1195,7 +1195,7 @@ export default function JournalPage() {
                     className="w-full rounded-xl"
                     data-testid="button-extract-actions"
                   >
-                    <Lightning className="h-4 w-4 mr-2 text-amber-400" weight="fill" />
+                    <Lightning className="h-4 w-4 mr-2 text-violet-400" weight="fill" />
                     Extract Actions
                   </Button>
                 )}

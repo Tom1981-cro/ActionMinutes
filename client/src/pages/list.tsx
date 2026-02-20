@@ -76,7 +76,7 @@ function TaskCard({ item, listId, listName }: { item: CustomListItem; listId: st
 
   const isOverdue = dueDate && new Date(dueDate) < new Date();
   const priorityColor = priority === 'high' || priority === 'urgent' ? 'text-red-500' :
-    priority === 'normal' || priority === 'medium' ? 'text-amber-500' :
+    priority === 'normal' || priority === 'medium' ? 'text-violet-500' :
     priority === 'low' ? 'text-emerald-500' : '';
 
   const handleClick = () => {
@@ -126,7 +126,7 @@ function TaskCard({ item, listId, listName }: { item: CustomListItem; listId: st
             </span>
           )}
           {r?.waitingFor && (
-            <span className="flex items-center gap-1 text-amber-500">
+            <span className="flex items-center gap-1 text-violet-500">
               <Hourglass className="h-3.5 w-3.5" weight="duotone" />
               {r.waitingFor}
             </span>

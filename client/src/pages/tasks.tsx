@@ -79,7 +79,7 @@ interface ParsedTaskResult {
 const PRIORITY_CONFIG = {
   urgent: { label: "Urgent", color: "bg-red-500/20 text-red-400 border-red-500/30", order: 0 },
   high: { label: "High", color: "bg-orange-500/20 text-orange-400 border-orange-500/30", order: 1 },
-  medium: { label: "Medium", color: "bg-amber-500/20 text-amber-400 border-amber-500/30", order: 2 },
+  medium: { label: "Medium", color: "bg-violet-600/20 text-violet-400 border-violet-500/30", order: 2 },
   low: { label: "Low", color: "bg-muted text-muted-foreground border-border", order: 3 },
 };
 
@@ -109,7 +109,7 @@ function getDueDateColor(dateStr: string | null): string {
   if (!dateStr) return "text-muted-foreground";
   const date = new Date(dateStr);
   if (isPast(date) && !isToday(date)) return "text-red-400";
-  if (isToday(date)) return "text-amber-400";
+  if (isToday(date)) return "text-violet-400";
   if (isTomorrow(date)) return "text-orange-400";
   return "text-muted-foreground";
 }
@@ -438,7 +438,7 @@ export default function TasksPage() {
                   </Badge>
                 )}
                 {parsedTask.tags.map(tag => (
-                  <Badge key={tag} variant="outline" className="bg-amber-500/10 text-amber-300 border-amber-500/30 gap-1">
+                  <Badge key={tag} variant="outline" className="bg-violet-600/10 text-violet-300 border-violet-500/30 gap-1">
                     <Tag className="h-3 w-3" />
                     {tag}
                   </Badge>
