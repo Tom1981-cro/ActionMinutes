@@ -134,7 +134,7 @@ export function GettingStarted({
         exit={{ opacity: 0, y: -20 }}
         className={className}
       >
-        <Card className="glass-panel border-primary/30 rounded-2xl overflow-hidden">
+        <Card className="border-primary/30 rounded-2xl overflow-hidden">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">

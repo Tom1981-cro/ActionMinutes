@@ -133,7 +133,7 @@ export function WorkspaceSwitcher() {
                 <Button 
                   onClick={handleCreate} 
                   disabled={!newName.trim() || createWorkspace.isPending}
-                  className="w-full rounded-xl bg-primary hover:bg-primary/90 btn-gradient"
+                  className="w-full rounded-xl bg-primary hover:bg-primary/90"
                   data-testid="button-confirm-create-workspace"
                 >
                   {createWorkspace.isPending ? "Creating..." : (

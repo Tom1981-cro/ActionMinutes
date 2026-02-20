@@ -538,7 +538,7 @@ export default function ActionDetailPage() {
         )}
       </div>
       {status === "waiting" && (
-        <Card className="glass-panel rounded-2xl">
+        <Card className="rounded-2xl">
           <CardContent className="px-4 py-3 md:px-6">
             <div className="space-y-1.5">
               <Label className="text-[12px] text-muted-foreground flex items-center gap-1.5">
@@ -556,7 +556,7 @@ export default function ActionDetailPage() {
           </CardContent>
         </Card>
       )}
-      <Card className="glass-panel rounded-2xl">
+      <Card className="rounded-2xl">
         <CardHeader className="px-4 pt-4 pb-2 md:px-6">
           <CardTitle className="text-[12px] font-semibold text-primary flex items-center gap-1.5">
             <Notepad className="h-4 w-4" weight="duotone" />
@@ -617,7 +617,7 @@ export default function ActionDetailPage() {
           </div>
         </CardContent>
       </Card>
-      <Card className="glass-panel rounded-2xl">
+      <Card className="rounded-2xl">
         <CardHeader className="px-4 pt-4 pb-2 md:px-6">
           <CardTitle className="text-[12px] font-semibold text-primary flex items-center gap-1.5">
             <CalendarBlank className="h-4 w-4" weight="duotone" />
@@ -829,7 +829,7 @@ export default function ActionDetailPage() {
           </div>
         </CardContent>
       </Card>
-      <Card className="glass-panel rounded-2xl">
+      <Card className="rounded-2xl">
         <CardHeader className="px-4 pt-4 pb-2 md:px-6">
           <div className="flex items-center justify-between">
             <CardTitle className="text-[12px] font-semibold text-primary flex items-center gap-1.5">

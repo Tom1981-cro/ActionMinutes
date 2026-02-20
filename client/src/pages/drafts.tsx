@@ -88,7 +88,7 @@ export default function DraftsPage() {
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Drafts</h1>
           <p className="text-muted-foreground text-sm">Ready-to-send follow-up emails.</p>
         </div>
-        <div className="glass-panel rounded-2xl border-dashed border-border py-12 text-center">
+        <div className="rounded-2xl border-dashed border-border py-12 text-center">
           <div className="mx-auto h-16 w-16 bg-accent rounded-2xl flex items-center justify-center mb-4">
             <EnvelopeSimple className="h-8 w-8 text-primary" weight="duotone" />
           </div>
@@ -161,7 +161,7 @@ export default function DraftsPage() {
 
           <div className="md:hidden">
             {activeDraft && (
-              <Card className="glass-panel rounded-2xl overflow-hidden" data-testid={`card-draft-${activeDraft.id}`}>
+              <Card className="rounded-2xl overflow-hidden" data-testid={`card-draft-${activeDraft.id}`}>
                 <CardHeader className="space-y-4 px-4 pt-4 pb-3">
                   <div className="space-y-2">
                     <Label className="text-sm font-medium text-muted-foreground">Subject</Label>
@@ -200,7 +200,7 @@ export default function DraftsPage() {
 
           <div className="hidden md:grid gap-5">
             {paginatedDrafts.map((draft: any) => (
-              <Card key={draft.id} className="glass-panel rounded-2xl overflow-hidden" data-testid={`card-draft-${draft.id}`}>
+              <Card key={draft.id} className="rounded-2xl overflow-hidden" data-testid={`card-draft-${draft.id}`}>
                 <CardHeader className="bg-muted pb-4 border-b border-border space-y-4 px-6 pt-5">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -252,7 +252,7 @@ export default function DraftsPage() {
                         <CaretDown className="ml-2 h-4 w-4" weight="bold" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="rounded-xl glass-panel border-border">
+                    <DropdownMenuContent align="start" className="rounded-xl border-border">
                       <DropdownMenuItem 
                         onClick={() => handleCopyBody(draft.body, draft.id)}
                         className="py-3 text-foreground focus:bg-accent focus:text-foreground"
@@ -308,7 +308,7 @@ export default function DraftsPage() {
 
                   <Button 
                     onClick={() => toast({ title: "Marked as sent!" })}
-                    className="rounded-full btn-gradient h-11 ml-auto"
+                    className="rounded-full h-11 ml-auto"
                     data-testid={`button-send-${draft.id}`}
                   >
                     <PaperPlaneTilt className="mr-2 h-4 w-4" weight="fill" />
@@ -349,7 +349,7 @@ export default function DraftsPage() {
       </div>
 
       {activeDraft && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-border p-4 pb-safe z-50">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border p-4 pb-safe z-50">
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -365,7 +365,7 @@ export default function DraftsPage() {
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="rounded-xl glass-panel border-border w-48">
+              <DropdownMenuContent align="start" className="rounded-xl border-border w-48">
                 <DropdownMenuItem 
                   onClick={() => handleCopyBody(activeDraft.body, activeDraft.id)}
                   className="py-3 text-foreground focus:bg-accent focus:text-foreground"
@@ -420,7 +420,7 @@ export default function DraftsPage() {
             <Button 
               size="lg" 
               onClick={() => toast({ title: "Marked as sent!", description: "Draft moved to sent." })}
-              className="flex-1 text-base h-12 rounded-xl btn-gradient"
+              className="flex-1 text-base h-12 rounded-xl"
               data-testid="button-send-mobile"
             >
               <PaperPlaneTilt className="mr-2 h-5 w-5" weight="fill" />

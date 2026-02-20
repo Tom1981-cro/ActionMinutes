@@ -110,7 +110,7 @@ export function AISettingsDialog({ open, onOpenChange, onSave }: AISettingsDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg glass-panel border-border text-foreground max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg border-border text-foreground max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-foreground">
             <Sparkle className="h-5 w-5 text-primary" weight="fill" />
@@ -258,7 +258,7 @@ export function AISettingsDialog({ open, onOpenChange, onSave }: AISettingsDialo
             <ArrowCounterClockwise className="h-4 w-4 mr-2" />
             Reset defaults
           </Button>
-          <Button onClick={handleSave} className="btn-gradient rounded-xl" data-testid="button-save-ai-settings">
+          <Button onClick={handleSave} className="rounded-xl" data-testid="button-save-ai-settings">
             <FloppyDisk className="h-4 w-4 mr-2" weight="fill" />
             Save Settings
           </Button>

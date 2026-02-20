@@ -391,8 +391,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange, defaultDate }: 
         onClick={() => setIsOpen(true)}
         className={cn(
           "fixed bottom-20 md:bottom-6 right-6 z-40 rounded-full w-14 h-14 shadow-lg",
-          "bg-primary hover:bg-primary/90",
-          "shadow-token"
+          "bg-primary hover:bg-primary/90"
         )}
         data-testid="button-addaction-fab"
       >

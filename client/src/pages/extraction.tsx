@@ -344,7 +344,7 @@ export default function ExtractionPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
                   activeTab === tab.id
-                    ? 'btn-gradient text-foreground'
+                    ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-muted-foreground border border-border'
                 }`}
                 data-testid={`tab-${tab.id}`}
@@ -362,7 +362,7 @@ export default function ExtractionPage() {
 
         <div className="space-y-3 md:space-y-4 pt-4">
           {meetingTranscripts.length > 0 && (
-            <Card className="glass-panel rounded-2xl" data-testid="card-source">
+            <Card className="rounded-2xl" data-testid="card-source">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
                 <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
                   <Waveform className="h-4 w-4 text-primary" weight="duotone" />
@@ -408,7 +408,7 @@ export default function ExtractionPage() {
           )}
 
           {meeting.notes && !meetingTranscripts.length && (
-            <Card className="glass-panel rounded-2xl" data-testid="card-source-notes">
+            <Card className="rounded-2xl" data-testid="card-source-notes">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
                 <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
                   <Waveform className="h-4 w-4 text-primary" weight="duotone" />
@@ -426,13 +426,13 @@ export default function ExtractionPage() {
           )}
 
           <div className={`${activeTab === 'summary' ? 'block' : 'hidden md:block'} space-y-4`}>
-            <Card className="glass-panel rounded-2xl border-2 border-primary/30">
+            <Card className="rounded-2xl border-2 border-primary/30">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base font-semibold text-foreground">Summary</CardTitle>
                   <Button
                     size="sm"
-                    className="rounded-xl text-xs btn-gradient"
+                    className="rounded-xl text-xs"
                     onClick={() => setTemplatePickerOpen(true)}
                     disabled={templateSummarizeMutation.isPending}
                     data-testid="button-template-summary"
@@ -454,7 +454,7 @@ export default function ExtractionPage() {
             </Card>
 
             {templateSummary && (
-              <Card className="glass-panel rounded-2xl" data-testid="card-template-summary">
+              <Card className="rounded-2xl" data-testid="card-template-summary">
                 <CardHeader className="px-4 pt-4 pb-2 md:px-6">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
@@ -557,7 +557,7 @@ export default function ExtractionPage() {
           </div>
 
           <div className={`${activeTab === 'actions' ? 'block' : 'hidden md:block'}`}>
-            <Card className="glass-panel rounded-2xl">
+            <Card className="rounded-2xl">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
@@ -641,7 +641,7 @@ export default function ExtractionPage() {
           </div>
 
           <div className={`${activeTab === 'decisions' ? 'block' : 'hidden md:block'}`}>
-            <Card className="glass-panel rounded-2xl">
+            <Card className="rounded-2xl">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
                 <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-primary" weight="duotone" />
@@ -670,7 +670,7 @@ export default function ExtractionPage() {
           </div>
 
           <div className={`${activeTab === 'risks' ? 'block' : 'hidden md:block'}`}>
-            <Card className="glass-panel rounded-2xl">
+            <Card className="rounded-2xl">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
                 <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
                   <Warning className="h-4 w-4 text-amber-400" weight="duotone" />
@@ -706,7 +706,7 @@ export default function ExtractionPage() {
           </div>
 
           <div className={`${activeTab === 'clarify' ? 'block' : 'hidden md:block'}`}>
-            <Card className="glass-panel rounded-2xl">
+            <Card className="rounded-2xl">
               <CardHeader className="px-4 pt-4 pb-2 md:px-6">
                 <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
                   <Question className="h-4 w-4 text-sky-400" weight="duotone" />
@@ -749,7 +749,7 @@ export default function ExtractionPage() {
 
           {meeting.notes && (
             <div className={`${activeTab === 'highlight' ? 'block' : 'hidden md:block'}`}>
-              <Card className="glass-panel rounded-2xl">
+              <Card className="rounded-2xl">
                 <CardHeader className="px-4 pt-4 pb-2 md:px-6">
                   <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
                     <HighlighterCircle className="h-4 w-4 text-primary" weight="duotone" />
@@ -776,7 +776,7 @@ export default function ExtractionPage() {
                   Export .ics
                 </Button>
               </DialogTrigger>
-              <DialogContent className="glass-panel sm:max-w-md rounded-3xl border-border">
+              <DialogContent className="sm:max-w-md rounded-3xl border-border">
                 <DialogHeader>
                   <DialogTitle className="text-foreground text-lg">Export to Calendar</DialogTitle>
                 </DialogHeader>
@@ -800,7 +800,7 @@ export default function ExtractionPage() {
                   <Button 
                     onClick={handleExport} 
                     disabled={exportCalendar.isPending}
-                    className="w-full rounded-xl btn-gradient h-10 text-sm"
+                    className="w-full rounded-xl h-10 text-sm"
                     data-testid="button-download-ics"
                   >
                     {exportCalendar.isPending ? (
@@ -815,7 +815,7 @@ export default function ExtractionPage() {
             </Dialog>
 
             {meeting.parseState !== 'finalized' && (
-              <Button onClick={handleFinalize} className="rounded-full btn-gradient h-11" data-testid="button-finalize">
+              <Button onClick={handleFinalize} className="rounded-full h-11" data-testid="button-finalize">
                 <CheckCircle className="mr-2 h-4 w-4" weight="fill" />
                 Finalize
               </Button>
@@ -829,7 +829,7 @@ export default function ExtractionPage() {
               <Button 
                 onClick={handleGenerateDrafts} 
                 disabled={generateDrafts.isPending || !aiEnabled}
-                className="rounded-full btn-gradient h-11" 
+                className="rounded-full h-11" 
                 data-testid="button-generate-drafts"
               >
                 {generateDrafts.isPending ? (
@@ -844,7 +844,7 @@ export default function ExtractionPage() {
         </div>
       </div>
 
-      <div className="md:hidden fixed bottom-0 left-0 right-0 glass-panel border-t border-border p-4 pb-safe z-50">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 border-t border-border p-4 pb-safe z-50">
         <div className="flex items-center gap-3">
           <Dialog open={exportOpen} onOpenChange={setExportOpen}>
             <DialogTrigger asChild>
@@ -852,7 +852,7 @@ export default function ExtractionPage() {
                 <CalendarBlank className="h-5 w-5" weight="duotone" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="glass-panel sm:max-w-md rounded-t-3xl sm:rounded-3xl fixed bottom-0 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 left-0 right-0 sm:left-1/2 sm:-translate-x-1/2 max-h-[85vh] overflow-y-auto border-border">
+            <DialogContent className="sm:max-w-md rounded-t-3xl sm:rounded-3xl fixed bottom-0 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 left-0 right-0 sm:left-1/2 sm:-translate-x-1/2 max-h-[85vh] overflow-y-auto border-border">
               <DialogHeader>
                 <DialogTitle className="text-foreground text-lg">Export to Calendar</DialogTitle>
               </DialogHeader>
@@ -875,7 +875,7 @@ export default function ExtractionPage() {
                 <Button 
                   onClick={handleExport} 
                   disabled={exportCalendar.isPending}
-                  className="w-full rounded-xl btn-gradient h-10 text-sm"
+                  className="w-full rounded-xl h-10 text-sm"
                 >
                   {exportCalendar.isPending ? (
                     <SpinnerGap className="mr-2 h-5 w-5 animate-spin" weight="bold" />
@@ -891,7 +891,7 @@ export default function ExtractionPage() {
           {hasDrafts ? (
             <Button 
               size="lg" 
-              className="flex-1 text-base h-12 rounded-xl btn-gradient" 
+              className="flex-1 text-base h-12 rounded-xl" 
               onClick={handleViewDrafts}
               data-testid="button-view-drafts-mobile"
             >
@@ -901,7 +901,7 @@ export default function ExtractionPage() {
           ) : (
             <Button 
               size="lg" 
-              className="flex-1 text-base h-12 rounded-xl btn-gradient" 
+              className="flex-1 text-base h-12 rounded-xl" 
               onClick={handleGenerateDrafts}
               disabled={generateDrafts.isPending || !aiEnabled}
               data-testid="button-generate-drafts-mobile"

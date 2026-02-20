@@ -746,7 +746,7 @@ export default function CapturePage() {
         ref={headerRef}
         className={cn(
           "sticky top-0 z-40 transition-all duration-300 px-4 py-3",
-          isHeaderSticky ? "glass-panel border-b border-border" : "bg-transparent"
+          isHeaderSticky ? "border-b border-border" : "bg-transparent"
         )}
       >
         <div className="max-w-3xl mx-auto">
@@ -764,7 +764,7 @@ export default function CapturePage() {
             <h1 className="text-2xl font-bold tracking-tight text-foreground flex-1">Capture</h1>
             <Button
               size="sm"
-              className="rounded-xl btn-gradient gap-1.5 text-xs"
+              className="rounded-xl gap-1.5 text-xs"
               onClick={handleRecordMeetingClick}
               disabled={isLoading}
               data-testid="button-record-meeting"
@@ -860,7 +860,7 @@ export default function CapturePage() {
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-3 space-y-3">
-              <div className="glass-panel rounded-xl p-4 space-y-3">
+              <div className="rounded-xl p-4 space-y-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <Users className="h-3.5 w-3.5" weight="duotone" />
@@ -923,12 +923,12 @@ export default function CapturePage() {
             data-testid="input-audio-file"
           />
 
-          <div className="glass-panel rounded-xl p-4 space-y-3">
+          <div className="rounded-xl p-4 space-y-3">
           <div 
             className={cn(
               "flex items-center gap-2 transition-all duration-200",
               isKeyboardVisible && isTextareaFocused 
-                ? "fixed left-0 right-0 z-50 px-4 py-2 glass-panel border-t border-border" 
+                ? "fixed left-0 right-0 z-50 px-4 py-2 border-t border-border" 
                 : ""
             )}
             style={isKeyboardVisible && isTextareaFocused ? { bottom: keyboardHeight } : {}}
@@ -1070,7 +1070,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
             <Button
               onClick={handleExtract}
               disabled={isSubmitting || !notes.trim() || !aiEnabled}
-              className="flex-[2] h-10 rounded-xl btn-gradient"
+              className="flex-[2] h-10 rounded-xl"
               data-testid="button-extract"
             >
               {isSubmitting ? (
@@ -1085,7 +1085,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
       </div>
 
       <Dialog open={showOcrPreview} onOpenChange={setShowOcrPreview}>
-        <DialogContent className="glass-panel border-border text-foreground max-w-lg">
+        <DialogContent className="border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-foreground">Extracted Text</DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -1138,7 +1138,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                 <Copy className="h-4 w-4 mr-2" weight="duotone" />
                 Copy
               </Button>
-              <Button onClick={handleInsertOcrText} className="flex-1 btn-gradient">
+              <Button onClick={handleInsertOcrText} className="flex-1">
                 <Check className="h-4 w-4 mr-2" weight="bold" />
                 Insert
               </Button>
@@ -1148,7 +1148,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
       </Dialog>
 
       <Dialog open={showTranscriptionPreview} onOpenChange={setShowTranscriptionPreview}>
-        <DialogContent className="glass-panel border-border text-foreground max-w-lg">
+        <DialogContent className="border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-foreground">Transcribed Audio</DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -1195,7 +1195,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                 <Copy className="h-4 w-4 mr-2" weight="duotone" />
                 Copy
               </Button>
-              <Button onClick={handleInsertTranscription} className="flex-1 btn-gradient">
+              <Button onClick={handleInsertTranscription} className="flex-1">
                 <Check className="h-4 w-4 mr-2" weight="bold" />
                 Insert
               </Button>
@@ -1205,7 +1205,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
       </Dialog>
 
       <Dialog open={showConsentDialog} onOpenChange={setShowConsentDialog}>
-        <DialogContent className="glass-panel border-border text-foreground max-w-lg">
+        <DialogContent className="border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-2">
               <WarningCircle className="h-5 w-5 text-amber-400" weight="duotone" />
@@ -1233,7 +1233,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
               <Button variant="outline" onClick={() => setShowConsentDialog(false)} className="flex-1" data-testid="button-consent-decline">
                 Decline
               </Button>
-              <Button onClick={handleConsentAccept} className="flex-1 btn-gradient" data-testid="button-consent-accept">
+              <Button onClick={handleConsentAccept} className="flex-1" data-testid="button-consent-accept">
                 <Check className="h-4 w-4 mr-2" weight="bold" />
                 I Accept
               </Button>
@@ -1247,7 +1247,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
           setShowRecordingModal(false);
         }
       }}>
-        <DialogContent className="glass-panel border-border text-foreground max-w-sm" onPointerDownOutside={(e) => {
+        <DialogContent className="border-border text-foreground max-w-sm" onPointerDownOutside={(e) => {
           if (recordingState !== 'idle' || recordingAutoTranscribing) e.preventDefault();
         }}>
           <DialogHeader>
@@ -1337,7 +1337,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
       </Dialog>
 
       <Dialog open={showReviewActions} onOpenChange={setShowReviewActions}>
-        <DialogContent className="glass-panel border-border text-foreground max-w-lg">
+        <DialogContent className="border-border text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-2">
               <ListChecks className="h-5 w-5 text-amber-400" weight="duotone" />
@@ -1462,7 +1462,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                   }
                 }}
                 disabled={selectedActions.size === 0 || isAddingToReminders}
-                className="flex-1 btn-gradient"
+                className="flex-1"
                 data-testid="button-add-to-reminders"
               >
                 {isAddingToReminders ? (

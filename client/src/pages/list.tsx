@@ -89,7 +89,7 @@ function TaskCard({ item, listId, listName }: { item: CustomListItem; listId: st
 
   return (
     <Card
-      className="glass-panel hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl"
+      className="hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl"
       onClick={handleClick}
       data-testid={`card-list-item-${item.id}`}
     >
@@ -334,7 +334,7 @@ export default function ListPage() {
       {activeItems.length === 0 && !isAddingTask ? (
         <Card className="border-dashed border-border">
           <CardContent className="py-12 text-center space-y-3">
-            <div className="mx-auto h-16 w-16 bg-accent rounded-full flex items-center justify-center shadow-token">
+            <div className="mx-auto h-16 w-16 bg-accent rounded-full flex items-center justify-center">
               <IconComp className="h-8 w-8 text-primary" weight="duotone" />
             </div>
             <div>

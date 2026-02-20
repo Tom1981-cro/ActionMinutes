@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 export function CardSkeleton({ className }: { className?: string }) {
   return (
-    <Card className={cn("glass-panel rounded-2xl overflow-hidden", className)}>
+    <Card className={cn("rounded-2xl overflow-hidden", className)}>
       <CardHeader className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
         <div className="flex justify-between items-start gap-4">
           <Skeleton className="h-6 w-3/4 bg-muted" />
@@ -22,7 +22,7 @@ export function CardSkeleton({ className }: { className?: string }) {
 
 export function ActionCardSkeleton() {
   return (
-    <Card className="glass-panel rounded-2xl overflow-hidden">
+    <Card className="rounded-2xl overflow-hidden">
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0 space-y-2">
@@ -53,7 +53,7 @@ export function ActionCardSkeleton() {
 
 export function MeetingCardSkeleton() {
   return (
-    <Card className="glass-panel rounded-2xl overflow-hidden">
+    <Card className="rounded-2xl overflow-hidden">
       <CardHeader className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
         <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
           <Skeleton className="h-6 w-3/4 bg-muted" />
@@ -74,7 +74,7 @@ export function MeetingCardSkeleton() {
 
 export function JournalEntrySkeleton() {
   return (
-    <Card className="glass-panel rounded-2xl overflow-hidden">
+    <Card className="rounded-2xl overflow-hidden">
       <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <Skeleton className="h-4 w-32 bg-muted" />
@@ -93,7 +93,7 @@ export function JournalEntrySkeleton() {
 
 export function NoteCardSkeleton() {
   return (
-    <Card className="glass-panel rounded-xl overflow-hidden">
+    <Card className="rounded-xl overflow-hidden">
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start justify-between">
           <Skeleton className="h-5 w-3/4 bg-muted" />
@@ -125,7 +125,7 @@ export function CalendarEventSkeleton() {
 
 export function TranscriptSkeleton() {
   return (
-    <Card className="glass-panel rounded-2xl overflow-hidden">
+    <Card className="rounded-2xl overflow-hidden">
       <CardContent className="p-4 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

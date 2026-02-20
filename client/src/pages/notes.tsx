@@ -368,7 +368,7 @@ export default function NotesPage() {
           </div>
           <Button 
             onClick={() => openEditor()} 
-            className="gap-2 btn-gradient"
+            className="gap-2"
             data-testid="button-new-note"
           >
             <Plus className="h-4 w-4" weight="bold" /> New Note
@@ -492,7 +492,7 @@ export default function NotesPage() {
         {/* Right sidebar */}
         <div className="w-[220px] flex-shrink-0 space-y-4">
           {/* Collections */}
-          <div className="glass-panel rounded-2xl p-4" data-testid="card-collections">
+          <div className="rounded-2xl p-4" data-testid="card-collections">
             <div className="flex items-center gap-1.5 mb-3">
               <FolderSimple className="h-3.5 w-3.5 text-muted-foreground" weight="bold" />
               <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Collections</span>
@@ -525,7 +525,7 @@ export default function NotesPage() {
           </div>
 
           {/* Tags */}
-          <div className="glass-panel rounded-2xl p-4" data-testid="card-tags">
+          <div className="rounded-2xl p-4" data-testid="card-tags">
             <div className="flex items-center gap-1.5 mb-3">
               <Tag className="h-3.5 w-3.5 text-muted-foreground" weight="bold" />
               <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Tags</span>
@@ -559,7 +559,7 @@ export default function NotesPage() {
 
           {/* Scratchpad */}
           <div 
-            className="glass-panel rounded-2xl p-4" 
+            className="rounded-2xl p-4" 
             style={{ backgroundColor: 'color-mix(in srgb, var(--warning) 8%, var(--card))', borderColor: 'color-mix(in srgb, var(--warning) 20%, transparent)' }}
             data-testid="card-scratchpad"
           >

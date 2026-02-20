@@ -34,7 +34,7 @@ function DeletedCard({ item, type, onRestore, onPermanentDelete }: {
 
   return (
     <Card
-      className="glass-panel rounded-2xl opacity-70"
+      className="rounded-2xl opacity-70"
       data-testid={`card-deleted-${type}-${item.id}`}
     >
       <CardContent className="pb-2 px-4 pt-4 md:px-6 md:pt-5">

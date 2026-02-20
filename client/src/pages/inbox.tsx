@@ -469,7 +469,7 @@ export default function InboxPage() {
 
       {hasSelection && (
         <div
-          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 glass-panel rounded-2xl shadow-lg border border-border px-4 py-3 flex items-center gap-3 animate-in slide-in-from-bottom-4 duration-300"
+          className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 rounded-2xl shadow-lg border border-border px-4 py-3 flex items-center gap-3 animate-in slide-in-from-bottom-4 duration-300"
           data-testid="bulk-bar"
         >
           <span className="text-sm font-medium text-foreground whitespace-nowrap">

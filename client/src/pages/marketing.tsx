@@ -107,7 +107,7 @@ export default function MarketingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20 selection:text-foreground">
       <header className="fixed top-6 left-0 right-0 z-50 px-4 flex justify-center pointer-events-none">
-        <nav className="bg-card/90 backdrop-blur-xl border border-border shadow-soft rounded-full px-6 py-3 pointer-events-auto flex items-center gap-8">
+        <nav className="bg-card/90 backdrop-blur-xl border border-border rounded-full px-6 py-3 pointer-events-auto flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 mr-4 cursor-pointer">
             <img src={logoIcon} alt="ActionMinutes" className="w-8 h-8 rounded-lg" />
             <span className="font-bold text-foreground tracking-tight font-logo">ActionMinutes</span>
@@ -123,7 +123,7 @@ export default function MarketingPage() {
               <Button variant="ghost" size="sm">Log in</Button>
             </Link>
             <Link href="/login">
-              <Button size="sm" className="btn-gradient text-primary-foreground rounded-full px-5">
+              <Button size="sm" className="text-primary-foreground rounded-full px-5">
                 Get Started
               </Button>
             </Link>
@@ -148,7 +148,7 @@ export default function MarketingPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               <Link href="/login">
-                <Button size="lg" className="btn-gradient text-primary-foreground rounded-full px-8 shadow-lg shadow-token">
+                <Button size="lg" className="text-primary-foreground rounded-full px-8 shadow-lg">
                   Start Free <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
@@ -161,7 +161,7 @@ export default function MarketingPage() {
               { icon: Shield, label: "Your data stays yours", value: "Private & secure" },
               { icon: Check, label: "No credit card", value: "Free to start" },
             ].map((item, i) => (
-              <div key={i} className="bg-card rounded-2xl p-6 shadow-soft border border-border text-center hover:shadow-lift transition-shadow">
+              <div key={i} className="bg-card rounded-2xl p-6 border border-border text-center transition-shadow">
                 <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center mx-auto mb-4">
                   <item.icon className="w-6 h-6 text-primary" />
                 </div>
@@ -196,7 +196,7 @@ export default function MarketingPage() {
                 return (
                   <div 
                     key={i} 
-                    className="bg-muted rounded-2xl p-8 border border-border hover:shadow-soft transition-shadow"
+                    className="bg-muted rounded-2xl p-8 border border-border transition-shadow"
                   >
                     <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-5", colorClasses[feature.color])}>
                       <feature.icon className="w-6 h-6" />
@@ -249,8 +249,8 @@ export default function MarketingPage() {
                   className={cn(
                     "rounded-2xl p-8 transition-shadow",
                     plan.highlighted 
-                      ? "bg-primary text-primary-foreground shadow-xl shadow-token scale-105" 
-                      : "bg-card border border-border shadow-soft"
+                      ? "bg-primary text-primary-foreground shadow-xl scale-105" 
+                      : "bg-card border border-border"
                   )}
                 >
                   <div className="mb-6">
@@ -286,7 +286,7 @@ export default function MarketingPage() {
                       "w-full rounded-full",
                       plan.highlighted 
                         ? "bg-background text-primary hover:bg-accent" 
-                        : "btn-gradient text-primary-foreground"
+                        : "text-primary-foreground"
                     )}
                   >
                     {plan.cta}
@@ -308,7 +308,7 @@ export default function MarketingPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/login">
-                <Button size="lg" className="btn-gradient text-primary-foreground rounded-full px-8 shadow-lg shadow-token">
+                <Button size="lg" className="text-primary-foreground rounded-full px-8 shadow-lg">
                   Get Started Free <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>

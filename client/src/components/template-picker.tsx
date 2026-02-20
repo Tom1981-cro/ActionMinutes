@@ -125,7 +125,7 @@ export function TemplatePicker({ open, onOpenChange, onSelect, isGenerating }: T
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="glass-panel rounded-2xl max-w-3xl max-h-[85vh] overflow-hidden p-0 gap-0">
+      <DialogContent className="rounded-2xl max-w-3xl max-h-[85vh] overflow-hidden p-0 gap-0">
         <DialogHeader className="px-6 pt-5 pb-0">
           <DialogTitle className="text-xl font-bold text-foreground">Select a template</DialogTitle>
         </DialogHeader>
@@ -236,7 +236,7 @@ export function TemplatePicker({ open, onOpenChange, onSelect, isGenerating }: T
               <Button
                 onClick={handleGenerate}
                 disabled={!selectedTemplate || isGenerating}
-                className="btn-gradient rounded-xl px-6"
+                className="rounded-xl px-6"
                 data-testid="button-generate-template"
               >
                 Generate now

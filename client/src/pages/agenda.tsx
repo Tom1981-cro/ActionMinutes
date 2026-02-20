@@ -51,7 +51,7 @@ function AgendaSection({
         {items.map((item) => (
           <Card
             key={item.id}
-            className="glass-panel rounded-xl hover:bg-accent transition-all cursor-pointer"
+            className="rounded-xl hover:bg-accent transition-all cursor-pointer"
             onClick={() => onTap(item)}
             data-testid={`agenda-item-${item.id}`}
           >
@@ -172,7 +172,7 @@ export default function AgendaPage() {
       </div>
 
       {totalItems === 0 ? (
-        <div className="glass-panel rounded-2xl border-dashed border-border py-12 text-center space-y-3">
+        <div className="rounded-2xl border-dashed border-border py-12 text-center space-y-3">
           <div className="mx-auto h-16 w-16 bg-accent rounded-2xl flex items-center justify-center">
             <CalendarBlank className="h-8 w-8 text-primary" weight="duotone" />
           </div>

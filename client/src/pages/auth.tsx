@@ -342,7 +342,7 @@ export default function AuthPage() {
 
             <Button
               type="submit"
-              className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-token"
+              className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
               disabled={submitting}
               data-testid="button-submit"
             >

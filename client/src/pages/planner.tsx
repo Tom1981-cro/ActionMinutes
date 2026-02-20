@@ -176,7 +176,7 @@ function TaskCard({ task, onClick }: { task: ActionTask; onClick: () => void }) 
   return (
     <button
       onClick={onClick}
-      className="w-full glass-panel rounded-xl p-4 flex items-start gap-3 hover:shadow-md transition-all text-left group"
+      className="w-full rounded-xl p-4 flex items-start gap-3 hover:shadow-md transition-all text-left group"
       data-testid={`planner-task-${task.id}`}
     >
       <div className={cn(
@@ -453,7 +453,7 @@ export default function PlannerPage() {
               </span>
             </div>
             {focusActions.length === 0 ? (
-              <div className="text-center py-10 glass-panel rounded-xl border border-dashed border-border">
+              <div className="text-center py-10 rounded-xl border border-dashed border-border">
                 <Sparkle className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" weight="duotone" />
                 <p className="text-muted-foreground">No tasks scheduled for today.</p>
                 <button
@@ -500,7 +500,7 @@ export default function PlannerPage() {
         </div>
 
         <div className="col-span-12 lg:col-span-4 space-y-6">
-          <div className="glass-panel rounded-2xl p-5">
+          <div className="rounded-2xl p-5">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
               <CalendarBlank className="h-4 w-4" weight="duotone" /> Today's Meetings
             </h3>
@@ -522,7 +522,7 @@ export default function PlannerPage() {
             )}
           </div>
 
-          <div className="glass-panel rounded-2xl p-5">
+          <div className="rounded-2xl p-5">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Quick Stats</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">

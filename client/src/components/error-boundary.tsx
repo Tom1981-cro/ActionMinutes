@@ -45,7 +45,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       return (
         <div className="min-h-[400px] flex items-center justify-center p-6">
-          <Card className="glass-panel border-red-500/30 rounded-2xl max-w-md w-full">
+          <Card className="border-red-500/30 rounded-2xl max-w-md w-full">
             <CardContent className="py-8 px-6 text-center space-y-6">
               <div className="mx-auto h-16 w-16 bg-red-500/20 rounded-2xl flex items-center justify-center">
                 <WarningCircle className="h-8 w-8 text-red-400" weight="fill" />
@@ -141,7 +141,7 @@ export function PageErrorFallback({
 
         <div className="flex gap-3 justify-center">
           {onRetry && (
-            <Button onClick={onRetry} className="rounded-xl btn-gradient">
+            <Button onClick={onRetry} className="rounded-xl">
               <ArrowClockwise className="h-4 w-4 mr-2" weight="bold" />
               Retry
             </Button>
@@ -165,7 +165,7 @@ export function SectionErrorFallback({
   onRetry?: () => void;
 }) {
   return (
-    <Card className="glass-panel border-red-500/20 rounded-xl">
+    <Card className="border-red-500/20 rounded-xl">
       <CardContent className="py-6 text-center space-y-3">
         <WarningCircle className="h-8 w-8 text-red-400 mx-auto" weight="duotone" />
         <p className="text-foreground text-sm">{title}</p>

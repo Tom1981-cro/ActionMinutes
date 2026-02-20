@@ -161,11 +161,11 @@ export function EmptyState({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <Card className="glass-panel border-dashed border-border rounded-2xl overflow-hidden">
+      <Card className="border-dashed border-border rounded-2xl overflow-hidden">
         <CardContent className="py-12 px-6 md:px-12">
           <div className="max-w-md mx-auto text-center space-y-6">
             <motion.div 
-              className="mx-auto h-20 w-20 bg-accent rounded-2xl flex items-center justify-center shadow-token"
+              className="mx-auto h-20 w-20 bg-accent rounded-2xl flex items-center justify-center"
               animate={{ 
                 boxShadow: [
                   "0 0 20px rgba(139, 92, 246, 0.2)",
@@ -212,7 +212,7 @@ export function EmptyState({
               {onAction && (
                 <Button 
                   onClick={onAction}
-                  className="rounded-xl btn-gradient h-12 px-6"
+                  className="rounded-xl h-12 px-6"
                   data-testid={`button-empty-action-${variant}`}
                 >
                   <Plus className="h-5 w-5 mr-2" weight="bold" />

@@ -51,7 +51,7 @@ function ActionedCard({
 
   return (
     <Card
-      className="glass-panel hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl opacity-80"
+      className="hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl opacity-80"
       onClick={onClick}
       data-testid={`card-actioned-${item._type}-${item.id}`}
     >

@@ -44,7 +44,7 @@ export default function MeetingsPage() {
           <p className="text-muted-foreground text-sm">History of your captured minutes.</p>
         </div>
         <Link href="/capture">
-          <Button className="w-full sm:w-auto h-10 rounded-xl btn-gradient" data-testid="button-new-meeting">
+          <Button className="w-full sm:w-auto h-10 rounded-xl" data-testid="button-new-meeting">
             <Plus className="mr-2 h-5 w-5" weight="bold" />
             New Meeting
           </Button>
@@ -97,7 +97,7 @@ export default function MeetingsPage() {
             {SAMPLE_MEETINGS.map((sample, idx) => (
               <Card 
                 key={`sample-${idx}`} 
-                className="glass-panel hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl opacity-90"
+                className="hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl opacity-90"
                 onClick={() => navigate("/capture")}
                 data-testid={`card-sample-meeting-${idx}`}
               >
@@ -137,7 +137,7 @@ export default function MeetingsPage() {
         
         {paginatedMeetings.map((meeting: any) => (
           <Link key={meeting.id} href={meeting.parseState === 'draft' ? `/app/capture?id=${meeting.id}` : `/app/meeting/${meeting.id}`}>
-            <Card className="glass-panel hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl" data-testid={`card-meeting-${meeting.id}`}>
+            <Card className="hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl" data-testid={`card-meeting-${meeting.id}`}>
               <CardHeader className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
                 <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
                   <CardTitle className="text-sm font-medium leading-snug text-foreground group-hover:text-primary transition-colors">{meeting.title}</CardTitle>

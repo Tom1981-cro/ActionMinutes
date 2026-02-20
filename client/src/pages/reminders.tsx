@@ -404,7 +404,7 @@ export default function RemindersPage() {
       <div
         key={bucket.value}
         className={cn(
-          "glass-panel rounded-2xl transition-all duration-300 min-h-[180px] flex flex-col",
+          "rounded-2xl transition-all duration-300 min-h-[180px] flex flex-col",
           isDragOver && "border-primary/50 bg-accent scale-[1.02]",
           isSpan2 && "md:col-span-2"
         )}
@@ -486,7 +486,7 @@ export default function RemindersPage() {
                         <DotsThree className="h-4 w-4 text-muted-foreground" weight="bold" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48 glass-panel border-border text-foreground">
+                    <DropdownMenuContent align="end" className="w-48 border-border text-foreground">
                       <DropdownMenuItem onClick={() => openEditDialog(reminder)} className="text-foreground focus:text-foreground focus:bg-accent">
                         Edit
                       </DropdownMenuItem>
@@ -562,7 +562,7 @@ export default function RemindersPage() {
       </div>
       
       {/* Quick Add */}
-      <div className="flex gap-2 items-center glass-panel rounded-xl p-2">
+      <div className="flex gap-2 items-center rounded-xl p-2">
         <Input
           value={quickAddText}
           onChange={(e) => setQuickAddText(e.target.value)}
@@ -575,7 +575,7 @@ export default function RemindersPage() {
           <SelectTrigger className="w-auto border-0 bg-accent rounded-lg text-foreground" data-testid="select-quick-bucket">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="glass-panel border-border">
+          <SelectContent className="border-border">
             {BUCKETS.map((bucket) => (
               <SelectItem key={bucket.value} value={bucket.value} className="text-foreground focus:bg-accent focus:text-foreground">
                 <span className="flex items-center gap-2">
@@ -589,7 +589,7 @@ export default function RemindersPage() {
         <Button 
           onClick={handleQuickAdd}
           disabled={!quickAddText.trim() || createReminder.isPending}
-          className="rounded-xl btn-gradient"
+          className="rounded-xl"
           data-testid="button-quick-add"
         >
           {createReminder.isPending ? <SpinnerGap className="h-4 w-4 animate-spin" weight="bold" /> : <Plus className="h-4 w-4" weight="bold" />}
@@ -598,7 +598,7 @@ export default function RemindersPage() {
       
       {/* Mobile Tab Selector - Only visible on mobile */}
       <div className="md:hidden">
-        <div className="flex gap-1 p-1 glass-panel rounded-xl overflow-x-auto">
+        <div className="flex gap-1 p-1 rounded-xl overflow-x-auto">
           {BUCKETS.map((bucket) => {
             const count = getBucketReminders(bucket.value).length;
             const isActive = activeMobileTab === bucket.value;
@@ -670,7 +670,7 @@ export default function RemindersPage() {
               {completedReminders.slice(0, 10).map((reminder) => (
                 <div 
                   key={reminder.id}
-                  className="flex items-center gap-3 p-3 glass-panel rounded-xl opacity-60 hover:opacity-100 transition-opacity"
+                  className="flex items-center gap-3 p-3 rounded-xl opacity-60 hover:opacity-100 transition-opacity"
                 >
                   <button
                     onClick={() => handleUncomplete(reminder)}
@@ -700,7 +700,7 @@ export default function RemindersPage() {
 
       {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="glass-panel border-border text-foreground">
+        <DialogContent className="border-border text-foreground">
           <DialogHeader>
             <DialogTitle className="text-foreground">Edit Reminder</DialogTitle>
           </DialogHeader>
@@ -730,7 +730,7 @@ export default function RemindersPage() {
                   <SelectTrigger className="bg-accent border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="glass-panel border-border">
+                  <SelectContent className="border-border">
                     {BUCKETS.map((bucket) => (
                       <SelectItem key={bucket.value} value={bucket.value} className="text-foreground focus:bg-accent focus:text-foreground">
                         <span className="flex items-center gap-2">
@@ -748,7 +748,7 @@ export default function RemindersPage() {
                   <SelectTrigger className="bg-accent border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="glass-panel border-border">
+                  <SelectContent className="border-border">
                     {PRIORITY_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value} className="text-foreground focus:bg-accent focus:text-foreground">
                         <span className={opt.color}>{opt.label}</span>
@@ -762,7 +762,7 @@ export default function RemindersPage() {
               <Button variant="outline" onClick={() => setShowEditDialog(false)} className="flex-1">
                 Cancel
               </Button>
-              <Button onClick={saveEditedReminder} className="flex-1 btn-gradient">
+              <Button onClick={saveEditedReminder} className="flex-1">
                 Save
               </Button>
             </div>

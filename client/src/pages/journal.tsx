@@ -543,7 +543,7 @@ export default function JournalPage() {
             setSelectedMood(null);
             setTimeout(() => textareaRef.current?.focus(), 100);
           }}
-          className="rounded-xl btn-gradient"
+          className="rounded-xl"
           data-testid="button-new-entry"
         >
           <Plus className="h-4 w-4 mr-2" weight="bold" />
@@ -556,7 +556,7 @@ export default function JournalPage() {
         {/* Left column */}
         <div className="space-y-4">
           {/* Quick Reflection card */}
-          <Card className="glass-panel rounded-2xl overflow-hidden" data-testid="card-quick-reflection">
+          <Card className="rounded-2xl overflow-hidden" data-testid="card-quick-reflection">
             <CardContent className="p-5 space-y-4">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Quick Reflection</p>
 
@@ -826,7 +826,7 @@ export default function JournalPage() {
                 return (
                   <Card 
                     key={entry.id} 
-                    className="glass-panel rounded-2xl overflow-hidden cursor-pointer hover:bg-accent/50 transition-all group"
+                    className="rounded-2xl overflow-hidden cursor-pointer hover:bg-accent/50 transition-all group"
                     onClick={() => openEntry(entry)}
                     data-testid={`card-entry-${entry.id}`}
                   >
@@ -881,7 +881,7 @@ export default function JournalPage() {
                           </span>
                           <Button
                             size="sm"
-                            className="h-6 px-2.5 text-xs rounded-lg btn-gradient flex-shrink-0"
+                            className="h-6 px-2.5 text-xs rounded-lg flex-shrink-0"
                             onClick={(e) => {
                               e.stopPropagation();
                               createTaskFromAction.mutate({ 
@@ -925,7 +925,7 @@ export default function JournalPage() {
         {/* Right column */}
         <div className="space-y-4">
           {/* Mood vs. Output card */}
-          <Card className="glass-panel rounded-2xl" data-testid="card-mood-output">
+          <Card className="rounded-2xl" data-testid="card-mood-output">
             <CardContent className="p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <ChartBar className="h-4 w-4 text-primary" weight="fill" />
@@ -977,7 +977,7 @@ export default function JournalPage() {
 
           {/* Quick stats */}
           {analytics && (
-            <Card className="glass-panel rounded-2xl" data-testid="card-journal-stats">
+            <Card className="rounded-2xl" data-testid="card-journal-stats">
               <CardContent className="p-4 space-y-2">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="text-center p-2 bg-accent/50 rounded-xl">
@@ -1017,7 +1017,7 @@ export default function JournalPage() {
 
       {/* View entry dialog */}
       <Dialog open={!!viewingEntry} onOpenChange={() => setViewingEntry(null)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto glass-panel border-border text-foreground">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto border-border text-foreground">
           {viewingEntry && (
             <>
               <DialogHeader>

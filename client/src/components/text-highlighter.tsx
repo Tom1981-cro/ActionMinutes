@@ -70,7 +70,7 @@ function SelectionToolbar({
       className="fixed z-50"
       style={{ top: position.top, left: position.left }}
     >
-      <Card className="glass-panel border-primary/30 shadow-xl shadow-black/30">
+      <Card className="border-primary/30 shadow-xl shadow-black/30">
         <CardContent className="p-2 flex items-center gap-1">
           <span className="text-xs text-muted-foreground px-2">Mark as:</span>
           {(Object.keys(TYPE_CONFIG) as HighlightType[]).map((type) => {
@@ -373,7 +373,7 @@ export function TextHighlighter({
           Select any text below and choose what type of item it represents
         </p>
 
-        <Card className="glass-panel">
+        <Card className="">
           <CardContent className="p-5">
             <div
               ref={textRef}
@@ -452,7 +452,7 @@ export function TextHighlighter({
           <div className="pt-3 border-t border-border">
             <Button
               onClick={() => onConfirm(highlights)}
-              className="w-full rounded-xl btn-gradient h-11"
+              className="w-full rounded-xl h-11"
               data-testid="button-confirm-highlights"
             >
               <ArrowRight className="h-4 w-4 mr-2" weight="bold" />

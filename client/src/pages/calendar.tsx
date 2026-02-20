@@ -1011,7 +1011,7 @@ export default function CalendarPage() {
           {/* Right sidebar */}
           <div className="w-[220px] flex-shrink-0 pl-4 space-y-3">
             {/* Show/hide filters */}
-            <div className="glass-panel rounded-xl p-3" data-testid="card-list-filters">
+            <div className="rounded-xl p-3" data-testid="card-list-filters">
               <div className="flex items-center gap-1.5 mb-2">
                 <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Show</span>
               </div>
@@ -1079,7 +1079,7 @@ export default function CalendarPage() {
             </div>
 
             {/* Unscheduled Tasks */}
-            <div className="glass-panel rounded-xl p-3" data-testid="card-unscheduled-tasks">
+            <div className="rounded-xl p-3" data-testid="card-unscheduled-tasks">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Unscheduled</span>
                 <span className="text-[10px] text-muted-foreground">{backlogItems.length}</span>

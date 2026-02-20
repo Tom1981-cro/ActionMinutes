@@ -126,7 +126,7 @@ export function Tutorial() {
 
       <div
         className={cn(
-          "fixed z-50 w-[90vw] max-w-md bg-card rounded-2xl shadow-token border border-border p-6 transition-all duration-300",
+          "fixed z-50 w-[90vw] max-w-md bg-card rounded-2xl border border-border p-6 transition-all duration-300",
           "after:content-[''] after:absolute after:-inset-4 after:bg-card/40 after:backdrop-blur-md after:-z-10 after:rounded-[2rem]",
           step.position === "center" && "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
           step.position === "bottom" && "bottom-24 left-1/2 -translate-x-1/2 md:bottom-8",

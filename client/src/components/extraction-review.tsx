@@ -109,7 +109,7 @@ function ExtractedItemCard({
         animate={{ opacity: 0.5, height: "auto" }}
         className="relative"
       >
-        <Card className="glass-panel border-red-500/20 opacity-50">
+        <Card className="border-red-500/20 opacity-50">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
               <ItemTypeIcon type={item.type} />
@@ -131,7 +131,7 @@ function ExtractedItemCard({
 
   if (isEditing) {
     return (
-      <Card className="glass-panel border-primary/30">
+      <Card className="border-primary/30">
         <CardContent className="p-4 space-y-3">
           <div className="flex items-center gap-2 mb-2">
             <ItemTypeIcon type={item.type} />
@@ -189,7 +189,7 @@ function ExtractedItemCard({
       exit={{ opacity: 0, x: -20 }}
     >
       <Card className={cn(
-        "glass-panel transition-all",
+        " transition-all",
         item.status === "accepted" && "border-emerald-500/30 bg-emerald-500/5",
         item.status === "edited" && "border-primary/30 bg-primary/5"
       )}>
@@ -332,7 +332,7 @@ export function ExtractionReviewPanel({
             <div className="h-6 w-1 bg-muted-foreground/50 rounded-full" />
             <h3 className="font-medium text-foreground">Original Notes</h3>
           </div>
-          <Card className="glass-panel h-[calc(100vh-300px)] overflow-hidden">
+          <Card className="h-[calc(100vh-300px)] overflow-hidden">
             <ScrollArea className="h-full p-4">
               <p className="text-foreground text-sm whitespace-pre-wrap leading-relaxed">
                 {rawNotes}
@@ -369,7 +369,7 @@ export function ExtractionReviewPanel({
         </div>
 
         {summary && (
-          <Card className="glass-panel border-primary/20">
+          <Card className="border-primary/20">
             <CardContent className="p-4">
               <p className="text-sm text-foreground leading-relaxed">
                 <span className="font-medium text-primary">Summary: </span>
@@ -461,7 +461,7 @@ export function ExtractionReviewPanel({
           <Button
             onClick={handleConfirm}
             disabled={acceptedCount === 0}
-            className="flex-1 rounded-xl btn-gradient"
+            className="flex-1 rounded-xl"
             data-testid="button-add-to-inbox"
           >
             <ArrowRight className="h-4 w-4 mr-2" weight="bold" />

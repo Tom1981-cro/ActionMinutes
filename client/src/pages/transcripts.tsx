@@ -234,7 +234,7 @@ export default function TranscriptsPage() {
       </div>
 
       {transcripts.length === 0 ? (
-        <div className="py-12 text-center glass-panel rounded-2xl border-dashed border-border">
+        <div className="py-12 text-center rounded-2xl border-dashed border-border">
           <div className="mx-auto h-16 w-16 bg-accent rounded-2xl flex items-center justify-center mb-4">
             <Waveform className="h-8 w-8 text-primary" weight="duotone" />
           </div>
@@ -249,9 +249,9 @@ export default function TranscriptsPage() {
               <Card 
                 key={transcript.id}
                 className={cn(
-                  "glass-panel cursor-pointer transition-all rounded-2xl",
+                  "cursor-pointer transition-all rounded-2xl",
                   selectedTranscript === transcript.id 
-                    ? "ring-2 ring-ring shadow-token" 
+                    ? "ring-2 ring-ring" 
                     : "hover:translate-y-[-2px] hover:shadow-lg"
                 )}
                 onClick={() => setSelectedTranscript(transcript.id)}
@@ -325,24 +325,24 @@ export default function TranscriptsPage() {
           <div className="space-y-3">
             <h2 className="text-sm font-semibold text-foreground">AI Summary</h2>
             {!selectedTranscript ? (
-              <div className="glass-panel rounded-2xl p-8 text-center">
+              <div className="rounded-2xl p-8 text-center">
                 <MagicWand className="h-10 w-10 text-primary mx-auto mb-3" weight="duotone" />
                 <p className="text-muted-foreground">Select a transcript to view or generate its AI summary.</p>
               </div>
             ) : summaryLoading ? (
-              <div className="glass-panel rounded-2xl p-8 text-center">
+              <div className="rounded-2xl p-8 text-center">
                 <SpinnerGap className="h-8 w-8 animate-spin text-primary mx-auto" weight="bold" />
                 <p className="text-muted-foreground mt-3">Loading summary...</p>
               </div>
             ) : !summaryData?.summary ? (
-              <div className="glass-panel rounded-2xl p-8 text-center">
+              <div className="rounded-2xl p-8 text-center">
                 <MagicWand className="h-10 w-10 text-primary mx-auto mb-3" weight="duotone" />
                 <p className="text-muted-foreground mb-4">No summary generated yet.</p>
                 <div className="flex flex-col gap-3 items-center">
                   <Button
                     onClick={() => summarizeMutation.mutate(selectedTranscript)}
                     disabled={summarizeMutation.isPending}
-                    className="btn-gradient rounded-xl w-full max-w-[220px]"
+                    className="rounded-xl w-full max-w-[220px]"
                     data-testid="button-generate-summary"
                   >
                     {summarizeMutation.isPending ? (
@@ -387,7 +387,7 @@ export default function TranscriptsPage() {
                 </TabsList>
 
                 <TabsContent value="summary" className="mt-4">
-                  <Card className="glass-panel rounded-2xl">
+                  <Card className="rounded-2xl">
                     <CardContent className="p-4 space-y-4">
                       <div className="flex items-start gap-3">
                         {getSentimentIcon(summaryData.summary.sentiment)}
@@ -448,7 +448,7 @@ export default function TranscriptsPage() {
                 </TabsContent>
 
                 <TabsContent value="tasks" className="mt-4">
-                  <Card className="glass-panel rounded-2xl">
+                  <Card className="rounded-2xl">
                     <CardContent className="p-4">
                       {(!summaryData.tasks || summaryData.tasks.length === 0) ? (
                         <p className="text-muted-foreground text-center py-4">No action items extracted.</p>
@@ -528,7 +528,7 @@ export default function TranscriptsPage() {
                 </TabsContent>
 
                 <TabsContent value="insights" className="mt-4">
-                  <Card className="glass-panel rounded-2xl">
+                  <Card className="rounded-2xl">
                     <CardContent className="p-4 space-y-4">
                       <div>
                         <h4 className="text-sm font-semibold text-foreground mb-3">Top Keywords</h4>
@@ -603,7 +603,7 @@ export default function TranscriptsPage() {
       )}
 
       {templateSummary && selectedTranscript && (
-        <Card className="glass-panel rounded-2xl" data-testid="card-template-summary">
+        <Card className="rounded-2xl" data-testid="card-template-summary">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg text-foreground flex items-center gap-2">
