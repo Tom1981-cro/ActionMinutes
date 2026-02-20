@@ -548,15 +548,15 @@ export default function PlannerPage() {
 
           <button
             onClick={() => navigate('/app/journal')}
-            className="w-full bg-gradient-to-br from-primary/80 to-primary rounded-2xl p-5 text-primary-foreground shadow-lg relative overflow-hidden group cursor-pointer text-left hover:shadow-xl transition-shadow"
+            className="w-full bg-amber-400 rounded-2xl p-5 text-[#1A1A1A] shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative overflow-hidden group cursor-pointer text-left hover:shadow-md transition-shadow"
             data-testid="planner-daily-review"
           >
             <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
               <Sparkle className="h-16 w-16" weight="fill" />
             </div>
             <h3 className="font-bold text-lg mb-1 relative z-10">Daily Review</h3>
-            <p className="text-primary-foreground/70 text-sm mb-3 relative z-10">Clear your mind before ending the day.</p>
-            <span className="bg-primary-foreground/20 hover:bg-primary-foreground/30 backdrop-blur-md px-4 py-2 rounded-lg text-sm font-semibold transition-colors inline-block">
+            <p className="text-[#1A1A1A]/70 text-sm mb-3 relative z-10">Clear your mind before ending the day.</p>
+            <span className="bg-white/30 hover:bg-white/40 px-4 py-2 rounded-lg text-sm font-semibold transition-colors inline-block">
               Start Reflection
             </span>
           </button>

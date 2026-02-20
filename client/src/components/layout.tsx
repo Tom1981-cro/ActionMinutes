@@ -10,7 +10,6 @@ import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/lib/store";
-import { useTheme } from "@/theme/useTheme";
 import { useAuth, authenticatedFetch } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { QuickAdd } from "@/components/quick-add";
@@ -69,7 +68,6 @@ function getListIcon(iconId?: string): PhosphorIcon {
 export default function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
   const { user } = useStore();
-  const { theme: themeId, mode, toggleMode: toggleTheme } = useTheme();
   const { logout, isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
   const [editingListId, setEditingListId] = useState<string | null>(null);

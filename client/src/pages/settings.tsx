@@ -50,9 +50,6 @@ import {
   Funnel,
   Tray,
   ListChecks,
-  Sun,
-  Moon,
-  ArrowCounterClockwise,
   ChatCircle,
   TwitterLogo,
   Lifebuoy,
@@ -72,7 +69,6 @@ import { useGeoData } from "@/components/stripe-pricing-table";
 import { authenticatedFetch } from "@/hooks/use-auth";
 import { FeedbackModal } from "@/components/feedback-modal";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/theme/useTheme";
 import { useToast } from "@/hooks/use-toast";
 import { usePlan } from "@/hooks/use-plan";
 import { format } from "date-fns";
@@ -284,7 +280,6 @@ export default function SettingsModal({ open, onOpenChange, initialTab }: Settin
     updateUser.mutate({ tone });
   };
 
-  const { theme: currentTheme, mode, setTheme: applyTheme, setMode, resetTheme } = useTheme();
 
   const setTab = (tab: TabId) => {
     setActiveTab(tab);

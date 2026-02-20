@@ -509,21 +509,21 @@ export default function LandingPage() {
             {features.map((feature, index) => {
               const Icon = feature.icon;
               const colorClasses: Record<string, string> = {
-                violet: "from-violet-500/20 to-violet-600/20 border-violet-500/20 text-violet-400",
-                fuchsia: "from-fuchsia-500/20 to-fuchsia-600/20 border-fuchsia-500/20 text-fuchsia-400",
-                amber: "from-amber-500/20 to-amber-600/20 border-amber-500/20 text-amber-400",
-                emerald: "from-emerald-500/20 to-emerald-600/20 border-emerald-500/20 text-emerald-400",
-                blue: "from-blue-500/20 to-blue-600/20 border-blue-500/20 text-blue-400",
-                pink: "from-pink-500/20 to-pink-600/20 border-pink-500/20 text-pink-400",
-                indigo: "from-indigo-500/20 to-indigo-600/20 border-indigo-500/20 text-indigo-400",
-                orange: "from-orange-500/20 to-orange-600/20 border-orange-500/20 text-orange-400",
+                violet: "bg-violet-50 border-violet-200 text-violet-600",
+                fuchsia: "bg-fuchsia-50 border-fuchsia-200 text-fuchsia-600",
+                amber: "bg-amber-50 border-amber-200 text-amber-600",
+                emerald: "bg-emerald-50 border-emerald-200 text-emerald-600",
+                blue: "bg-blue-50 border-blue-200 text-blue-600",
+                pink: "bg-pink-50 border-pink-200 text-pink-600",
+                indigo: "bg-indigo-50 border-indigo-200 text-indigo-600",
+                orange: "bg-orange-50 border-orange-200 text-orange-600",
               };
               
               return (
                 <motion.div 
                   key={feature.title}
-                  className={`bg-accent backdrop-blur-sm border rounded-2xl p-6 group hover:bg-accent transition-all duration-300 ${
-                    feature.highlight ? 'border-fuchsia-500/40 ring-1 ring-fuchsia-500/20' : 'border-border'
+                  className={`bg-white border rounded-2xl p-6 group hover:bg-[#FAFAF8] transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.06)] ${
+                    feature.highlight ? 'border-amber-300 ring-1 ring-amber-200' : 'border-[#E5E5E0]'
                   }`}
                   variants={floatUpVariants}
                   initial="hidden"
@@ -531,13 +531,13 @@ export default function LandingPage() {
                   viewport={{ once: true, margin: "-50px" }}
                   custom={index}
                 >
-                  <div className={`w-12 h-12 bg-gradient-to-br ${colorClasses[feature.color]} border rounded-xl flex items-center justify-center mb-4`}>
+                  <div className={`w-12 h-12 ${colorClasses[feature.color]} border rounded-xl flex items-center justify-center mb-4`}>
                     <Icon className={`h-6 w-6 ${colorClasses[feature.color].split(' ').pop()}`} weight="duotone" />
                   </div>
                   <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
                     {feature.title}
                     {feature.highlight && (
-                      <span className="text-xs bg-fuchsia-500/20 text-fuchsia-400 px-2 py-0.5 rounded-full">AI</span>
+                      <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">AI</span>
                     )}
                   </h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
@@ -568,7 +568,7 @@ export default function LandingPage() {
           </motion.div>
 
           <div className="relative">
-            <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-primary/50 via-primary/30 to-primary/50 md:-translate-x-1/2" />
+            <div className="absolute left-8 md:left-1/2 top-0 bottom-0 w-px bg-amber-200 md:-translate-x-1/2" />
 
             <motion.div 
               className="relative flex items-center mb-16 md:mb-24"
