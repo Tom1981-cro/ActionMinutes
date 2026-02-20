@@ -20,7 +20,7 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-ActionMinutes is a full-stack TypeScript application. The frontend is built with React, utilizing Wouter for routing, Zustand for state management, and TanStack React Query for data fetching. UI components are developed with shadcn/ui and styled using Tailwind CSS, adhering to a Vibrant Enterprise design system with Phosphor Icons. The backend is an Express.js application, employing Drizzle ORM with PostgreSQL. Authentication is handled via a custom JWT-based system.
+ActionMinutes is a full-stack TypeScript application. The frontend is built with React, utilizing Wouter for routing, Zustand for state management, and TanStack React Query for data fetching. UI components are developed with shadcn/ui and styled using Tailwind CSS with a minimal white/amber design system and Phosphor Icons. The backend is an Express.js application, employing Drizzle ORM with PostgreSQL. Authentication is handled via a custom JWT-based system.
 
 A separate mobile application is developed using Expo React Native, connecting to the same backend API and PostgreSQL database, offering all core features.
 
@@ -28,16 +28,17 @@ A separate mobile application is developed using Expo React Native, connecting t
 - **Authentication:** Secure JWT-based system with access and refresh tokens.
 - **AI Integration:** Features for meeting capture, AI extraction for summaries, action items, decisions, risks, and automated follow-up email draft generation.
 - **Access Control:** Plan-based access control (Free and Pro tiers) managing features and usage limits.
-- **UI/UX Design:** Category-based sidebar navigation with three sections: "Action To Do" (Inbox + custom lists), "AI Assistant" (Capture, Meetings, Calendar), "Action Reflect" (Journal, Notes). Actioned and Deleted views at sidebar bottom. Transcripts/Drafts/Reminders removed from sidebar (routes still exist).
+- **UI/UX Design:** Clean white top navigation bar with logo left, nav links center, and user actions right. Mobile bottom tab bar with 5 tabs (Inbox, Capture, Calendar, Journal, Notes). Additional pages accessible via user dropdown menu. Actioned and Deleted views in dropdown menu.
 - **Soft Delete:** Tasks and personal reminders support soft deletion via `deletedAt` timestamp. Deleted items viewable and restorable from the Deleted page. Actioned page shows completed items.
 - **Meeting Source Card:** Extraction page shows a "Source" card at top displaying linked transcripts with AI summaries (from transcript_summaries) and meeting notes.
-- **Theme System:** Five themes (Aurora, Paper, Grid, Clay, Terminal) × light/dark modes = 10 configurations. Architecture:
-    - `client/src/theme/themes.css`: Single source of truth with `html[data-theme]` selectors, shadow tokens, status tokens (--success, --warning), per-theme typography.
-    - `client/src/theme/demo-utilities.css`: Reusable classes (.navItem, .shadow-token, .glass-panel, .pill-secondary, etc.).
-    - `client/src/theme/theme.ts`: `initTheme()` runs before React render in main.tsx.
-    - `client/src/theme/useTheme.ts`: Zustand store for React components.
-    - All UI components use semantic CSS tokens exclusively (zero hardcoded slate/white colors in global UI). Pill classes use `color-mix()` with CSS variables for transparency effects.
-    - Settings page has theme switcher with color preview dots, light/dark toggle, and live ThemePreview component.
+- **Design System:** Single light theme with minimal white/amber aesthetic. Architecture:
+    - `client/src/index.css`: CSS variable definitions for all semantic tokens (--color-background: #FFFFFF, --color-primary: #F59E0B amber, --color-muted: #F5F5F0 warm grey, --color-foreground: #1A1A1A charcoal, --color-border: #E5E5E0).
+    - Inter font from Google Fonts, typography scale 32/24/18/16/14px.
+    - White cards with 12px radius and subtle shadow (0 2px 8px rgba(0,0,0,0.06)).
+    - Amber buttons (#F59E0B bg, black text, 8px radius, 600 weight).
+    - Light grey inputs (#F5F5F0) with amber focus rings.
+    - No dark mode, no multi-theme system, no gradients, no glassmorphism.
+    - `client/src/theme/` files kept as minimal no-ops to avoid breaking imports.
 - **Notes Module:** Features AES-256-GCM encryption for note content at rest, with searchable keyword indexing. Supports mood tracking, tags, bi-directional links, and attachments. Notes page (`client/src/pages/notes.tsx`) redesigned as action-oriented capture system: (1) Masonry grid layout (CSS columns) with color-coded cards using semantic CSS tokens via `color-mix()`. (2) Create New card with action icons (voice, checklist, template). (3) Search bar with filter pills (All/Work/Personal/Meeting). (4) Right sidebar with Collections and Tags sections. (5) Smart context linking via `meetingId` column — notes linked to meetings show meeting badge. (6) AI "Text-to-Action" extraction via POST `/api/notes/:id/extract-actions` — scans note content and creates tasks in inbox. (7) Grid/list view toggle. (8) Collection-based organization via `collection` column on notes table.
 - **Calendar Synchronization:** Adapters for Google Calendar and Microsoft Outlook, supporting CRUD operations for events, real-time sync via webhooks, and free/busy queries.
 - **Calendar Action Center:** Calendar page (`client/src/pages/calendar.tsx`) redesigned as spacious full-width layout: (1) Flexible-width month grid with large day cells, capacity load bars (green/amber/red) computing tasks+events vs 8h. (2) Fixed 240px right sidebar with discreet sync status (green dot = connected, "Connect" link for unconnected) and draggable unscheduled tasks list. (3) HTML5 drag-and-drop from sidebar onto calendar day cells for time-blocking (also supports click-to-schedule). (4) No "Today" detail widget — grid is primary interaction surface. (5) Meeting prep dialog for external events (Google/Outlook) offering "Create Agenda" and "Take Notes".
@@ -47,7 +48,7 @@ A separate mobile application is developed using Expo React Native, connecting t
 - **Live Meeting Recording:** In-browser audio recording via MediaRecorder API (audio/webm). GDPR consent dialog shown on first use (stored as `recordingConsentAt` timestamp in users table). Auto-transcribes on stop and inserts text into notes without user prompt. Compatible with template summarization and AI extraction flows.
 - **Template Summaries:** 18 professional templates across 6 categories with markdown rendering, Export PDF/Print/Copy actions, and database persistence via `transcript_summaries` table with `promptVersion: template:${templateId}` tracking.
 - **DatePickerModal:** Reusable modal component (`client/src/components/date-picker-modal.tsx`) with Date and Duration tabs. Date tab has quick icons (Today/Tomorrow/+7/Month), mini calendar, time input, reminder dropdown, repeat dropdown, and repeat-ends. Duration tab has start/end date+time, all-day toggle, same reminder/repeat options. Internal state management, commits on OK press.
-- **Task Detail Page:** Card-based glass-panel layout matching Meeting page style. Task title at top, cards for Task Details, Schedule (due date via DatePickerModal, duration, deadline, reminder, repeat, priority), Location+Tags row, and Notes with attachment support.
+- **Task Detail Page:** Card-based layout with white cards and subtle shadows. Task title at top, cards for Task Details, Schedule (due date via DatePickerModal, duration, deadline, reminder, repeat, priority), Location+Tags row, and Notes with attachment support.
 - **Priority System:** High/Normal/Low/None (None as default). Maps to "normal" on backend for DB compatibility.
 - **Task Attachments:** `task_attachments` table in schema, multer-based file upload to `uploads/tasks/`, supports PDF, Word, Excel, PowerPoint, Markdown, and image files. API endpoints: GET/POST/DELETE `/api/attachments`.
 
