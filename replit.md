@@ -32,7 +32,7 @@ A separate mobile application is developed using Expo React Native, connecting t
 - **Soft Delete:** Tasks and personal reminders support soft deletion via `deletedAt` timestamp. Deleted items viewable and restorable from the Deleted page. Actioned page shows completed items.
 - **Meeting Source Card:** Extraction page shows a "Source" card at top displaying linked transcripts with AI summaries (from transcript_summaries) and meeting notes.
 - **Design System:** Single light theme with minimal white/purple aesthetic matching the app logo. Architecture:
-    - `client/src/index.css`: CSS variable definitions for all semantic tokens (--color-background: #FFFFFF, --color-primary: #8B5CF6 violet, --color-muted: #F5F5F0 warm grey, --color-foreground: #1A1A1A charcoal, --color-border: #E5E5E0).
+    - `client/src/index.css`: CSS variable definitions for all semantic tokens (--color-background: #F8F7F4 pale warm grey, --color-primary: #8B5CF6 violet, --color-muted: #F5F5F0 warm grey, --color-foreground: #1A1A1A charcoal, --color-border: #E5E5E0).
     - Inter font from Google Fonts, typography scale 32/24/18/16/14px.
     - White cards with 12px radius and subtle shadow (0 2px 8px rgba(0,0,0,0.06)).
     - Purple buttons (#8B5CF6 bg, white text, 8px radius, 600 weight). Violet palette: 50/100/200/300/400/500/600/700.

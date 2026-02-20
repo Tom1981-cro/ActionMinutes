@@ -548,8 +548,8 @@ function ItemCard({
   return (
     <div
       className={cn(
-        "relative flex items-center gap-3 bg-card rounded-xl border-l-[3px] py-3 px-4 cursor-pointer transition-all group",
-        "hover:shadow-sm",
+        "relative flex items-center gap-3 bg-card rounded-xl border-l-[3px] py-3 px-4 cursor-pointer transition-all group shadow-[0_2px_8px_rgba(0,0,0,0.06)]",
+        "hover:shadow-md",
         borderColor,
         selected && "ring-1 ring-primary/50 bg-accent/20"
       )}

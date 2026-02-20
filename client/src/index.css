@@ -3,7 +3,7 @@
 @plugin "tailwindcss-animate";
 
 @theme inline {
-  --color-background: #FFFFFF;
+  --color-background: #F8F7F4;
   --color-foreground: #1A1A1A;
   --color-card: #FFFFFF;
   --color-card-foreground: #1A1A1A;
@@ -53,7 +53,7 @@
 
 @layer base {
   :root {
-    --background: #FFFFFF;
+    --background: #F8F7F4;
     --foreground: #1A1A1A;
     --card: #FFFFFF;
     --card-foreground: #1A1A1A;
@@ -105,7 +105,7 @@
     line-height: 1.6;
     min-height: 100vh;
     min-height: 100dvh;
-    background-color: #FFFFFF;
+    background-color: var(--background);
   }
 
   h1 { font-size: 32px; font-weight: 700; line-height: 1.2; color: #1A1A1A; }
@@ -132,7 +132,7 @@
 
   .focus-ring {
     @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
-    --tw-ring-color: #F59E0B;
+    --tw-ring-color: #8B5CF6;
   }
 
   .touch-target {
@@ -156,7 +156,7 @@
   }
 
   ::selection {
-    background: rgba(245, 158, 11, 0.2);
+    background: rgba(139, 92, 246, 0.2);
     color: #1A1A1A;
   }
 }

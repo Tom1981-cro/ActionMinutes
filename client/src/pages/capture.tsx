@@ -860,7 +860,7 @@ export default function CapturePage() {
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-3 space-y-3">
-              <div className="rounded-xl p-4 space-y-3">
+              <div className="bg-card rounded-xl p-4 space-y-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-border">
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <Users className="h-3.5 w-3.5" weight="duotone" />
@@ -923,7 +923,7 @@ export default function CapturePage() {
             data-testid="input-audio-file"
           />
 
-          <div className="rounded-xl p-4 space-y-3">
+          <div className="bg-card rounded-xl p-4 space-y-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-border">
           <div 
             className={cn(
               "flex items-center gap-2 transition-all duration-200",

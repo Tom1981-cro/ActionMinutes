@@ -176,7 +176,7 @@ function TaskCard({ task, onClick }: { task: ActionTask; onClick: () => void }) 
   return (
     <button
       onClick={onClick}
-      className="w-full rounded-xl p-4 flex items-start gap-3 hover:shadow-md transition-all text-left group"
+      className="w-full bg-card rounded-xl p-4 flex items-start gap-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-border hover:shadow-md transition-all text-left group"
       data-testid={`planner-task-${task.id}`}
     >
       <div className={cn(
@@ -500,7 +500,7 @@ export default function PlannerPage() {
         </div>
 
         <div className="col-span-12 lg:col-span-4 space-y-6">
-          <div className="rounded-2xl p-5">
+          <div className="bg-card rounded-2xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-border">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
               <CalendarBlank className="h-4 w-4" weight="duotone" /> Today's Meetings
             </h3>
@@ -522,7 +522,7 @@ export default function PlannerPage() {
             )}
           </div>
 
-          <div className="rounded-2xl p-5">
+          <div className="bg-card rounded-2xl p-5 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-border">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Quick Stats</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
@@ -548,14 +548,14 @@ export default function PlannerPage() {
 
           <button
             onClick={() => navigate('/app/journal')}
-            className="w-full bg-violet-500 rounded-2xl p-5 text-[#1A1A1A] shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative overflow-hidden group cursor-pointer text-left hover:shadow-md transition-shadow"
+            className="w-full bg-violet-500 rounded-2xl p-5 text-white shadow-[0_2px_8px_rgba(0,0,0,0.06)] relative overflow-hidden group cursor-pointer text-left hover:shadow-md transition-shadow"
             data-testid="planner-daily-review"
           >
             <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
               <Sparkle className="h-16 w-16" weight="fill" />
             </div>
             <h3 className="font-bold text-lg mb-1 relative z-10">Daily Review</h3>
-            <p className="text-[#1A1A1A]/70 text-sm mb-3 relative z-10">Clear your mind before ending the day.</p>
+            <p className="text-white/70 text-sm mb-3 relative z-10">Clear your mind before ending the day.</p>
             <span className="bg-white/30 hover:bg-white/40 px-4 py-2 rounded-lg text-sm font-semibold transition-colors inline-block">
               Start Reflection
             </span>

@@ -404,7 +404,7 @@ export default function RemindersPage() {
       <div
         key={bucket.value}
         className={cn(
-          "rounded-2xl transition-all duration-300 min-h-[180px] flex flex-col",
+          "bg-card rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-border transition-all duration-300 min-h-[180px] flex flex-col",
           isDragOver && "border-primary/50 bg-accent scale-[1.02]",
           isSpan2 && "md:col-span-2"
         )}
@@ -562,7 +562,7 @@ export default function RemindersPage() {
       </div>
       
       {/* Quick Add */}
-      <div className="flex gap-2 items-center rounded-xl p-2">
+      <div className="flex gap-2 items-center rounded-xl p-2 bg-card shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-border">
         <Input
           value={quickAddText}
           onChange={(e) => setQuickAddText(e.target.value)}

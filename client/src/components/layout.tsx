@@ -204,7 +204,7 @@ export default function Layout({ children }: LayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF8] flex flex-col font-sans">
+    <div className="min-h-screen bg-background flex flex-col font-sans">
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 bg-white border-b border-[#E5E5E0]">
         <div className="flex items-center justify-between h-14 px-6">
@@ -244,7 +244,7 @@ export default function Layout({ children }: LayoutProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setQuickAddOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500 text-[#1A1A1A] text-sm font-semibold hover:bg-violet-600 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500 text-white text-sm font-semibold hover:bg-violet-600 transition-colors"
               data-testid="nav-addaction"
             >
               <Lightning className="h-4 w-4" weight="fill" />
@@ -266,7 +266,7 @@ export default function Layout({ children }: LayoutProps) {
                   className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[#F5F5F0] transition-colors"
                   data-testid="button-user-menu"
                 >
-                  <div className="w-7 h-7 rounded-full bg-violet-500 flex items-center justify-center text-[#1A1A1A] text-xs font-semibold">
+                  <div className="w-7 h-7 rounded-full bg-violet-500 flex items-center justify-center text-white text-xs font-semibold">
                     {(user.name || "U").charAt(0).toUpperCase()}
                   </div>
                   <CaretDown className="h-3 w-3 text-[#9CA3AF] hidden sm:block" />

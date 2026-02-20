@@ -492,7 +492,7 @@ export default function NotesPage() {
         {/* Right sidebar */}
         <div className="w-[220px] flex-shrink-0 space-y-4">
           {/* Collections */}
-          <div className="rounded-2xl p-4" data-testid="card-collections">
+          <div className="bg-card rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-border" data-testid="card-collections">
             <div className="flex items-center gap-1.5 mb-3">
               <FolderSimple className="h-3.5 w-3.5 text-muted-foreground" weight="bold" />
               <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Collections</span>
@@ -525,7 +525,7 @@ export default function NotesPage() {
           </div>
 
           {/* Tags */}
-          <div className="rounded-2xl p-4" data-testid="card-tags">
+          <div className="bg-card rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-border" data-testid="card-tags">
             <div className="flex items-center gap-1.5 mb-3">
               <Tag className="h-3.5 w-3.5 text-muted-foreground" weight="bold" />
               <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Tags</span>
@@ -559,7 +559,7 @@ export default function NotesPage() {
 
           {/* Scratchpad */}
           <div 
-            className="rounded-2xl p-4" 
+            className="rounded-2xl p-4 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border" 
             style={{ backgroundColor: 'color-mix(in srgb, var(--warning) 8%, var(--card))', borderColor: 'color-mix(in srgb, var(--warning) 20%, transparent)' }}
             data-testid="card-scratchpad"
           >
@@ -609,9 +609,9 @@ export default function NotesPage() {
                       onClick={() => setSelectedColor(color.value)}
                       className={cn(
                         "w-7 h-7 rounded-full border-2 transition-all",
-                        color.bg,
                         selectedColor === color.value ? "border-primary scale-110" : "border-transparent"
                       )}
+                      style={color.style}
                       data-testid={`button-color-${color.value}`}
                     />
                   ))}
