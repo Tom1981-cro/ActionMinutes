@@ -739,7 +739,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Add a description..."
-                    className="min-h-[70px] resize-none border-none bg-transparent px-0 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0 shadow-none"
+                    className="min-h-[70px] resize-none border-none bg-transparent px-0 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0 shadow-none"
                     data-testid="textarea-description"
                   />
                 </div>
@@ -830,7 +830,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Additional context or details..."
-                    className="min-h-[60px] resize-none border-none bg-transparent px-0 text-[12px] text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0 shadow-none"
+                    className="min-h-[60px] resize-none border-none bg-transparent px-0 text-sm text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0 shadow-none"
                     data-testid="input-notes"
                   />
                 </div>
@@ -923,8 +923,8 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                       <User className="h-3 w-3" />
                       Assignee
                     </label>
-                    <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-2.5 py-1.5">
-                      <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-semibold text-primary flex-shrink-0">
+                    <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-2.5 h-7">
+                      <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center text-[9px] font-semibold text-primary flex-shrink-0">
                         {(ownerName || "?")[0].toUpperCase()}
                       </div>
                       <input
@@ -1167,7 +1167,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                           if (e.key === "Escape") setNewTagInput("");
                         }}
                         placeholder="Add tag..."
-                        className="flex-1 text-[10px] bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground/50"
+                        className="flex-1 text-[11px] bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground/50"
                         data-testid="input-add-tag"
                       />
                       <button
