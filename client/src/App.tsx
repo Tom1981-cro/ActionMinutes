@@ -21,7 +21,6 @@ const SettingsTermsPage = React.lazy(() => import("@/pages/settings-terms"));
 const SupportPage = React.lazy(() => import("@/pages/support"));
 const AdminFeedbackPage = React.lazy(() => import("@/pages/admin-feedback"));
 const JournalPage = React.lazy(() => import("@/pages/journal"));
-const RemindersPage = React.lazy(() => import("@/pages/reminders"));
 const MobileBuildGuidePage = React.lazy(() => import("@/pages/mobile-build-guide"));
 const StoreScreensPage = React.lazy(() => import("@/pages/store-screens"));
 const MarketingPage = React.lazy(() => import("@/pages/marketing"));
@@ -176,9 +175,7 @@ function Router() {
         </ProtectedRoute>
       </Route>
       <Route path="/app/reminders">
-        <ProtectedRoute>
-          <Layout><Suspense fallback={<PageLoader />}><RemindersPage /></Suspense></Layout>
-        </ProtectedRoute>
+        <Redirect to="/app/inbox" />
       </Route>
       <Route path="/app/calendar">
         <ProtectedRoute>
@@ -290,7 +287,7 @@ function Router() {
         <Redirect to="/app/journal" />
       </Route>
       <Route path="/reminders">
-        <Redirect to="/app/reminders" />
+        <Redirect to="/app/inbox" />
       </Route>
       <Route path="/calendar">
         <Redirect to="/app/calendar" />

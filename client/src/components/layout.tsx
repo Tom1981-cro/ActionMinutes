@@ -72,7 +72,6 @@ const sidebarNavItems: { href: string; label: string; icon: PhosphorIcon }[] = [
   { href: "/app/calendar", label: "Calendar", icon: Calendar },
   { href: "/app/journal", label: "Journal", icon: BookOpen },
   { href: "/app/notes", label: "Notes", icon: NotePencil },
-  { href: "/app/reminders", label: "Reminders", icon: Bell },
   { href: "/app/focus", label: "Focus Ring", icon: Crosshair },
   { href: "/app/verbs", label: "Action Verbs", icon: Tag },
 ];
@@ -84,7 +83,6 @@ const mobileTabItems: { href: string; label: string; icon: PhosphorIcon }[] = [
   { href: "/app/calendar", label: "Calendar", icon: Calendar },
   { href: "/app/journal", label: "Journal", icon: BookOpen },
   { href: "/app/notes", label: "Notes", icon: NotePencil },
-  { href: "/app/reminders", label: "Reminders", icon: Bell },
   { href: "/app/focus", label: "Focus", icon: Crosshair },
   { href: "/app/verbs", label: "Verbs", icon: Tag },
 ];
