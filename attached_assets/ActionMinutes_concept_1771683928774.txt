@@ -1,0 +1,959 @@
+import React, { useState, useEffect } from "react";
+import { 
+  CheckCircle, Circle, Phone, Edit3, Eye, Check, X, 
+  ArrowUp, ArrowDown, PieChart, Target, Briefcase, 
+  Layout, List, Plus, Play, Clock, Inbox as InboxIcon, 
+  Calendar as CalendarIcon, FileText, Book, Mic, 
+  Image as ImageIcon, Search, User, Sun, Moon, Trophy, 
+  Activity, Monitor, Smartphone, Settings, Flag
+} from "lucide-react";
+
+export default function App() {
+  const [isMobileMode, setIsMobileMode] = useState(false);
+  const [activeView, setActiveView] = useState("planner");
+  const [focusTask, setFocusTask] = useState("Write Q3 performance reviews");
+
+  const navItems = [
+    { id: "planner", name: "Planner", icon: PieChart },
+    { id: "inbox", name: "Inbox", icon: InboxIcon },
+    { id: "capture", name: "Capture", icon: Mic },
+    { id: "calendar", name: "Calendar", icon: CalendarIcon },
+    { id: "journal", name: "Journal", icon: Book },
+    { id: "notes", name: "Notes", icon: FileText },
+    { id: "reminders", name: "Reminders", icon: Clock },
+    { id: "focus", name: "Focus Ring", icon: Target },
+    { id: "verbs", name: "Action Verbs", icon: Briefcase },
+  ];
+
+  // Helper to send a task to the focus ring
+  const startFocusTask = (taskName) => {
+    setFocusTask(taskName);
+    setActiveView("focus");
+  };
+
+  const renderActiveComponent = () => {
+    const props = { isMobile: isMobileMode, startFocusTask };
+    switch (activeView) {
+      case "planner": return <PlannerView {...props} />;
+      case "inbox": return <InboxView {...props} />;
+      case "capture": return <CaptureView {...props} />;
+      case "calendar": return <CalendarView {...props} />;
+      case "journal": return <JournalView {...props} />;
+      case "notes": return <NotesView {...props} />;
+      case "reminders": return <RemindersView {...props} />;
+      case "focus": return <FocusRingView {...props} taskName={focusTask} />;
+      case "verbs": return <ActionVerbsView {...props} />;
+      default: return <PlannerView {...props} />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-200 flex flex-col font-sans text-gray-800">
+      
+      {/* GLOBAL MODE SWITCHER */}
+      <div className="bg-gray-900 text-white p-3 flex justify-center items-center space-x-4 shadow-md z-50">
+        <span className="text-sm font-semibold text-gray-400">Preview Mode:</span>
+        <div className="bg-gray-800 p-1 rounded-lg flex space-x-1">
+          <button 
+            onClick={() => setIsMobileMode(false)}
+            className={`px-4 py-2 rounded-md flex items-center space-x-2 text-sm font-bold transition-all ${!isMobileMode ? 'bg-white text-gray-900 shadow' : 'text-gray-400 hover:text-white'}`}
+          >
+            <Monitor className="w-4 h-4" />
+            <span>Desktop</span>
+          </button>
+          <button 
+            onClick={() => setIsMobileMode(true)}
+            className={`px-4 py-2 rounded-md flex items-center space-x-2 text-sm font-bold transition-all ${isMobileMode ? 'bg-white text-gray-900 shadow' : 'text-gray-400 hover:text-white'}`}
+          >
+            <Smartphone className="w-4 h-4" />
+            <span>Mobile</span>
+          </button>
+        </div>
+      </div>
+
+      {/* APP CONTAINER */}
+      <div className={`flex-1 flex justify-center items-center p-4 transition-all duration-500 ease-in-out ${isMobileMode ? 'py-8' : 'p-0'}`}>
+        
+        {/* DEVICE FRAME */}
+        <div className={`bg-[#f9fafb] flex overflow-hidden shadow-2xl relative transition-all duration-500 ease-in-out ${
+          isMobileMode 
+            ? 'w-[375px] h-[812px] rounded-[3rem] ring-8 ring-gray-900 flex-col' 
+            : 'w-full h-full rounded-none flex-row'
+        }`}>
+          
+          {/* SIDEBAR (DESKTOP) */}
+          {!isMobileMode && (
+            <aside className="w-64 bg-white border-r border-gray-200 flex flex-col z-20 shadow-sm flex-shrink-0">
+              <div className="p-6 border-b border-gray-100 flex items-center space-x-3">
+                <div className="w-8 h-8 bg-violet-600 rounded-lg flex items-center justify-center shadow-md">
+                  <Check className="w-5 h-5 text-white" />
+                </div>
+                <h1 className="text-xl font-bold tracking-tight text-gray-900">ActionMinutes</h1>
+              </div>
+              <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeView === item.id;
+                  return (
+                    <button 
+                      key={item.id}
+                      onClick={() => setActiveView(item.id)}
+                      className={`w-full flex items-center px-3 py-2.5 rounded-xl transition-all ${
+                        isActive 
+                          ? "bg-violet-50 text-violet-700 font-bold shadow-sm border border-violet-100" 
+                          : "text-gray-600 font-semibold hover:bg-gray-50 border border-transparent"
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 mr-3 ${isActive ? "text-violet-600" : "text-gray-400"}`} />
+                      <span className="text-[13px]">{item.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex items-center space-x-3">
+                <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700">JD</div>
+                <span className="text-sm font-semibold text-gray-600">John Doe</span>
+              </div>
+            </aside>
+          )}
+
+          {/* MAIN CONTENT AREA */}
+          <main className={`flex-1 flex flex-col relative overflow-hidden bg-[#f9fafb] ${isMobileMode ? 'pb-20' : ''}`}>
+            
+            {/* Mobile Header */}
+            {isMobileMode && (
+              <header className="bg-white px-6 pt-12 pb-4 flex justify-between items-center shadow-sm z-10">
+                 <h1 className="text-xl font-bold text-gray-900">{navItems.find(n => n.id === activeView)?.name}</h1>
+                 <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700">JD</div>
+              </header>
+            )}
+
+            {/* View Container */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar relative">
+              {renderActiveComponent()}
+            </div>
+          </main>
+
+          {/* BOTTOM NAV (MOBILE) */}
+          {isMobileMode && (
+            <div className="absolute bottom-0 w-full bg-white border-t border-gray-100 px-2 pb-6 pt-2 z-20">
+              <div className="flex overflow-x-auto hide-scrollbar space-x-1 px-2 pb-2">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeView === item.id;
+                  return (
+                    <button 
+                      key={item.id}
+                      onClick={() => setActiveView(item.id)}
+                      className={`flex flex-col items-center justify-center min-w-[72px] p-2 rounded-2xl transition-all ${
+                        isActive ? "bg-violet-600 text-white shadow-md" : "text-gray-400 hover:bg-gray-50"
+                      }`}
+                    >
+                      <Icon className={`w-5 h-5 mb-1.5 ${isActive ? "text-white" : "text-gray-400"}`} />
+                      <span className="text-[10px] font-bold tracking-wide">{item.name.split(' ')[0]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+        </div>
+      </div>
+
+      {/* GLOBAL STYLES */}
+      <style dangerouslySetInnerHTML={{__html: `
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #e5e7eb; border-radius: 20px; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}} />
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* 1. PLANNER VIEW (Budget + Matrix Unified)                                  */
+/* ========================================================================== */
+function PlannerView({ isMobile, startFocusTask }) {
+  const [tasks] = useState([
+    { id: 1, title: "Finalize Board Deck", min: 45, urgent: true },
+    { id: 2, title: "Approve Payroll", min: 10, urgent: true },
+    { id: 3, title: "Read Industry Report", min: 30, urgent: false },
+    { id: 4, title: "Book Flights", min: 20, urgent: false },
+  ]);
+
+  const spent = tasks.reduce((a, b) => a + b.min, 0);
+  const remaining = 480 - spent;
+  const urgentTasks = tasks.filter(t => t.urgent);
+  const otherTasks = tasks.filter(t => !t.urgent);
+
+  return (
+    <div className={`p-6 ${isMobile ? 'space-y-6' : 'h-full flex gap-6'}`}>
+      {/* Daily Budget Section */}
+      <div className={`bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center ${isMobile ? '' : 'w-1/3'}`}>
+        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Time Budget</p>
+        <div className="relative w-40 h-40 flex items-center justify-center mb-6">
+          <svg className="absolute w-full h-full transform -rotate-90">
+             <circle cx="80" cy="80" r="74" stroke="#f3f4f6" strokeWidth="12" fill="none" />
+             <circle cx="80" cy="80" r="74" stroke="#8b5cf6" strokeWidth="12" fill="none" strokeDasharray="465" strokeDashoffset={465 - (spent/480)*465} strokeLinecap="round" />
+          </svg>
+          <div className="flex flex-col items-center">
+            <span className="text-4xl font-light text-gray-900 tracking-tighter">{remaining}</span>
+            <span className="text-xs text-gray-500 font-medium">min left</span>
+          </div>
+        </div>
+        <button className="w-full bg-violet-50 text-violet-700 py-2.5 rounded-xl text-sm font-bold border border-violet-100 hover:bg-violet-100">Adjust Capacity</button>
+      </div>
+
+      {/* Binary Matrix Section */}
+      <div className={`flex flex-col gap-4 ${isMobile ? '' : 'w-2/3 h-full'}`}>
+        {/* Urgent */}
+        <div className="bg-gray-900 rounded-3xl p-5 shadow-xl flex-1 flex flex-col">
+          <div className="flex justify-between items-end mb-4 border-b border-gray-800 pb-3">
+            <h3 className="text-lg font-bold text-white">Urgent & Important</h3>
+            <span className="text-[10px] font-bold bg-red-500/20 text-red-400 px-2 py-1 rounded">2/3 MAX</span>
+          </div>
+          <div className="space-y-2 flex-1 overflow-y-auto">
+            {urgentTasks.map(t => (
+              <div key={t.id} className="bg-gray-800 p-3.5 rounded-2xl flex justify-between items-center border border-gray-700">
+                <span className="text-sm font-medium text-gray-100">{t.title}</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-[10px] font-bold bg-gray-700 text-gray-300 px-2 py-1 rounded">{t.min}m</span>
+                  <button onClick={() => startFocusTask(t.title)} className="p-1.5 bg-violet-600 rounded-lg text-white hover:bg-violet-500"><Play className="w-3.5 h-3.5" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* Everything Else */}
+        <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex-1 flex flex-col">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3">Everything Else</h3>
+          <div className="space-y-2 flex-1 overflow-y-auto">
+            {otherTasks.map(t => (
+              <div key={t.id} className="bg-gray-50 p-3.5 rounded-2xl flex justify-between items-center border border-gray-100">
+                <span className="text-sm font-medium text-gray-700">{t.title}</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-[10px] font-bold bg-gray-200 text-gray-500 px-2 py-1 rounded">{t.min}m</span>
+                  <button onClick={() => startFocusTask(t.title)} className="p-1.5 bg-white border border-gray-200 shadow-sm rounded-lg text-gray-400 hover:text-violet-600"><Play className="w-3.5 h-3.5" /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* 2. INBOX VIEW (Refined from Screenshot 1)                                  */
+/* ========================================================================== */
+function InboxView({ isMobile, startFocusTask }) {
+  const tabs = ["All", "Unread", "Assigned to Me", "Snoozed"];
+  
+  const inboxItems = [
+    { id: 1, title: "Tom to attend a meeting with occupational health for support.", assignee: "Tom", due: "10 Feb 2026", overdue: true, border: "border-l-violet-500" },
+    { id: 2, title: "Set up a meeting with Ken to discuss unresolved issues.", assignee: "Tomislav", needsReview: true, border: "border-l-orange-500" },
+    { id: 3, title: "Consider using voice notes for efficient communication.", assignee: null, needsReview: true, border: "border-l-gray-300" },
+    { id: 4, title: "Update the dashboards for February for consistency.", assignee: "Karen", border: "border-l-gray-300" },
+  ];
+
+  return (
+    <div className="p-6 h-full flex flex-col">
+      <div className={`flex justify-between items-start mb-6 ${isMobile ? 'flex-col space-y-4' : ''}`}>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Inbox</h2>
+          <p className="text-sm text-gray-500 mt-1 font-medium">Review, triage, and process your incoming items.</p>
+        </div>
+        <div className="flex space-x-2">
+          <div className="bg-white rounded-full flex border border-gray-200 shadow-sm overflow-hidden text-sm font-semibold">
+            <button className="px-4 py-2 hover:bg-gray-50 text-gray-700">List</button>
+            <button className="px-4 py-2 bg-gray-50 text-gray-400 border-l border-gray-200">Smart Group</button>
+          </div>
+          <button className="bg-violet-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-md flex items-center">
+            <Plus className="w-4 h-4 mr-1" /> Quick Add
+          </button>
+        </div>
+      </div>
+
+      <div className="flex space-x-6 mb-6 overflow-x-auto hide-scrollbar border-b border-gray-200">
+        {tabs.map((tab, i) => (
+          <button key={i} className={`pb-3 text-sm font-bold whitespace-nowrap ${i === 0 ? 'border-b-2 border-gray-900 text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}>
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-2">
+        {inboxItems.map((item) => (
+          <div key={item.id} className={`bg-white p-4 rounded-xl shadow-sm border border-gray-100 border-l-4 ${item.border} flex justify-between items-center group`}>
+            <div className="flex items-start space-x-3">
+              <Circle className="w-5 h-5 text-gray-200 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-gray-800 leading-snug">{item.title}</p>
+                <div className="flex items-center space-x-4 mt-2 text-xs font-semibold">
+                  {item.assignee && (
+                    <span className="flex items-center text-gray-500"><User className="w-3 h-3 mr-1" /> {item.assignee}</span>
+                  )}
+                  {item.overdue && (
+                    <span className="flex items-center text-red-500"><Clock className="w-3 h-3 mr-1" /> {item.due} Overdue</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-3 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+              {item.needsReview && (
+                <span className="bg-pink-50 text-pink-500 border border-pink-100 px-3 py-1 rounded-full text-[10px] font-bold flex items-center">
+                  <Eye className="w-3 h-3 mr-1" /> Needs Review
+                </span>
+              )}
+              <button onClick={() => startFocusTask(item.title)} className="p-2 bg-violet-50 text-violet-600 rounded-full hover:bg-violet-100 transition-colors shadow-sm" title="Start Focus Ring">
+                <Play className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* 3. CAPTURE VIEW (Refined from Screenshot 3)                                */
+/* ========================================================================== */
+function CaptureView({ isMobile, startFocusTask }) {
+  const [notes, setNotes] = useState(
+    "# Weekly Sync: Marketing & Product\n\nDiscussed the Q3 budget constraints. We are slightly over in ad spend.\n\nAction: Sarah to send final adjusted numbers to the finance team by EOD.\n\nAlso need to upgrade staging servers before the new release goes out next week. \n\nTodo: Email IT about AWS limits (15m).\n\nGreat meeting overall. Momentum is good."
+  );
+  const [tasks, setTasks] = useState([]);
+  const [showDetails, setShowDetails] = useState(false);
+
+  useEffect(() => {
+    const lines = notes.split('\n');
+    const extracted = [];
+    lines.forEach((line, index) => {
+      const lower = line.toLowerCase();
+      if (lower.includes('action:') || lower.includes('todo:')) {
+        let cleanTitle = line.replace(/action:/i, '').replace(/todo:/i, '').trim();
+        let minutes = 30; 
+        const minMatch = cleanTitle.match(/\((\d+)m\)/);
+        if (minMatch) {
+          minutes = parseInt(minMatch[1], 10);
+          cleanTitle = cleanTitle.replace(minMatch[0], '').trim();
+        }
+        extracted.push({ id: index, title: cleanTitle, minutes });
+      }
+    });
+    setTasks(extracted);
+  }, [notes]);
+
+  return (
+    <div className="p-6 h-full flex flex-col">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Capture</h2>
+          <p className="text-sm text-gray-500 mt-1 font-medium">Record meetings and auto-extract actions.</p>
+        </div>
+      </div>
+
+      <div className={`flex-1 flex ${isMobile ? 'flex-col space-y-6' : 'gap-6'} min-h-0`}>
+        
+        {/* Left Pane - Notepad (Yellowish tint) */}
+        <div className="flex-1 flex flex-col bg-[#fffdf8] border border-amber-200 rounded-3xl overflow-hidden shadow-sm">
+          <div className="bg-amber-50 px-6 py-5 border-b border-amber-100 flex flex-col space-y-4">
+            <div className="flex justify-between items-start">
+               <input type="text" placeholder="Meeting Title" defaultValue="Meeting — Feb 21" className="text-xl font-bold text-gray-900 bg-transparent outline-none w-full" />
+               <span className="text-xs font-semibold text-amber-600 bg-amber-100/50 px-2.5 py-1 rounded ml-4 whitespace-nowrap border border-amber-200/50">21/02/2026</span>
+            </div>
+            
+            {/* Toggleable Meeting Details */}
+            {showDetails ? (
+              <div className="grid grid-cols-2 gap-3 pb-2 pt-2 animate-in slide-in-from-top-2">
+                <div className="col-span-2">
+                  <input type="text" placeholder="Attendees (e.g. Alice, Bob)" className="w-full bg-white/80 border border-amber-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-400 placeholder-amber-700/40" />
+                </div>
+                <div>
+                  <input type="text" placeholder="Time (--:--)" className="w-full bg-white/80 border border-amber-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-400 placeholder-amber-700/40" />
+                </div>
+                <div>
+                  <input type="text" placeholder="Location" className="w-full bg-white/80 border border-amber-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-400 placeholder-amber-700/40" />
+                </div>
+                <button onClick={() => setShowDetails(false)} className="col-span-2 text-xs font-bold text-amber-600 hover:text-amber-800 text-left mt-1">Hide Details</button>
+              </div>
+            ) : (
+              <button onClick={() => setShowDetails(true)} className="text-xs font-bold text-amber-600 hover:text-amber-800 text-left">Add attendees, time, location...</button>
+            )}
+
+            {/* Action Toolbar */}
+            <div className="flex flex-wrap gap-2 pt-2 border-t border-amber-200/50">
+               <button className="flex items-center text-[11px] font-bold text-white bg-violet-600 px-3 py-1.5 rounded-lg shadow-sm hover:bg-violet-700 transition-colors"><Mic className="w-3.5 h-3.5 mr-1.5"/> Record Meeting</button>
+               <button className="flex items-center text-[11px] font-bold text-amber-800 bg-white border border-amber-200 px-3 py-1.5 rounded-lg shadow-sm hover:bg-amber-100 transition-colors"><ImageIcon className="w-3.5 h-3.5 mr-1.5"/> Upload Photo</button>
+               <button className="flex items-center text-[11px] font-bold text-amber-800 bg-white border border-amber-200 px-3 py-1.5 rounded-lg shadow-sm hover:bg-amber-100 transition-colors"><Mic className="w-3.5 h-3.5 mr-1.5"/> Upload Audio</button>
+            </div>
+          </div>
+          
+          <textarea 
+            className="flex-1 w-full p-6 text-[15px] text-gray-800 leading-relaxed font-medium bg-transparent border-none resize-none outline-none custom-scrollbar placeholder-gray-400"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Start typing your meeting notes here...&#10;&#10;Prefix sentences with 'Action:' or 'Todo:' to automatically extract them."
+          />
+        </div>
+
+        {/* Right Pane - Extraction */}
+        <div className={`${isMobile ? 'w-full h-96' : 'w-[340px]'} bg-white rounded-3xl p-6 border border-gray-200 flex flex-col shadow-sm flex-shrink-0`}>
+          <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center">
+              <Target className="w-4 h-4 mr-2 text-violet-500" /> Extracted Actions
+            </h3>
+            <span className="bg-violet-50 text-violet-700 text-xs font-bold px-2 py-1 rounded-md border border-violet-100">
+              {tasks.length} Found
+            </span>
+          </div>
+
+          {tasks.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+              <List className="w-10 h-10 mb-3 opacity-20" />
+              <p className="text-sm font-medium text-center px-4">Type 'Action:' or 'Todo:' in your notes to generate tasks.</p>
+            </div>
+          ) : (
+            <ul className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
+              {tasks.map(task => (
+                <li key={task.id} className="bg-gray-50 p-4 rounded-xl flex flex-col items-start border border-gray-200 hover:border-violet-300 transition-colors group relative">
+                  <span className="text-sm font-semibold text-gray-800 mb-2">{task.title}</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] font-bold bg-white border border-gray-200 text-gray-500 px-2 py-1 rounded group-hover:text-violet-600 transition-colors">
+                      {task.minutes}m allocated
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => startFocusTask(task.title)} 
+                    className="absolute right-3 bottom-3 p-1.5 bg-violet-100 text-violet-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                    title="Start Focus Ring"
+                  >
+                    <Play className="w-3.5 h-3.5" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          
+          <button className="w-full mt-6 bg-violet-600 text-white py-3.5 rounded-xl font-bold text-sm shadow-md hover:bg-violet-700 transition-colors flex items-center justify-center">
+            <CheckCircle className="w-4 h-4 mr-2" /> Import Actions
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* 5. CALENDAR VIEW (Refined from Screenshot 6)                               */
+/* ========================================================================== */
+function CalendarView({ isMobile }) {
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const dates = Array.from({length: 28}, (_, i) => i + 1);
+
+  return (
+    <div className="p-6 h-full flex flex-col">
+      <div className={`flex justify-between items-center mb-6 ${isMobile ? 'flex-col space-y-4 items-start' : ''}`}>
+        <div className="flex items-center space-x-4">
+          <h2 className="text-2xl font-bold text-gray-900">February 2026</h2>
+          <div className="flex bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+             <button className="px-3 py-1 text-gray-500 hover:bg-gray-50">&lt;</button>
+             <button className="px-3 py-1 text-gray-500 hover:bg-gray-50 border-l border-r border-gray-200">&gt;</button>
+             <button className="px-4 py-1 text-sm font-bold text-gray-700 hover:bg-gray-50">Today</button>
+          </div>
+        </div>
+        <div className="flex space-x-2">
+           <div className="flex bg-gray-100 rounded-lg p-1">
+             <button className="px-4 py-1 text-xs font-bold bg-white text-violet-600 rounded shadow-sm">Month</button>
+             <button className="px-4 py-1 text-xs font-bold text-gray-500">Week</button>
+           </div>
+           <button className="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 rounded-lg shadow-sm"><Plus className="w-4 h-4 text-gray-600"/></button>
+        </div>
+      </div>
+
+      <div className={`flex-1 flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
+        {/* Main Calendar Grid */}
+        <div className={`bg-white rounded-3xl border border-gray-200 overflow-hidden flex flex-col ${isMobile ? 'h-96' : 'flex-1'}`}>
+          <div className="grid grid-cols-7 border-b border-gray-100 bg-gray-50">
+            {days.map(d => <div key={d} className="text-center py-3 text-xs font-bold text-gray-500">{d}</div>)}
+          </div>
+          <div className="grid grid-cols-7 grid-rows-4 flex-1">
+            {dates.map((d) => (
+              <div key={d} className={`border-r border-b border-gray-100 p-2 relative ${d === 21 ? 'bg-violet-50/30' : ''}`}>
+                <span className={`text-xs font-bold ${d === 21 ? 'bg-violet-500 text-white w-6 h-6 flex items-center justify-center rounded-full' : 'text-gray-700'}`}>{d}</span>
+                {d === 8 && <div className="mt-1 space-y-1"><div className="text-[9px] bg-gray-100 text-gray-600 px-1 py-0.5 rounded truncate border-l-2 border-gray-400">Write journal</div></div>}
+                {d === 10 && <div className="mt-1 space-y-1"><div className="text-[9px] bg-violet-50 text-violet-700 px-1 py-0.5 rounded truncate border-l-2 border-violet-500">Follow up</div></div>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div className={`${isMobile ? 'w-full' : 'w-64'} flex flex-col`}>
+          <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3">Unscheduled (27)</h3>
+          <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1">
+             {["New task", "Bread", "Buy milk", "Dentist appointment"].map((t, i) => (
+               <div key={i} className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col">
+                  <span className="text-xs font-semibold text-gray-800">{t}</span>
+                  <span className="text-[10px] text-gray-400 mt-1 flex items-center"><Clock className="w-3 h-3 mr-1"/> 30m</span>
+               </div>
+             ))}
+             <button className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-xs font-bold text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors">+ Add task</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* 6. JOURNAL VIEW (Refined from Screenshot 7)                                */
+/* ========================================================================== */
+function JournalView({ isMobile }) {
+  const entries = [
+    { id: 1, date: "Thursday, Jan 8", time: "08:00 AM", mood: "sad", text: "Rough night, did not sleep well. Worried about the Redis issue...", action: "Review priorities for tomorrow" },
+    { id: 2, date: "Wednesday, Jan 7", time: "09:00 PM", mood: "neutral", text: "The Acme Corp kickoff went okay. They have high expectations...", action: null },
+  ];
+
+  return (
+    <div className={`p-6 h-full flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
+      {/* Left Column - Input & History */}
+      <div className={`flex flex-col flex-1 space-y-6 ${isMobile ? '' : 'overflow-y-auto custom-scrollbar pr-2'}`}>
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Journal & Reflection</h2>
+            <p className="text-sm text-gray-500 mt-1 font-medium">Capture thoughts, clear your mind, and plan ahead.</p>
+          </div>
+          {!isMobile && <button className="bg-violet-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md"><Plus className="w-4 h-4 inline mr-2"/>New Entry</button>}
+        </div>
+
+        {/* New Entry Box */}
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Quick Reflection</h3>
+          <div className="flex flex-wrap gap-2 mb-6">
+            <button className="text-xs font-bold bg-violet-50 text-violet-600 px-4 py-2 rounded-full border border-violet-100 flex items-center"><Sun className="w-3.5 h-3.5 mr-1.5"/> Morning Intention</button>
+            <button className="text-xs font-bold bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full border border-indigo-100 flex items-center"><Moon className="w-3.5 h-3.5 mr-1.5"/> Evening Wind-down</button>
+            <button className="text-xs font-bold bg-emerald-50 text-emerald-600 px-4 py-2 rounded-full border border-emerald-100 flex items-center"><Trophy className="w-3.5 h-3.5 mr-1.5"/> Weekly Win</button>
+          </div>
+          
+          <div className="flex items-center space-x-4 mb-4">
+            <span className="text-sm font-bold text-gray-600">Mood:</span>
+            <div className="flex space-x-2">
+              <button className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-500">😀</button>
+              <button className="w-8 h-8 rounded-full bg-violet-50 border border-violet-200 flex items-center justify-center text-violet-500">😐</button>
+              <button className="w-8 h-8 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-red-500">☹️</button>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+             <textarea className="w-full bg-transparent border-none resize-none outline-none text-sm font-medium text-gray-700 placeholder-gray-400 h-24" placeholder="What's on your mind right now?" />
+             <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-200">
+               <div className="flex space-x-2 text-gray-400">
+                 <ImageIcon className="w-4 h-4" />
+                 <Mic className="w-4 h-4" />
+               </div>
+               <button className="text-sm font-bold text-gray-600 hover:text-gray-900">Save Draft</button>
+             </div>
+          </div>
+        </div>
+
+        {/* History */}
+        <div className="space-y-4">
+          {entries.map(e => (
+            <div key={e.id} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-bold text-gray-900">{e.date}</span>
+                  <span className="text-xs font-semibold text-gray-400 flex items-center"><Clock className="w-3 h-3 mr-1 inline"/>{e.time}</span>
+                </div>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${e.mood==='sad'?'bg-red-50 text-red-500':'bg-violet-50 text-violet-500'}`}>
+                  {e.mood==='sad'?'☹️':'😐'}
+                </div>
+              </div>
+              <p className="text-sm text-gray-700 font-medium leading-relaxed mb-4">{e.text}</p>
+              
+              {e.action && (
+                <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 flex justify-between items-center">
+                  <div className="flex items-center space-x-2 text-sm">
+                    <Target className="w-4 h-4 text-violet-500" />
+                    <span className="font-semibold text-violet-800">Suggested Action:</span>
+                    <span className="text-gray-700">{e.action}</span>
+                  </div>
+                  <button className="bg-violet-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm flex items-center"><Plus className="w-3 h-3 mr-1"/>Add Task</button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Right Column - Stats & Prompts */}
+      <div className={`${isMobile ? 'w-full' : 'w-80'} flex flex-col space-y-6`}>
+         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+            <h3 className="text-xs font-bold text-gray-800 mb-4 flex items-center"><Activity className="w-4 h-4 mr-2 text-violet-500"/> Mood vs. Output</h3>
+            <div className="flex items-end justify-between h-24 mb-2 px-2">
+              <div className="w-2 h-4 bg-emerald-200 rounded-full"></div>
+              <div className="w-2 h-8 bg-emerald-400 rounded-full"></div>
+              <div className="w-2 h-6 bg-yellow-400 rounded-full"></div>
+              <div className="w-2 h-5 bg-red-400 rounded-full"></div>
+              <div className="w-2 h-3 bg-emerald-200 rounded-full"></div>
+              <div className="w-3 h-20 bg-violet-400 rounded-full shadow-md"></div>
+              <div className="w-2 h-2 bg-emerald-200 rounded-full"></div>
+            </div>
+            <div className="flex justify-between text-[9px] font-bold text-gray-400 px-1">
+              <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span className="text-violet-600">S</span><span>S</span>
+            </div>
+         </div>
+
+         <div className="bg-gradient-to-br from-violet-500 to-indigo-600 rounded-3xl p-6 shadow-md text-white">
+            <h3 className="text-xs font-bold text-violet-200 uppercase tracking-widest mb-3">Daily Prompt</h3>
+            <p className="text-lg font-medium italic mb-6 leading-tight">"What would you tell your future self about today?"</p>
+            <button className="text-sm font-bold flex items-center hover:text-violet-200 transition-colors">
+              <ArrowDown className="w-4 h-4 mr-1 -rotate-90"/> Answer
+            </button>
+         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* 7. NOTES VIEW (Refined from Screenshot 8 & Merged with Meetings)           */
+/* ========================================================================== */
+function NotesView({ isMobile }) {
+  const [activeFilter, setActiveFilter] = useState("All");
+
+  const notesData = [
+    { id: 1, type: "meeting", title: "Test meeting 1", date: "Feb 8, 2026", status: "finalized", snippet: "The meeting discussed ongoing issues with the Meditech system, particularly regarding the management of mnemonics...", attendees: 0, collection: "Meeting Notes" },
+    { id: 2, type: "meeting", title: "Meeting — Feb 7", date: "Feb 7, 2026", status: "draft", snippet: "The meeting focused on Tom's absence management, reviewing his past absences...", attendees: 2, collection: "Meeting Notes" },
+    { id: 3, type: "note", title: "Q3 Project Ideas", date: "Feb 10, 2026", snippet: "Need to follow up with the design team regarding the new logo and brand guidelines.", collection: "Projects" },
+    { id: 4, type: "note", title: "Quick thought", date: "about 1 month ago", snippet: "How is it going? I'm ok, and you? Jkjkljkj1. No2.yes", collection: "Personal" },
+  ];
+
+  const filteredNotes = activeFilter === "All" 
+    ? notesData 
+    : notesData.filter(n => n.collection === activeFilter);
+
+  const counts = {
+    "Projects": notesData.filter(n => n.collection === "Projects").length,
+    "Meeting Notes": notesData.filter(n => n.collection === "Meeting Notes").length,
+    "Personal": notesData.filter(n => n.collection === "Personal").length,
+  };
+
+  return (
+    <div className={`p-6 h-full flex gap-6 ${isMobile ? 'flex-col' : ''}`}>
+      <div className="flex-1 flex flex-col space-y-6 min-h-0">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Notes & Meetings</h2>
+            <p className="text-sm text-gray-500 mt-1 font-medium">Capture ideas, minutes, and quick thoughts.</p>
+          </div>
+          {!isMobile && (
+            <div className="flex space-x-2">
+              <button className="p-2 border border-gray-200 rounded-lg shadow-sm bg-white"><Layout className="w-4 h-4 text-gray-600"/></button>
+              <button className="bg-violet-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md flex items-center"><Plus className="w-4 h-4 mr-1"/>New Note</button>
+            </div>
+          )}
+        </div>
+
+        <div className={`flex items-center space-x-4 ${isMobile ? 'flex-col space-y-4 space-x-0' : ''}`}>
+          <div className="flex-1 relative w-full">
+            <Search className="w-5 h-5 absolute left-4 top-3 text-gray-400" />
+            <input type="text" placeholder="Search notes, tags, or content..." className="w-full bg-white border border-gray-200 rounded-full pl-12 pr-4 py-3 text-sm font-medium outline-none focus:border-violet-300 shadow-sm" />
+          </div>
+          <div className={`flex space-x-2 ${isMobile ? 'w-full overflow-x-auto hide-scrollbar' : ''}`}>
+            <button onClick={() => setActiveFilter("All")} className={`px-4 py-2 rounded-full text-sm font-bold shadow-sm whitespace-nowrap ${activeFilter === "All" ? 'bg-violet-500 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>All</button>
+            <button onClick={() => setActiveFilter("Projects")} className={`px-4 py-2 rounded-full text-sm font-bold shadow-sm whitespace-nowrap ${activeFilter === "Projects" ? 'bg-violet-500 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>Projects</button>
+            <button onClick={() => setActiveFilter("Meeting Notes")} className={`px-4 py-2 rounded-full text-sm font-bold shadow-sm whitespace-nowrap ${activeFilter === "Meeting Notes" ? 'bg-violet-500 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>Meetings</button>
+            <button onClick={() => setActiveFilter("Personal")} className={`px-4 py-2 rounded-full text-sm font-bold shadow-sm whitespace-nowrap ${activeFilter === "Personal" ? 'bg-violet-500 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>Personal</button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Create New Card */}
+            {activeFilter === "All" && (
+              <div className="bg-transparent border-2 border-dashed border-gray-300 rounded-3xl flex flex-col items-center justify-center p-6 hover:border-violet-400 hover:bg-violet-50/50 transition-colors cursor-pointer h-48">
+                 <div className="w-12 h-12 rounded-full bg-violet-100 flex items-center justify-center mb-3">
+                   <Plus className="w-6 h-6 text-violet-600" />
+                 </div>
+                 <span className="text-sm font-bold text-gray-800 mb-4">Create New</span>
+                 <div className="flex space-x-4 text-gray-400">
+                   <Mic className="w-4 h-4 hover:text-gray-600"/>
+                   <CheckCircle className="w-4 h-4 hover:text-gray-600"/>
+                   <Book className="w-4 h-4 hover:text-gray-600"/>
+                 </div>
+              </div>
+            )}
+            
+            {/* Notes List */}
+            {filteredNotes.map(item => (
+              <div key={item.id} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 h-48 flex flex-col hover:border-violet-200 transition-colors cursor-pointer relative group">
+                <div className="flex justify-between items-start mb-1">
+                  <h3 className="text-sm font-bold text-gray-900 line-clamp-1 pr-4">{item.title}</h3>
+                  {item.type === 'meeting' && (
+                    <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border absolute top-6 right-6 ${
+                      item.status === 'finalized' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
+                      item.status === 'draft' ? 'bg-gray-100 text-gray-500 border-gray-200' :
+                      'bg-blue-50 text-blue-500 border-blue-100'
+                    }`}>
+                      {item.status}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] text-gray-400 font-semibold mb-3">{item.date}</span>
+                <p className="text-xs text-gray-600 font-medium leading-relaxed flex-1 line-clamp-3">{item.snippet}</p>
+                <div className="mt-auto flex justify-between items-center text-[11px] font-bold text-violet-600">
+                  <div className="flex items-center">
+                    <Target className="w-3 h-3 mr-1" /> Extract actions
+                  </div>
+                  {item.type === 'meeting' && (
+                    <div className="flex items-center text-gray-400">
+                      <User className="w-3 h-3 mr-1" /> {item.attendees}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className={`${isMobile ? 'w-full' : 'w-72'} flex flex-col space-y-4`}>
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center"><Book className="w-3 h-3 mr-2"/> Collections</h3>
+          <ul className="space-y-3 text-sm font-medium text-gray-700">
+            <li onClick={() => setActiveFilter("Projects")} className="flex justify-between items-center hover:text-violet-600 cursor-pointer"><span className="flex items-center"><Circle className={`w-2 h-2 mr-2 fill-current ${activeFilter === "Projects" ? "text-violet-500" : "text-gray-300"}`}/>Projects</span> <span className="text-xs font-bold text-gray-400">{counts["Projects"]}</span></li>
+            <li onClick={() => setActiveFilter("Meeting Notes")} className="flex justify-between items-center hover:text-violet-600 cursor-pointer"><span className="flex items-center"><Circle className={`w-2 h-2 mr-2 fill-current ${activeFilter === "Meeting Notes" ? "text-violet-500" : "text-gray-300"}`}/>Meeting Notes</span> <span className="text-xs font-bold text-gray-400">{counts["Meeting Notes"]}</span></li>
+            <li onClick={() => setActiveFilter("Personal")} className="flex justify-between items-center hover:text-violet-600 cursor-pointer"><span className="flex items-center"><Circle className={`w-2 h-2 mr-2 fill-current ${activeFilter === "Personal" ? "text-violet-500" : "text-gray-300"}`}/>Personal</span> <span className="text-xs font-bold text-gray-400">{counts["Personal"]}</span></li>
+          </ul>
+          <button className="text-xs font-bold text-violet-600 mt-6 hover:text-violet-800 transition-colors">+ New Collection</button>
+        </div>
+        
+        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center"><Flag className="w-3 h-3 mr-2"/> Tags</h3>
+          <div className="flex flex-wrap gap-2">
+            <span className="text-xs font-bold bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg">#Music</span>
+            <span className="text-xs font-bold bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg">#Work</span>
+            <span className="text-xs font-bold text-gray-400 border border-dashed border-gray-300 px-3 py-1.5 rounded-lg flex items-center justify-center hover:bg-gray-50 cursor-pointer"><Plus className="w-3 h-3"/></span>
+          </div>
+        </div>
+
+        <div className="bg-amber-50 rounded-3xl p-6 shadow-sm border border-amber-200">
+          <h3 className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-2 flex items-center"><Edit3 className="w-3 h-3 mr-2"/> Scratchpad</h3>
+          <p className="text-xs text-amber-700/80 font-medium">Quick capture area for fleeting thoughts. Click to expand.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* 8. REMINDERS VIEW (Kanban Matrix Refined from Screenshot 10)               */
+/* ========================================================================== */
+function RemindersView({ isMobile, startFocusTask }) {
+  const columns = [
+    { title: "Today", icon: Sun, color: "text-violet-500", bg: "bg-violet-50", count: 1, items: [{id: 1, title: "Get the haircut"}] },
+    { title: "Tomorrow", icon: Sun, color: "text-orange-500", bg: "bg-orange-50", count: 4, items: [
+      {id: 2, title: "Write a journal entry", priority: true},
+      {id: 3, title: "Get milk tomorrow"},
+      {id: 4, title: "Dentist appointment"},
+      {id: 5, title: "Submit expense reports", priority: true}
+    ] },
+    { title: "Next Week", icon: CalendarIcon, color: "text-blue-500", bg: "bg-blue-50", count: 1, items: [{id: 6, title: "New task"}] },
+    { title: "Next Month", icon: Moon, color: "text-indigo-500", bg: "bg-indigo-50", count: 0, items: [] },
+    { title: "Sometime", icon: Target, color: "text-pink-500", bg: "bg-pink-50", count: 5, items: [
+      {id: 7, title: "New task"}, {id: 8, title: "Bread"}, {id: 9, title: "Buy milk"}
+    ] },
+  ];
+
+  return (
+    <div className="p-6 h-full flex flex-col">
+      <div className={`flex justify-between items-start mb-6 ${isMobile ? 'flex-col space-y-4' : ''}`}>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Reminders</h2>
+          <p className="text-sm text-gray-500 mt-1 font-medium">Personal tasks organized by when you'll do them</p>
+        </div>
+        <button className="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-bold shadow-sm flex items-center">
+          <ArrowUp className="w-4 h-4 mr-2" /> Export
+        </button>
+      </div>
+
+      <div className="flex items-center space-x-2 mb-6">
+        <div className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center shadow-sm">
+           <input type="text" placeholder="Add a reminder..." className="w-full bg-transparent outline-none text-sm font-medium" />
+           <div className="flex items-center text-xs font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded-md ml-2 border border-gray-200">
+             <Sun className="w-3 h-3 mr-1" /> Today <ArrowDown className="w-3 h-3 ml-1" />
+           </div>
+        </div>
+        <button className="bg-violet-500 text-white p-3.5 rounded-xl shadow-sm"><Plus className="w-5 h-5"/></button>
+      </div>
+
+      <div className={`flex-1 flex ${isMobile ? 'flex-col space-y-4' : 'space-x-4 overflow-x-auto pb-4 custom-scrollbar'}`}>
+        {columns.map((col, idx) => {
+          const Icon = col.icon;
+          return (
+            <div key={idx} className={`bg-white rounded-3xl border border-gray-100 flex flex-col shadow-sm ${isMobile ? 'flex-shrink-0' : 'min-w-[280px] w-[280px]'}`}>
+              <div className="p-4 border-b border-gray-50 flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <div className={`w-8 h-8 rounded-full ${col.bg} flex items-center justify-center`}>
+                    <Icon className={`w-4 h-4 ${col.color}`} />
+                  </div>
+                  <h3 className="text-sm font-bold text-gray-900">{col.title}</h3>
+                </div>
+                <span className={`text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center ${col.bg} ${col.color}`}>{col.count}</span>
+              </div>
+              
+              <div className="p-3 flex-1 overflow-y-auto space-y-2 custom-scrollbar">
+                {col.items.length === 0 ? (
+                  <div className="h-32 flex flex-col items-center justify-center text-center opacity-60">
+                    <div className={`w-10 h-10 rounded-2xl ${col.bg} flex items-center justify-center mb-2`}><Icon className={`w-5 h-5 ${col.color}`} /></div>
+                    <span className="text-xs font-bold text-gray-900">Month is clear</span>
+                    <span className="text-[10px] text-gray-400 font-medium">Long-term planning space</span>
+                  </div>
+                ) : (
+                  col.items.map(item => (
+                    <div key={item.id} className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 flex flex-col group relative">
+                      <div className="flex items-start space-x-3">
+                        <Circle className="w-4 h-4 text-gray-300 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold text-gray-800 leading-snug">{item.title}</p>
+                          {item.priority && <p className="text-[10px] font-bold text-red-500 mt-1 flex items-center"><Target className="w-3 h-3 mr-1"/> High priority</p>}
+                        </div>
+                      </div>
+                      {/* Hover action to send to Focus Ring */}
+                      <button 
+                        onClick={() => startFocusTask(item.title)} 
+                        className="absolute right-2 top-2 p-1.5 bg-violet-100 text-violet-600 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                        title="Start Focus Ring"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* 9. FOCUS RING VIEW                                                         */
+/* ========================================================================== */
+function FocusRingView({ isMobile, taskName }) {
+  return (
+    <div className="h-full flex items-center justify-center bg-[#f9fafb] p-6 relative">
+      <div className="absolute top-8 left-8 flex items-center space-x-2 text-gray-400 font-medium text-sm">
+        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+        <span>Focus Mode Active</span>
+      </div>
+
+      <div className="flex flex-col items-center max-w-sm w-full animate-in fade-in zoom-in duration-500">
+        <div className="relative w-72 h-72 flex flex-col items-center justify-center rounded-full bg-white shadow-2xl border-[16px] border-white mb-12">
+          <svg className="absolute top-0 left-0 w-full h-full transform -rotate-90">
+            <circle cx="128" cy="128" r="120" stroke="#f1f5f9" strokeWidth="6" fill="transparent" />
+            <circle 
+              cx="128" cy="128" r="120" 
+              stroke="#8b5cf6" 
+              strokeWidth="6" 
+              fill="transparent" 
+              strokeDasharray="753" 
+              strokeDashoffset="250" 
+              strokeLinecap="round"
+              className="transition-all duration-1000 ease-out"
+            />
+          </svg>
+          
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3 text-center">In Progress</p>
+          <h2 className="text-xl font-bold text-gray-900 text-center px-8 leading-tight">{taskName || "Select a task to focus"}</h2>
+          
+          <div className="flex items-center space-x-2 mt-4 bg-violet-50 border border-violet-100 px-4 py-1.5 rounded-full text-violet-600 shadow-sm">
+            <Play className="w-4 h-4 fill-current" />
+            <p className="text-sm font-bold">45:00</p>
+          </div>
+        </div>
+
+        <div className="flex space-x-4 w-full">
+          <button className="flex-1 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-600 py-4 rounded-2xl font-bold text-sm flex items-center justify-center space-x-2 shadow-sm transition-all">
+             <X className="w-5 h-5 text-gray-400" />
+             <span>Defer</span>
+          </button>
+          <button className="flex-1 bg-violet-600 hover:bg-violet-700 text-white py-4 rounded-2xl font-bold text-sm flex items-center justify-center space-x-2 shadow-lg shadow-violet-200 transition-all">
+             <Check className="w-5 h-5" />
+             <span>Complete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* 10. ACTION VERBS VIEW                                                      */
+/* ========================================================================== */
+function ActionVerbsView({ isMobile }) {
+  const verbs = [
+    { title: "Call", desc: "Phone & video syncs", icon: Phone, count: 3, color: "text-emerald-600", bg: "bg-emerald-50", border: "hover:border-emerald-200" },
+    { title: "Write", desc: "Drafting docs & emails", icon: Edit3, count: 1, color: "text-blue-600", bg: "bg-blue-50", border: "hover:border-blue-200" },
+    { title: "Review", desc: "Reading & approving", icon: Eye, count: 4, color: "text-purple-600", bg: "bg-purple-50", border: "hover:border-purple-200" },
+    { title: "Plan", desc: "Strategy & scheduling", icon: Target, count: 2, color: "text-orange-600", bg: "bg-orange-50", border: "hover:border-orange-200" },
+    { title: "Process", desc: "Inbox zero & admin", icon: InboxIcon, count: 8, color: "text-rose-600", bg: "bg-rose-50", border: "hover:border-rose-200" },
+    { title: "Meet", desc: "Scheduled meetings", icon: CalendarIcon, count: 2, color: "text-indigo-600", bg: "bg-indigo-50", border: "hover:border-indigo-200" },
+  ];
+
+  return (
+    <div className="h-full flex flex-col p-6">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Action Verbs</h2>
+        <p className="text-sm text-gray-500 font-medium mt-1">Batch actions by mental context via tags.</p>
+      </div>
+
+      <div className={`grid gap-4 mb-8 flex-1 ${isMobile ? 'grid-cols-2' : 'grid-cols-3'}`}>
+        {verbs.map((verb, idx) => {
+          const Icon = verb.icon;
+          return (
+            <button key={idx} className={`bg-white p-5 rounded-3xl flex flex-col items-start justify-between border border-gray-100 ${verb.border} transition-all text-left shadow-sm group hover:shadow-md`}>
+              <div className="w-full flex justify-between items-start mb-4">
+                <div className={`${verb.bg} p-3.5 rounded-2xl group-hover:scale-110 transition-transform duration-300`}>
+                  <Icon className={`w-6 h-6 ${verb.color}`} />
+                </div>
+                <span className="bg-gray-100 text-gray-500 text-[10px] font-bold px-2.5 py-1 rounded-full border border-gray-200">
+                  {verb.count} items
+                </span>
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">{verb.title}</h3>
+                <p className="text-[11px] font-medium text-gray-500 mt-0.5 leading-tight">{verb.desc}</p>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="bg-gray-900 text-white p-6 rounded-3xl flex items-center justify-between shadow-xl mt-auto">
+        <div className="flex items-center space-x-4">
+          <div className="w-10 h-10 bg-gray-800 rounded-xl flex items-center justify-center">
+             <Target className="w-5 h-5 text-white opacity-80" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold">Deep Work Mode</h3>
+            <p className="text-xs text-gray-400 mt-0.5 font-medium line-clamp-1">Silence notifications for task contexts.</p>
+          </div>
+        </div>
+        <div className="w-12 h-7 bg-gray-700 rounded-full flex items-center p-1 cursor-pointer hover:bg-gray-600 transition-colors">
+          <div className="w-5 h-5 bg-white rounded-full shadow-sm"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
