@@ -10,7 +10,8 @@ import {
   Sparkle, FloppyDisk, ArrowLeft, CaretDown, CaretUp, 
   Users, Clock, MapPin, Camera, Upload, Microphone, 
   ArrowsClockwise, Copy, X, Check, User, Buildings, WarningCircle,
-  ListChecks, Plus, Lightning, Record, Pause, Stop, Circle, CalendarBlank
+  ListChecks, Plus, Lightning, Record, Pause, Stop, Circle, CalendarBlank,
+  CheckCircle
 } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -740,348 +741,388 @@ export default function CapturePage() {
 
   const isLoading = ocrLoading || transcriptionLoading || recordingAutoTranscribing;
 
+  const formattedDisplayDate = (() => {
+    try {
+      const d = new Date(date);
+      return format(d, "dd/MM/yyyy");
+    } catch {
+      return date;
+    }
+  })();
+
   return (
     <div ref={containerRef} className="flex flex-col h-full overflow-y-auto p-6">
-      <div 
-        ref={headerRef}
-        className={cn(
-          "sticky top-0 z-40 transition-all duration-300",
-          isHeaderSticky ? "border-b border-gray-100 pb-3" : "bg-transparent"
-        )}
-      >
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-center gap-3 mb-3">
-            <button 
-              onClick={() => setLocation("/app/meetings")} 
-              className="rounded-xl h-10 w-10 shrink-0 flex items-center justify-center hover:bg-gray-100 transition-colors" 
-              data-testid="button-back"
-              aria-label="Go back to meetings"
-            >
-              <ArrowLeft className="h-5 w-5 text-gray-600" weight="bold" />
-            </button>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900 flex-1">Capture</h1>
-            <Button
-              size="sm"
-              className="rounded-xl gap-1.5 text-xs"
-              onClick={handleRecordMeetingClick}
-              disabled={isLoading}
-              data-testid="button-record-meeting"
-            >
-              <Record className="h-4 w-4" weight="fill" />
-              Record Meeting
-            </Button>
-          </div>
-
-          {emptyMeetings.length > 0 && (
-            <div className="mb-2">
-              <Select 
-                value={selectedMeetingId || "new"} 
-                onValueChange={(val) => {
-                  if (val === "new") {
-                    setSelectedMeetingId(null);
-                    setTitle(`Meeting — ${format(new Date(), "MMM d")}`);
-                    setDate(format(new Date(), "yyyy-MM-dd"));
-                    setNotes("");
-                    setAttendees("");
-                    setTime("");
-                    setLocationValue("");
-                  } else {
-                    const meeting = emptyMeetings.find(m => m.id === val);
-                    if (meeting) {
-                      setSelectedMeetingId(meeting.id);
-                      setTitle(meeting.title);
-                      setDate(format(new Date(meeting.date), "yyyy-MM-dd"));
-                      if (meeting.location) setLocationValue(meeting.location);
-                    }
-                  }
-                }}
-              >
-                <SelectTrigger className="bg-muted border-border rounded-xl h-9 text-xs" data-testid="select-existing-meeting">
-                  <SelectValue placeholder="New meeting" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="new">
-                    <span className="flex items-center gap-2">
-                      <Plus className="h-3.5 w-3.5" weight="bold" />
-                      New meeting
-                    </span>
-                  </SelectItem>
-                  {emptyMeetings.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      <span className="flex items-center gap-2">
-                        <CalendarBlank className="h-3.5 w-3.5 text-primary" weight="duotone" />
-                        {m.title}
-                        <span className="text-muted-foreground text-xs">
-                          ({format(new Date(m.date), "MMM d")})
-                        </span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          <div className="flex gap-3">
-            <Input 
-              value={title} 
-              onChange={(e) => setTitle(e.target.value)} 
-              className="flex-1 bg-muted border-border rounded-xl h-10 text-sm px-4 text-foreground placeholder:text-muted-foreground focus:bg-accent focus:border-ring"
-              placeholder="Meeting title..."
-              data-testid="input-title"
-            />
-            <Input 
-              type="date" 
-              value={date} 
-              onChange={(e) => setDate(e.target.value)} 
-              className="w-44 bg-muted border-border rounded-xl h-10 text-sm px-3 text-foreground focus:bg-accent focus:border-ring"
-              data-testid="input-date"
-            />
-          </div>
-        </div>
+      {/* Page Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Capture</h1>
+        <p className="text-sm text-gray-500 mt-1">Record meetings and auto-extract actions.</p>
       </div>
 
-      <div className="flex-1 px-4 pb-32">
-        <div className="max-w-3xl mx-auto space-y-4">
-          <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
-            <CollapsibleTrigger asChild>
-              <button 
-                className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
-                data-testid="button-toggle-details"
-              >
-                {detailsOpen ? <CaretUp className="h-3.5 w-3.5" weight="bold" /> : <CaretDown className="h-3.5 w-3.5" weight="bold" />}
-                {hasDetails ? (
-                  <span className="text-primary">Details added</span>
-                ) : (
-                  <span>Add attendees, time, location</span>
-                )}
-              </button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-3 space-y-3">
-              <div className="bg-card rounded-xl p-4 space-y-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-border">
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <Users className="h-3.5 w-3.5" weight="duotone" />
-                    Attendees (comma separated)
-                  </Label>
+      {/* Empty meeting selector */}
+      {emptyMeetings.length > 0 && (
+        <div className="mb-4 max-w-xs">
+          <Select 
+            value={selectedMeetingId || "new"} 
+            onValueChange={(val) => {
+              if (val === "new") {
+                setSelectedMeetingId(null);
+                setTitle(`Meeting — ${format(new Date(), "MMM d")}`);
+                setDate(format(new Date(), "yyyy-MM-dd"));
+                setNotes("");
+                setAttendees("");
+                setTime("");
+                setLocationValue("");
+              } else {
+                const meeting = emptyMeetings.find(m => m.id === val);
+                if (meeting) {
+                  setSelectedMeetingId(meeting.id);
+                  setTitle(meeting.title);
+                  setDate(format(new Date(meeting.date), "yyyy-MM-dd"));
+                  if (meeting.location) setLocationValue(meeting.location);
+                }
+              }
+            }}
+          >
+            <SelectTrigger className="bg-gray-50 border-gray-200 rounded-xl h-9 text-xs" data-testid="select-existing-meeting">
+              <SelectValue placeholder="New meeting" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="new">
+                <span className="flex items-center gap-2">
+                  <Plus className="h-3.5 w-3.5" weight="bold" />
+                  New meeting
+                </span>
+              </SelectItem>
+              {emptyMeetings.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  <span className="flex items-center gap-2">
+                    <CalendarBlank className="h-3.5 w-3.5 text-violet-500" weight="duotone" />
+                    {m.title}
+                    <span className="text-gray-400 text-xs">
+                      ({format(new Date(m.date), "MMM d")})
+                    </span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* Hidden file inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handleFileSelect}
+        className="hidden"
+        data-testid="input-ocr-file"
+      />
+      <input
+        ref={audioInputRef}
+        type="file"
+        accept="audio/*"
+        onChange={handleAudioFileSelect}
+        className="hidden"
+        data-testid="input-audio-file"
+      />
+
+      {/* Two-panel layout */}
+      <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
+        {/* LEFT: Notepad Card */}
+        <div className="flex-1 min-w-0">
+          <div className="bg-amber-50/70 rounded-3xl border-2 border-dashed border-amber-300/60 p-6 flex flex-col h-full">
+            {/* Title row */}
+            <div className="flex items-start justify-between mb-2">
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="text-xl font-bold text-gray-900 bg-transparent border-0 outline-none flex-1 mr-3 placeholder:text-gray-400"
+                placeholder="Meeting title..."
+                data-testid="input-title"
+              />
+              <span className="text-xs font-semibold text-amber-700 bg-amber-200/60 px-3 py-1 rounded-lg whitespace-nowrap flex-shrink-0">
+                {formattedDisplayDate}
+              </span>
+            </div>
+
+            {/* Details toggle */}
+            <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
+              <CollapsibleTrigger asChild>
+                <button 
+                  className="flex items-center gap-1.5 text-sm text-amber-600 hover:text-amber-700 transition-colors mb-3"
+                  data-testid="button-toggle-details"
+                >
+                  {hasDetails ? (
+                    <span className="underline">Details added</span>
+                  ) : (
+                    <span className="underline">Add attendees, time, location...</span>
+                  )}
+                  {detailsOpen ? <CaretUp className="h-3 w-3" weight="bold" /> : <CaretDown className="h-3 w-3" weight="bold" />}
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pb-3 space-y-3">
+                <div className="bg-white/60 rounded-2xl p-4 space-y-3 border border-amber-200/40">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-gray-500 flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5" weight="duotone" />
+                      Attendees (comma separated)
+                    </Label>
+                    <Input 
+                      placeholder="Alice, Bob, Charlie..." 
+                      value={attendees}
+                      onChange={(e) => setAttendees(e.target.value)}
+                      className="bg-white border-gray-200 rounded-xl h-10 text-sm"
+                      data-testid="input-attendees"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-gray-500 flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5" weight="duotone" />
+                        Time
+                      </Label>
+                      <Input 
+                        type="time"
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
+                        className="bg-white border-gray-200 rounded-xl h-10 text-sm"
+                        data-testid="input-time"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-gray-500 flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5" weight="duotone" />
+                        Location
+                      </Label>
+                      <Input 
+                        placeholder="Room / Link"
+                        value={location}
+                        onChange={(e) => setLocationValue(e.target.value)}
+                        className="bg-white border-gray-200 rounded-xl h-10 text-sm"
+                        data-testid="input-location"
+                      />
+                    </div>
+                  </div>
                   <Input 
-                    placeholder="Alice, Bob, Charlie..." 
-                    value={attendees}
-                    onChange={(e) => setAttendees(e.target.value)}
-                    className="bg-muted border-border rounded-xl h-10 text-sm px-3 text-foreground placeholder:text-muted-foreground focus:bg-accent"
-                    data-testid="input-attendees"
+                    type="date" 
+                    value={date} 
+                    onChange={(e) => setDate(e.target.value)} 
+                    className="bg-white border-gray-200 rounded-xl h-10 text-sm"
+                    data-testid="input-date"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5" weight="duotone" />
-                      Time
-                    </Label>
-                    <Input 
-                      type="time"
-                      value={time}
-                      onChange={(e) => setTime(e.target.value)}
-                      className="bg-muted border-border rounded-xl h-10 text-sm px-3 text-foreground focus:bg-accent"
-                      data-testid="input-time"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-                      <MapPin className="h-3.5 w-3.5" weight="duotone" />
-                      Location
-                    </Label>
-                    <Input 
-                      placeholder="Room / Link"
-                      value={location}
-                      onChange={(e) => setLocationValue(e.target.value)}
-                      className="bg-muted border-border rounded-xl h-10 text-sm px-3 text-foreground placeholder:text-muted-foreground focus:bg-accent"
-                      data-testid="input-location"
-                    />
-                  </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            {/* Action toolbar */}
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
+              <button
+                onClick={handleRecordMeetingClick}
+                disabled={isLoading}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold bg-violet-500 text-white hover:bg-violet-600 transition-colors disabled:opacity-50"
+                data-testid="button-record-meeting"
+              >
+                <Record className="h-4 w-4" weight="fill" />
+                Record Meeting
+              </button>
+
+              {isCapacitorAvailable && (
+                <button
+                  onClick={handleTakePhoto}
+                  disabled={isLoading}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
+                  data-testid="button-take-photo"
+                >
+                  <Camera className="h-4 w-4" weight="duotone" />
+                  Camera
+                </button>
+              )}
+
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
+                data-testid="button-upload-photo"
+              >
+                <Upload className="h-4 w-4" weight="duotone" />
+                Upload Photo
+              </button>
+
+              <button
+                onClick={() => audioInputRef.current?.click()}
+                disabled={isLoading}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 transition-colors disabled:opacity-50"
+                data-testid="button-upload-audio"
+              >
+                <Microphone className="h-4 w-4" weight="duotone" />
+                Upload Audio
+              </button>
+
+              {isLoading && (
+                <div className="flex items-center gap-2 text-xs text-violet-600 font-medium">
+                  <ArrowsClockwise className="h-4 w-4 animate-spin" weight="bold" />
+                  <span>{ocrLoading ? 'Reading...' : recordingAutoTranscribing ? 'Transcribing recording...' : 'Transcribing...'}</span>
+                </div>
+              )}
+            </div>
+
+            {(ocrLoading || transcriptionLoading) && (
+              <Progress value={ocrLoading ? ocrProgress : transcriptionProgress} className="h-1 mb-3" />
+            )}
+
+            {(ocrError || transcriptionError) && (
+              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600 mb-3">
+                <WarningCircle className="h-4 w-4 shrink-0 mt-0.5" weight="duotone" />
+                <div>
+                  <p>{ocrError || transcriptionError}</p>
+                  <button 
+                    onClick={() => { setOcrError(null); setTranscriptionError(null); }}
+                    className="text-xs text-red-400 hover:underline mt-1"
+                  >
+                    Dismiss
+                  </button>
                 </div>
               </div>
-            </CollapsibleContent>
-          </Collapsible>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={handleFileSelect}
-            className="hidden"
-            data-testid="input-ocr-file"
-          />
-          <input
-            ref={audioInputRef}
-            type="file"
-            accept="audio/*"
-            onChange={handleAudioFileSelect}
-            className="hidden"
-            data-testid="input-audio-file"
-          />
-
-          <div className="bg-card rounded-xl p-4 space-y-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] border border-border">
-          <div 
-            className={cn(
-              "flex items-center gap-2 transition-all duration-200",
-              isKeyboardVisible && isTextareaFocused 
-                ? "fixed left-0 right-0 z-50 px-4 py-2 border-t border-border" 
-                : ""
             )}
-            style={isKeyboardVisible && isTextareaFocused ? { bottom: keyboardHeight } : {}}
-          >
-            <span className="text-xs text-muted-foreground">Import:</span>
 
-            {isCapacitorAvailable && (
-              <button
-                onClick={handleTakePhoto}
-                disabled={isLoading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground border border-border hover:border-primary hover:text-primary hover:bg-accent transition-all disabled:opacity-50"
-                data-testid="button-take-photo"
-                title="Take photo of handwritten notes"
+            {/* Notes textarea */}
+            <div className="relative flex-1">
+              <div 
+                className="absolute inset-0 p-0 pointer-events-none overflow-hidden"
+                style={{ lineHeight: '1.75' }}
+                aria-hidden="true"
               >
-                <Camera className="h-4 w-4" weight="duotone" />
-                Camera
+                <pre className="whitespace-pre-wrap break-words text-base font-sans text-transparent m-0">
+                  {notes.split('\n').map((line, index) => {
+                    const isActionLine = /^\s*(Action|TODO|Task):\s*/i.test(line);
+                    return (
+                      <span key={index}>
+                        {isActionLine ? (
+                          <span className="bg-violet-200/50 rounded px-1 -mx-1">{line}</span>
+                        ) : (
+                          line
+                        )}
+                        {index < notes.split('\n').length - 1 ? '\n' : ''}
+                      </span>
+                    );
+                  })}
+                </pre>
+              </div>
+              
+              <textarea
+                ref={textareaRef}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder={`# ${title}
+
+Type or paste your meeting notes here...
+
+What was discussed?
+What decisions were made?
+What are the next steps?
+
+Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be auto-detected!`}
+                className="w-full min-h-[300px] p-0 bg-transparent border-0 text-base text-gray-800 placeholder:text-gray-400 resize-none focus:outline-none transition-all relative"
+                style={{ lineHeight: '1.75', background: 'transparent' }}
+                data-testid="input-notes"
+                onFocus={() => setIsTextareaFocused(true)}
+                onBlur={() => setIsTextareaFocused(false)}
+              />
+            </div>
+
+            {/* Bottom action buttons */}
+            <div className="flex gap-3 mt-4 pt-4 border-t border-amber-200/40">
+              <button
+                onClick={handleSaveDraft}
+                disabled={isSubmitting || !notes.trim()}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-gray-600 border border-gray-200 bg-white hover:bg-gray-50 transition-colors disabled:opacity-40"
+                data-testid="button-save-draft"
+              >
+                <FloppyDisk className="h-4 w-4" weight="duotone" />
+                Save Draft
+              </button>
+              
+              <button
+                onClick={handleExtract}
+                disabled={isSubmitting || !notes.trim() || !aiEnabled}
+                className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold bg-violet-500 text-white hover:bg-violet-600 transition-colors disabled:opacity-40"
+                data-testid="button-extract"
+              >
+                {isSubmitting ? (
+                  <ArrowsClockwise className="h-5 w-5 animate-spin" weight="bold" />
+                ) : (
+                  <Sparkle className="h-5 w-5" weight="duotone" />
+                )}
+                {aiEnabled ? "Extract Actions" : "AI Disabled"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT: Extracted Actions Panel */}
+        <div className="lg:w-80 xl:w-96 flex-shrink-0">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex flex-col h-full">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-violet-500" weight="duotone" />
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Extracted Actions</span>
+              </div>
+              {hasDetectedActions && (
+                <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-lg">
+                  {detectedActions.length} Found
+                </span>
+              )}
+            </div>
+
+            {/* Action cards */}
+            <div className="flex-1 space-y-3 overflow-y-auto min-h-0 mb-5">
+              {!hasDetectedActions ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-14 h-14 rounded-full bg-gray-50 flex items-center justify-center mb-3">
+                    <ListChecks className="h-7 w-7 text-gray-300" weight="duotone" />
+                  </div>
+                  <p className="text-sm text-gray-400 font-medium">No actions detected yet</p>
+                  <p className="text-xs text-gray-300 mt-1 max-w-[200px]">
+                    Start typing notes with "Action:", "TODO:", or "Task:" prefixes
+                  </p>
+                </div>
+              ) : (
+                detectedActions.map((action, index) => (
+                  <div
+                    key={index}
+                    className="bg-gray-50 rounded-2xl p-4 border border-gray-100"
+                    data-testid={`extracted-action-${index}`}
+                  >
+                    <p className="text-sm text-gray-800 font-medium leading-relaxed">{action.text}</p>
+                    <span className="inline-block mt-2 text-[10px] font-bold text-gray-400 bg-white border border-gray-200 px-2 py-0.5 rounded">
+                      30m allocated
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Import Actions button */}
+            {hasDetectedActions && (
+              <button
+                onClick={() => {
+                  setSelectedActions(new Set(detectedActions.map((_, i) => i)));
+                  setShowReviewActions(true);
+                }}
+                className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl text-base font-bold bg-violet-500 text-white hover:bg-violet-600 transition-colors shadow-lg shadow-violet-200"
+                data-testid="button-review-actions"
+              >
+                <CheckCircle className="h-5 w-5" weight="fill" />
+                Import Actions
               </button>
             )}
-
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground border border-border hover:border-primary hover:text-primary hover:bg-accent transition-all disabled:opacity-50"
-              data-testid="button-upload-photo"
-              title="Upload photo of handwritten notes"
-            >
-              <Upload className="h-4 w-4" weight="duotone" />
-              Photo
-            </button>
-
-            <button
-              onClick={() => audioInputRef.current?.click()}
-              disabled={isLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-muted-foreground border border-border hover:border-primary hover:text-primary hover:bg-accent transition-all disabled:opacity-50"
-              data-testid="button-upload-audio"
-              title="Upload audio recording"
-            >
-              <Microphone className="h-4 w-4" weight="duotone" />
-              Audio
-            </button>
-
-            {isLoading && (
-              <div className="flex items-center gap-2 text-xs text-primary">
-                <ArrowsClockwise className="h-4 w-4 animate-spin" weight="bold" />
-                <span>{ocrLoading ? 'Reading...' : recordingAutoTranscribing ? 'Transcribing recording...' : 'Transcribing...'}</span>
-              </div>
-            )}
-          </div>
-
-          {(ocrLoading || transcriptionLoading) && (
-            <Progress value={ocrLoading ? ocrProgress : transcriptionProgress} className="h-1" />
-          )}
-
-          {(ocrError || transcriptionError) && (
-            <div className="flex items-start gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-sm text-red-400">
-              <WarningCircle className="h-4 w-4 shrink-0 mt-0.5" weight="duotone" />
-              <div>
-                <p>{ocrError || transcriptionError}</p>
-                <button 
-                  onClick={() => { setOcrError(null); setTranscriptionError(null); }}
-                  className="text-xs text-red-300 hover:underline mt-1"
-                >
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="relative">
-            <div 
-              className="absolute inset-0 p-4 pointer-events-none overflow-hidden rounded-2xl"
-              style={{ lineHeight: '1.75' }}
-              aria-hidden="true"
-            >
-              <pre className="whitespace-pre-wrap break-words text-base font-sans text-transparent m-0">
-                {notes.split('\n').map((line, index) => {
-                  const isActionLine = /^\s*(Action|TODO|Task):\s*/i.test(line);
-                  return (
-                    <span key={index}>
-                      {isActionLine ? (
-                        <span className="bg-violet-500/20 rounded px-1 -mx-1">{line}</span>
-                      ) : (
-                        line
-                      )}
-                      {index < notes.split('\n').length - 1 ? '\n' : ''}
-                    </span>
-                  );
-                })}
-              </pre>
-            </div>
-            
-            <textarea
-              ref={textareaRef}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Type or paste your meeting notes here...
-
-• What was discussed?
-• What decisions were made?
-• What are the next steps?
-• Who is responsible for what?
-
-Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
-              className="w-full min-h-[300px] p-4 bg-transparent border-0 rounded-xl text-base text-foreground placeholder:text-muted-foreground resize-none focus:outline-none transition-all relative"
-              style={{ lineHeight: '1.75', background: 'transparent' }}
-              data-testid="input-notes"
-              onFocus={() => setIsTextareaFocused(true)}
-              onBlur={() => setIsTextareaFocused(false)}
-            />
-          </div>
-          </div>
-
-          {hasDetectedActions && (
-            <button
-              onClick={() => {
-                setSelectedActions(new Set(detectedActions.map((_, i) => i)));
-                setShowReviewActions(true);
-              }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-violet-600/20 border border-violet-500/30 text-violet-300 hover:bg-violet-600/30 transition-all w-full justify-center"
-              data-testid="button-review-actions"
-            >
-              <ListChecks className="h-5 w-5" weight="duotone" />
-              <span className="font-medium">Review {detectedActions.length} Detected Action{detectedActions.length !== 1 ? 's' : ''}</span>
-            </button>
-          )}
-
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={handleSaveDraft}
-              disabled={isSubmitting || !notes.trim()}
-              className="flex-1 h-10 rounded-xl"
-              data-testid="button-save-draft"
-            >
-              <FloppyDisk className="h-5 w-5 mr-2" weight="duotone" />
-              Save Draft
-            </Button>
-            
-            <Button
-              onClick={handleExtract}
-              disabled={isSubmitting || !notes.trim() || !aiEnabled}
-              className="flex-[2] h-10 rounded-xl"
-              data-testid="button-extract"
-            >
-              {isSubmitting ? (
-                <ArrowsClockwise className="h-5 w-5 mr-2 animate-spin" weight="bold" />
-              ) : (
-                <Sparkle className="h-5 w-5 mr-2" weight="duotone" />
-              )}
-              {aiEnabled ? "Extract Actions" : "AI Disabled"}
-            </Button>
           </div>
         </div>
       </div>
 
+      {/* All Dialogs (preserved exactly) */}
       <Dialog open={showOcrPreview} onOpenChange={setShowOcrPreview}>
         <DialogContent className="border-border text-foreground max-w-lg">
           <DialogHeader>
@@ -1354,8 +1395,8 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                   className={cn(
                     "flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer",
                     selectedActions.has(index)
-                      ? "bg-violet-600/20 border-violet-500/30"
-                      : "bg-muted border-border hover:bg-accent"
+                      ? "bg-violet-50 border-violet-300"
+                      : "bg-gray-50 border-gray-200 hover:bg-gray-100"
                   )}
                   onClick={() => {
                     const newSelected = new Set(selectedActions);
@@ -1384,31 +1425,31 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be highlighted!"
                     <div className="flex items-center gap-2 mb-1">
                       <span className={cn(
                         "text-xs px-2 py-0.5 rounded-full font-medium",
-                        action.keyword === 'Action' && "bg-accent text-primary",
-                        action.keyword === 'TODO' && "bg-sky-500/20 text-sky-300",
-                        action.keyword === 'Task' && "bg-emerald-500/20 text-emerald-300"
+                        action.keyword === 'Action' && "bg-violet-100 text-violet-600",
+                        action.keyword === 'TODO' && "bg-sky-100 text-sky-600",
+                        action.keyword === 'Task' && "bg-emerald-100 text-emerald-600"
                       )}>
                         {action.keyword}
                       </span>
-                      <span className="text-xs text-muted-foreground">Line {action.lineNumber}</span>
+                      <span className="text-xs text-gray-400">Line {action.lineNumber}</span>
                     </div>
-                    <p className="text-sm text-foreground">{action.text}</p>
+                    <p className="text-sm text-gray-800">{action.text}</p>
                   </div>
                 </div>
               ))}
             </div>
             
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center justify-between text-xs text-gray-400">
               <button
                 onClick={() => setSelectedActions(new Set(detectedActions.map((_, i) => i)))}
-                className="hover:text-foreground transition-colors"
+                className="hover:text-gray-600 transition-colors"
               >
                 Select all
               </button>
               <span>{selectedActions.size} of {detectedActions.length} selected</span>
               <button
                 onClick={() => setSelectedActions(new Set())}
-                className="hover:text-foreground transition-colors"
+                className="hover:text-gray-600 transition-colors"
               >
                 Clear all
               </button>
