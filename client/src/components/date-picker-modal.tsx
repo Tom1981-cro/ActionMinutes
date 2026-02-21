@@ -58,6 +58,7 @@ interface DatePickerModalProps {
   }) => void;
   onClear: () => void;
   showSkipOccurrence?: boolean;
+  initialTab?: "date" | "duration";
 }
 
 const REMINDER_OPTIONS = [
@@ -100,8 +101,9 @@ export function DatePickerModal({
   onConfirm,
   onClear,
   showSkipOccurrence = false,
+  initialTab = "date",
 }: DatePickerModalProps) {
-  const [activeTab, setActiveTab] = useState<"date" | "duration">("date");
+  const [activeTab, setActiveTab] = useState<"date" | "duration">(initialTab);
   const [localDate, setLocalDate] = useState<Date | null>(null);
   const [localTime, setLocalTime] = useState("10:00");
   const [localEndDate, setLocalEndDate] = useState<Date | null>(null);
@@ -120,6 +122,7 @@ export function DatePickerModal({
 
   useEffect(() => {
     if (open) {
+      setActiveTab(initialTab);
       setLocalDate(date);
       setLocalTime(time || "10:00");
       setLocalEndDate(endDate);
@@ -135,7 +138,7 @@ export function DatePickerModal({
       setRepeatEndsOpen(false);
       setRepeatEndDateOpen(false);
     }
-  }, [open, date, time, endDate, endTime, allDay, reminder, recurrence, repeatEnds, repeatEndDate, repeatEndCount]);
+  }, [open, initialTab, date, time, endDate, endTime, allDay, reminder, recurrence, repeatEnds, repeatEndDate, repeatEndCount]);
 
   const handleConfirm = useCallback(() => {
     onConfirm({

@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { DatePickerModal } from "@/components/date-picker-modal";
 import {
   X, Circle, CheckCircle, Sparkle, Paperclip, UploadSimple,
@@ -109,6 +108,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [datePickerInitialTab, setDatePickerInitialTab] = useState<"date" | "duration">("date");
   const [showDeadlinePicker, setShowDeadlinePicker] = useState(false);
   const [listDropdownOpen, setListDropdownOpen] = useState(false);
   const [newTagInput, setNewTagInput] = useState("");
@@ -355,12 +355,20 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
         ? subtasks.map(s => ({ id: s.id, text: s.text, completed: s.completed }))
         : null;
 
+      const finalEndDate = endDate && endTime
+        ? new Date(`${format(endDate, "yyyy-MM-dd")}T${endTime}:00`).toISOString()
+        : endDate ? endDate.toISOString() : null;
+
       await api.actions.update(itemId, {
         text,
         ownerName: ownerName || null,
         ownerEmail: ownerEmail || null,
         dueDate: finalDueDate?.toISOString() || null,
+        deadline: finalDeadline?.toISOString() || null,
         status,
+        priority: priority === "none" ? "normal" : priority,
+        location: location || null,
+        recurrence: recurrence || null,
         reminderAt: computedReminderAt,
         description: description || null,
         subtasks: subtasksPayload,
@@ -845,8 +853,12 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                       {fetchedAttachments.map((att: any) => (
                         <div
                           key={att.id}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-accent/30 text-sm group/att"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-accent/30 text-sm group/att cursor-pointer hover:bg-accent/50 transition-colors"
                           data-testid={`attachment-${att.id}`}
+                          onClick={() => {
+                            const url = att.fileUrl || att.url;
+                            if (url) window.open(url, "_blank");
+                          }}
                         >
                           <span className="text-sm">{getFileIcon(att.filename || att.fileName || att.name || "file")}</span>
                           <span className="flex-1 truncate text-foreground text-[12px]">
@@ -856,7 +868,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                             {att.size ? `${Math.round(att.size / 1024)}KB` : ""}
                           </span>
                           <button
-                            onClick={() => handleDeleteAttachment(att.id)}
+                            onClick={(e) => { e.stopPropagation(); handleDeleteAttachment(att.id); }}
                             className="opacity-0 group-hover/att:opacity-100 text-muted-foreground hover:text-destructive transition-all"
                             data-testid={`attachment-delete-${att.id}`}
                           >
@@ -958,7 +970,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                     </label>
                     <button
                       type="button"
-                      onClick={() => setShowDatePicker(true)}
+                      onClick={() => { setDatePickerInitialTab("date"); setShowDatePicker(true); }}
                       className={cn(
                         "flex items-center gap-2 w-full h-7 px-2.5 rounded-lg border text-[11px] transition-colors text-left",
                         dueDate ? "border-primary/30 bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
@@ -977,7 +989,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                     </label>
                     <button
                       type="button"
-                      onClick={() => setShowDatePicker(true)}
+                      onClick={() => { setDatePickerInitialTab("duration"); setShowDatePicker(true); }}
                       className={cn(
                         "flex items-center gap-2 w-full h-7 px-2.5 rounded-lg border text-[11px] transition-colors text-left",
                         getDurationLabel() ? "border-primary/30 bg-primary/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
@@ -994,32 +1006,18 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                       <Timer className="h-3 w-3" />
                       Deadline
                     </label>
-                    <Popover open={showDeadlinePicker} onOpenChange={setShowDeadlinePicker}>
-                      <PopoverTrigger asChild>
-                        <button
-                          type="button"
-                          className={cn(
-                            "flex items-center gap-2 w-full h-7 px-2.5 rounded-lg border text-[11px] transition-colors text-left",
-                            deadline ? "border-red-500/30 bg-red-500/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
-                          )}
-                          data-testid="button-deadline"
-                        >
-                          <Timer className="h-3.5 w-3.5 flex-shrink-0" />
-                          {deadline ? format(deadline, "d MMM yyyy") : "Set deadline"}
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-card border-border rounded-xl overflow-hidden" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={deadline ?? undefined}
-                          onSelect={(d) => {
-                            setDeadline(d ?? null);
-                            setDeadlineInput(d ? format(d, "yyyy-MM-dd") : "");
-                            setShowDeadlinePicker(false);
-                          }}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeadlinePicker(true)}
+                      className={cn(
+                        "flex items-center gap-2 w-full h-7 px-2.5 rounded-lg border text-[11px] transition-colors text-left",
+                        deadline ? "border-red-500/30 bg-red-500/5 text-foreground" : "border-border text-muted-foreground hover:bg-accent"
+                      )}
+                      data-testid="button-deadline"
+                    >
+                      <Timer className="h-3.5 w-3.5 flex-shrink-0" />
+                      {deadline ? format(deadline, "d MMM yyyy") : "Set deadline"}
+                    </button>
                   </div>
 
                   <div className="space-y-1.5">
@@ -1227,6 +1225,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
       <DatePickerModal
         open={showDatePicker}
         onOpenChange={setShowDatePicker}
+        initialTab={datePickerInitialTab}
         date={dueDate}
         time={dueTime}
         endDate={endDate}
@@ -1240,6 +1239,29 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
         onConfirm={handleDatePickerConfirm}
         onClear={handleDatePickerClear}
         showSkipOccurrence={!!recurrence}
+      />
+      <DatePickerModal
+        open={showDeadlinePicker}
+        onOpenChange={setShowDeadlinePicker}
+        initialTab="date"
+        date={deadline}
+        time=""
+        endDate={null}
+        endTime=""
+        allDay={false}
+        reminder="on_time"
+        recurrence={null}
+        repeatEnds="endless"
+        repeatEndDate={null}
+        repeatEndCount={null}
+        onConfirm={(values) => {
+          setDeadline(values.date);
+          setDeadlineInput(values.date ? format(values.date, "yyyy-MM-dd") : "");
+        }}
+        onClear={() => {
+          setDeadline(null);
+          setDeadlineInput("");
+        }}
       />
     </div>
   );

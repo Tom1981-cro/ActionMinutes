@@ -1047,6 +1047,9 @@ Thanks!`,
     if (updates.dueDate && typeof updates.dueDate === 'string') {
       updates.dueDate = new Date(updates.dueDate);
     }
+    if (updates.deadline && typeof updates.deadline === 'string') {
+      updates.deadline = new Date(updates.deadline);
+    }
     if (updates.reminderAt && typeof updates.reminderAt === 'string') {
       updates.reminderAt = new Date(updates.reminderAt);
     }
