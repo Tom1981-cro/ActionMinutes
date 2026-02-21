@@ -8,8 +8,9 @@ import { cn } from "@/lib/utils";
 import {
   Sun, Moon, CloudSun, CloudRain, CloudSnow, Wind, CloudFog, Cloud, Lightning as LightningBolt, Thermometer,
   MapPin, Circle, CheckCircle, Clock, CalendarBlank, Bell, Target, Users, CaretRight,
-  Plus, ArrowRight, Sparkle, Star, Play
+  Plus, ArrowRight, Sparkle, Star, Play, ArrowDown, ArrowUp
 } from "@phosphor-icons/react";
+import { TaskDetailModal } from "@/components/task-detail-modal";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -48,9 +49,16 @@ interface Reminder {
   deletedAt?: string | null;
 }
 
+const MAX_URGENT_ITEMS = 3;
+
 export default function PlannerPage() {
   const { user, setFocusTask } = useStore();
   const [, navigate] = useLocation();
+
+  const [promotedIds, setPromotedIds] = useState<Set<string>>(new Set());
+  const [demotedIds, setDemotedIds] = useState<Set<string>>(new Set());
+
+  const [modalItem, setModalItem] = useState<{ id: string; type: "meeting" | "reminder" } | null>(null);
 
   const { data: actions = [], isLoading: actionsLoading } = useActionItems();
 
@@ -95,10 +103,22 @@ export default function PlannerPage() {
       return 0;
     });
 
-  const overdueOrUrgent = todayActions.filter(t =>
+  const naturalUrgent = todayActions.filter(t =>
     (t.dueDate && new Date(t.dueDate) < startOfToday) || t.priority === 'high' || t.status === 'needs_review'
   );
-  const otherTasks = todayActions.filter(t => !overdueOrUrgent.includes(t));
+  const naturalOther = todayActions.filter(t => !naturalUrgent.includes(t));
+
+  const urgentCandidates = [
+    ...naturalUrgent.filter(t => !demotedIds.has(t.id)),
+    ...naturalOther.filter(t => promotedIds.has(t.id)),
+  ];
+  const overdueOrUrgent = urgentCandidates.slice(0, MAX_URGENT_ITEMS);
+  const urgentOverflow = urgentCandidates.slice(MAX_URGENT_ITEMS);
+  const otherTasks = [
+    ...naturalOther.filter(t => !promotedIds.has(t.id)),
+    ...naturalUrgent.filter(t => demotedIds.has(t.id)),
+    ...urgentOverflow,
+  ];
 
   const todayReminders = reminders.filter(r => {
     if (r.deletedAt) return false;
@@ -121,6 +141,27 @@ export default function PlannerPage() {
     setFocusTask(taskText);
     navigate('/app/focus');
   };
+
+  const handlePromote = (taskId: string) => {
+    if (overdueOrUrgent.length >= MAX_URGENT_ITEMS) return;
+    setPromotedIds(prev => new Set(prev).add(taskId));
+    setDemotedIds(prev => {
+      const next = new Set(prev);
+      next.delete(taskId);
+      return next;
+    });
+  };
+
+  const handleDemote = (taskId: string) => {
+    setDemotedIds(prev => new Set(prev).add(taskId));
+    setPromotedIds(prev => {
+      const next = new Set(prev);
+      next.delete(taskId);
+      return next;
+    });
+  };
+
+  const urgentIsFull = overdueOrUrgent.length >= MAX_URGENT_ITEMS;
 
   if (isLoading) {
     return (
@@ -150,7 +191,8 @@ export default function PlannerPage() {
       <div className="flex flex-col md:flex-row gap-6 h-[calc(100%-80px)]">
         {/* Time Budget */}
         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center md:w-1/3">
-          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-3">Time Budget</p>
+          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Time Budget</p>
+          <p className="text-xs text-gray-400 italic mb-3">Manage your time as financial budget</p>
           <div className="relative w-40 h-40 flex items-center justify-center mb-6">
             <svg className="absolute w-full h-full transform -rotate-90" viewBox="0 0 160 160">
               <circle cx="80" cy="80" r="74" stroke="#f3f4f6" strokeWidth="12" fill="none" />
@@ -188,7 +230,7 @@ export default function PlannerPage() {
             <div className="flex justify-between items-end mb-4 border-b border-gray-800 pb-3">
               <h3 className="text-lg font-bold text-white">Urgent & Important</h3>
               <span className="text-[10px] font-bold bg-red-500/20 text-red-400 px-2 py-1 rounded">
-                {overdueOrUrgent.length} items
+                {overdueOrUrgent.length} / {MAX_URGENT_ITEMS} max
               </span>
             </div>
             <div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar">
@@ -200,13 +242,22 @@ export default function PlannerPage() {
                 overdueOrUrgent.map(t => (
                   <div key={t.id} className="bg-gray-800 p-3.5 rounded-2xl flex justify-between items-center border border-gray-700 group">
                     <button
-                      onClick={() => navigate(`/app/action/${t.source === 'meeting' ? 'meeting' : 'reminder'}/${t.id}`)}
-                      className="text-sm font-medium text-gray-100 text-left flex-1 mr-2"
+                      onClick={() => setModalItem({ id: t.id, type: t.source === 'meeting' ? 'meeting' : 'reminder' })}
+                      className="text-sm font-medium text-gray-100 text-left flex-1 mr-2 hover:text-white transition-colors"
+                      data-testid={`task-urgent-${t.id}`}
                     >
                       {t.text}
                     </button>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1.5">
                       <span className="text-[10px] font-bold bg-gray-700 text-gray-300 px-2 py-1 rounded">{t.estimatedMinutes}m</span>
+                      <button
+                        onClick={() => handleDemote(t.id)}
+                        className="p-1.5 bg-gray-700 rounded-lg text-gray-400 hover:text-amber-400 hover:bg-gray-600 transition-colors"
+                        title="Move to Everything Else"
+                        data-testid={`demote-${t.id}`}
+                      >
+                        <ArrowDown className="w-3.5 h-3.5" weight="bold" />
+                      </button>
                       <button
                         onClick={() => handleStartFocus(t.text)}
                         className="p-1.5 bg-violet-600 rounded-lg text-white hover:bg-violet-500 transition-colors"
@@ -234,13 +285,28 @@ export default function PlannerPage() {
                   {otherTasks.map(t => (
                     <div key={t.id} className="bg-gray-50 p-3.5 rounded-2xl flex justify-between items-center border border-gray-100 group">
                       <button
-                        onClick={() => navigate(`/app/action/${t.source === 'meeting' ? 'meeting' : 'reminder'}/${t.id}`)}
-                        className="text-sm font-medium text-gray-700 text-left flex-1 mr-2"
+                        onClick={() => setModalItem({ id: t.id, type: t.source === 'meeting' ? 'meeting' : 'reminder' })}
+                        className="text-sm font-medium text-gray-700 text-left flex-1 mr-2 hover:text-gray-900 transition-colors"
+                        data-testid={`task-other-${t.id}`}
                       >
                         {t.text}
                       </button>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1.5">
                         <span className="text-[10px] font-bold bg-gray-200 text-gray-500 px-2 py-1 rounded">{t.estimatedMinutes}m</span>
+                        <button
+                          onClick={() => handlePromote(t.id)}
+                          disabled={urgentIsFull}
+                          className={cn(
+                            "p-1.5 rounded-lg transition-colors",
+                            urgentIsFull
+                              ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+                              : "bg-white border border-gray-200 shadow-sm text-gray-400 hover:text-violet-600 hover:border-violet-300"
+                          )}
+                          title={urgentIsFull ? "Urgent & Important is full (max 3)" : "Move to Urgent & Important"}
+                          data-testid={`promote-${t.id}`}
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" weight="bold" />
+                        </button>
                         <button
                           onClick={() => handleStartFocus(t.text)}
                           className="p-1.5 bg-white border border-gray-200 shadow-sm rounded-lg text-gray-400 hover:text-violet-600 transition-colors"
@@ -269,6 +335,15 @@ export default function PlannerPage() {
           </div>
         </div>
       </div>
+
+      {modalItem && (
+        <TaskDetailModal
+          open={!!modalItem}
+          onClose={() => setModalItem(null)}
+          itemId={modalItem.id}
+          itemType={modalItem.type}
+        />
+      )}
     </div>
   );
 }
