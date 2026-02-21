@@ -71,7 +71,7 @@ interface TaskDetailModalProps {
   open: boolean;
   onClose: () => void;
   itemId: string;
-  itemType: "meeting" | "reminder"; // kept for backwards compat, all items use actions API
+  itemType: "meeting" | "reminder" | "action";
 }
 
 export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailModalProps) {

@@ -1,14 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 import { useStore } from "@/lib/store";
 import { useActionItems, useMeetings } from "@/lib/hooks";
 import { authenticatedFetch } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import {
-  Sun, Moon, CloudSun, CloudRain, CloudSnow, Wind, CloudFog, Cloud, Lightning as LightningBolt, Thermometer,
-  MapPin, Circle, CheckCircle, Clock, CalendarBlank, Tray, Target, Users, CaretRight,
-  Plus, ArrowRight, Sparkle, Star, Play, ArrowDown, ArrowUp
+  Plus, Play, ArrowDown, ArrowUp, X, Tray
 } from "@phosphor-icons/react";
 import { TaskDetailModal } from "@/components/task-detail-modal";
 
@@ -47,7 +44,9 @@ export default function PlannerPage() {
   const [promotedIds, setPromotedIds] = useState<Set<string>>(new Set());
   const [demotedIds, setDemotedIds] = useState<Set<string>>(new Set());
 
-  const [modalItem, setModalItem] = useState<{ id: string; type: "meeting" | "reminder" } | null>(null);
+  const [modalItem, setModalItem] = useState<{ id: string; type: "meeting" | "action" } | null>(null);
+  const [showInboxModal, setShowInboxModal] = useState(false);
+  const [addedFromInbox, setAddedFromInbox] = useState<Set<string>>(new Set());
 
   const { data: actions = [], isLoading: actionsLoading } = useActionItems();
 
@@ -93,13 +92,49 @@ export default function PlannerPage() {
   ];
   const overdueOrUrgent = urgentCandidates.slice(0, MAX_URGENT_ITEMS);
   const urgentOverflow = urgentCandidates.slice(MAX_URGENT_ITEMS);
+  const addedItems = (actions as any[])
+    .filter((a: any) => addedFromInbox.has(a.id) && !todayActions.some(t => t.id === a.id))
+    .map((a: any) => ({
+      id: a.id,
+      text: a.text,
+      dueDate: a.dueDate,
+      ownerName: a.ownerName,
+      status: a.status,
+      priority: a.priority || 'normal',
+      source: (a.meetingId ? 'meeting' : 'quickadd') as 'meeting' | 'quickadd',
+      estimatedMinutes: 30,
+    }));
+
   const otherTasks = [
     ...naturalOther.filter(t => !promotedIds.has(t.id)),
     ...naturalUrgent.filter(t => demotedIds.has(t.id)),
     ...urgentOverflow,
+    ...addedItems,
   ];
 
-  const spent = todayActions.length * 30;
+  const inboxItems: ActionTask[] = useMemo(() => (actions as any[])
+    .filter((a: any) => {
+      if (a.status === 'done' || a.status === 'completed' || a.deletedAt) return false;
+      const isAlreadyToday = todayActions.some(t => t.id === a.id);
+      return !isAlreadyToday;
+    })
+    .map((a: any) => ({
+      id: a.id,
+      text: a.text,
+      dueDate: a.dueDate,
+      ownerName: a.ownerName,
+      status: a.status,
+      priority: a.priority || 'normal',
+      source: a.meetingId ? 'meeting' as const : 'quickadd' as const,
+      estimatedMinutes: 30,
+    })), [actions, todayActions]);
+
+  const allTodayActions = useMemo(() => {
+    const added = inboxItems.filter(i => addedFromInbox.has(i.id));
+    return [...todayActions, ...added];
+  }, [todayActions, inboxItems, addedFromInbox]);
+
+  const spent = allTodayActions.length * 30;
   const capacity = 480;
   const remaining = Math.max(0, capacity - spent);
 
@@ -179,10 +214,11 @@ export default function PlannerPage() {
             </div>
           </div>
           <button
-            onClick={() => navigate('/app/inbox')}
+            onClick={() => setShowInboxModal(true)}
             className="w-full mt-4 bg-violet-50 text-violet-700 py-2.5 rounded-xl text-sm font-bold border border-violet-100 hover:bg-violet-100 transition-colors"
-            data-testid="button-adjust-capacity"
+            data-testid="button-add-from-inbox"
           >
+            <Plus className="w-4 h-4 inline mr-1" weight="bold" />
             Add from Inbox
           </button>
         </div>
@@ -206,7 +242,7 @@ export default function PlannerPage() {
                 overdueOrUrgent.map(t => (
                   <div key={t.id} className="bg-gray-800 p-3.5 rounded-2xl flex justify-between items-center border border-gray-700 group">
                     <button
-                      onClick={() => setModalItem({ id: t.id, type: t.source === 'meeting' ? 'meeting' : 'reminder' })}
+                      onClick={() => setModalItem({ id: t.id, type: t.source === 'meeting' ? 'meeting' : 'action' })}
                       className="text-sm font-medium text-gray-100 text-left flex-1 mr-2 hover:text-white transition-colors"
                       data-testid={`task-urgent-${t.id}`}
                     >
@@ -249,7 +285,7 @@ export default function PlannerPage() {
                   {otherTasks.map(t => (
                     <div key={t.id} className="bg-gray-50 p-3.5 rounded-2xl flex justify-between items-center border border-gray-100 group">
                       <button
-                        onClick={() => setModalItem({ id: t.id, type: t.source === 'meeting' ? 'meeting' : 'reminder' })}
+                        onClick={() => setModalItem({ id: t.id, type: t.source === 'meeting' ? 'meeting' : 'action' })}
                         className="text-sm font-medium text-gray-700 text-left flex-1 mr-2 hover:text-gray-900 transition-colors"
                         data-testid={`task-other-${t.id}`}
                       >
@@ -287,6 +323,58 @@ export default function PlannerPage() {
           </div>
         </div>
       </div>
+
+      {showInboxModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowInboxModal(false)}>
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <Tray className="w-5 h-5 text-violet-600" weight="bold" />
+                <h3 className="text-lg font-bold text-gray-900">Add from Inbox</h3>
+              </div>
+              <button onClick={() => setShowInboxModal(false)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400" data-testid="close-inbox-modal">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {inboxItems.filter(i => !addedFromInbox.has(i.id)).length === 0 ? (
+                <div className="text-center py-8 text-gray-400 text-sm">
+                  No more items in your inbox
+                </div>
+              ) : (
+                inboxItems.filter(i => !addedFromInbox.has(i.id)).map(item => (
+                  <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100 group">
+                    <div className="flex-1 min-w-0 mr-3">
+                      <p className="text-sm font-medium text-gray-700 truncate">{item.text}</p>
+                      {item.dueDate && (
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          Due {new Date(item.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setAddedFromInbox(prev => new Set(prev).add(item.id))}
+                      className="p-2 bg-violet-100 text-violet-600 rounded-lg hover:bg-violet-200 transition-colors shrink-0"
+                      data-testid={`add-inbox-item-${item.id}`}
+                    >
+                      <Plus className="w-4 h-4" weight="bold" />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="p-4 border-t border-gray-100">
+              <button
+                onClick={() => setShowInboxModal(false)}
+                className="w-full py-2.5 bg-violet-600 text-white rounded-xl text-sm font-bold hover:bg-violet-700 transition-colors"
+                data-testid="done-inbox-modal"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {modalItem && (
         <TaskDetailModal
