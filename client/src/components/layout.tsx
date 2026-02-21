@@ -3,7 +3,7 @@ import { Link, useLocation } from "wouter";
 import { 
   Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut,
   BookOpenText, CaretDown, CaretRight, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X, DotsThree, Trash, Lightning,
-  CheckCircle, Archive, MagnifyingGlass, Compass,
+  CheckCircle, Archive, MagnifyingGlass, Compass, Crosshair, Tag,
   House, Briefcase, UsersThree, Heart, GraduationCap, PaintBrush, Flower, Barbell, ChatCircle, UserCircle
 } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
@@ -64,6 +64,30 @@ function getListIcon(iconId?: string): PhosphorIcon {
   const found = LIST_ICON_OPTIONS.find(o => o.id === iconId);
   return found ? found.icon : ListBullets;
 }
+
+const sidebarNavItems: { href: string; label: string; icon: PhosphorIcon }[] = [
+  { href: "/app/planner", label: "Planner", icon: Compass },
+  { href: "/app/inbox", label: "Inbox", icon: Tray },
+  { href: "/app/capture", label: "Capture", icon: PlusCircle },
+  { href: "/app/calendar", label: "Calendar", icon: Calendar },
+  { href: "/app/journal", label: "Journal", icon: BookOpen },
+  { href: "/app/notes", label: "Notes", icon: NotePencil },
+  { href: "/app/reminders", label: "Reminders", icon: Bell },
+  { href: "/app/focus", label: "Focus Ring", icon: Crosshair },
+  { href: "/app/verbs", label: "Action Verbs", icon: Tag },
+];
+
+const mobileTabItems: { href: string; label: string; icon: PhosphorIcon }[] = [
+  { href: "/app/planner", label: "Planner", icon: Compass },
+  { href: "/app/inbox", label: "Inbox", icon: Tray },
+  { href: "/app/capture", label: "Capture", icon: PlusCircle },
+  { href: "/app/calendar", label: "Calendar", icon: Calendar },
+  { href: "/app/journal", label: "Journal", icon: BookOpen },
+  { href: "/app/notes", label: "Notes", icon: NotePencil },
+  { href: "/app/reminders", label: "Reminders", icon: Bell },
+  { href: "/app/focus", label: "Focus", icon: Crosshair },
+  { href: "/app/verbs", label: "Verbs", icon: Tag },
+];
 
 export default function Layout({ children }: LayoutProps) {
   const [location, setLocation] = useLocation();
@@ -167,26 +191,9 @@ export default function Layout({ children }: LayoutProps) {
     },
   });
 
-  const navLinks = [
-    { href: "/app/inbox", label: "Inbox", icon: Tray },
-    { href: "/app/capture", label: "Capture", icon: PlusCircle },
-    { href: "/app/meetings", label: "Meetings", icon: CalendarBlank },
-    { href: "/app/calendar", label: "Calendar", icon: Calendar },
-    { href: "/app/journal", label: "Journal", icon: BookOpen },
-    { href: "/app/notes", label: "Notes", icon: NotePencil },
-  ];
-
-  const mobileTabItems = [
-    { href: "/app/inbox", label: "Inbox", icon: Tray },
-    { href: "/app/capture", label: "Capture", icon: PlusCircle },
-    { href: "/app/calendar", label: "Calendar", icon: Calendar },
-    { href: "/app/journal", label: "Journal", icon: BookOpen },
-    { href: "/app/notes", label: "Notes", icon: NotePencil },
-  ];
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
       </div>
     );
@@ -197,161 +204,149 @@ export default function Layout({ children }: LayoutProps) {
       setLocation("/login");
     }
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
       </div>
     );
   }
 
+  const activeLabel = sidebarNavItems.find(n => 
+    location === n.href || (n.href !== "/" && location.startsWith(n.href))
+  )?.label || "ActionMinutes";
+
   return (
-    <div className="min-h-screen bg-background flex flex-col font-sans">
-      {/* Top Navigation */}
-      <header className="sticky top-0 z-50 bg-white border-b border-[#E5E5E0]">
-        <div className="flex items-center justify-between h-14 px-6">
-          {/* Logo */}
-          <Link href="/app/planner" className="flex items-center gap-2" data-testid="nav-logo">
-            <img src={logoIcon} alt="ActionMinutes" className="w-7 h-7 rounded-lg" />
-            <span className="text-lg font-semibold tracking-tight hidden sm:inline">
-              <span className="text-[#1A1A1A]">Action</span>
-              <span className="text-violet-500">Minutes</span>
-            </span>
+    <div className="min-h-screen bg-[#f9fafb] flex font-sans text-[#1A1A1A]">
+
+      {/* DESKTOP SIDEBAR */}
+      <aside className="hidden md:flex w-64 bg-white border-r border-gray-200 flex-col flex-shrink-0 h-screen sticky top-0 z-20 shadow-sm">
+        <div className="p-6 border-b border-gray-100 flex items-center space-x-3">
+          <Link href="/app/planner" className="flex items-center space-x-3" data-testid="nav-logo">
+            <img src={logoIcon} alt="ActionMinutes" className="w-8 h-8 rounded-lg shadow-md" />
+            <h1 className="text-xl font-bold tracking-tight text-gray-900">ActionMinutes</h1>
           </Link>
+        </div>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1" data-testid="nav-desktop">
-            {navLinks.map((item) => {
-              const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  data-testid={`nav-${item.label.toLowerCase()}`}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-violet-50 text-violet-700"
-                      : "text-[#6B7280] hover:text-[#1A1A1A] hover:bg-[#F5F5F0]"
-                  )}
-                >
-                  <item.icon className="h-4 w-4" weight={isActive ? "fill" : "regular"} />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
+        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
+          {sidebarNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
+                className={cn(
+                  "w-full flex items-center px-3 py-2.5 rounded-xl transition-all",
+                  isActive
+                    ? "bg-violet-50 text-violet-700 font-bold shadow-sm border border-violet-100"
+                    : "text-gray-600 font-semibold hover:bg-gray-50 border border-transparent"
+                )}
+              >
+                <Icon className={cn("w-4 h-4 mr-3", isActive ? "text-violet-600" : "text-gray-400")} weight={isActive ? "fill" : "regular"} />
+                <span className="text-[13px]">{item.label}</span>
+              </Link>
+            );
+          })}
 
-          {/* Right side actions */}
-          <div className="flex items-center gap-2">
+          {customLists.length > 0 && (
+            <div className="pt-4 mt-4 border-t border-gray-100">
+              <p className="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Lists</p>
+              {customLists.map((list) => {
+                const IconComp = getListIcon(list.icon);
+                const isActive = location === `/app/lists/${list.id}`;
+                return (
+                  <Link
+                    key={list.id}
+                    href={`/app/lists/${list.id}`}
+                    data-testid={`nav-list-${list.id}`}
+                    className={cn(
+                      "w-full flex items-center px-3 py-2.5 rounded-xl transition-all",
+                      isActive
+                        ? "bg-violet-50 text-violet-700 font-bold shadow-sm border border-violet-100"
+                        : "text-gray-600 font-semibold hover:bg-gray-50 border border-transparent"
+                    )}
+                  >
+                    <IconComp className={cn("w-4 h-4 mr-3", isActive ? "text-violet-600" : "text-gray-400")} weight={isActive ? "fill" : "regular"} />
+                    <span className="text-[13px] flex-1">{list.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="pt-2">
             <button
-              onClick={() => setQuickAddOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500 text-white text-sm font-semibold hover:bg-violet-600 transition-colors"
-              data-testid="nav-addaction"
+              onClick={() => setCreateDialogOpen(true)}
+              className="w-full flex items-center px-3 py-2.5 rounded-xl text-gray-400 font-semibold hover:bg-gray-50 border border-transparent transition-all"
+              data-testid="nav-create-list"
             >
-              <Lightning className="h-4 w-4" weight="fill" />
-              <span className="hidden sm:inline">Add</span>
+              <Plus className="w-4 h-4 mr-3" />
+              <span className="text-[13px]">New List</span>
             </button>
+          </div>
 
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="p-2 rounded-lg text-[#6B7280] hover:text-[#1A1A1A] hover:bg-[#F5F5F0] transition-colors"
-              data-testid="nav-search"
-              title="Search (Ctrl+F)"
+          <div className="pt-4 mt-4 border-t border-gray-100 space-y-1">
+            <Link
+              href="/app/actioned"
+              data-testid="nav-actioned"
+              className={cn(
+                "w-full flex items-center px-3 py-2 rounded-xl transition-all text-[13px]",
+                location === "/app/actioned"
+                  ? "bg-violet-50 text-violet-700 font-bold"
+                  : "text-gray-400 font-semibold hover:bg-gray-50 hover:text-gray-600"
+              )}
             >
-              <MagnifyingGlass className="h-4 w-4" weight="bold" />
-            </button>
+              <CheckCircle className="w-4 h-4 mr-3" weight={location === "/app/actioned" ? "fill" : "regular"} />
+              Actioned
+            </Link>
+            <Link
+              href="/app/deleted"
+              data-testid="nav-deleted"
+              className={cn(
+                "w-full flex items-center px-3 py-2 rounded-xl transition-all text-[13px]",
+                location === "/app/deleted"
+                  ? "bg-violet-50 text-violet-700 font-bold"
+                  : "text-gray-400 font-semibold hover:bg-gray-50 hover:text-gray-600"
+              )}
+            >
+              <Trash className="w-4 h-4 mr-3" weight={location === "/app/deleted" ? "fill" : "regular"} />
+              Deleted
+            </Link>
+          </div>
+        </div>
 
+        <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+          <div className="flex items-center space-x-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button
-                  className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-[#F5F5F0] transition-colors"
-                  data-testid="button-user-menu"
-                >
-                  <div className="w-7 h-7 rounded-full bg-violet-500 flex items-center justify-center text-white text-xs font-semibold">
+                <button className="flex items-center space-x-3 flex-1 text-left hover:bg-gray-100 rounded-xl p-1.5 -m-1.5 transition-colors" data-testid="button-user-menu">
+                  <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700">
                     {(user.name || "U").charAt(0).toUpperCase()}
                   </div>
-                  <CaretDown className="h-3 w-3 text-[#9CA3AF] hidden sm:block" />
+                  <span className="text-sm font-semibold text-gray-600 flex-1 truncate">{user.name || "User"}</span>
+                  <CaretDown className="h-3 w-3 text-gray-400" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-3 py-2 border-b border-[#E5E5E0]">
-                  <p className="text-sm font-semibold text-[#1A1A1A]" data-testid="text-user-name">{user.name || "User"}</p>
-                  <p className="text-xs text-[#9CA3AF]">{user.email}</p>
+              <DropdownMenuContent align="start" side="top" className="w-56">
+                <div className="px-3 py-2 border-b border-gray-100">
+                  <p className="text-sm font-semibold text-gray-900" data-testid="text-user-name">{user.name || "User"}</p>
+                  <p className="text-xs text-gray-400">{user.email}</p>
                 </div>
-                <DropdownMenuItem
-                  onClick={() => setLocation("/app/planner")}
-                  className="cursor-pointer"
-                  data-testid="menu-planner"
-                >
-                  <Compass className="h-4 w-4 mr-2 text-violet-500" />
-                  Planner
+                <DropdownMenuItem onClick={() => setSearchOpen(true)} className="cursor-pointer" data-testid="menu-search">
+                  <MagnifyingGlass className="h-4 w-4 mr-2 text-gray-400" />
+                  Search
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setLocation("/app/reminders")}
-                  className="cursor-pointer"
-                  data-testid="menu-reminders"
-                >
-                  <Bell className="h-4 w-4 mr-2 text-[#9CA3AF]" />
-                  Reminders
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setLocation("/app/actioned")}
-                  className="cursor-pointer"
-                  data-testid="menu-actioned"
-                >
-                  <CheckCircle className="h-4 w-4 mr-2 text-[#9CA3AF]" />
-                  Actioned
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setLocation("/app/deleted")}
-                  className="cursor-pointer"
-                  data-testid="menu-deleted"
-                >
-                  <Trash className="h-4 w-4 mr-2 text-[#9CA3AF]" />
-                  Deleted
-                </DropdownMenuItem>
-                {customLists.length > 0 && (
-                  <>
-                    <DropdownMenuSeparator />
-                    {customLists.map((list) => {
-                      const IconComp = getListIcon(list.icon);
-                      return (
-                        <DropdownMenuItem
-                          key={list.id}
-                          onClick={() => setLocation(`/app/lists/${list.id}`)}
-                          className="cursor-pointer"
-                          data-testid={`menu-list-${list.id}`}
-                        >
-                          <IconComp className="h-4 w-4 mr-2 text-[#9CA3AF]" />
-                          {list.name}
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setCreateDialogOpen(true)}
-                  className="cursor-pointer"
-                  data-testid="menu-create-list"
-                >
-                  <Plus className="h-4 w-4 mr-2 text-violet-500" />
-                  New List
+                <DropdownMenuItem onClick={() => setQuickAddOpen(true)} className="cursor-pointer" data-testid="menu-quickadd">
+                  <Lightning className="h-4 w-4 mr-2 text-violet-500" weight="fill" />
+                  Quick Add
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => setLocation("/app/guide")}
-                  className="cursor-pointer"
-                  data-testid="menu-getting-started"
-                >
-                  <BookOpenText className="h-4 w-4 mr-2 text-[#9CA3AF]" />
+                <DropdownMenuItem onClick={() => setLocation("/app/guide")} className="cursor-pointer" data-testid="menu-getting-started">
+                  <BookOpenText className="h-4 w-4 mr-2 text-gray-400" />
                   Getting Started
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setSettingsOpen(true)}
-                  className="cursor-pointer"
-                  data-testid="menu-settings"
-                >
-                  <GearSix className="h-4 w-4 mr-2 text-[#9CA3AF]" />
+                <DropdownMenuItem onClick={() => setSettingsOpen(true)} className="cursor-pointer" data-testid="menu-settings">
+                  <GearSix className="h-4 w-4 mr-2 text-gray-400" />
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -370,44 +365,110 @@ export default function Layout({ children }: LayoutProps) {
             </DropdownMenu>
           </div>
         </div>
-      </header>
+      </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 pb-20 md:pb-0">
-        <div className={cn(
-          "mx-auto p-6 animate-in fade-in duration-300",
-          location === '/app/calendar' ? "max-w-full" : "max-w-4xl"
-        )}>
-          {children}
-        </div>
-      </main>
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
 
-      {/* Mobile Bottom Tab Bar */}
-      <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#E5E5E0]"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        {/* MOBILE HEADER */}
+        <header className="md:hidden bg-white px-6 pt-3 pb-3 flex justify-between items-center shadow-sm z-10 sticky top-0">
+          <h1 className="text-xl font-bold text-gray-900">{activeLabel}</h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setQuickAddOpen(true)}
+              className="p-2 bg-violet-500 text-white rounded-lg shadow-sm"
+              data-testid="mobile-quickadd"
+            >
+              <Plus className="w-4 h-4" weight="bold" />
+            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-xs font-bold text-violet-700" data-testid="mobile-user-menu">
+                  {(user.name || "U").charAt(0).toUpperCase()}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-3 py-2 border-b border-gray-100">
+                  <p className="text-sm font-semibold text-gray-900">{user.name || "User"}</p>
+                  <p className="text-xs text-gray-400">{user.email}</p>
+                </div>
+                <DropdownMenuItem onClick={() => setSearchOpen(true)} className="cursor-pointer">
+                  <MagnifyingGlass className="h-4 w-4 mr-2 text-gray-400" />
+                  Search
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocation("/app/actioned")} className="cursor-pointer">
+                  <CheckCircle className="h-4 w-4 mr-2 text-gray-400" />
+                  Actioned
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLocation("/app/deleted")} className="cursor-pointer">
+                  <Trash className="h-4 w-4 mr-2 text-gray-400" />
+                  Deleted
+                </DropdownMenuItem>
+                {customLists.map((list) => {
+                  const IconComp = getListIcon(list.icon);
+                  return (
+                    <DropdownMenuItem key={list.id} onClick={() => setLocation(`/app/lists/${list.id}`)} className="cursor-pointer">
+                      <IconComp className="h-4 w-4 mr-2 text-gray-400" />
+                      {list.name}
+                    </DropdownMenuItem>
+                  );
+                })}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setSettingsOpen(true)} className="cursor-pointer">
+                  <GearSix className="h-4 w-4 mr-2 text-gray-400" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={async () => {
+                    await logout();
+                    window.location.href = "/";
+                  }}
+                  className="cursor-pointer text-red-500"
+                >
+                  <SignOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+
+        {/* VIEW CONTAINER */}
+        <main className="flex-1 overflow-y-auto pb-24 md:pb-0">
+          <div className="animate-in fade-in duration-300 h-full">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      {/* MOBILE BOTTOM NAV */}
+      <div
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-2 pb-[env(safe-area-inset-bottom,0px)] pt-2 z-50"
       >
-        <div className="flex items-center justify-around h-14">
+        <div className="flex overflow-x-auto hide-scrollbar space-x-1 px-2 pb-2">
           {mobileTabItems.map((item) => {
-            const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             const Icon = item.icon;
+            const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                data-testid={`tab-${item.label.toLowerCase()}`}
+                data-testid={`tab-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
                 className={cn(
-                  "flex flex-col items-center justify-center flex-1 h-full py-1.5 transition-colors",
-                  isActive ? "text-violet-500" : "text-[#9CA3AF]"
+                  "flex flex-col items-center justify-center min-w-[68px] p-2 rounded-2xl transition-all flex-shrink-0",
+                  isActive
+                    ? "bg-violet-600 text-white shadow-md"
+                    : "text-gray-400 hover:bg-gray-50"
                 )}
               >
-                <Icon className="h-5 w-5 mb-0.5" weight={isActive ? "fill" : "regular"} />
-                <span className="text-[10px] font-medium">{item.label}</span>
+                <Icon className={cn("w-5 h-5 mb-1", isActive ? "text-white" : "text-gray-400")} weight={isActive ? "fill" : "regular"} />
+                <span className="text-[10px] font-bold tracking-wide">{item.label}</span>
               </Link>
             );
           })}
         </div>
-      </nav>
+      </div>
 
       <QuickAdd isOpen={quickAddOpen} onOpenChange={setQuickAddOpen} />
       <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />

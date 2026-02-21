@@ -27,12 +27,14 @@ interface User {
 interface AppState {
   user: User;
   theme: Theme;
+  focusTask: string | null;
   setUser: (user: User) => void;
   login: () => void;
   logout: () => void;
   updateUser: (updates: Partial<User>) => void;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  setFocusTask: (task: string) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -55,6 +57,8 @@ export const useStore = create<AppState>()(
       },
 
       theme: "dark" as Theme,
+
+      focusTask: null,
 
       setUser: (user) => set({ user: { ...user, isAuthenticated: true } }),
 
@@ -89,6 +93,8 @@ export const useStore = create<AppState>()(
       toggleTheme: () => set((state) => ({ 
         theme: state.theme === "dark" ? "light" : "dark" 
       })),
+
+      setFocusTask: (task) => set({ focusTask: task }),
     }),
     {
       name: "action-minutes-storage",

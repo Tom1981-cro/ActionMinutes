@@ -741,27 +741,25 @@ export default function CapturePage() {
   const isLoading = ocrLoading || transcriptionLoading || recordingAutoTranscribing;
 
   return (
-    <div ref={containerRef} className="flex flex-col h-[calc(100vh-4rem)] md:h-screen overflow-y-auto">
+    <div ref={containerRef} className="flex flex-col h-full overflow-y-auto p-6">
       <div 
         ref={headerRef}
         className={cn(
-          "sticky top-0 z-40 transition-all duration-300 px-4 py-3",
-          isHeaderSticky ? "border-b border-border" : "bg-transparent"
+          "sticky top-0 z-40 transition-all duration-300",
+          isHeaderSticky ? "border-b border-gray-100 pb-3" : "bg-transparent"
         )}
       >
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <button 
               onClick={() => setLocation("/app/meetings")} 
-              className="rounded-full h-10 w-10 shrink-0" 
+              className="rounded-xl h-10 w-10 shrink-0 flex items-center justify-center hover:bg-gray-100 transition-colors" 
               data-testid="button-back"
               aria-label="Go back to meetings"
             >
-              <ArrowLeft className="h-5 w-5" weight="bold" />
-            </Button>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground flex-1">Capture</h1>
+              <ArrowLeft className="h-5 w-5 text-gray-600" weight="bold" />
+            </button>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900 flex-1">Capture</h1>
             <Button
               size="sm"
               className="rounded-xl gap-1.5 text-xs"

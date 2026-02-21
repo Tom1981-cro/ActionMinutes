@@ -527,28 +527,28 @@ export default function JournalPage() {
   }
 
   return (
-    <div className="space-y-5 pb-6">
+    <div className="p-6 space-y-5 pb-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground" data-testid="text-journal-title">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900" data-testid="text-journal-title">
             Journal & Reflection
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">Capture thoughts, clear your mind, and plan ahead.</p>
+          <p className="text-gray-500 text-sm mt-1">Capture thoughts, clear your mind, and plan ahead.</p>
         </div>
-        <Button 
+        <button 
           onClick={() => {
             setNewText("");
             setTemplateUsed(null);
             setSelectedMood(null);
             setTimeout(() => textareaRef.current?.focus(), 100);
           }}
-          className="rounded-xl"
+          className="bg-violet-500 hover:bg-violet-600 text-white rounded-xl px-4 py-2 text-sm font-bold flex items-center gap-1.5 transition-colors"
           data-testid="button-new-entry"
         >
-          <Plus className="h-4 w-4 mr-2" weight="bold" />
+          <Plus className="h-4 w-4" weight="bold" />
           New Entry
-        </Button>
+        </button>
       </div>
 
       {/* Two-column layout */}

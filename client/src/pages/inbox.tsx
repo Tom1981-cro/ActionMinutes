@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authenticatedFetch } from "@/hooks/use-auth";
 import { useStore } from "@/lib/store";
@@ -9,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { format, isToday, isYesterday, addDays, isBefore, startOfDay } from "date-fns";
 import {
   CheckCircle, Clock, Trash, User, Flag, CaretDown, CaretRight,
-  Sparkle, Lightning, Tray, Plus, Hourglass, Timer, WarningCircle
+  Sparkle, Lightning, Tray, Plus, Hourglass, Timer, WarningCircle, Play
 } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -88,7 +89,7 @@ function classifyItem(item: UnifiedItem): string {
 }
 
 export default function InboxPage() {
-  const { user } = useStore();
+  const { user, setFocusTask } = useStore();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -260,12 +261,19 @@ export default function InboxPage() {
   const meetingCount = unifiedItems.filter(i => i.source === 'meeting' && !['done', 'completed'].includes(i.status)).length;
   const showGettingStarted = unifiedItems.length === 0 && meetingCount === 0;
 
+  const [, navigate] = useLocation();
+
+  const handleStartFocus = useCallback((item: UnifiedItem) => {
+    setFocusTask(item.text);
+    navigate('/app/focus');
+  }, [setFocusTask, navigate]);
+
   if (isLoading) {
     return (
-      <div className="space-y-5 pb-6">
+      <div className="p-6 space-y-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Inbox</h1>
-          <p className="text-muted-foreground text-sm mt-1">Loading...</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Inbox</h1>
+          <p className="text-gray-500 text-sm mt-1">Loading...</p>
         </div>
         <SkeletonList count={4} type="action" />
       </div>
@@ -273,25 +281,25 @@ export default function InboxPage() {
   }
 
   return (
-    <div className="space-y-5 pb-6">
+    <div className="p-6 space-y-5 pb-6">
       {showGettingStarted && (
         <GettingStarted hasMeetings={meetingCount > 0} className="mb-2" />
       )}
 
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Inbox</h1>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Inbox</h1>
+          <p className="text-sm text-gray-500 mt-1">
             Review, triage, and process your incoming items.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-full border border-border overflow-hidden">
+          <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-0.5">
             <button
               onClick={() => setViewMode("list")}
               className={cn(
-                "px-3 py-1.5 text-xs font-medium transition-colors",
-                viewMode === "list" ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"
+                "px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors",
+                viewMode === "list" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
               )}
               data-testid="toggle-list"
             >
@@ -300,27 +308,26 @@ export default function InboxPage() {
             <button
               onClick={() => setViewMode("smart")}
               className={cn(
-                "px-3 py-1.5 text-xs font-medium transition-colors",
-                viewMode === "smart" ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"
+                "px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors",
+                viewMode === "smart" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
               )}
               data-testid="toggle-smart"
             >
               Smart Group
             </button>
           </div>
-          <Button
-            size="sm"
+          <button
             onClick={() => setQuickAddOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full"
+            className="bg-violet-500 hover:bg-violet-600 text-white rounded-xl px-4 py-2 text-xs font-bold flex items-center gap-1.5 transition-colors"
             data-testid="button-quick-add"
           >
-            <Plus className="h-4 w-4 mr-1" weight="bold" />
+            <Plus className="h-4 w-4" weight="bold" />
             Quick Add
-          </Button>
+          </button>
         </div>
       </div>
 
-      <div className="flex items-center gap-1.5 flex-wrap">
+      <div className="flex items-center gap-1 border-b border-gray-100 pb-2">
         {(["all", "unread", "assigned", "snoozed"] as FilterType[]).map((f) => {
           const labels: Record<FilterType, string> = { all: "All", unread: "Unread", assigned: "Assigned to Me", snoozed: "Snoozed" };
           return (
@@ -328,10 +335,10 @@ export default function InboxPage() {
               key={f}
               onClick={() => { setFilter(f); setCurrentPage(1); }}
               className={cn(
-                "px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                "px-3 py-1.5 text-xs font-semibold transition-colors border-b-2 -mb-[9px]",
                 filter === f
-                  ? "bg-accent text-foreground border border-border"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                  ? "border-violet-500 text-gray-900"
+                  : "border-transparent text-gray-400 hover:text-gray-600"
               )}
               data-testid={`filter-${f}`}
             >
@@ -538,20 +545,15 @@ function ItemCard({
 }: ItemCardProps) {
   const itemOverdue = isOverdue(item.dueDate);
   const unread = isUnread(item.createdAt);
-
-  const borderColor = item.status === "needs_review"
-    ? "border-l-orange-500"
-    : itemOverdue
-      ? "border-l-primary"
-      : "border-l-border";
+  const { setFocusTask } = useStore();
+  const [, nav] = useLocation();
 
   return (
     <div
       className={cn(
-        "relative flex items-center gap-3 bg-card rounded-xl border-l-[3px] py-3 px-4 cursor-pointer transition-all group shadow-[0_2px_8px_rgba(0,0,0,0.06)]",
+        "relative flex items-center gap-3 bg-white rounded-2xl py-3 px-4 cursor-pointer transition-all group shadow-sm border border-gray-100",
         "hover:shadow-md",
-        borderColor,
-        selected && "ring-1 ring-primary/50 bg-accent/20"
+        selected && "ring-1 ring-violet-300 bg-violet-50/30"
       )}
       data-testid={`card-action-${item.id}`}
     >
@@ -591,8 +593,16 @@ function ItemCard({
 
           <div className="hidden group-hover:flex items-center gap-1 flex-shrink-0 animate-in fade-in duration-200">
             <button
+              onClick={(e) => { e.stopPropagation(); setFocusTask(item.text); nav('/app/focus'); }}
+              className="p-1.5 rounded-lg hover:bg-violet-100 text-gray-400 hover:text-violet-600 transition-colors"
+              title="Focus on this"
+              data-testid={`action-focus-${item.id}`}
+            >
+              <Play className="h-4 w-4" weight="fill" />
+            </button>
+            <button
               onClick={(e) => { e.stopPropagation(); onComplete(item); }}
-              className="p-1.5 rounded-lg hover:bg-emerald-500/15 text-muted-foreground hover:text-emerald-600 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-emerald-100 text-gray-400 hover:text-emerald-600 transition-colors"
               title="Complete"
               data-testid={`action-complete-${item.id}`}
             >
@@ -600,7 +610,7 @@ function ItemCard({
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onSnooze(item); }}
-              className="p-1.5 rounded-lg hover:bg-violet-600/15 text-muted-foreground hover:text-violet-600 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-violet-100 text-gray-400 hover:text-violet-600 transition-colors"
               title="Snooze to tomorrow"
               data-testid={`action-snooze-${item.id}`}
             >
@@ -608,7 +618,7 @@ function ItemCard({
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onDelete(item); }}
-              className="p-1.5 rounded-lg hover:bg-red-500/15 text-muted-foreground hover:text-red-600 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-red-100 text-gray-400 hover:text-red-600 transition-colors"
               title="Delete"
               data-testid={`action-delete-${item.id}`}
             >

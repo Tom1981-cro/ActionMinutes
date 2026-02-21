@@ -543,12 +543,12 @@ export default function RemindersPage() {
   };
 
   return (
-    <div className="space-y-4 pb-6">
+    <div className="p-6 space-y-4 pb-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Reminders</h1>
-          <p className="text-muted-foreground text-base mt-1">Personal tasks organized by when you'll do them</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Reminders</h1>
+          <p className="text-gray-500 text-base mt-1">Personal tasks organized by when you'll do them</p>
         </div>
         <Button 
           onClick={handleExportICS}

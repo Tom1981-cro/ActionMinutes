@@ -39,6 +39,8 @@ const ActionedPage = React.lazy(() => import("@/pages/actioned"));
 const DeletedPage = React.lazy(() => import("@/pages/deleted"));
 const CalendarPage = React.lazy(() => import("@/pages/calendar"));
 const TranscriptsPage = React.lazy(() => import("@/pages/transcripts"));
+const FocusPage = React.lazy(() => import("@/pages/focus"));
+const VerbsPage = React.lazy(() => import("@/pages/verbs"));
 
 function PageLoader() {
   return (
@@ -198,6 +200,16 @@ function Router() {
               </Suspense>
             </ErrorBoundary>
           </Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/focus">
+        <ProtectedRoute>
+          <Layout><Suspense fallback={<PageLoader />}><FocusPage /></Suspense></Layout>
+        </ProtectedRoute>
+      </Route>
+      <Route path="/app/verbs">
+        <ProtectedRoute>
+          <Layout><Suspense fallback={<PageLoader />}><VerbsPage /></Suspense></Layout>
         </ProtectedRoute>
       </Route>
       <Route path="/app/tasks">

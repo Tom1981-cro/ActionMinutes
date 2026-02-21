@@ -469,12 +469,12 @@ export default function CalendarPage() {
 
   return (
     <TooltipProvider>
-      <div className="pb-6">
+      <div className="p-6 pb-6">
         <div className="flex gap-0">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight text-foreground" data-testid="text-calendar-title">
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900" data-testid="text-calendar-title">
                   {headerTitle}
                 </h1>
                 <div className="flex items-center gap-0.5 ml-2">
@@ -509,16 +509,16 @@ export default function CalendarPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="flex items-center rounded-full border border-border bg-muted/50 p-0.5" data-testid="view-mode-toggle">
+                <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-0.5" data-testid="view-mode-toggle">
                   {(['month', 'week', 'day'] as ViewMode[]).map((mode) => (
                     <button
                       key={mode}
                       onClick={() => setViewMode(mode)}
                       className={cn(
-                        "px-3 py-1 text-xs font-medium rounded-full transition-all capitalize",
+                        "px-3 py-1.5 text-xs font-semibold rounded-lg transition-all capitalize",
                         viewMode === mode
-                          ? "bg-primary text-primary-foreground shadow-sm"
-                          : "text-muted-foreground hover:text-foreground"
+                          ? "bg-white text-gray-900 shadow-sm"
+                          : "text-gray-500 hover:text-gray-700"
                       )}
                       data-testid={`button-view-${mode}`}
                     >
@@ -540,7 +540,7 @@ export default function CalendarPage() {
 
             {/* Month View */}
             {viewMode === 'month' && (
-              <div className="border border-border rounded-xl overflow-hidden bg-card" data-testid="card-calendar-grid">
+              <div className="border border-gray-100 rounded-3xl overflow-hidden bg-white shadow-sm" data-testid="card-calendar-grid">
                 <div className="grid grid-cols-7 border-b border-border">
                   {DAY_HEADERS.map(day => (
                     <div key={day} className="text-center text-xs font-semibold py-2.5 text-muted-foreground tracking-wider border-r border-border last:border-r-0">

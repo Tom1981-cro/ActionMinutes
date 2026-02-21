@@ -338,12 +338,12 @@ export default function NotesPage() {
   };
   
   return (
-    <div className="pb-6">
+    <div className="p-6 pb-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-1">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground" data-testid="text-notes-title">Notes</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Capture ideas, meeting minutes, and quick thoughts.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900" data-testid="text-notes-title">Notes & Meetings</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Capture ideas, meeting minutes, and quick thoughts.</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="flex rounded-lg p-0.5 bg-muted">
