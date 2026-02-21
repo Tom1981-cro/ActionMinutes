@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path";
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -9,7 +10,7 @@ import {
   insertRiskSchema, insertClarifyingQuestionSchema,
   insertWorkspaceSchema, insertWorkspaceMemberSchema, insertWorkspaceInviteSchema,
   insertCalendarExportSchema, insertAiAuditLogSchema, insertFeedbackSchema,
-  meetings, notes, transcripts,
+  meetings, notes, transcripts, taskAttachments,
   type WorkspaceRole
 } from "@shared/schema";
 import { eq, and, or, desc, ilike, isNull } from "drizzle-orm";
@@ -2161,6 +2162,24 @@ Thanks!`,
         fileUrl: `/uploads/tasks/${req.file.filename}`,
       });
       res.json(attachment);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // GET /api/attachments/:id/download
+  app.get("/api/attachments/:id/download", requireAuth, async (req, res) => {
+    try {
+      const attachments = await db.select().from(taskAttachments).where(eq(taskAttachments.id, req.params.id));
+      const attachment = attachments[0];
+      if (!attachment) return res.status(404).json({ error: "Attachment not found" });
+
+      const filePath = path.join(process.cwd(), attachment.fileUrl);
+      if (!fs.existsSync(filePath)) return res.status(404).json({ error: "File not found" });
+
+      res.setHeader("Content-Type", attachment.fileType);
+      res.setHeader("Content-Disposition", `inline; filename="${attachment.filename}"`);
+      res.sendFile(filePath);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }

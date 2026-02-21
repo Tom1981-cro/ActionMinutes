@@ -856,8 +856,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                           className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-accent/30 text-sm group/att cursor-pointer hover:bg-accent/50 transition-colors"
                           data-testid={`attachment-${att.id}`}
                           onClick={() => {
-                            const url = att.fileUrl || att.url;
-                            if (url) window.open(url, "_blank");
+                            window.open(`/api/attachments/${att.id}/download`, "_blank");
                           }}
                         >
                           <span className="text-sm">{getFileIcon(att.filename || att.fileName || att.name || "file")}</span>
