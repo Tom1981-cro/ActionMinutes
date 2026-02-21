@@ -257,38 +257,37 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange, defaultDate }: 
         return { type: "meeting", data: meeting };
       }
 
-      const reminderData: any = {
+      const actionData: any = {
         userId: user.id,
         text: title.trim(),
         description: description || null,
-        bucket: finalDueDate ? determineBucket(finalDueDate) : "sometime",
         dueDate: finalDueDate?.toISOString() || null,
         deadline: finalDeadline?.toISOString() || null,
         priority: priority === "none" ? "normal" : priority,
+        source: "quickadd",
         tags: selectedTags,
         location: location || null,
         recurrence: recurrence || null,
         reminderAt: finalReminderAt?.toISOString() || null,
-        sourceType: "addaction",
       };
 
-      const res = await authenticatedFetch("/api/personal/reminders", {
+      const res = await authenticatedFetch("/api/actions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(reminderData),
+        body: JSON.stringify(actionData),
       });
       if (!res.ok) throw new Error("Failed to create action");
-      const reminder = await res.json();
+      const action = await res.json();
 
       if (destination !== "inbox" && destination !== "meetings") {
         await authenticatedFetch(`/api/lists/${destination}/items`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reminderId: reminder.id }),
+          body: JSON.stringify({ reminderId: action.id }),
         });
       }
 
-      return { type: destination, data: reminder };
+      return { type: destination, data: action };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["reminders"] });

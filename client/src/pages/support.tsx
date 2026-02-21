@@ -11,7 +11,7 @@ export default function SupportPage() {
   const faqs = [
     {
       question: "What is ActionMinutes?",
-      answer: "ActionMinutes is a personal productivity assistant that helps you organize your life. It combines notes, reminders, journal, calendar, and custom lists in one place—plus AI that extracts action items from meeting notes."
+      answer: "ActionMinutes is a personal productivity assistant that helps you organize your life. It combines notes, journal, calendar, and custom lists in one place—plus AI that extracts action items from meeting notes."
     },
     {
       question: "How does AI extraction work?",
@@ -23,7 +23,7 @@ export default function SupportPage() {
     },
     {
       question: "What's included in the Free plan?",
-      answer: "Free includes unlimited notes and lists, personal reminders, daily journal, and 5 AI extractions per month. It's everything you need to get started."
+      answer: "Free includes unlimited notes and lists, daily journal, and 5 AI extractions per month. It's everything you need to get started."
     },
     {
       question: "What does Pro unlock?",
@@ -47,7 +47,7 @@ export default function SupportPage() {
     },
     {
       icon: Bell,
-      text: "Organize reminders by time: Today, Tomorrow, Next Week, Someday",
+      text: "Use your Inbox to organize tasks by priority and due date",
       color: "text-violet-400"
     },
     {

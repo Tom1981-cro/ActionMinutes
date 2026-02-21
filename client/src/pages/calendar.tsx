@@ -45,7 +45,6 @@ import {
   Video,
   DotsSixVertical,
   Tray,
-  BellRinging,
   CalendarBlank,
   CheckCircle,
   Clock,
@@ -78,7 +77,7 @@ interface TaskItem {
   priority: string;
   status: string;
   isCompleted?: boolean;
-  type: 'task' | 'reminder';
+  type: 'task';
   listId?: string;
 }
 
@@ -139,7 +138,6 @@ export default function CalendarPage() {
 
   const [showLists, setShowLists] = useState<Record<string, boolean>>({
     inbox: true,
-    reminders: true,
   });
   const [showListIds, setShowListIds] = useState<Record<string, boolean>>({});
 
@@ -174,17 +172,6 @@ export default function CalendarPage() {
       const data = await response.json();
       return data.events || [];
     }
-  });
-
-  const { data: allReminders = [] } = useQuery({
-    queryKey: ['/api/personal/reminders', user.id],
-    queryFn: async () => {
-      if (!user.id) return [];
-      const response = await authenticatedFetch(`/api/personal/reminders?userId=${user.id}`);
-      if (!response.ok) return [];
-      return response.json();
-    },
-    enabled: !!user.id
   });
 
   const { data: allTasks = [] } = useQuery({
@@ -224,21 +211,6 @@ export default function CalendarPage() {
 
   const unifiedItems: TaskItem[] = useMemo(() => {
     const items: TaskItem[] = [];
-    if (showLists.reminders !== false) {
-      for (const r of allReminders) {
-        if (r.deletedAt || r.isCompleted) continue;
-        items.push({
-          id: r.id,
-          title: r.text,
-          dueDate: r.dueDate || null,
-          estimatedMinutes: 30,
-          priority: r.priority || 'normal',
-          status: r.status || 'open',
-          isCompleted: r.isCompleted,
-          type: 'reminder'
-        });
-      }
-    }
     for (const t of allTasks) {
       if (t.deletedAt || t.status === 'done' || t.status === 'completed') continue;
       if (t.listId) {
@@ -258,7 +230,7 @@ export default function CalendarPage() {
       });
     }
     return items;
-  }, [allReminders, allTasks, showLists, showListIds]);
+  }, [allTasks, showLists, showListIds]);
 
   const backlogItems = useMemo(() => {
     return unifiedItems.filter(item => !item.dueDate);
@@ -291,12 +263,8 @@ export default function CalendarPage() {
 
   const assignTaskToDate = useMutation({
     mutationFn: async ({ item, date }: { item: TaskItem; date: Date }) => {
-      const endpoint = item.type === 'reminder' 
-        ? `/api/personal/reminders/${item.id}`
-        : `/api/tasks/${item.id}`;
-      const method = item.type === 'reminder' ? 'PATCH' : 'PUT';
-      const response = await authenticatedFetch(endpoint, {
-        method,
+      const response = await authenticatedFetch(`/api/tasks/${item.id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ dueDate: date.toISOString() })
       });
@@ -304,7 +272,6 @@ export default function CalendarPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/personal/reminders'] });
       queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
       toast({ title: "Task scheduled!" });
     },
@@ -315,23 +282,15 @@ export default function CalendarPage() {
 
   const markItemComplete = useMutation({
     mutationFn: async (item: TaskItem) => {
-      const endpoint = item.type === 'reminder'
-        ? `/api/personal/reminders/${item.id}`
-        : `/api/tasks/${item.id}`;
-      const method = item.type === 'reminder' ? 'PATCH' : 'PUT';
-      const body = item.type === 'reminder'
-        ? { isCompleted: true }
-        : { status: 'done' };
-      const response = await authenticatedFetch(endpoint, {
-        method,
+      const response = await authenticatedFetch(`/api/tasks/${item.id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify({ status: 'done' })
       });
       if (!response.ok) throw new Error("Failed to complete");
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/personal/reminders'] });
       queryClient.invalidateQueries({ queryKey: ['/api/tasks'] });
       setSelectedDetailItem(null);
       toast({ title: "Marked as complete!" });
@@ -1019,10 +978,10 @@ export default function CalendarPage() {
               <div className="space-y-1.5">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <Checkbox
-                    checked={showLists.inbox && showLists.reminders && customLists.every(l => showListIds[l.id] !== false)}
+                    checked={showLists.inbox && customLists.every(l => showListIds[l.id] !== false)}
                     onCheckedChange={(checked) => {
                       const val = !!checked;
-                      setShowLists({ inbox: val, reminders: val });
+                      setShowLists({ inbox: val });
                       const newIds: Record<string, boolean> = {};
                       customLists.forEach(l => { newIds[l.id] = val; });
                       setShowListIds(newIds);
@@ -1061,17 +1020,6 @@ export default function CalendarPage() {
                     <span className="text-xs text-foreground truncate">{list.name}</span>
                   </label>
                 ))}
-
-                <label className="flex items-center gap-2 cursor-pointer pt-[4px] pb-[4px]">
-                  <Checkbox
-                    checked={showLists.reminders !== false}
-                    onCheckedChange={() => toggleList('reminders')}
-                    className="h-4 w-4 rounded-full"
-                    data-testid="filter-reminders"
-                  />
-                  <BellRinging className="h-3.5 w-3.5 text-muted-foreground" weight="duotone" />
-                  <span className="text-xs text-foreground">Reminders</span>
-                </label>
 
                 <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-2 mb-1">Tags</div>
                 <p className="text-[10px] text-muted-foreground">Tag filtering coming soon</p>
@@ -1198,17 +1146,13 @@ export default function CalendarPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Task/Reminder Detail Dialog */}
+        {/* Task Detail Dialog */}
         <Dialog open={!!selectedDetailItem} onOpenChange={(open) => !open && setSelectedDetailItem(null)}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-lg" data-testid="text-detail-title">
-                {selectedDetailItem?.type === 'reminder' ? (
-                  <BellRinging className="h-5 w-5 text-primary" weight="duotone" />
-                ) : (
-                  <CheckCircle className="h-5 w-5 text-primary" weight="duotone" />
-                )}
-                {selectedDetailItem?.type === 'reminder' ? 'Reminder' : 'Task'} Details
+                <CheckCircle className="h-5 w-5 text-primary" weight="duotone" />
+                Task Details
               </DialogTitle>
               <DialogDescription className="sr-only">View details of the selected item</DialogDescription>
             </DialogHeader>
@@ -1288,11 +1232,7 @@ export default function CalendarPage() {
                     variant="outline"
                     onClick={() => {
                       setSelectedDetailItem(null);
-                      if (selectedDetailItem.type === 'reminder') {
-                        navigate('/app/inbox');
-                      } else {
-                        navigate(`/app/task/${selectedDetailItem.id}`);
-                      }
+                      navigate(`/app/task/${selectedDetailItem.id}`);
                     }}
                     className="gap-2"
                     data-testid="button-open-full"

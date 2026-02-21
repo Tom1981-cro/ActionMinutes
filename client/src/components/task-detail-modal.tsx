@@ -71,7 +71,7 @@ interface TaskDetailModalProps {
   open: boolean;
   onClose: () => void;
   itemId: string;
-  itemType: "meeting" | "reminder";
+  itemType: "meeting" | "reminder"; // kept for backwards compat, all items use actions API
 }
 
 export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailModalProps) {
@@ -118,23 +118,17 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
   const [isPinned, setIsPinned] = useState(false);
 
   const { data: item, isLoading } = useQuery({
-    queryKey: [itemType === "meeting" ? "action" : "reminder", itemId],
+    queryKey: ["action", itemId],
     queryFn: async () => {
-      if (itemType === "meeting") {
-        return api.actions.get(itemId);
-      } else {
-        const res = await authenticatedFetch(`/api/personal/reminders/${itemId}`);
-        if (!res.ok) throw new Error("Not found");
-        return res.json();
-      }
+      return api.actions.get(itemId);
     },
     enabled: !!itemId && open,
   });
 
   const { data: fetchedAttachments = [] } = useQuery({
-    queryKey: ["attachments", itemType, itemId],
+    queryKey: ["attachments", "meeting", itemId],
     queryFn: async () => {
-      const res = await authenticatedFetch(`/api/attachments?parentType=${itemType === "meeting" ? "action_item" : "reminder"}&parentId=${itemId}`);
+      const res = await authenticatedFetch(`/api/attachments?parentType=action_item&parentId=${itemId}`);
       if (!res.ok) return [];
       return res.json();
     },
@@ -151,11 +145,10 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
     enabled: open,
   });
 
-  const listApiBase = itemType === "meeting" ? "actions" : "reminders";
-  const { data: reminderListInfo } = useQuery<{ listId: string | null; listName: string | null; listIcon: string | null }>({
-    queryKey: ["item-list", itemType, itemId],
+  const { data: listInfo } = useQuery<{ listId: string | null; listName: string | null; listIcon: string | null }>({
+    queryKey: ["item-list", "meeting", itemId],
     queryFn: async () => {
-      const res = await authenticatedFetch(`/api/${listApiBase}/${itemId}/list`);
+      const res = await authenticatedFetch(`/api/actions/${itemId}/list`);
       if (!res.ok) return { listId: null, listName: null, listIcon: null };
       return res.json();
     },
@@ -174,7 +167,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
 
   const moveToList = useMutation({
     mutationFn: async (targetListId: string | null) => {
-      const res = await authenticatedFetch(`/api/${listApiBase}/${itemId}/move`, {
+      const res = await authenticatedFetch(`/api/actions/${itemId}/move`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ targetListId }),
@@ -192,8 +185,8 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
     },
   });
 
-  const currentListId = reminderListInfo?.listId || null;
-  const currentListName = reminderListInfo?.listName || null;
+  const currentListId = listInfo?.listId || null;
+  const currentListName = listInfo?.listName || null;
 
   useEffect(() => {
     setText("");
@@ -287,16 +280,14 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
 
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ["actions"] });
-    queryClient.invalidateQueries({ queryKey: ["reminders"] });
-    queryClient.invalidateQueries({ queryKey: ["reminders", user.id] });
     queryClient.invalidateQueries({ queryKey: ["actioned"] });
     queryClient.invalidateQueries({ queryKey: ["deleted"] });
     queryClient.invalidateQueries({ queryKey: ["tasks"] });
     queryClient.invalidateQueries({ queryKey: ["inbox-items"] });
     queryClient.invalidateQueries({ queryKey: ["custom-list"] });
     queryClient.invalidateQueries({ queryKey: ["custom-lists"] });
-    queryClient.invalidateQueries({ queryKey: ["item-list", itemType, itemId] });
-    queryClient.invalidateQueries({ queryKey: [itemType === "meeting" ? "action" : "reminder", itemId] });
+    queryClient.invalidateQueries({ queryKey: ["item-list", "meeting", itemId] });
+    queryClient.invalidateQueries({ queryKey: ["action", itemId] });
   };
 
   const combineDateTime = (date: Date | null, time: string): Date | null => {
@@ -364,44 +355,20 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
         ? subtasks.map(s => ({ id: s.id, text: s.text, completed: s.completed }))
         : null;
 
-      if (itemType === "meeting") {
-        await api.actions.update(itemId, {
-          text,
-          ownerName: ownerName || null,
-          ownerEmail: ownerEmail || null,
-          dueDate: finalDueDate?.toISOString() || null,
-          status,
-          reminderAt: computedReminderAt,
-          description: description || null,
-          subtasks: subtasksPayload,
-          notes: notes || null,
-          tags,
-          confidenceOwner: 1,
-          confidenceDueDate: 1,
-        });
-      } else {
-        await authenticatedFetch(`/api/personal/reminders/${itemId}?userId=${user.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text,
-            description: description || null,
-            dueDate: finalDueDate?.toISOString() || null,
-            deadline: finalDeadline?.toISOString() || null,
-            status,
-            priority: priority === "none" ? "normal" : priority,
-            reminderAt: computedReminderAt,
-            reminderMode: reminder || null,
-            notes: notes || null,
-            tags,
-            location: location || null,
-            recurrence: recurrence || null,
-            waitingFor: waitingFor || null,
-            isCompleted: status === "done",
-            completedAt: status === "done" ? new Date().toISOString() : null,
-          }),
-        });
-      }
+      await api.actions.update(itemId, {
+        text,
+        ownerName: ownerName || null,
+        ownerEmail: ownerEmail || null,
+        dueDate: finalDueDate?.toISOString() || null,
+        status,
+        reminderAt: computedReminderAt,
+        description: description || null,
+        subtasks: subtasksPayload,
+        notes: notes || null,
+        tags,
+        confidenceOwner: 1,
+        confidenceDueDate: 1,
+      });
       invalidateAll();
       toast({ title: "Saved" });
       onClose();
@@ -415,13 +382,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      if (itemType === "meeting") {
-        await api.actions.delete(itemId);
-      } else {
-        await authenticatedFetch(`/api/personal/reminders/${itemId}?userId=${user.id}`, {
-          method: "DELETE",
-        });
-      }
+      await api.actions.delete(itemId);
       invalidateAll();
       toast({ title: "Deleted" });
       onClose();
@@ -435,15 +396,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
   const handleComplete = async () => {
     setIsSaving(true);
     try {
-      if (itemType === "meeting") {
-        await api.actions.update(itemId, { status: "done" });
-      } else {
-        await authenticatedFetch(`/api/personal/reminders/${itemId}?userId=${user.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isCompleted: true, status: "done" }),
-        });
-      }
+      await api.actions.update(itemId, { status: "done" });
       invalidateAll();
       toast({ title: "Completed" });
       onClose();
@@ -476,7 +429,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
       for (const file of Array.from(files)) {
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("parentType", itemType === "meeting" ? "action_item" : "reminder");
+        formData.append("parentType", "action_item");
         formData.append("parentId", itemId);
         const res = await authenticatedFetch("/api/attachments", {
           method: "POST",
@@ -484,7 +437,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
         });
         if (!res.ok) throw new Error("Upload failed");
       }
-      queryClient.invalidateQueries({ queryKey: ["attachments", itemType, itemId] });
+      queryClient.invalidateQueries({ queryKey: ["attachments", "meeting", itemId] });
       toast({ title: "Uploaded" });
     } catch {
       toast({ title: "Upload failed", variant: "destructive" });
@@ -497,7 +450,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
   const handleDeleteAttachment = async (attachmentId: string) => {
     try {
       await authenticatedFetch(`/api/attachments/${attachmentId}`, { method: "DELETE" });
-      queryClient.invalidateQueries({ queryKey: ["attachments", itemType, itemId] });
+      queryClient.invalidateQueries({ queryKey: ["attachments", "meeting", itemId] });
       toast({ title: "Removed" });
     } catch {
       toast({ title: "Failed to remove", variant: "destructive" });

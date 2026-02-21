@@ -1,6 +1,6 @@
 import { 
   users, meetings, attendees, decisions, risks, clarifyingQuestions,
-  actionItems, followUpDrafts, personalEntries, personalReminders, journalPrompts, journalPromptShown,
+  actionItems, followUpDrafts, personalEntries, journalPrompts, journalPromptShown,
   workspaces, workspaceMembers, workspaceInvites,
   oauthConnections, calendarExports, aiAuditLogs, feedback, transcripts,
   transcriptSummaries, transcriptTasks, projects, tasks,
@@ -17,7 +17,7 @@ import {
   type ActionItem, type InsertActionItem,
   type FollowUpDraft, type InsertFollowUpDraft,
   type PersonalEntry, type InsertPersonalEntry,
-  type PersonalReminder, type InsertPersonalReminder,
+
   type JournalPrompt, type InsertJournalPrompt,
   type Workspace, type InsertWorkspace,
   type WorkspaceMember, type InsertWorkspaceMember,
@@ -124,13 +124,6 @@ export interface IStorage {
   updatePersonalEntry(id: string, updates: Partial<PersonalEntry>): Promise<PersonalEntry | undefined>;
   deletePersonalEntry(id: string): Promise<void>;
   
-  // Personal Reminders
-  getPersonalReminders(userId: string, bucket?: string): Promise<PersonalReminder[]>;
-  getPersonalReminder(id: string): Promise<PersonalReminder | undefined>;
-  createPersonalReminder(reminder: InsertPersonalReminder): Promise<PersonalReminder>;
-  updatePersonalReminder(id: string, updates: Partial<PersonalReminder>): Promise<PersonalReminder | undefined>;
-  deletePersonalReminder(id: string): Promise<void>;
-  
   // Journal Prompts
   getJournalPrompts(category?: string, intent?: string): Promise<JournalPrompt[]>;
   createJournalPrompt(prompt: InsertJournalPrompt): Promise<JournalPrompt>;
@@ -232,8 +225,8 @@ export interface IStorage {
     task: Task, 
     calculateNextOccurrence: (date: Date, recurrence: string) => Date
   ): Promise<{ completedTask: Task; nextTask?: Task }>;
-  getActionedItems(userId: string): Promise<{ tasks: Task[]; reminders: PersonalReminder[]; actions: ActionItem[] }>;
-  getDeletedItems(userId: string): Promise<{ tasks: Task[]; reminders: PersonalReminder[]; actions: ActionItem[] }>;
+  getActionedItems(userId: string): Promise<{ tasks: Task[]; reminders: any[]; actions: ActionItem[] }>;
+  getDeletedItems(userId: string): Promise<{ tasks: Task[]; reminders: any[]; actions: ActionItem[] }>;
   restoreItem(type: string, id: string): Promise<void>;
   
   // Calendar Events
@@ -485,13 +478,26 @@ export class DatabaseStorage implements IStorage {
         .where(and(eq(actionItems.workspaceId, workspaceId), isNull(actionItems.deletedAt)))
         .orderBy(desc(actionItems.createdAt));
     }
-    return await db
+    const meetingItems = await db
       .select({ actionItems })
       .from(actionItems)
       .innerJoin(meetings, eq(actionItems.meetingId, meetings.id))
       .where(and(eq(meetings.userId, userId), isNull(actionItems.workspaceId), isNull(actionItems.deletedAt)))
       .orderBy(desc(actionItems.createdAt))
       .then(rows => rows.map(r => r.actionItems));
+
+    const directItems = await db.select().from(actionItems)
+      .where(and(
+        eq(actionItems.userId, userId),
+        isNull(actionItems.meetingId),
+        isNull(actionItems.workspaceId),
+        isNull(actionItems.deletedAt)
+      ))
+      .orderBy(desc(actionItems.createdAt));
+
+    const allItems = [...meetingItems, ...directItems];
+    allItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return allItems;
   }
 
   async getActionItemsForMeeting(meetingId: string): Promise<ActionItem[]> {
@@ -582,41 +588,6 @@ export class DatabaseStorage implements IStorage {
 
   async deletePersonalEntry(id: string): Promise<void> {
     await db.delete(personalEntries).where(eq(personalEntries.id, id));
-  }
-
-  // ==================== PERSONAL REMINDERS ====================
-  async getPersonalReminders(userId: string, bucket?: string): Promise<PersonalReminder[]> {
-    if (bucket) {
-      return await db.select().from(personalReminders)
-        .where(and(eq(personalReminders.userId, userId), eq(personalReminders.bucket, bucket), isNull(personalReminders.deletedAt)))
-        .orderBy(desc(personalReminders.createdAt));
-    }
-    return await db.select().from(personalReminders)
-      .where(and(eq(personalReminders.userId, userId), isNull(personalReminders.deletedAt)))
-      .orderBy(desc(personalReminders.createdAt));
-  }
-
-  async getPersonalReminder(id: string): Promise<PersonalReminder | undefined> {
-    const [reminder] = await db.select().from(personalReminders).where(eq(personalReminders.id, id));
-    return reminder || undefined;
-  }
-
-  async createPersonalReminder(reminder: InsertPersonalReminder): Promise<PersonalReminder> {
-    const [newReminder] = await db.insert(personalReminders).values(reminder).returning();
-    return newReminder;
-  }
-
-  async updatePersonalReminder(id: string, updates: Partial<PersonalReminder>): Promise<PersonalReminder | undefined> {
-    const updateData = { ...updates, updatedAt: new Date() };
-    if (updates.isCompleted === true && !updates.completedAt) {
-      updateData.completedAt = new Date();
-    }
-    const [reminder] = await db.update(personalReminders).set(updateData).where(eq(personalReminders.id, id)).returning();
-    return reminder || undefined;
-  }
-
-  async deletePersonalReminder(id: string): Promise<void> {
-    await db.delete(personalReminders).where(eq(personalReminders.id, id));
   }
 
   // ==================== JOURNAL PROMPTS ====================
@@ -1083,45 +1054,45 @@ export class DatabaseStorage implements IStorage {
     await db.update(tasks).set({ deletedAt: new Date(), updatedAt: new Date() }).where(eq(tasks.id, id));
   }
 
-  async getActionedItems(userId: string): Promise<{ tasks: Task[]; reminders: PersonalReminder[]; actions: ActionItem[] }> {
+  async getActionedItems(userId: string): Promise<{ tasks: Task[]; reminders: any[]; actions: ActionItem[] }> {
     const completedTasks = await db.select().from(tasks)
       .where(and(eq(tasks.userId, userId), eq(tasks.status, 'done'), isNull(tasks.deletedAt)))
       .orderBy(desc(tasks.completedAt));
-    const completedReminders = await db.select().from(personalReminders)
-      .where(and(eq(personalReminders.userId, userId), eq(personalReminders.status, 'done'), isNull(personalReminders.deletedAt)))
-      .orderBy(desc(personalReminders.completedAt));
-    const completedActions = await db
+    const meetingActions = await db
       .select({ actionItems })
       .from(actionItems)
       .innerJoin(meetings, eq(actionItems.meetingId, meetings.id))
       .where(and(eq(meetings.userId, userId), eq(actionItems.status, 'done'), isNull(actionItems.deletedAt)))
       .orderBy(desc(actionItems.completedAt))
       .then(rows => rows.map(r => r.actionItems));
-    return { tasks: completedTasks, reminders: completedReminders, actions: completedActions };
+    const directActions = await db.select().from(actionItems)
+      .where(and(eq(actionItems.userId, userId), isNull(actionItems.meetingId), eq(actionItems.status, 'done'), isNull(actionItems.deletedAt)))
+      .orderBy(desc(actionItems.completedAt));
+    const completedActions = [...meetingActions, ...directActions];
+    return { tasks: completedTasks, reminders: [], actions: completedActions };
   }
 
-  async getDeletedItems(userId: string): Promise<{ tasks: Task[]; reminders: PersonalReminder[]; actions: ActionItem[] }> {
+  async getDeletedItems(userId: string): Promise<{ tasks: Task[]; reminders: any[]; actions: ActionItem[] }> {
     const deletedTasks = await db.select().from(tasks)
       .where(and(eq(tasks.userId, userId), not(isNull(tasks.deletedAt))))
       .orderBy(desc(tasks.deletedAt));
-    const deletedReminders = await db.select().from(personalReminders)
-      .where(and(eq(personalReminders.userId, userId), not(isNull(personalReminders.deletedAt))))
-      .orderBy(desc(personalReminders.deletedAt));
-    const deletedActions = await db
+    const meetingActions = await db
       .select({ actionItems })
       .from(actionItems)
       .innerJoin(meetings, eq(actionItems.meetingId, meetings.id))
       .where(and(eq(meetings.userId, userId), not(isNull(actionItems.deletedAt))))
       .orderBy(desc(actionItems.deletedAt))
       .then(rows => rows.map(r => r.actionItems));
-    return { tasks: deletedTasks, reminders: deletedReminders, actions: deletedActions };
+    const directActions = await db.select().from(actionItems)
+      .where(and(eq(actionItems.userId, userId), isNull(actionItems.meetingId), not(isNull(actionItems.deletedAt))))
+      .orderBy(desc(actionItems.deletedAt));
+    const deletedActions = [...meetingActions, ...directActions];
+    return { tasks: deletedTasks, reminders: [], actions: deletedActions };
   }
 
   async restoreItem(type: string, id: string): Promise<void> {
     if (type === 'task') {
       await db.update(tasks).set({ deletedAt: null, updatedAt: new Date() }).where(eq(tasks.id, id));
-    } else if (type === 'reminder') {
-      await db.update(personalReminders).set({ deletedAt: null, updatedAt: new Date() }).where(eq(personalReminders.id, id));
     } else if (type === 'action') {
       await db.update(actionItems).set({ deletedAt: null }).where(eq(actionItems.id, id));
     }
@@ -1568,12 +1539,6 @@ export class DatabaseStorage implements IStorage {
       let task = undefined;
       let actionItem = undefined;
       
-      if (item.reminderId) {
-        const r = await this.getPersonalReminder(item.reminderId);
-        if (r && r.userId === userId) {
-          reminder = r;
-        }
-      }
       if (item.taskId) {
         const t = await this.getTask(item.taskId);
         if (t && t.userId === userId) {

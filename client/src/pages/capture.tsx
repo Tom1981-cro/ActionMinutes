@@ -1476,14 +1476,13 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be auto-detected!`}
                     const actionsToAdd = detectedActions.filter((_, i) => selectedActions.has(i));
                     
                     for (const action of actionsToAdd) {
-                      await authenticatedFetch('/api/personal/reminders', {
+                      await authenticatedFetch('/api/actions', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                          userId: user.id,
                           text: action.text,
-                          bucket: 'today',
-                          priority: 'normal',
+                          status: 'needs_review',
+                          source: 'quickadd',
                         }),
                       });
                     }

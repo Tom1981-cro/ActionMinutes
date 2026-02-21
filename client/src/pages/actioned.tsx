@@ -15,11 +15,10 @@ import { TaskDetailModal } from "@/components/task-detail-modal";
 
 interface ActionedData {
   tasks: any[];
-  reminders: any[];
   actions: any[];
 }
 
-type ItemType = 'task' | 'reminder' | 'action';
+type ItemType = 'task' | 'action';
 
 interface UnifiedItem {
   id: string;
@@ -162,10 +161,8 @@ export default function ActionedPage() {
     mutationFn: async ({ type, id }: { type: ItemType; id: string }) => {
       if (type === 'action') {
         await authenticatedFetch(`/api/actions/${id}`, { method: "DELETE" });
-      } else if (type === 'task') {
-        await authenticatedFetch(`/api/tasks/${id}/soft-delete`, { method: "POST" });
       } else {
-        await authenticatedFetch(`/api/personal/reminders/${id}?userId=${user.id}`, { method: "DELETE" });
+        await authenticatedFetch(`/api/tasks/${id}/soft-delete`, { method: "POST" });
       }
     },
     onSuccess: () => {
@@ -195,16 +192,6 @@ export default function ActionedPage() {
       _type: 'task' as ItemType,
       _raw: t,
     })),
-    ...(data?.reminders || []).map((r: any) => ({
-      id: r.id,
-      text: r.text,
-      description: r.description,
-      ownerName: undefined,
-      priority: r.priority,
-      completedAt: r.completedAt,
-      _type: 'reminder' as ItemType,
-      _raw: r,
-    })),
   ].sort((a, b) => {
     const aDate = a.completedAt ? new Date(a.completedAt).getTime() : 0;
     const bDate = b.completedAt ? new Date(b.completedAt).getTime() : 0;
@@ -215,13 +202,7 @@ export default function ActionedPage() {
   const paginatedItems = allItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const handleItemClick = (item: UnifiedItem) => {
-    if (item._type === 'action') {
-      setSelectedItem({ id: item.id, type: 'meeting' });
-    } else if (item._type === 'reminder') {
-      setSelectedItem({ id: item.id, type: 'reminder' });
-    } else {
-      setSelectedItem({ id: item.id, type: 'meeting' });
-    }
+    setSelectedItem({ id: item.id, type: 'meeting' });
   };
 
   return (

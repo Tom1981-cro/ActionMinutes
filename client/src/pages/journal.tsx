@@ -421,16 +421,13 @@ export default function JournalPage() {
 
   const createTaskFromAction = useMutation({
     mutationFn: async ({ action, entryId }: { action: ExtractedAction; entryId: string }) => {
-      const res = await fetch('/api/personal/reminders', {
+      const res = await fetch('/api/actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user.id,
           text: action.text,
-          priority: action.priority,
-          bucket: "today",
-          sourceType: "journal",
-          sourceId: entryId,
+          status: 'needs_review',
+          source: 'journal',
         }),
       });
       if (!res.ok) throw new Error('Failed to create task');
@@ -438,7 +435,7 @@ export default function JournalPage() {
     },
     onSuccess: (_, variables) => {
       setCreatedTaskIds(prev => new Set(prev).add(variables.action.text));
-      queryClient.invalidateQueries({ queryKey: ['reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['actions'] });
       toast({ title: "Task created", description: variables.action.text });
     },
   });
@@ -447,19 +444,6 @@ export default function JournalPage() {
     if (!newText.trim()) {
       toast({ title: "Please write something", variant: "destructive" });
       return;
-    }
-    
-    if (moveLowPriorityTasks && selectedMood === 'tough') {
-      try {
-        await fetch('/api/reminders/snooze-low-priority', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.id }),
-        });
-        toast({ title: "Low-priority tasks moved to tomorrow" });
-      } catch (e) {
-        console.error('Failed to snooze tasks', e);
-      }
     }
     
     createEntry.mutate({ 

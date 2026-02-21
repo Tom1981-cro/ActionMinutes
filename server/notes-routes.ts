@@ -541,13 +541,12 @@ router.post('/:id/extract-actions', requireAuth, async (req: Request, res: Respo
     const createdTasks = [];
     for (const action of actions) {
       try {
-        const task = await storage.createPersonalReminder({
+        const task = await storage.createActionItem({
           userId,
           text: action.text || String(action),
-          bucket: 'sometime',
           priority: action.priority || 'normal',
           status: 'open',
-          sourceType: 'manual',
+          source: 'manual',
           notes: `Extracted from note: ${note.title}`,
           tags: [],
         });

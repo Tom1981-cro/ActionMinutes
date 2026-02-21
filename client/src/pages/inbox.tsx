@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useLocation } from "wouter";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { authenticatedFetch } from "@/hooks/use-auth";
 import { useStore } from "@/lib/store";
 import { useActionItems } from "@/lib/hooks";
@@ -29,7 +29,7 @@ interface UnifiedItem {
   dueDate: string | null;
   ownerName: string | null;
   status: string;
-  source: 'meeting' | 'quickadd' | 'reminder';
+  source: 'meeting' | 'quickadd';
   confidenceOwner?: number;
   confidenceDueDate?: number;
   waitingFor?: string | null;
@@ -101,41 +101,20 @@ export default function InboxPage() {
   const [modalItem, setModalItem] = useState<UnifiedItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: actionItems = [], isLoading: actionsLoading } = useActionItems();
-
-  const { data: personalReminders = [], isLoading: remindersLoading } = useQuery({
-    queryKey: ["reminders", user.id],
-    queryFn: async () => {
-      const res = await authenticatedFetch(`/api/personal/reminders?userId=${user.id}`);
-      if (!res.ok) return [];
-      return res.json();
-    },
-    enabled: !!user.id,
-  });
-
-  const isLoading = actionsLoading || remindersLoading;
+  const { data: actionItems = [], isLoading } = useActionItems();
 
   const invalidateAll = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["actions", user.id] });
     queryClient.invalidateQueries({ queryKey: ["actions"] });
-    queryClient.invalidateQueries({ queryKey: ["reminders"] });
   }, [queryClient, user.id]);
 
   const completeMutation = useMutation({
     mutationFn: async (item: UnifiedItem) => {
-      if (item.source === 'reminder') {
-        await authenticatedFetch(`/api/personal/reminders/${item.realId}?userId=${user.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isCompleted: true }),
-        });
-      } else {
-        await authenticatedFetch(`/api/actions/${item.realId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: "done" }),
-        });
-      }
+      await authenticatedFetch(`/api/actions/${item.realId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "done" }),
+      });
     },
     onSuccess: () => {
       invalidateAll();
@@ -146,19 +125,11 @@ export default function InboxPage() {
   const snoozeMutation = useMutation({
     mutationFn: async (item: UnifiedItem) => {
       const tomorrow = addDays(new Date(), 1);
-      if (item.source === 'reminder') {
-        await authenticatedFetch(`/api/personal/reminders/${item.realId}?userId=${user.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dueDate: tomorrow.toISOString() }),
-        });
-      } else {
-        await authenticatedFetch(`/api/actions/${item.realId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ dueDate: tomorrow.toISOString() }),
-        });
-      }
+      await authenticatedFetch(`/api/actions/${item.realId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dueDate: tomorrow.toISOString() }),
+      });
     },
     onSuccess: () => {
       invalidateAll();
@@ -168,11 +139,7 @@ export default function InboxPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (item: UnifiedItem) => {
-      if (item.source === 'reminder') {
-        await authenticatedFetch(`/api/personal/reminders/${item.realId}?userId=${user.id}`, { method: "DELETE" });
-      } else {
-        await authenticatedFetch(`/api/actions/${item.realId}`, { method: "DELETE" });
-      }
+      await authenticatedFetch(`/api/actions/${item.realId}`, { method: "DELETE" });
     },
     onSuccess: () => {
       invalidateAll();
@@ -180,8 +147,8 @@ export default function InboxPage() {
     },
   });
 
-  const unifiedItems: UnifiedItem[] = useMemo(() => [
-    ...actionItems
+  const unifiedItems: UnifiedItem[] = useMemo(() =>
+    actionItems
       .filter((item: any) => !['done', 'completed'].includes(item.status) && !item.deletedAt)
       .map((item: any) => ({
         id: item.id,
@@ -190,7 +157,7 @@ export default function InboxPage() {
         dueDate: item.dueDate,
         ownerName: item.ownerName,
         status: item.status,
-        source: (item.source === 'quickadd' ? 'quickadd' : 'meeting') as 'meeting' | 'quickadd' | 'reminder',
+        source: (item.source === 'quickadd' ? 'quickadd' : 'meeting') as 'meeting' | 'quickadd',
         confidenceOwner: item.confidenceOwner,
         confidenceDueDate: item.confidenceDueDate,
         waitingFor: item.waitingFor,
@@ -200,23 +167,7 @@ export default function InboxPage() {
         createdAt: item.createdAt || null,
         estimatedMinutes: item.estimatedMinutes,
       })),
-    ...personalReminders
-      .filter((r: any) => !r.isCompleted && !r.deletedAt)
-      .map((r: any) => ({
-        id: `reminder-${r.id}`,
-        realId: r.id,
-        text: r.text,
-        dueDate: r.dueDate || null,
-        ownerName: user.name || null,
-        status: r.isCompleted ? 'done' : 'pending',
-        source: 'reminder' as const,
-        priority: r.priority || 'normal',
-        notes: r.notes || null,
-        description: r.notes || null,
-        createdAt: r.createdAt || null,
-        estimatedMinutes: r.estimatedMinutes || null,
-      })),
-  ], [actionItems, personalReminders, user.name]);
+  [actionItems]);
 
   const filteredItems = useMemo(() => {
     let items = unifiedItems;

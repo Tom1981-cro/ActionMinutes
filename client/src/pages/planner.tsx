@@ -7,7 +7,7 @@ import { authenticatedFetch } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import {
   Sun, Moon, CloudSun, CloudRain, CloudSnow, Wind, CloudFog, Cloud, Lightning as LightningBolt, Thermometer,
-  MapPin, Circle, CheckCircle, Clock, CalendarBlank, Bell, Tray, Target, Users, CaretRight,
+  MapPin, Circle, CheckCircle, Clock, CalendarBlank, Tray, Target, Users, CaretRight,
   Plus, ArrowRight, Sparkle, Star, Play, ArrowDown, ArrowUp
 } from "@phosphor-icons/react";
 import { TaskDetailModal } from "@/components/task-detail-modal";
@@ -38,17 +38,6 @@ interface ActionTask {
   estimatedMinutes?: number;
 }
 
-interface Reminder {
-  id: string;
-  text: string;
-  bucket: string;
-  dueDate: string | null;
-  isCompleted: boolean;
-  priority: string;
-  status: string;
-  deletedAt?: string | null;
-}
-
 const MAX_URGENT_ITEMS = 3;
 
 export default function PlannerPage() {
@@ -61,16 +50,6 @@ export default function PlannerPage() {
   const [modalItem, setModalItem] = useState<{ id: string; type: "meeting" | "reminder" } | null>(null);
 
   const { data: actions = [], isLoading: actionsLoading } = useActionItems();
-
-  const { data: reminders = [], isLoading: remindersLoading } = useQuery<Reminder[]>({
-    queryKey: ["reminders", user.id],
-    queryFn: async () => {
-      const res = await fetch(`/api/personal/reminders?userId=${user.id}`);
-      if (!res.ok) throw new Error("Failed to fetch reminders");
-      return res.json();
-    },
-    enabled: !!user.id,
-  });
 
   const { data: allMeetings = [], isLoading: meetingsLoading } = useMeetings();
 
@@ -120,22 +99,11 @@ export default function PlannerPage() {
     ...urgentOverflow,
   ];
 
-  const todayReminders = reminders.filter(r => {
-    if (r.deletedAt) return false;
-    if (r.bucket === 'today') return true;
-    if (r.dueDate) {
-      const due = new Date(r.dueDate);
-      return due >= startOfToday && due < endOfToday;
-    }
-    return false;
-  });
-
-  const allItems = [...todayActions, ...todayReminders.filter(r => !r.isCompleted)];
-  const spent = allItems.length * 30;
+  const spent = todayActions.length * 30;
   const capacity = 480;
   const remaining = Math.max(0, capacity - spent);
 
-  const isLoading = actionsLoading || remindersLoading || meetingsLoading;
+  const isLoading = actionsLoading || meetingsLoading;
 
   const handleStartFocus = (taskText: string) => {
     setFocusTask(taskText);
@@ -209,10 +177,6 @@ export default function PlannerPage() {
               <span>Tasks today</span>
               <span className="font-semibold text-gray-900">{todayActions.length}</span>
             </div>
-            <div className="flex justify-between text-gray-500">
-              <span>Personal tasks</span>
-              <span className="font-semibold text-gray-900">{todayReminders.length}</span>
-            </div>
           </div>
           <button
             onClick={() => navigate('/app/inbox')}
@@ -276,7 +240,7 @@ export default function PlannerPage() {
           <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex-1 flex flex-col min-h-0">
             <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3">Everything Else</h3>
             <div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar">
-              {otherTasks.length === 0 && todayReminders.length === 0 ? (
+              {otherTasks.length === 0 ? (
                 <div className="flex items-center justify-center py-8 text-gray-400 text-sm">
                   All clear for today
                 </div>
@@ -315,18 +279,6 @@ export default function PlannerPage() {
                           <Play className="w-3.5 h-3.5" weight="fill" />
                         </button>
                       </div>
-                    </div>
-                  ))}
-                  {todayReminders.map(r => (
-                    <div key={r.id} className="bg-gray-50 p-3.5 rounded-2xl flex justify-between items-center border border-gray-100">
-                      <button
-                        onClick={() => navigate('/app/inbox')}
-                        className="text-sm font-medium text-gray-700 text-left flex-1 mr-2 flex items-center gap-2"
-                      >
-                        <Tray className="w-3.5 h-3.5 text-gray-400" />
-                        {r.text}
-                      </button>
-                      <span className="text-[10px] font-bold bg-gray-200 text-gray-500 px-2 py-1 rounded">30m</span>
                     </div>
                   ))}
                 </>

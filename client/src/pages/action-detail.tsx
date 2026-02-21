@@ -68,7 +68,6 @@ export default function ActionDetailPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const itemType = params?.type as "meeting" | "reminder";
   const itemId = params?.id || "";
 
   const [text, setText] = useState("");
@@ -107,11 +106,10 @@ export default function ActionDetailPage() {
   const sourceListId = searchParams.get("listId");
   const sourceListName = searchParams.get("listName") ? decodeURIComponent(searchParams.get("listName")!) : null;
 
-  const listApiBase = itemType === "meeting" ? "actions" : "reminders";
-  const { data: reminderListInfo, isLoading: listInfoLoading } = useQuery<{ listId: string | null; listName: string | null; listIcon: string | null }>({
-    queryKey: ["item-list", itemType, itemId],
+  const { data: listInfo, isLoading: listInfoLoading } = useQuery<{ listId: string | null; listName: string | null; listIcon: string | null }>({
+    queryKey: ["item-list", "meeting", itemId],
     queryFn: async () => {
-      const res = await authenticatedFetch(`/api/${listApiBase}/${itemId}/list`);
+      const res = await authenticatedFetch(`/api/actions/${itemId}/list`);
       if (!res.ok) return { listId: null, listName: null, listIcon: null };
       return res.json();
     },
@@ -129,7 +127,7 @@ export default function ActionDetailPage() {
 
   const moveToList = useMutation({
     mutationFn: async (targetListId: string | null) => {
-      const res = await authenticatedFetch(`/api/${listApiBase}/${itemId}/move`, {
+      const res = await authenticatedFetch(`/api/actions/${itemId}/move`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ targetListId }),
@@ -138,10 +136,9 @@ export default function ActionDetailPage() {
       return res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["item-list", itemType, itemId] });
+      queryClient.invalidateQueries({ queryKey: ["item-list", "meeting", itemId] });
       queryClient.invalidateQueries({ queryKey: ["custom-list"] });
       queryClient.invalidateQueries({ queryKey: ["custom-lists"] });
-      queryClient.invalidateQueries({ queryKey: ["reminders"] });
       queryClient.invalidateQueries({ queryKey: ["actions"] });
       queryClient.invalidateQueries({ queryKey: ["inbox-items"] });
       setListDropdownOpen(false);
@@ -154,8 +151,8 @@ export default function ActionDetailPage() {
     },
   });
 
-  const currentListId = reminderListInfo?.listId || null;
-  const currentListName = reminderListInfo?.listName || null;
+  const currentListId = listInfo?.listId || null;
+  const currentListName = listInfo?.listName || null;
 
   const backLabel = fromSource === "list" && sourceListName
     ? `Back to ${sourceListName}`
@@ -165,15 +162,9 @@ export default function ActionDetailPage() {
     : "/app/inbox";
 
   const { data: item, isLoading } = useQuery({
-    queryKey: [itemType === "meeting" ? "action" : "reminder", itemId],
+    queryKey: ["action", itemId],
     queryFn: async () => {
-      if (itemType === "meeting") {
-        return api.actions.get(itemId);
-      } else {
-        const res = await authenticatedFetch(`/api/personal/reminders/${itemId}`);
-        if (!res.ok) throw new Error("Not found");
-        return res.json();
-      }
+      return api.actions.get(itemId);
     },
     enabled: !!itemId,
   });
@@ -188,9 +179,9 @@ export default function ActionDetailPage() {
   });
 
   const { data: fetchedAttachments = [] } = useQuery({
-    queryKey: ["attachments", itemType, itemId],
+    queryKey: ["attachments", "meeting", itemId],
     queryFn: async () => {
-      const res = await authenticatedFetch(`/api/attachments?parentType=${itemType === "meeting" ? "action_item" : "reminder"}&parentId=${itemId}`);
+      const res = await authenticatedFetch(`/api/attachments?parentType=action_item&parentId=${itemId}`);
       if (!res.ok) return [];
       return res.json();
     },
@@ -268,43 +259,19 @@ export default function ActionDetailPage() {
       const finalDueDate = combineDateTime(dueDate, dueTime);
       const finalDeadline = deadline;
 
-      if (itemType === "meeting") {
-        await api.actions.update(itemId, {
-          text,
-          ownerName: ownerName || null,
-          ownerEmail: ownerEmail || null,
-          dueDate: finalDueDate?.toISOString() || null,
-          status,
-          reminderAt: reminderAt?.toISOString() || null,
-          notes: notes || null,
-          tags,
-          confidenceOwner: 1,
-          confidenceDueDate: 1,
-        });
-      } else {
-        await authenticatedFetch(`/api/personal/reminders/${itemId}?userId=${user.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            text,
-            description: description || null,
-            dueDate: finalDueDate?.toISOString() || null,
-            deadline: finalDeadline?.toISOString() || null,
-            status,
-            priority: priority === "none" ? "normal" : priority,
-            reminderAt: reminderAt?.toISOString() || null,
-            notes: notes || null,
-            tags,
-            location: location || null,
-            recurrence: recurrence || null,
-            waitingFor: waitingFor || null,
-            isCompleted: status === "done",
-            completedAt: status === "done" ? new Date().toISOString() : null,
-          }),
-        });
-      }
+      await api.actions.update(itemId, {
+        text,
+        ownerName: ownerName || null,
+        ownerEmail: ownerEmail || null,
+        dueDate: finalDueDate?.toISOString() || null,
+        status,
+        reminderAt: reminderAt?.toISOString() || null,
+        notes: notes || null,
+        tags,
+        confidenceOwner: 1,
+        confidenceDueDate: 1,
+      });
       queryClient.invalidateQueries({ queryKey: ["actions"] });
-      queryClient.invalidateQueries({ queryKey: ["reminders"] });
       queryClient.invalidateQueries({ queryKey: ["actioned"] });
       queryClient.invalidateQueries({ queryKey: ["deleted"] });
       queryClient.invalidateQueries({ queryKey: ["custom-list"] });
@@ -321,15 +288,8 @@ export default function ActionDetailPage() {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      if (itemType === "meeting") {
-        await api.actions.delete(itemId);
-      } else {
-        await authenticatedFetch(`/api/personal/reminders/${itemId}?userId=${user.id}`, {
-          method: "DELETE",
-        });
-      }
+      await api.actions.delete(itemId);
       queryClient.invalidateQueries({ queryKey: ["actions"] });
-      queryClient.invalidateQueries({ queryKey: ["reminders"] });
       queryClient.invalidateQueries({ queryKey: ["actioned"] });
       queryClient.invalidateQueries({ queryKey: ["deleted"] });
       queryClient.invalidateQueries({ queryKey: ["custom-list"] });
@@ -351,7 +311,7 @@ export default function ActionDetailPage() {
       for (const file of Array.from(files)) {
         const formData = new FormData();
         formData.append("file", file);
-        formData.append("parentType", itemType === "meeting" ? "action_item" : "reminder");
+        formData.append("parentType", "action_item");
         formData.append("parentId", itemId);
         const res = await authenticatedFetch("/api/attachments", {
           method: "POST",
@@ -361,7 +321,7 @@ export default function ActionDetailPage() {
           throw new Error("Upload failed");
         }
       }
-      queryClient.invalidateQueries({ queryKey: ["attachments", itemType, itemId] });
+      queryClient.invalidateQueries({ queryKey: ["attachments", "meeting", itemId] });
       toast({ title: "Uploaded" });
     } catch {
       toast({ title: "Error", description: "Failed to upload", variant: "destructive" });
@@ -374,7 +334,7 @@ export default function ActionDetailPage() {
   const handleDeleteAttachment = async (attachmentId: string) => {
     try {
       await authenticatedFetch(`/api/attachments/${attachmentId}`, { method: "DELETE" });
-      await queryClient.invalidateQueries({ queryKey: ["attachments", itemType, itemId] });
+      await queryClient.invalidateQueries({ queryKey: ["attachments", "meeting", itemId] });
       toast({ title: "Attachment removed" });
     } catch {
       toast({ title: "Error", description: "Failed to remove", variant: "destructive" });
@@ -443,7 +403,7 @@ export default function ActionDetailPage() {
           {backLabel}
         </button>
         <div className="flex items-center gap-1">
-          {itemType === "meeting" && item?.meetingId && (
+          {item?.meetingId && (
             <button
               type="button"
               onClick={() => navigate(`/app/meeting/${item.meetingId}`)}
@@ -482,7 +442,7 @@ export default function ActionDetailPage() {
           </Button>
         ))}
 
-        {(itemType === "reminder" || itemType === "meeting") && (
+        {(
           <Popover open={listDropdownOpen} onOpenChange={setListDropdownOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -574,7 +534,7 @@ export default function ActionDetailPage() {
               data-testid="input-action-text"
             />
           </div>
-          {(itemType === "reminder" || description !== undefined) && (
+          {description !== undefined && (
             <div className="space-y-1.5">
               <Label className="text-[12px] text-muted-foreground">Description</Label>
               <Textarea

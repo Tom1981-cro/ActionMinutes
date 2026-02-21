@@ -165,20 +165,26 @@ export const clarifyingQuestions = pgTable("clarifying_questions", {
 // ==================== ACTION ITEMS ====================
 export const actionItems = pgTable("action_items", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
-  meetingId: varchar("meeting_id", { length: 36 }).notNull().references(() => meetings.id, { onDelete: 'cascade' }),
+  meetingId: varchar("meeting_id", { length: 36 }).references(() => meetings.id, { onDelete: 'cascade' }),
   workspaceId: varchar("workspace_id", { length: 36 }).references(() => workspaces.id, { onDelete: 'set null' }),
   ownerUserId: varchar("owner_user_id", { length: 36 }).references(() => users.id, { onDelete: 'set null' }),
+  userId: varchar("user_id", { length: 36 }).references(() => users.id, { onDelete: 'cascade' }),
   text: text("text").notNull(),
   ownerName: text("owner_name"),
   ownerEmail: text("owner_email"),
   dueDate: timestamp("due_date"),
+  deadline: timestamp("deadline"),
   status: text("status").notNull().default('needs_review'),
+  priority: text("priority").notNull().default('normal'),
+  source: text("source").notNull().default('meeting'),
   confidenceOwner: real("confidence_owner").notNull().default(0),
   confidenceDueDate: real("confidence_due_date").notNull().default(0),
   tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
   description: text("description"),
   subtasks: jsonb("subtasks"),
   notes: text("notes"),
+  location: text("location"),
+  recurrence: text("recurrence"),
   reminderAt: timestamp("reminder_at"),
   completedAt: timestamp("completed_at"),
   deletedAt: timestamp("deleted_at"),
@@ -221,34 +227,6 @@ export const personalEntries = pgTable("personal_entries", {
   extractedActions: text("extracted_actions").array(), // AI-detected potential tasks from entry text
   aiProcessed: boolean("ai_processed").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
-
-// ==================== PERSONAL REMINDERS ====================
-export const personalReminders = pgTable("personal_reminders", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-  text: text("text").notNull(),
-  description: text("description"),
-  bucket: text("bucket").notNull().default('sometime'), // today, tomorrow, next_week, next_month, sometime
-  dueDate: timestamp("due_date"),
-  deadline: timestamp("deadline"),
-  isCompleted: boolean("is_completed").notNull().default(false),
-  completedAt: timestamp("completed_at"),
-  priority: text("priority").notNull().default('normal'), // urgent, high, normal, low, optional
-  notes: text("notes"),
-  status: text("status").notNull().default('open'), // open, waiting, done
-  waitingFor: text("waiting_for"),
-  tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
-  location: text("location"),
-  recurrence: text("recurrence"),
-  reminderAt: timestamp("reminder_at"),
-  sourceType: text("source_type"), // addaction, manual, meeting, transcript
-  sourceId: varchar("source_id", { length: 36 }),
-  meetingId: varchar("meeting_id", { length: 36 }).references(() => meetings.id, { onDelete: 'set null' }),
-  calendarEventId: varchar("calendar_event_id", { length: 36 }),
-  deletedAt: timestamp("deleted_at"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 // ==================== JOURNAL PROMPTS ====================
@@ -463,14 +441,6 @@ export const insertPersonalEntrySchema = createInsertSchema(personalEntries).omi
   createdAt: true,
 });
 
-export const insertPersonalReminderSchema = createInsertSchema(personalReminders).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-  completedAt: true,
-  deletedAt: true,
-});
-
 export const insertJournalPromptSchema = createInsertSchema(journalPrompts).omit({
   id: true,
 });
@@ -556,9 +526,6 @@ export type FollowUpDraft = typeof followUpDrafts.$inferSelect;
 
 export type InsertPersonalEntry = z.infer<typeof insertPersonalEntrySchema>;
 export type PersonalEntry = typeof personalEntries.$inferSelect;
-
-export type InsertPersonalReminder = z.infer<typeof insertPersonalReminderSchema>;
-export type PersonalReminder = typeof personalReminders.$inferSelect;
 
 export type InsertJournalPrompt = z.infer<typeof insertJournalPromptSchema>;
 export type JournalPrompt = typeof journalPrompts.$inferSelect;
@@ -724,7 +691,7 @@ export const customLists = pgTable("custom_lists", {
 export const customListItems = pgTable("custom_list_items", {
   id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
   listId: varchar("list_id", { length: 36 }).notNull().references(() => customLists.id, { onDelete: 'cascade' }),
-  reminderId: varchar("reminder_id", { length: 36 }).references(() => personalReminders.id, { onDelete: 'cascade' }),
+  reminderId: varchar("reminder_id", { length: 36 }),
   taskId: varchar("task_id", { length: 36 }).references(() => tasks.id, { onDelete: 'cascade' }),
   actionItemId: varchar("action_item_id", { length: 36 }).references(() => actionItems.id, { onDelete: 'cascade' }),
   position: integer("position").notNull().default(0),

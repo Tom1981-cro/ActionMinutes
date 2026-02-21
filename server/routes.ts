@@ -9,7 +9,7 @@ import {
   insertRiskSchema, insertClarifyingQuestionSchema,
   insertWorkspaceSchema, insertWorkspaceMemberSchema, insertWorkspaceInviteSchema,
   insertCalendarExportSchema, insertAiAuditLogSchema, insertFeedbackSchema,
-  meetings, personalReminders, notes, transcripts,
+  meetings, notes, transcripts,
   type WorkspaceRole
 } from "@shared/schema";
 import { eq, and, or, desc, ilike, isNull } from "drizzle-orm";
@@ -1265,7 +1265,7 @@ Thanks!`,
 
     try {
       const entries = await storage.getPersonalEntries(userId);
-      const reminders = await storage.getPersonalReminders(userId);
+      const reminders: any[] = [];
 
       const moodEntries = entries
         .filter((e: any) => e.mood)
@@ -1521,74 +1521,6 @@ Thanks!`,
     res.json({ success: true });
   });
 
-  // ==================== PERSONAL REMINDERS ====================
-  app.get("/api/personal/reminders", async (req, res) => {
-    const userId = req.query.userId as string;
-    const bucket = req.query.bucket as string;
-    if (!userId) return res.status(400).json({ error: "userId is required" });
-    const reminders = await storage.getPersonalReminders(userId, bucket || undefined);
-    res.json(reminders);
-  });
-
-  app.get("/api/personal/reminders/:id", async (req, res) => {
-    const reminder = await storage.getPersonalReminder(req.params.id);
-    if (!reminder) return res.status(404).json({ error: "Reminder not found" });
-    res.json(reminder);
-  });
-
-  app.post("/api/personal/reminders", async (req, res) => {
-    const userId = req.body.userId as string;
-    if (!userId) return res.status(400).json({ error: "userId is required" });
-    
-    try {
-      const reminder = await storage.createPersonalReminder({
-        userId,
-        text: req.body.text,
-        bucket: req.body.bucket || 'sometime',
-        dueDate: req.body.dueDate ? new Date(req.body.dueDate) : undefined,
-        priority: req.body.priority || 'normal',
-        notes: req.body.notes,
-        isCompleted: false,
-      });
-      res.json(reminder);
-    } catch (error) {
-      res.status(400).json({ error: error instanceof Error ? error.message : "Validation error" });
-    }
-  });
-
-  app.patch("/api/personal/reminders/:id", async (req, res) => {
-    const userId = req.query.userId as string || req.body.userId;
-    if (!userId) return res.status(400).json({ error: "userId is required" });
-    
-    const reminder = await storage.getPersonalReminder(req.params.id);
-    if (!reminder) return res.status(404).json({ error: "Reminder not found" });
-    if (reminder.userId !== userId) return res.status(403).json({ error: "Access denied" });
-    
-    const updates: any = { ...req.body };
-    if (updates.dueDate && typeof updates.dueDate === 'string') {
-      updates.dueDate = new Date(updates.dueDate);
-    }
-    if (updates.completedAt && typeof updates.completedAt === 'string') {
-      updates.completedAt = new Date(updates.completedAt);
-    }
-    delete updates.userId;
-    
-    const updated = await storage.updatePersonalReminder(req.params.id, updates);
-    res.json(updated);
-  });
-
-  app.delete("/api/personal/reminders/:id", async (req, res) => {
-    const userId = req.query.userId as string;
-    if (!userId) return res.status(400).json({ error: "userId is required" });
-    
-    const reminder = await storage.getPersonalReminder(req.params.id);
-    if (!reminder) return res.status(404).json({ error: "Reminder not found" });
-    if (reminder.userId !== userId) return res.status(403).json({ error: "Access denied" });
-    
-    await storage.updatePersonalReminder(req.params.id, { deletedAt: new Date() } as any);
-    res.json({ success: true });
-  });
-
   // ==================== JOURNAL PROMPTS ====================
   app.get("/api/prompts", async (req, res) => {
     const category = req.query.category as string;
@@ -1686,22 +1618,6 @@ Thanks!`,
     
     let reminderId = req.body.reminderId;
     
-    if (req.body.text && !reminderId) {
-      const reminder = await storage.createPersonalReminder({
-        userId,
-        text: req.body.text,
-        bucket: 'sometime',
-        priority: 'normal',
-      });
-      reminderId = reminder.id;
-    }
-    
-    if (reminderId) {
-      const reminder = await storage.getPersonalReminder(reminderId);
-      if (!reminder || reminder.userId !== userId) {
-        return res.status(403).json({ error: "Reminder access denied" });
-      }
-    }
     if (req.body.taskId) {
       const task = await storage.getTask(req.body.taskId);
       if (!task || task.userId !== userId) {
@@ -1736,46 +1652,6 @@ Thanks!`,
     
     await storage.removeItemFromList(req.params.itemId, req.params.listId);
     res.json({ success: true });
-  });
-
-  app.get("/api/reminders/:id/list", requireAuth, async (req, res) => {
-    const userId = req.userId!;
-    const reminder = await storage.getPersonalReminder(req.params.id);
-    if (!reminder || reminder.userId !== userId) {
-      return res.status(404).json({ error: "Reminder not found" });
-    }
-    const listItem = await storage.getListItemByReminderId(req.params.id);
-    if (!listItem) {
-      return res.json({ listId: null, listName: null, listIcon: null });
-    }
-    res.json({ listId: listItem.listId, listName: listItem.listName, listIcon: listItem.listIcon });
-  });
-
-  app.post("/api/reminders/:id/move", requireAuth, async (req, res) => {
-    const userId = req.userId!;
-    const { targetListId } = req.body;
-
-    const reminder = await storage.getPersonalReminder(req.params.id);
-    if (!reminder || reminder.userId !== userId) {
-      return res.status(404).json({ error: "Reminder not found" });
-    }
-
-    if (targetListId) {
-      const targetList = await storage.getCustomList(targetListId);
-      if (!targetList || targetList.userId !== userId) {
-        return res.status(403).json({ error: "Target list not found" });
-      }
-      await storage.removeItemByReminderId(req.params.id);
-      await storage.addItemToList({
-        listId: targetListId,
-        reminderId: req.params.id,
-        position: 0,
-      });
-      res.json({ listId: targetListId, listName: targetList.name, listIcon: targetList.icon });
-    } else {
-      await storage.removeItemByReminderId(req.params.id);
-      res.json({ listId: null, listName: null, listIcon: null });
-    }
   });
 
   app.get("/api/actions/:id/list", requireAuth, async (req, res) => {
@@ -3338,9 +3214,6 @@ Thanks!`,
     if (type === 'task') {
       const task = await storage.getTask(id);
       if (!task || task.userId !== userId) return res.status(404).json({ error: "Not found" });
-    } else if (type === 'reminder') {
-      const reminder = await storage.getPersonalReminder(id);
-      if (!reminder || reminder.userId !== userId) return res.status(404).json({ error: "Not found" });
     } else if (type === 'action') {
       const action = await storage.getActionItem(id);
       if (!action) return res.status(404).json({ error: "Not found" });
@@ -3358,10 +3231,6 @@ Thanks!`,
       const task = await storage.getTask(id);
       if (!task || task.userId !== userId) return res.status(404).json({ error: "Not found" });
       await storage.deleteTask(id);
-    } else if (type === 'reminder') {
-      const reminder = await storage.getPersonalReminder(id);
-      if (!reminder || reminder.userId !== userId) return res.status(404).json({ error: "Not found" });
-      await storage.deletePersonalReminder(id);
     } else if (type === 'action') {
       const action = await storage.getActionItem(id);
       if (!action) return res.status(404).json({ error: "Not found" });
@@ -3827,26 +3696,7 @@ Thanks!`,
         .orderBy(desc(meetings.date))
         .limit(8),
 
-        db.select({
-          id: personalReminders.id,
-          text: personalReminders.text,
-          bucket: personalReminders.bucket,
-          dueDate: personalReminders.dueDate,
-          priority: personalReminders.priority,
-          isCompleted: personalReminders.isCompleted,
-        })
-        .from(personalReminders)
-        .where(and(
-          eq(personalReminders.userId, userId),
-          isNull(personalReminders.deletedAt),
-          or(
-            ilike(personalReminders.text, searchTerm),
-            ilike(personalReminders.notes, searchTerm),
-            ilike(personalReminders.description, searchTerm)
-          )
-        ))
-        .orderBy(desc(personalReminders.createdAt))
-        .limit(8),
+        Promise.resolve([]),
 
         db.select({
           id: notes.id,

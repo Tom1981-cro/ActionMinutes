@@ -245,7 +245,7 @@ export default function NotesPage() {
       return res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/personal/reminders'] });
+      queryClient.invalidateQueries({ queryKey: ['actions'] });
       toast({ title: data.message || "Actions extracted" });
     },
     onError: () => {
