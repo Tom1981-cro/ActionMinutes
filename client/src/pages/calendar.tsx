@@ -1289,7 +1289,7 @@ export default function CalendarPage() {
                     onClick={() => {
                       setSelectedDetailItem(null);
                       if (selectedDetailItem.type === 'reminder') {
-                        navigate('/app/reminders');
+                        navigate('/app/inbox');
                       } else {
                         navigate(`/app/task/${selectedDetailItem.id}`);
                       }

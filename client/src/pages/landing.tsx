@@ -355,8 +355,8 @@ const features = [
   },
   {
     icon: Bell,
-    title: "Reminders",
-    description: "Organize tasks by when they matter: Today, Tomorrow, Next Week, or Someday.",
+    title: "Task Inbox",
+    description: "All your tasks in one place — from meetings, quick adds, and AI extraction.",
     color: "amber"
   },
   {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Lightning, CalendarDots, X, CalendarBlank, Clock, Timer, Flag,
-  BellRinging, Hash, MapPin, Tray, ListBullets, CaretDown,
+  Hash, MapPin, Tray, ListBullets, CaretDown,
   Sun, SunHorizon, Calendar as CalendarIcon, ArrowsClockwise,
   Check
 } from "@phosphor-icons/react";
@@ -26,7 +26,7 @@ interface QuickAddProps {
   defaultDate?: Date | null;
 }
 
-type Destination = "inbox" | "reminders" | "meetings" | string;
+type Destination = "inbox" | "meetings" | string;
 type Priority = "high" | "normal" | "low" | "none";
 type RecurrenceOption = "daily" | "weekly" | "biweekly" | "monthly" | "yearly" | null;
 
@@ -280,23 +280,7 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange, defaultDate }: 
       if (!res.ok) throw new Error("Failed to create action");
       const reminder = await res.json();
 
-      if (destination === "reminders" && finalReminderAt) {
-        const endDate = new Date(finalReminderAt);
-        endDate.setMinutes(endDate.getMinutes() + 30);
-        await authenticatedFetch("/api/calendar/events", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: `⏰ ${title.trim()}`,
-            description: description || "",
-            startTime: finalReminderAt.toISOString(),
-            endTime: endDate.toISOString(),
-            provider: "local",
-          }),
-        });
-      }
-
-      if (destination !== "inbox" && destination !== "reminders" && destination !== "meetings") {
+      if (destination !== "inbox" && destination !== "meetings") {
         await authenticatedFetch(`/api/lists/${destination}/items`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -320,7 +304,6 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange, defaultDate }: 
 
       const destLabel =
         result.type === "inbox" ? "Inbox" :
-        result.type === "reminders" ? "Reminders" :
         result.type === "meetings" ? "Meetings" :
         customLists.find(l => l.id === result.type)?.name || "List";
 
@@ -371,14 +354,12 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange, defaultDate }: 
 
   const getDestinationLabel = () => {
     if (destination === "inbox") return "Inbox";
-    if (destination === "reminders") return "Reminders";
     if (destination === "meetings") return "Meetings";
     return customLists.find(l => l.id === destination)?.name || "List";
   };
 
   const getDestinationIcon = () => {
     if (destination === "inbox") return <Tray className="h-3 w-3" weight="duotone" />;
-    if (destination === "reminders") return <BellRinging className="h-3 w-3" weight="duotone" />;
     if (destination === "meetings") return <CalendarBlank className="h-3 w-3" weight="duotone" />;
     return <ListBullets className="h-3 w-3" weight="duotone" />;
   };
@@ -639,7 +620,6 @@ export function QuickAdd({ isOpen: controlledOpen, onOpenChange, defaultDate }: 
                 <PopoverContent className="w-44 p-1 bg-card border-border" align="start" side="top" sideOffset={8}>
                   {[
                     { value: "inbox" as Destination, label: "Inbox", icon: <Tray className="h-3.5 w-3.5" weight="duotone" /> },
-                    { value: "reminders" as Destination, label: "Reminders", icon: <BellRinging className="h-3.5 w-3.5" weight="duotone" /> },
                     { value: "meetings" as Destination, label: "Meetings", icon: <CalendarBlank className="h-3.5 w-3.5" weight="duotone" /> },
                   ].map((opt) => (
                     <button

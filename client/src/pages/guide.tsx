@@ -35,9 +35,9 @@ export default function GuidePage() {
     },
     {
       icon: Bell,
-      title: "Reminders",
+      title: "Task Inbox",
       color: "amber",
-      description: "Organize tasks by when they matter: Today, Tomorrow, Next Week, or Someday.",
+      description: "All your tasks unified in one place — from meetings, quick adds, and AI extraction.",
       tips: [
         "Drag and drop tasks between time buckets",
         "Natural language input: 'Call mom tomorrow'",

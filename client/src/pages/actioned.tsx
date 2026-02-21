@@ -233,7 +233,7 @@ export default function ActionedPage() {
           <span className="text-sm text-muted-foreground">({allItems.length})</span>
         )}
       </div>
-      <p className="text-sm text-muted-foreground">Tasks and reminders you've completed.</p>
+      <p className="text-sm text-muted-foreground">Tasks you've completed.</p>
 
       {isLoading ? (
         <SkeletonList count={4} type="card" />

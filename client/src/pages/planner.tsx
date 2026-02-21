@@ -7,7 +7,7 @@ import { authenticatedFetch } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import {
   Sun, Moon, CloudSun, CloudRain, CloudSnow, Wind, CloudFog, Cloud, Lightning as LightningBolt, Thermometer,
-  MapPin, Circle, CheckCircle, Clock, CalendarBlank, Bell, Target, Users, CaretRight,
+  MapPin, Circle, CheckCircle, Clock, CalendarBlank, Bell, Tray, Target, Users, CaretRight,
   Plus, ArrowRight, Sparkle, Star, Play, ArrowDown, ArrowUp
 } from "@phosphor-icons/react";
 import { TaskDetailModal } from "@/components/task-detail-modal";
@@ -210,7 +210,7 @@ export default function PlannerPage() {
               <span className="font-semibold text-gray-900">{todayActions.length}</span>
             </div>
             <div className="flex justify-between text-gray-500">
-              <span>Reminders</span>
+              <span>Personal tasks</span>
               <span className="font-semibold text-gray-900">{todayReminders.length}</span>
             </div>
           </div>
@@ -320,10 +320,10 @@ export default function PlannerPage() {
                   {todayReminders.map(r => (
                     <div key={r.id} className="bg-gray-50 p-3.5 rounded-2xl flex justify-between items-center border border-gray-100">
                       <button
-                        onClick={() => navigate('/app/reminders')}
+                        onClick={() => navigate('/app/inbox')}
                         className="text-sm font-medium text-gray-700 text-left flex-1 mr-2 flex items-center gap-2"
                       >
-                        <Bell className="w-3.5 h-3.5 text-gray-400" />
+                        <Tray className="w-3.5 h-3.5 text-gray-400" />
                         {r.text}
                       </button>
                       <span className="text-[10px] font-bold bg-gray-200 text-gray-500 px-2 py-1 rounded">30m</span>

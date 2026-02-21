@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { 
-  Tray, CalendarBlank, PlusCircle, FileText, GearSix, Bell, BookOpen, SignOut,
+  Tray, CalendarBlank, PlusCircle, FileText, GearSix, BookOpen, SignOut,
   BookOpenText, CaretDown, CaretRight, Robot, User, Calendar, Waveform, NotePencil, ListBullets, Plus, PencilSimple, Check, X, DotsThree, Trash, Lightning,
   CheckCircle, Archive, MagnifyingGlass, Compass, Crosshair, Tag,
   House, Briefcase, UsersThree, Heart, GraduationCap, PaintBrush, Flower, Barbell, ChatCircle, UserCircle

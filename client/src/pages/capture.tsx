@@ -130,7 +130,7 @@ export default function CapturePage() {
 
   const [showReviewActions, setShowReviewActions] = useState(false);
   const [selectedActions, setSelectedActions] = useState<Set<number>>(new Set());
-  const [isAddingToReminders, setIsAddingToReminders] = useState(false);
+  const [isAddingToTasks, setIsAddingToTasks] = useState(false);
 
   const [showRecordingModal, setShowRecordingModal] = useState(false);
   const [showConsentDialog, setShowConsentDialog] = useState(false);
@@ -1383,7 +1383,7 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be auto-detected!`}
               Review Detected Actions
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              Select the actions you want to add to your Reminders list
+              Select the actions you want to add to your Inbox
             </DialogDescription>
           </DialogHeader>
           
@@ -1470,13 +1470,13 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be auto-detected!`}
                     return;
                   }
                   
-                  setIsAddingToReminders(true);
+                  setIsAddingToTasks(true);
                   
                   try {
                     const actionsToAdd = detectedActions.filter((_, i) => selectedActions.has(i));
                     
                     for (const action of actionsToAdd) {
-                      await fetch('/api/reminders', {
+                      await authenticatedFetch('/api/personal/reminders', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -1489,27 +1489,27 @@ Tip: Lines starting with 'Action:', 'TODO:', or 'Task:' will be auto-detected!`}
                     }
                     
                     toast({ 
-                      title: `Added ${actionsToAdd.length} action${actionsToAdd.length !== 1 ? 's' : ''} to Reminders`,
-                      description: "Check your Reminders to see them"
+                      title: `Added ${actionsToAdd.length} action${actionsToAdd.length !== 1 ? 's' : ''} to Inbox`,
+                      description: "Check your Inbox to see them"
                     });
                     setShowReviewActions(false);
                     setSelectedActions(new Set());
                   } catch (error) {
                     toast({ title: "Failed to add actions", variant: "destructive" });
                   } finally {
-                    setIsAddingToReminders(false);
+                    setIsAddingToTasks(false);
                   }
                 }}
-                disabled={selectedActions.size === 0 || isAddingToReminders}
+                disabled={selectedActions.size === 0 || isAddingToTasks}
                 className="flex-1"
-                data-testid="button-add-to-reminders"
+                data-testid="button-add-to-tasks"
               >
-                {isAddingToReminders ? (
+                {isAddingToTasks ? (
                   <ArrowsClockwise className="h-4 w-4 mr-2 animate-spin" weight="bold" />
                 ) : (
                   <Plus className="h-4 w-4 mr-2" weight="bold" />
                 )}
-                Add to Reminders
+                Add to Inbox
               </Button>
             </div>
           </div>
