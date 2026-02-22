@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { format, isToday, isYesterday, addDays, isBefore, startOfDay } from "date-fns";
 import {
   CheckCircle, Clock, Trash, User, Flag, CaretDown, CaretRight,
-  Sparkle, Lightning, Tray, Plus, Hourglass, Timer, WarningCircle, Play
+  Sparkle, Lightning, Tray, Plus, Hourglass, Timer, WarningCircle, Play, CalendarPlus
 } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,10 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { SkeletonList } from "@/components/skeleton-loader";
 import { GettingStarted } from "@/components/getting-started";
 import { TaskDetailModal } from "@/components/task-detail-modal";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 
 type FilterType = "all" | "unread" | "assigned" | "snoozed";
 type ViewMode = "list" | "smart";
@@ -545,6 +549,29 @@ function ItemCard({
   const unread = isUnread(item.createdAt);
   const { setFocusTask } = useStore();
   const [, nav] = useLocation();
+  const [confirmAction, setConfirmAction] = useState<'complete' | 'snooze' | 'delete' | 'focus' | 'checkbox-complete' | null>(null);
+
+  const confirmMessages: Record<string, string> = {
+    complete: "Are you sure you want to complete this task?",
+    snooze: "Are you sure you want to snooze this task to tomorrow?",
+    delete: "Are you sure you want to delete this task?",
+    focus: "Are you sure you want to start focusing on this task?",
+    "checkbox-complete": "Are you sure you want to complete this task?",
+  };
+
+  const handleConfirm = () => {
+    if (confirmAction === 'complete' || confirmAction === 'checkbox-complete') {
+      onComplete(item);
+    } else if (confirmAction === 'snooze') {
+      onSnooze(item);
+    } else if (confirmAction === 'delete') {
+      onDelete(item);
+    } else if (confirmAction === 'focus') {
+      setFocusTask(item.text);
+      nav('/app/focus');
+    }
+    setConfirmAction(null);
+  };
 
   return (
     <div
@@ -557,14 +584,14 @@ function ItemCard({
     >
       <div
         className={cn(
-          "flex-shrink-0 transition-opacity",
+          "flex-shrink-0 transition-opacity [&_button]:border-gray-300 [&_button]:hover:border-violet-500",
           hasSelection ? "opacity-100" : "opacity-0 group-hover:opacity-100"
         )}
-        onClick={(e) => { e.stopPropagation(); onToggleSelect(item.id); }}
+        onClick={(e) => { e.stopPropagation(); }}
       >
         <Checkbox
-          checked={selected}
-          onCheckedChange={() => onToggleSelect(item.id)}
+          checked={false}
+          onCheckedChange={() => setConfirmAction('checkbox-complete')}
           data-testid={`checkbox-${item.id}`}
         />
       </div>
@@ -591,7 +618,7 @@ function ItemCard({
 
           <div className="hidden group-hover:flex items-center gap-1 flex-shrink-0 animate-in fade-in duration-200">
             <button
-              onClick={(e) => { e.stopPropagation(); setFocusTask(item.text); nav('/app/focus'); }}
+              onClick={(e) => { e.stopPropagation(); setConfirmAction('focus'); }}
               className="p-1.5 rounded-lg hover:bg-violet-100 text-gray-400 hover:text-violet-600 transition-colors"
               title="Focus on this"
               data-testid={`action-focus-${item.id}`}
@@ -599,7 +626,15 @@ function ItemCard({
               <Play className="h-4 w-4" weight="fill" />
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); onComplete(item); }}
+              onClick={(e) => { e.stopPropagation(); nav('/app/planner'); }}
+              className="p-1.5 rounded-lg hover:bg-violet-100 text-gray-400 hover:text-violet-600 transition-colors"
+              title="Add to Planner"
+              data-testid={`action-planner-${item.id}`}
+            >
+              <CalendarPlus className="h-4 w-4" weight="fill" />
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setConfirmAction('complete'); }}
               className="p-1.5 rounded-lg hover:bg-emerald-100 text-gray-400 hover:text-emerald-600 transition-colors"
               title="Complete"
               data-testid={`action-complete-${item.id}`}
@@ -607,7 +642,7 @@ function ItemCard({
               <CheckCircle className="h-4 w-4" weight="fill" />
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); onSnooze(item); }}
+              onClick={(e) => { e.stopPropagation(); setConfirmAction('snooze'); }}
               className="p-1.5 rounded-lg hover:bg-violet-100 text-gray-400 hover:text-violet-600 transition-colors"
               title="Snooze to tomorrow"
               data-testid={`action-snooze-${item.id}`}
@@ -615,7 +650,7 @@ function ItemCard({
               <Clock className="h-4 w-4" weight="fill" />
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); onDelete(item); }}
+              onClick={(e) => { e.stopPropagation(); setConfirmAction('delete'); }}
               className="p-1.5 rounded-lg hover:bg-red-100 text-gray-400 hover:text-red-600 transition-colors"
               title="Delete"
               data-testid={`action-delete-${item.id}`}
@@ -656,6 +691,21 @@ function ItemCard({
           )}
         </div>
       </div>
+
+      <AlertDialog open={confirmAction !== null} onOpenChange={(open) => { if (!open) setConfirmAction(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Action</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAction ? confirmMessages[confirmAction] : ''}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirm}>Yes</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

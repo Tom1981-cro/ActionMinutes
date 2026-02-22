@@ -161,7 +161,7 @@ export default function DeletedPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       <div className="flex items-center gap-3">
         <Trash className="h-6 w-6 text-muted-foreground" weight="duotone" />
         <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">Deleted</h1>

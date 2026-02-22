@@ -210,7 +210,7 @@ export default function ListPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-5 pb-6">
+      <div className="p-6 space-y-5 pb-6">
         <div className="h-10 rounded-lg animate-pulse bg-muted" />
         <div className="h-40 rounded-2xl animate-pulse bg-muted" />
       </div>
@@ -239,7 +239,7 @@ export default function ListPage() {
   }) || [];
 
   return (
-    <div className="space-y-5 pb-6">
+    <div className="p-6 space-y-5 pb-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           {isEditingName ? (
