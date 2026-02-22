@@ -116,7 +116,6 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
   const [customReminderDate, setCustomReminderDate] = useState("");
   const [customReminderTime, setCustomReminderTime] = useState("09:00");
   const [contextMenuOpen, setContextMenuOpen] = useState(false);
-  const [isPinned, setIsPinned] = useState(false);
   const [showLinkParent, setShowLinkParent] = useState(false);
 
   const { data: item, isLoading } = useQuery({
@@ -313,6 +312,27 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
     queryClient.invalidateQueries({ queryKey: ["subtasks", itemId] });
     queryClient.invalidateQueries({ queryKey: ["action", itemId] });
   };
+
+  const pinMutation = useMutation({
+    mutationFn: async (pinned: boolean) => {
+      const res = await authenticatedFetch(`/api/actions/${itemId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isPinned: pinned }),
+      });
+      if (!res.ok) throw new Error("Failed to update pin");
+      return res.json();
+    },
+    onSuccess: (_, pinned) => {
+      invalidateAll();
+      toast({ title: pinned ? "Pinned to top" : "Unpinned" });
+    },
+    onError: () => {
+      toast({ title: "Failed to update pin", variant: "destructive" });
+    },
+  });
+
+  const isPinned = item?.isPinned ?? false;
 
   const handleUnlinkParent = async () => {
     try {
@@ -622,7 +642,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                     Link Parent Task
                   </button>
                   <button
-                    onClick={() => { setIsPinned(!isPinned); setContextMenuOpen(false); toast({ title: isPinned ? "Unpinned" : "Pinned to top" }); }}
+                    onClick={() => { pinMutation.mutate(!isPinned); setContextMenuOpen(false); }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
                     data-testid="ctx-pin"
                   >

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { 
   ListBullets, Plus, PencilSimple, Check, X,
-  ArrowRight, Flag, User, Hourglass,
+  ArrowRight, Flag, User, Hourglass, SortAscending, PushPin,
   House, Briefcase, UsersThree, Heart, GraduationCap, PaintBrush, Flower, Barbell, ChatCircle, UserCircle
 } from "@phosphor-icons/react";
 import type { Icon as PhosphorIcon } from "@phosphor-icons/react";
@@ -87,17 +87,25 @@ function TaskCard({ item, listId, listName }: { item: CustomListItem; listId: st
     }
   };
 
+  const itemIsPinned = (r as any)?.isPinned || (a as any)?.isPinned;
+
   return (
     <Card
-      className="hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl"
+      className={cn(
+        "hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl",
+        itemIsPinned && "ring-1 ring-primary/30"
+      )}
       onClick={handleClick}
       data-testid={`card-list-item-${item.id}`}
     >
       <CardContent className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
         <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
-          <p className="text-sm font-medium leading-snug text-foreground group-hover:text-primary transition-colors flex-1 min-w-0">
-            {text}
-          </p>
+          <div className="flex items-center gap-1.5">
+            {itemIsPinned && <PushPin className="h-3.5 w-3.5 text-primary flex-shrink-0" weight="fill" />}
+            <p className="text-sm font-medium leading-snug text-foreground group-hover:text-primary transition-colors flex-1 min-w-0">
+              {text}
+            </p>
+          </div>
           <div className="flex items-center justify-between sm:justify-end gap-2">
             <StatusBadge status={status} size="sm" />
             {dueDate && (
@@ -154,6 +162,8 @@ export default function ListPage() {
   const [editName, setEditName] = useState("");
   const [newTaskText, setNewTaskText] = useState("");
   const [isAddingTask, setIsAddingTask] = useState(false);
+  const [sortOrder, setSortOrder] = useState<"oldest" | "newest">("oldest");
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   const { data: list, isLoading } = useQuery<CustomList>({
     queryKey: ['custom-list', listId],
@@ -227,16 +237,29 @@ export default function ListPage() {
   }
 
   const IconComp = list.icon ? (LIST_ICON_MAP[list.icon] || ListBullets) : ListBullets;
-  const activeItems = list.items?.filter(i => {
+  const sortListItems = (items: CustomListItem[]) => {
+    return [...items].sort((a, b) => {
+      const aItem = a.actionItem || a.reminder;
+      const bItem = b.actionItem || b.reminder;
+      const aPinned = (aItem as any)?.isPinned ? 0 : 1;
+      const bPinned = (bItem as any)?.isPinned ? 0 : 1;
+      if (aPinned !== bPinned) return aPinned - bPinned;
+      const aCreated = (aItem as any)?.createdAt ? new Date((aItem as any).createdAt).getTime() : a.position;
+      const bCreated = (bItem as any)?.createdAt ? new Date((bItem as any).createdAt).getTime() : b.position;
+      return sortOrder === "oldest" ? aCreated - bCreated : bCreated - aCreated;
+    });
+  };
+
+  const activeItems = sortListItems(list.items?.filter(i => {
     if (i.reminder) return !i.reminder.isCompleted;
     if (i.actionItem) return i.actionItem.status !== 'done' && i.actionItem.status !== 'completed';
     return false;
-  }) || [];
-  const completedItems = list.items?.filter(i => {
+  }) || []);
+  const completedItems = sortListItems(list.items?.filter(i => {
     if (i.reminder) return i.reminder.isCompleted;
     if (i.actionItem) return i.actionItem.status === 'done' || i.actionItem.status === 'completed';
     return false;
-  }) || [];
+  }) || []);
 
   return (
     <div className="p-6 space-y-5 pb-6">
@@ -280,17 +303,57 @@ export default function ListPage() {
             {completedItems.length > 0 && ` · ${completedItems.length} completed`}
           </p>
         </div>
-        {!isAddingTask && (
-          <Button
-            size="sm"
-            onClick={() => setIsAddingTask(true)}
-            className="bg-primary hover:bg-primary/90 rounded-xl gap-1"
-            data-testid="button-add-list-task"
-          >
-            <Plus className="h-4 w-4" />
-            Add task
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <button
+              onClick={() => setShowSortMenu(!showSortMenu)}
+              className={cn(
+                "px-3 py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors border",
+                sortOrder !== "oldest"
+                  ? "bg-violet-50 text-violet-600 border-violet-200"
+                  : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+              )}
+              data-testid="button-sort"
+            >
+              <SortAscending className="h-4 w-4" />
+              Sort
+            </button>
+            {showSortMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowSortMenu(false)} />
+                <div className="absolute right-0 top-full mt-1 z-50 bg-white rounded-xl shadow-lg border border-gray-100 py-1 w-44">
+                  {([
+                    { value: "oldest" as const, label: "Oldest first" },
+                    { value: "newest" as const, label: "Newest first" },
+                  ]).map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setSortOrder(opt.value); setShowSortMenu(false); }}
+                      className={cn(
+                        "w-full text-left px-3 py-2 text-xs transition-colors",
+                        sortOrder === opt.value ? "bg-violet-50 text-violet-600 font-semibold" : "text-gray-700 hover:bg-gray-50"
+                      )}
+                      data-testid={`sort-${opt.value}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          {!isAddingTask && (
+            <Button
+              size="sm"
+              onClick={() => setIsAddingTask(true)}
+              className="bg-primary hover:bg-primary/90 rounded-xl gap-1"
+              data-testid="button-add-list-task"
+            >
+              <Plus className="h-4 w-4" />
+              Add task
+            </Button>
+          )}
+        </div>
       </div>
 
       {isAddingTask && (

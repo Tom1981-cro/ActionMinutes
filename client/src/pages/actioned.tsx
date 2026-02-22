@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowCounterClockwise, User, Flag, CheckCircle, Trash
+  ArrowCounterClockwise, User, Flag, CheckCircle, Trash, SortAscending, PushPin
 } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { useStore } from "@/lib/store";
@@ -27,6 +27,8 @@ interface UnifiedItem {
   ownerName?: string;
   priority?: string;
   completedAt?: string;
+  isPinned?: boolean;
+  createdAt?: string;
   _type: ItemType;
   _raw: any;
 }
@@ -50,15 +52,21 @@ function ActionedCard({
 
   return (
     <Card
-      className="hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl opacity-80"
+      className={cn(
+        "hover:translate-y-[-2px] hover:shadow-lg transition-all cursor-pointer group rounded-2xl opacity-80",
+        item.isPinned && "ring-1 ring-primary/30"
+      )}
       onClick={onClick}
       data-testid={`card-actioned-${item._type}-${item.id}`}
     >
       <CardContent className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
         <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
-          <p className="text-sm font-medium leading-snug text-foreground group-hover:text-primary transition-colors flex-1 min-w-0 line-through decoration-muted-foreground/40">
+          <div className="flex items-center gap-1.5">
+            {item.isPinned && <PushPin className="h-3.5 w-3.5 text-primary flex-shrink-0" weight="fill" />}
+            <p className="text-sm font-medium leading-snug text-foreground group-hover:text-primary transition-colors flex-1 min-w-0 line-through decoration-muted-foreground/40">
             {item.text}
           </p>
+          </div>
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
               <CheckCircle className="h-3 w-3" weight="fill" />
@@ -119,6 +127,8 @@ export default function ActionedPage() {
   const { user } = useStore();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedItem, setSelectedItem] = useState<{ id: string; type: 'meeting' | 'reminder' } | null>(null);
+  const [sortOrder, setSortOrder] = useState<"oldest" | "newest">("oldest");
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -179,6 +189,8 @@ export default function ActionedPage() {
       ownerName: a.ownerName,
       priority: undefined,
       completedAt: a.completedAt,
+      isPinned: a.isPinned ?? false,
+      createdAt: a.createdAt,
       _type: 'action' as ItemType,
       _raw: a,
     })),
@@ -189,12 +201,22 @@ export default function ActionedPage() {
       ownerName: t.assignee,
       priority: t.priority,
       completedAt: t.completedAt,
+      isPinned: t.isPinned ?? false,
+      createdAt: t.createdAt,
       _type: 'task' as ItemType,
       _raw: t,
     })),
   ].sort((a, b) => {
-    const aDate = a.completedAt ? new Date(a.completedAt).getTime() : 0;
-    const bDate = b.completedAt ? new Date(b.completedAt).getTime() : 0;
+    const aPinned = a.isPinned ? 0 : 1;
+    const bPinned = b.isPinned ? 0 : 1;
+    if (aPinned !== bPinned) return aPinned - bPinned;
+    if (sortOrder === "oldest") {
+      const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return aDate - bDate;
+    }
+    const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     return bDate - aDate;
   });
 
@@ -207,12 +229,52 @@ export default function ActionedPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <CheckCircle className="h-6 w-6 text-emerald-500" weight="duotone" />
-        <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">Actioned</h1>
-        {allItems.length > 0 && (
-          <span className="text-sm text-muted-foreground">({allItems.length})</span>
-        )}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <CheckCircle className="h-6 w-6 text-emerald-500" weight="duotone" />
+          <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">Actioned</h1>
+          {allItems.length > 0 && (
+            <span className="text-sm text-muted-foreground">({allItems.length})</span>
+          )}
+        </div>
+        <div className="relative">
+          <button
+            onClick={() => setShowSortMenu(!showSortMenu)}
+            className={cn(
+              "px-3 py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors border",
+              sortOrder !== "oldest"
+                ? "bg-violet-50 text-violet-600 border-violet-200"
+                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+            )}
+            data-testid="button-sort"
+          >
+            <SortAscending className="h-4 w-4" />
+            Sort
+          </button>
+          {showSortMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowSortMenu(false)} />
+              <div className="absolute right-0 top-full mt-1 z-50 bg-white rounded-xl shadow-lg border border-gray-100 py-1 w-44">
+                {([
+                  { value: "oldest" as const, label: "Oldest first" },
+                  { value: "newest" as const, label: "Newest first" },
+                ]).map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => { setSortOrder(opt.value); setShowSortMenu(false); setCurrentPage(1); }}
+                    className={cn(
+                      "w-full text-left px-3 py-2 text-xs transition-colors",
+                      sortOrder === opt.value ? "bg-violet-50 text-violet-600 font-semibold" : "text-gray-700 hover:bg-gray-50"
+                    )}
+                    data-testid={`sort-${opt.value}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
       <p className="text-sm text-muted-foreground">Tasks you've completed.</p>
 

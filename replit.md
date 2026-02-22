@@ -1,62 +1,49 @@
 # ActionMinutes
 
 ## Overview
+ActionMinutes is a personal productivity assistant designed to centralize and organize a user's life through integrated tools like notes, reminders, journaling, a calendar, and custom lists. A core feature is its AI-powered capability to transform meeting notes into actionable tasks, decisions, and risks. The application aims to enhance single-user personal productivity by providing a seamless, unified experience for managing tasks and information.
 
-ActionMinutes is a personal productivity assistant designed to help users organize their lives through a suite of integrated tools. It features notes, reminders, journaling, a calendar, and custom lists. A key highlight is its AI-powered capability to extract information from meeting notes, transforming them into actionable tasks. The application aims to enhance single-user personal productivity by centralizing various organizational aspects into a seamless experience.
-
-**Key Capabilities:**
-- **Inbox:** "Triage & Clarity" processing station with List/Smart Group views, filter pills (All/Unread/Assigned/Snoozed), hover triage actions (Complete/Snooze/Delete), bulk operations bar, visual unread states (blue dot), AI-like smart grouping (Overdue/Waiting/Communication/Deep Work/Quick Wins), and inline TaskDetailModal (two-panel: content+sidebar with subtasks, attachments, activity feed).
-- **AI Extraction:** Converts meeting notes into tasks, decisions, and risks.
-- **Unified Task Management:** All tasks (meeting-extracted, quick-added, and personal) managed through a single action_items table and Inbox view.
-- **Journal:** Interactive two-column layout with inline Quick Reflection card (template pills: Morning Intention / Evening Wind-down / Weekly Win, mood selector, textarea, Save Draft), always-visible Mood vs. Output weekly chart, purple gradient Daily Prompt card with rotating prompts, enhanced entry feed with date+time+mood headers, suggested action bars with "+ Add Task", and signal tag pills. AI task extraction, meeting context linking, and mood x productivity analytics.
-- **Calendar:** Enhanced "Action Center" calendar with Google/Outlook integration, "Reality Check" capacity planning (8h daily load bars), right sidebar with mini calendar widget, list/reminder filter checkboxes, and draggable unscheduled task backlog for time-blocking. Click on date opens QuickAdd with preselected date. Contextual meeting prep actions (Create Agenda / Take Notes).
-- **Notes:** Action-oriented capture system with masonry grid layout, AI "Text-to-Action" extraction pipeline, smart context linking to meetings, collection-based organization, color-coded cards, and right sidebar with Collections and Tags.
-- **Custom Lists:** User-defined organizational lists.
-- **Quick Add:** Instant information capture.
+Key capabilities include:
+- **Inbox:** A central station for managing and triaging all tasks, offering smart grouping and bulk operations.
+- **AI Extraction:** Automated conversion of meeting notes into actionable items.
+- **Unified Task Management:** All tasks are managed through a single system.
+- **Journal:** An interactive journal with quick reflection cards, mood tracking, daily prompts, and AI task extraction.
+- **Calendar:** An "Action Center" calendar with integration for Google/Outlook, capacity planning, and time-blocking features.
+- **Notes:** An action-oriented capture system with AI "Text-to-Action" extraction, smart context linking, and collection-based organization.
+- **Custom Lists:** User-defined lists for flexible organization.
+- **Quick Add:** For instant information capture across the application.
 
 ## User Preferences
-
 Preferred communication style: Simple, everyday language.
 
 ## System Architecture
-
-ActionMinutes is a full-stack TypeScript application. The frontend is built with React, utilizing Wouter for routing, Zustand for state management, and TanStack React Query for data fetching. UI components are developed with shadcn/ui and styled using Tailwind CSS with a minimal white/amber design system and Phosphor Icons. The backend is an Express.js application, employing Drizzle ORM with PostgreSQL. Authentication is handled via a custom JWT-based system.
-
-A separate mobile application is developed using Expo React Native, connecting to the same backend API and PostgreSQL database, offering all core features.
+ActionMinutes is a full-stack TypeScript application. The frontend uses React with Wouter for routing, Zustand for state management, and TanStack React Query for data fetching. UI components are built with shadcn/ui and styled using Tailwind CSS, featuring a minimal white/amber design system and Phosphor Icons. The backend is an Express.js application using Drizzle ORM with PostgreSQL. Authentication is handled via a custom JWT-based system. A separate mobile application, developed with Expo React Native, connects to the same backend API and PostgreSQL database, offering all core features.
 
 **Core Architectural Decisions:**
-- **Authentication:** Secure JWT-based system with access and refresh tokens.
-- **AI Integration:** Features for meeting capture, AI extraction for summaries, action items, decisions, risks, and automated follow-up email draft generation.
-- **Access Control:** Plan-based access control (Free and Pro tiers) managing features and usage limits.
-- **UI/UX Design:** Clean white top navigation bar with logo left, nav links center, and user actions right. Mobile bottom tab bar with 5 tabs (Inbox, Capture, Calendar, Journal, Notes). Additional pages accessible via user dropdown menu. Actioned and Deleted views in dropdown menu.
-- **Soft Delete:** Tasks and personal reminders support soft deletion via `deletedAt` timestamp. Deleted items viewable and restorable from the Deleted page. Actioned page shows completed items.
-- **Meeting Source Card:** Extraction page shows a "Source" card at top displaying linked transcripts with AI summaries (from transcript_summaries) and meeting notes.
-- **Design System:** Single light theme with minimal white/purple aesthetic matching the app logo. Architecture:
-    - `client/src/index.css`: CSS variable definitions for all semantic tokens (--color-background: #F8F7F4 pale warm grey, --color-primary: #8B5CF6 violet, --color-muted: #F5F5F0 warm grey, --color-foreground: #1A1A1A charcoal, --color-border: #E5E5E0).
-    - Inter font from Google Fonts, typography scale 32/24/18/16/14px.
-    - White cards with 12px radius and subtle shadow (0 2px 8px rgba(0,0,0,0.06)).
-    - Purple buttons (#8B5CF6 bg, white text, 8px radius, 600 weight). Violet palette: 50/100/200/300/400/500/600/700.
-    - Light grey inputs (#F5F5F0) with violet focus rings.
-    - No dark mode, no multi-theme system, no gradients, no glassmorphism.
-    - `client/src/theme/` files kept as minimal no-ops to avoid breaking imports.
-- **Notes Module:** Features AES-256-GCM encryption for note content at rest, with searchable keyword indexing. Supports mood tracking, tags, bi-directional links, and attachments. Notes page (`client/src/pages/notes.tsx`) redesigned as action-oriented capture system: (1) Masonry grid layout (CSS columns) with color-coded cards using semantic CSS tokens via `color-mix()`. (2) Create New card with action icons (voice, checklist, template). (3) Search bar with filter pills (All/Work/Personal/Meeting). (4) Right sidebar with Collections and Tags sections. (5) Smart context linking via `meetingId` column — notes linked to meetings show meeting badge. (6) AI "Text-to-Action" extraction via POST `/api/notes/:id/extract-actions` — scans note content and creates tasks in inbox. (7) Grid/list view toggle. (8) Collection-based organization via `collection` column on notes table.
-- **Calendar Synchronization:** Adapters for Google Calendar and Microsoft Outlook, supporting CRUD operations for events, real-time sync via webhooks, and free/busy queries.
-- **Calendar Action Center:** Calendar page (`client/src/pages/calendar.tsx`) redesigned as spacious full-width layout: (1) Flexible-width month grid with large day cells, capacity load bars (green/amber/red) computing tasks+events vs 8h. (2) Fixed 240px right sidebar with discreet sync status (green dot = connected, "Connect" link for unconnected) and draggable unscheduled tasks list. (3) HTML5 drag-and-drop from sidebar onto calendar day cells for time-blocking (also supports click-to-schedule). (4) No "Today" detail widget — grid is primary interaction surface. (5) Meeting prep dialog for external events (Google/Outlook) offering "Create Agenda" and "Take Notes".
-- **AI Summarization Service:** Structured summarization of transcripts, extracting concise summaries, key decisions, actionable tasks (with assignees, due dates, priority), sentiment analysis, and keywords.
+- **Authentication:** Secure JWT-based system utilizing access and refresh tokens.
+- **AI Integration:** AI features encompass meeting capture, extraction of summaries, action items, decisions, risks, and automated follow-up email draft generation.
+- **Access Control:** A plan-based system (Free and Pro tiers) manages feature access and usage limits.
+- **UI/UX Design:** A clean white top navigation bar and a mobile bottom tab bar provide intuitive navigation. The design adheres to a single light theme with a minimal white/purple aesthetic, using specific CSS variables for colors, Inter font, and consistent card styling.
+- **Soft Delete:** Tasks and personal reminders are soft-deleted using a `deletedAt` timestamp, allowing for restoration.
+- **Meeting Source Card:** Extraction pages display a source card with linked transcripts and AI summaries.
+- **Notes Module:** Features AES-256-GCM encryption for note content, searchable keyword indexing, mood tracking, tags, bi-directional links, and attachments. The notes page uses a masonry grid layout with color-coded cards and supports AI "Text-to-Action" extraction.
+- **Calendar Synchronization:** Adapters for Google Calendar and Microsoft Outlook enable CRUD operations for events, real-time sync, and free/busy queries.
+- **Calendar Action Center:** The calendar page features a spacious full-width layout with capacity load bars, a right sidebar for unscheduled tasks, and drag-and-drop time-blocking.
+- **AI Summarization Service:** Provides structured summarization of transcripts, extracting key information like decisions, tasks, sentiment, and keywords.
 - **Voice Command Activation:** Speech-to-action interface for interacting with the summarization service.
-- **Audio Transcription:** Multi-provider support (Gemini, OpenAI Whisper API) for speech-to-text, with transcript storage, full-text search, and export options.
-- **Live Meeting Recording:** In-browser audio recording via MediaRecorder API (audio/webm). GDPR consent dialog shown on first use (stored as `recordingConsentAt` timestamp in users table). Auto-transcribes on stop and inserts text into notes without user prompt. Compatible with template summarization and AI extraction flows.
-- **Template Summaries:** 18 professional templates across 6 categories with markdown rendering, Export PDF/Print/Copy actions, and database persistence via `transcript_summaries` table with `promptVersion: template:${templateId}` tracking.
-- **DatePickerModal:** Reusable modal component (`client/src/components/date-picker-modal.tsx`) with Date and Duration tabs. Date tab has quick icons (Today/Tomorrow/+7/Month), mini calendar, time input, reminder dropdown, repeat dropdown, and repeat-ends. Duration tab has start/end date+time, all-day toggle, same reminder/repeat options. Internal state management, commits on OK press.
-- **Task Detail Page:** Card-based layout with white cards and subtle shadows. Task title at top, cards for Task Details, Schedule (due date via DatePickerModal, duration, deadline, reminder, repeat, priority), Location+Tags row, and Notes with attachment support.
-- **Priority System:** High/Normal/Low/None (None as default). Maps to "normal" on backend for DB compatibility.
-- **Task Attachments:** `task_attachments` table in schema, multer-based file upload to `uploads/tasks/`, supports PDF, Word, Excel, PowerPoint, Markdown, and image files. API endpoints: GET/POST/DELETE `/api/attachments`.
+- **Audio Transcription:** Multi-provider support (Gemini, OpenAI Whisper API) for speech-to-text, including transcript storage, full-text search, and export options.
+- **Live Meeting Recording:** In-browser audio recording via MediaRecorder API, with GDPR consent, auto-transcription, and integration with AI extraction flows.
+- **Template Summaries:** Offers 18 professional templates for structured content, with markdown rendering, export options, and database persistence.
+- **DatePickerModal:** A reusable component for date and duration selection, including quick date options, time input, reminders, and repeat functionality.
+- **Task Detail Page:** A card-based layout for task details, scheduling, location, tags, and notes with attachment support.
+- **Priority System:** Tasks can be assigned High, Normal, Low, or None priority.
+- **Task Attachments:** Supports various file types (PDF, Word, Excel, PowerPoint, Markdown, images) via `multer`-based file upload.
+- **Subtasks:** Tasks can be linked as subtasks to parent tasks, visible within the parent task's detail view.
 
 ## External Dependencies
-
 - **Database:** PostgreSQL (via Drizzle ORM and `drizzle-kit`).
 - **AI/ML Services:**
-    - OpenAI (primary provider for AI services via Replit AI Integrations).
+    - OpenAI (primary provider via Replit AI Integrations).
     - Gemini (for audio transcription via Replit AI Integrations).
     - OpenAI Whisper API (for audio transcription).
     - Tesseract.js (for OCR).
@@ -66,19 +53,3 @@ A separate mobile application is developed using Expo React Native, connecting t
     - Chart.js (`react-chartjs-2`).
     - date-fns.
     - zod.
-
-## Documentation
-
-- `docs/USER_GUIDE.md` — Comprehensive user-facing guide (20 sections covering all features, navigation, keyboard shortcuts, subscription plans)
-- `docs/DEVELOPER_GUIDE.md` — Developer reference (14 sections: architecture, tech stack, project structure, database schema, auth system, full API reference with all actual endpoints, frontend architecture, AI services, theme system, calendar integration, billing, feature links/data flow, missing links/gaps analysis, 40+ suggested features by priority)
-
-## Recent Changes
-
-- **February 2026:** Created comprehensive User Guide and Developer Guide documentation in `docs/` folder. Developer Guide includes accurate API reference verified against actual routes, database schema audit, missing links/gaps analysis, and industry-standard feature suggestions.
-- **February 2026:** Added global search feature (Ctrl+F), ActionPlanner daily dashboard with weather widget, and four strategic journal enhancements: AI task extraction from entries, meeting context linking, structured templates (Morning Intentions / Evening Wind-down), and mood x productivity analytics dashboard.
-- **February 2026:** Redesigned Calendar page into spacious full-width layout matching design mockup: (1) Flexible-width month grid with large day cells showing events/tasks with capacity load bars, (2) Narrow 240px right sidebar with discreet sync status indicator (Google Cal / Outlook with green dot for connected) and unscheduled tasks list, (3) HTML5 drag-and-drop from sidebar tasks onto calendar day cells for time-blocking, (4) Removed "Today" detail widget — calendar grid is the primary interaction surface. Header has month/year title, prev/next nav, Today button, Filter button, and New Event. Meeting prep dialog retained for Google/Outlook events.
-- **February 2026:** Redesigned Notes page into action-oriented capture system: (1) Masonry grid layout with color-coded cards (semantic CSS tokens via color-mix), (2) Create New card with action icons (voice, checklist, template), (3) Search bar with filter pills (All/Work/Personal/Meeting), (4) Right sidebar with Collections and Tags, (5) Smart context linking — notes linked to meetings show meeting badge via meetingId column, (6) AI "Text-to-Action" extraction pipeline — POST /api/notes/:id/extract-actions scans note content and creates tasks in inbox, (7) Grid/list view toggle, (8) Collection-based organization via collection column. Schema enhanced with meetingId and collection columns on notes table.
-- **February 2026:** Redesigned Journal page into interactive two-column layout matching design mockup: (1) Inline Quick Reflection card with template pill buttons (Morning Intention, Evening Wind-down, Weekly Win), compact mood selector, textarea with "Save Draft", (2) Always-visible "Mood vs. Output" weekly bar chart with productivity insight, (3) Purple gradient Daily Prompt card with rotating prompts and "Answer" button, (4) Enhanced entry feed with date+time+mood headers, "Suggested Action" bars with "+ Add Task", and signal tag pills. Analytics always fetched (removed toggle).
-- **February 2026:** Completed unified task management — fully removed personal_reminders table, schema, routes, and all frontend references. All tasks now use action_items table exclusively with source field ('meeting' | 'quickadd'). Inbox, Quick Add, Planner, Calendar, Actioned, Journal, and Notes all updated. Planner now has "Add from Inbox" modal to pull items into daily plan. /app/reminders redirects to /app/inbox.
-- **February 2026:** Added "Link Parent Task" feature: tasks can be linked as subtasks of other tasks via `parentTaskId` column on `action_items`. Task detail modal context menu "Link Parent Task" opens a modal showing all tasks grouped by location (Inbox, custom lists) with search. Linked subtasks are hidden from main views (Inbox, etc.) and displayed in the parent task's detail view with unlink option. API endpoints: GET /api/actions/:id/subtasks, POST /api/actions/:id/link-parent, POST /api/actions/:id/unlink-parent. Includes self-link and circular reference prevention.
-- **February 2026:** Added confirmation dialogs for all Inbox task actions (Complete, Snooze, Delete, Focus) with Cancel/Yes options. Added "Add to Planner" button on task hover actions. Checkbox now triggers completion confirmation. Fixed layout padding on Lists, Actioned, and Deleted pages to match Inbox spacing.

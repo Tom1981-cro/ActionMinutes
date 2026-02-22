@@ -10,7 +10,8 @@ import { cn } from "@/lib/utils";
 import { format, isToday, isYesterday, addDays, isBefore, startOfDay } from "date-fns";
 import {
   CheckCircle, Clock, Trash, User, Flag, CaretDown, CaretRight,
-  Sparkle, Lightning, Tray, Plus, Hourglass, Timer, WarningCircle, Play, CalendarPlus
+  Sparkle, Lightning, Tray, Plus, Hourglass, Timer, WarningCircle, Play, CalendarPlus,
+  SortAscending, PushPin
 } from "@phosphor-icons/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,7 @@ interface UnifiedItem {
   description?: string;
   createdAt: string | null;
   estimatedMinutes?: number;
+  isPinned?: boolean;
 }
 
 type SmartGroup = {
@@ -104,6 +106,8 @@ export default function InboxPage() {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [modalItem, setModalItem] = useState<UnifiedItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortOrder, setSortOrder] = useState<"oldest" | "newest" | "due_date" | "priority">("oldest");
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   const { data: actionItems = [], isLoading } = useActionItems();
 
@@ -170,6 +174,7 @@ export default function InboxPage() {
         description: item.notes,
         createdAt: item.createdAt || null,
         estimatedMinutes: item.estimatedMinutes,
+        isPinned: item.isPinned ?? false,
       })),
   [actionItems]);
 
@@ -185,17 +190,40 @@ export default function InboxPage() {
 
   const sortedItems = useMemo(() => {
     return [...filteredItems].sort((a, b) => {
-      const aOverdue = isOverdue(a.dueDate) ? 0 : 1;
-      const bOverdue = isOverdue(b.dueDate) ? 0 : 1;
-      if (aOverdue !== bOverdue) return aOverdue - bOverdue;
-      if (a.dueDate && b.dueDate) return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
-      if (a.dueDate && !b.dueDate) return -1;
-      if (!a.dueDate && b.dueDate) return 1;
-      const aCreated = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const bCreated = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return bCreated - aCreated;
+      const aPinned = a.isPinned ? 0 : 1;
+      const bPinned = b.isPinned ? 0 : 1;
+      if (aPinned !== bPinned) return aPinned - bPinned;
+
+      if (sortOrder === "oldest") {
+        const aCreated = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bCreated = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return aCreated - bCreated;
+      }
+      if (sortOrder === "newest") {
+        const aCreated = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bCreated = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return bCreated - aCreated;
+      }
+      if (sortOrder === "due_date") {
+        if (a.dueDate && b.dueDate) return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        if (a.dueDate && !b.dueDate) return -1;
+        if (!a.dueDate && b.dueDate) return 1;
+        const aCreated = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bCreated = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return aCreated - bCreated;
+      }
+      if (sortOrder === "priority") {
+        const priorityRank: Record<string, number> = { high: 0, urgent: 0, normal: 1, medium: 1, low: 2, none: 3 };
+        const aRank = priorityRank[a.priority || "none"] ?? 3;
+        const bRank = priorityRank[b.priority || "none"] ?? 3;
+        if (aRank !== bRank) return aRank - bRank;
+        const aCreated = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bCreated = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return aCreated - bCreated;
+      }
+      return 0;
     });
-  }, [filteredItems]);
+  }, [filteredItems, sortOrder]);
 
   const totalPages = Math.ceil(sortedItems.length / PAGE_SIZE);
   const paginatedItems = sortedItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
@@ -317,6 +345,46 @@ export default function InboxPage() {
             >
               Smart Group
             </button>
+          </div>
+          <div className="relative">
+            <button
+              onClick={() => setShowSortMenu(!showSortMenu)}
+              className={cn(
+                "px-3 py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors border",
+                sortOrder !== "oldest"
+                  ? "bg-violet-50 text-violet-600 border-violet-200"
+                  : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+              )}
+              data-testid="button-sort"
+            >
+              <SortAscending className="h-4 w-4" />
+              Sort
+            </button>
+            {showSortMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowSortMenu(false)} />
+                <div className="absolute right-0 top-full mt-1 z-50 bg-white rounded-xl shadow-lg border border-gray-100 py-1 w-44">
+                  {([
+                    { value: "oldest", label: "Oldest first" },
+                    { value: "newest", label: "Newest first" },
+                    { value: "due_date", label: "Due date" },
+                    { value: "priority", label: "Priority" },
+                  ] as const).map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setSortOrder(opt.value); setShowSortMenu(false); setCurrentPage(1); }}
+                      className={cn(
+                        "w-full text-left px-3 py-2 text-xs transition-colors",
+                        sortOrder === opt.value ? "bg-violet-50 text-violet-600 font-semibold" : "text-gray-700 hover:bg-gray-50"
+                      )}
+                      data-testid={`sort-${opt.value}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
           <button
             onClick={() => setQuickAddOpen(true)}
@@ -576,8 +644,9 @@ function ItemCard({
   return (
     <div
       className={cn(
-        "relative flex items-center gap-3 bg-white rounded-2xl py-3 px-4 cursor-pointer transition-all group shadow-sm border border-gray-100",
+        "relative flex items-center gap-3 bg-white rounded-2xl py-3 px-4 cursor-pointer transition-all group shadow-sm border",
         "hover:shadow-md",
+        item.isPinned ? "border-violet-300/60 ring-1 ring-primary/30" : "border-gray-100",
         selected && "ring-1 ring-violet-300 bg-violet-50/30"
       )}
       data-testid={`card-action-${item.id}`}
@@ -595,6 +664,10 @@ function ItemCard({
           data-testid={`checkbox-${item.id}`}
         />
       </div>
+
+      {item.isPinned && (
+        <PushPin className="h-3.5 w-3.5 text-primary flex-shrink-0" weight="fill" />
+      )}
 
       <div
         className={cn(

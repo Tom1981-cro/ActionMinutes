@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Trash, ArrowCounterClockwise, User, Flag, Warning
+  Trash, ArrowCounterClockwise, User, Flag, Warning, SortAscending, PushPin
 } from "@phosphor-icons/react";
 import { format } from "date-fns";
 import { useStore } from "@/lib/store";
@@ -34,14 +34,20 @@ function DeletedCard({ item, type, onRestore, onPermanentDelete }: {
 
   return (
     <Card
-      className="rounded-2xl opacity-70"
+      className={cn(
+        "rounded-2xl opacity-70",
+        item.isPinned && "ring-1 ring-primary/30"
+      )}
       data-testid={`card-deleted-${type}-${item.id}`}
     >
       <CardContent className="pb-2 px-4 pt-4 md:px-6 md:pt-5">
         <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-2">
-          <p className="text-sm font-medium leading-snug text-foreground flex-1 min-w-0 line-through decoration-muted-foreground/40">
-            {title}
-          </p>
+          <div className="flex items-center gap-1.5">
+            {item.isPinned && <PushPin className="h-3.5 w-3.5 text-primary flex-shrink-0" weight="fill" />}
+            <p className="text-sm font-medium leading-snug text-foreground flex-1 min-w-0 line-through decoration-muted-foreground/40">
+              {title}
+            </p>
+          </div>
           <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30 shrink-0">
             <Trash className="h-3 w-3" weight="fill" />
             Deleted
@@ -105,6 +111,8 @@ export default function DeletedPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortOrder, setSortOrder] = useState<"oldest" | "newest">("oldest");
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   const { data, isLoading } = useQuery<DeletedData>({
     queryKey: ["deleted", user.id],
@@ -155,19 +163,67 @@ export default function DeletedPage() {
     ...(data?.reminders || []).map(r => ({ ...r, _type: 'reminder' as const })),
     ...(data?.actions || []).map(a => ({ ...a, _type: 'action' as const })),
   ].sort((a, b) => {
-    const aDate = a.deletedAt ? new Date(a.deletedAt).getTime() : 0;
-    const bDate = b.deletedAt ? new Date(b.deletedAt).getTime() : 0;
+    const aPinned = (a as any).isPinned ? 0 : 1;
+    const bPinned = (b as any).isPinned ? 0 : 1;
+    if (aPinned !== bPinned) return aPinned - bPinned;
+    if (sortOrder === "oldest") {
+      const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return aDate - bDate;
+    }
+    const aDate = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const bDate = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     return bDate - aDate;
   });
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <Trash className="h-6 w-6 text-muted-foreground" weight="duotone" />
-        <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">Deleted</h1>
-        {allItems.length > 0 && (
-          <span className="text-sm text-muted-foreground">({allItems.length})</span>
-        )}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Trash className="h-6 w-6 text-muted-foreground" weight="duotone" />
+          <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">Deleted</h1>
+          {allItems.length > 0 && (
+            <span className="text-sm text-muted-foreground">({allItems.length})</span>
+          )}
+        </div>
+        <div className="relative">
+          <button
+            onClick={() => setShowSortMenu(!showSortMenu)}
+            className={cn(
+              "px-3 py-2 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors border",
+              sortOrder !== "oldest"
+                ? "bg-violet-50 text-violet-600 border-violet-200"
+                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+            )}
+            data-testid="button-sort"
+          >
+            <SortAscending className="h-4 w-4" />
+            Sort
+          </button>
+          {showSortMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowSortMenu(false)} />
+              <div className="absolute right-0 top-full mt-1 z-50 bg-white rounded-xl shadow-lg border border-gray-100 py-1 w-44">
+                {([
+                  { value: "oldest" as const, label: "Oldest first" },
+                  { value: "newest" as const, label: "Newest first" },
+                ]).map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => { setSortOrder(opt.value); setShowSortMenu(false); setCurrentPage(1); }}
+                    className={cn(
+                      "w-full text-left px-3 py-2 text-xs transition-colors",
+                      sortOrder === opt.value ? "bg-violet-50 text-violet-600 font-semibold" : "text-gray-700 hover:bg-gray-50"
+                    )}
+                    data-testid={`sort-${opt.value}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
       <p className="text-sm text-muted-foreground">Items you've deleted. Restore them or remove permanently.</p>
 
