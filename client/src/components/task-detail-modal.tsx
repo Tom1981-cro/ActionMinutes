@@ -22,8 +22,9 @@ import {
   ArrowsClockwise, Timer, BellRinging, FloppyDisk, Notepad,
   Lightning, Tray, ListBullets, CaretDown, DotsThree,
   PushPin, Prohibit, ClockCounterClockwise, Copy, FilePlus,
-  Link, Printer, NoteBlank
+  Link, Printer, NoteBlank, LinkBreak
 } from "@phosphor-icons/react";
+import { LinkParentTaskModal } from "@/components/link-parent-task-modal";
 
 const PRIORITIES = [
   { value: "high", label: "High", color: "text-red-500", bg: "bg-red-500/15 border-red-500/25" },
@@ -116,6 +117,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
   const [customReminderTime, setCustomReminderTime] = useState("09:00");
   const [contextMenuOpen, setContextMenuOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
+  const [showLinkParent, setShowLinkParent] = useState(false);
 
   const { data: item, isLoading } = useQuery({
     queryKey: ["action", itemId],
@@ -163,6 +165,26 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
       return res.json();
     },
     enabled: open,
+  });
+
+  const { data: parentTask } = useQuery({
+    queryKey: ["action", item?.parentTaskId],
+    queryFn: async () => {
+      const res = await authenticatedFetch(`/api/actions/${item!.parentTaskId}`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!item?.parentTaskId && open,
+  });
+
+  const { data: linkedSubtasks = [] } = useQuery<any[]>({
+    queryKey: ["subtasks", itemId],
+    queryFn: async () => {
+      const res = await authenticatedFetch(`/api/actions/${itemId}/subtasks`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: !!itemId && open,
   });
 
   const moveToList = useMutation({
@@ -214,6 +236,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
     setWaitingFor("");
     setSubtasks([]);
     setNewSubtaskText("");
+    setShowLinkParent(false);
   }, [itemId]);
 
   useEffect(() => {
@@ -287,7 +310,19 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
     queryClient.invalidateQueries({ queryKey: ["custom-list"] });
     queryClient.invalidateQueries({ queryKey: ["custom-lists"] });
     queryClient.invalidateQueries({ queryKey: ["item-list", "meeting", itemId] });
+    queryClient.invalidateQueries({ queryKey: ["subtasks", itemId] });
     queryClient.invalidateQueries({ queryKey: ["action", itemId] });
+  };
+
+  const handleUnlinkParent = async () => {
+    try {
+      const res = await authenticatedFetch(`/api/actions/${itemId}/unlink-parent`, { method: "POST" });
+      if (!res.ok) throw new Error("Failed to unlink");
+      invalidateAll();
+      toast({ title: "Parent task unlinked" });
+    } catch {
+      toast({ title: "Failed to unlink parent task", variant: "destructive" });
+    }
   };
 
   const combineDateTime = (date: Date | null, time: string): Date | null => {
@@ -579,7 +614,7 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                     Add Subtask
                   </button>
                   <button
-                    onClick={() => { setContextMenuOpen(false); toast({ title: "Link Parent Task", description: "Search for a parent task to link." }); }}
+                    onClick={() => { setContextMenuOpen(false); setShowLinkParent(true); }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[12px] text-foreground hover:bg-accent transition-colors text-left"
                     data-testid="ctx-link-parent"
                   >
@@ -733,6 +768,22 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                   />
                 </div>
 
+                {item?.parentTaskId && parentTask && (
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20" data-testid="parent-task-info">
+                    <Link className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                    <span className="text-[12px] text-muted-foreground">Subtask of:</span>
+                    <span className="text-[12px] font-medium text-foreground truncate flex-1">{parentTask.text}</span>
+                    <button
+                      onClick={handleUnlinkParent}
+                      className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive transition-colors flex-shrink-0"
+                      data-testid="button-unlink-parent"
+                    >
+                      <LinkBreak className="h-3.5 w-3.5" />
+                      Unlink
+                    </button>
+                  </div>
+                )}
+
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -814,6 +865,50 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
                     </button>
                   </div>
                 </div>
+
+                {linkedSubtasks.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                      <Link className="h-3.5 w-3.5" />
+                      Linked Subtasks ({linkedSubtasks.length})
+                    </h3>
+                    <div className="space-y-1">
+                      {linkedSubtasks.map((ls: any) => (
+                        <div
+                          key={ls.id}
+                          className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-accent cursor-pointer group/linked transition-colors"
+                          onClick={() => { onClose(); setTimeout(() => { const event = new CustomEvent('open-task-detail', { detail: { id: ls.id } }); window.dispatchEvent(event); }, 200); }}
+                          data-testid={`linked-subtask-${ls.id}`}
+                        >
+                          <div className={cn(
+                            "w-2 h-2 rounded-full flex-shrink-0",
+                            ls.status === 'done' ? "bg-emerald-500" : ls.status === 'waiting' ? "bg-violet-500" : "bg-gray-300"
+                          )} />
+                          <span className={cn(
+                            "flex-1 text-sm truncate",
+                            ls.status === 'done' && "line-through text-muted-foreground"
+                          )}>
+                            {ls.text}
+                          </span>
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              await authenticatedFetch(`/api/actions/${ls.id}/unlink-parent`, { method: "POST" });
+                              queryClient.invalidateQueries({ queryKey: ["subtasks", itemId] });
+                              queryClient.invalidateQueries({ queryKey: ["actions"] });
+                              toast({ title: "Subtask unlinked" });
+                            }}
+                            className="opacity-0 group-hover/linked:opacity-100 text-muted-foreground hover:text-destructive transition-all p-0.5"
+                            title="Unlink subtask"
+                            data-testid={`unlink-subtask-${ls.id}`}
+                          >
+                            <LinkBreak className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
@@ -1261,6 +1356,12 @@ export function TaskDetailModal({ open, onClose, itemId, itemType }: TaskDetailM
           setDeadline(null);
           setDeadlineInput("");
         }}
+      />
+      <LinkParentTaskModal
+        open={showLinkParent}
+        onOpenChange={setShowLinkParent}
+        currentTaskId={itemId}
+        onLinked={() => { invalidateAll(); onClose(); }}
       />
     </div>
   );

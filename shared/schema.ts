@@ -182,6 +182,7 @@ export const actionItems = pgTable("action_items", {
   tags: text("tags").array().notNull().default(sql`ARRAY[]::text[]`),
   description: text("description"),
   subtasks: jsonb("subtasks"),
+  parentTaskId: varchar("parent_task_id", { length: 36 }),
   notes: text("notes"),
   location: text("location"),
   recurrence: text("recurrence"),

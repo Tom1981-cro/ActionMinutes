@@ -108,6 +108,7 @@ export interface IStorage {
   deleteActionItem(id: string): Promise<void>;
   permanentDeleteActionItem(id: string): Promise<void>;
   restoreActionItem(id: string): Promise<void>;
+  getSubtasks(parentId: string): Promise<ActionItem[]>;
   
   // Drafts
   getDrafts(userId: string, workspaceId?: string): Promise<FollowUpDraft[]>;
@@ -475,14 +476,14 @@ export class DatabaseStorage implements IStorage {
   async getActionItems(userId: string, workspaceId?: string): Promise<ActionItem[]> {
     if (workspaceId) {
       return await db.select().from(actionItems)
-        .where(and(eq(actionItems.workspaceId, workspaceId), isNull(actionItems.deletedAt)))
+        .where(and(eq(actionItems.workspaceId, workspaceId), isNull(actionItems.deletedAt), isNull(actionItems.parentTaskId)))
         .orderBy(desc(actionItems.createdAt));
     }
     const meetingItems = await db
       .select({ actionItems })
       .from(actionItems)
       .innerJoin(meetings, eq(actionItems.meetingId, meetings.id))
-      .where(and(eq(meetings.userId, userId), isNull(actionItems.workspaceId), isNull(actionItems.deletedAt)))
+      .where(and(eq(meetings.userId, userId), isNull(actionItems.workspaceId), isNull(actionItems.deletedAt), isNull(actionItems.parentTaskId)))
       .orderBy(desc(actionItems.createdAt))
       .then(rows => rows.map(r => r.actionItems));
 
@@ -491,13 +492,20 @@ export class DatabaseStorage implements IStorage {
         eq(actionItems.userId, userId),
         isNull(actionItems.meetingId),
         isNull(actionItems.workspaceId),
-        isNull(actionItems.deletedAt)
+        isNull(actionItems.deletedAt),
+        isNull(actionItems.parentTaskId)
       ))
       .orderBy(desc(actionItems.createdAt));
 
     const allItems = [...meetingItems, ...directItems];
     allItems.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return allItems;
+  }
+
+  async getSubtasks(parentId: string): Promise<ActionItem[]> {
+    return await db.select().from(actionItems)
+      .where(and(eq(actionItems.parentTaskId, parentId), isNull(actionItems.deletedAt)))
+      .orderBy(desc(actionItems.createdAt));
   }
 
   async getActionItemsForMeeting(meetingId: string): Promise<ActionItem[]> {

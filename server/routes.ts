@@ -1075,6 +1075,50 @@ Thanks!`,
     res.json({ success: true });
   });
 
+  app.get("/api/actions/:id/subtasks", requireAuth, async (req, res) => {
+    const action = await storage.getActionItem(req.params.id);
+    if (!action) return res.status(404).json({ error: "Action item not found" });
+    const subtasks = await storage.getSubtasks(req.params.id);
+    res.json(subtasks);
+  });
+
+  app.post("/api/actions/:id/link-parent", requireAuth, async (req, res) => {
+    const { parentTaskId } = req.body;
+    if (!parentTaskId || typeof parentTaskId !== 'string') {
+      return res.status(400).json({ error: "parentTaskId is required" });
+    }
+    const childId = req.params.id;
+    if (childId === parentTaskId) {
+      return res.status(400).json({ error: "Cannot link a task to itself" });
+    }
+    const child = await storage.getActionItem(childId);
+    if (!child) return res.status(404).json({ error: "Action item not found" });
+    const parent = await storage.getActionItem(parentTaskId);
+    if (!parent) {
+      return res.status(404).json({ error: "Parent task not found" });
+    }
+    let current: any = parent;
+    const visited = new Set<string>([childId]);
+    while (current?.parentTaskId) {
+      if (visited.has(current.parentTaskId)) {
+        return res.status(400).json({ error: "Circular reference detected" });
+      }
+      visited.add(current.parentTaskId);
+      current = await storage.getActionItem(current.parentTaskId);
+    }
+    const action = await storage.updateActionItem(childId, { parentTaskId });
+    if (!action) return res.status(404).json({ error: "Action item not found" });
+    res.json(action);
+  });
+
+  app.post("/api/actions/:id/unlink-parent", requireAuth, async (req, res) => {
+    const action = await storage.getActionItem(req.params.id);
+    if (!action) return res.status(404).json({ error: "Action item not found" });
+    const updated = await storage.updateActionItem(req.params.id, { parentTaskId: null });
+    if (!updated) return res.status(404).json({ error: "Action item not found" });
+    res.json(updated);
+  });
+
   app.post("/api/actions/:id/create-task", requireAuth, async (req, res) => {
     const userId = req.userId!;
     const actionId = req.params.id;
