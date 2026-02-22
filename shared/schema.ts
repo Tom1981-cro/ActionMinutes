@@ -183,6 +183,7 @@ export const actionItems = pgTable("action_items", {
   description: text("description"),
   subtasks: jsonb("subtasks"),
   parentTaskId: varchar("parent_task_id", { length: 36 }),
+  isPinned: boolean("is_pinned").notNull().default(false),
   notes: text("notes"),
   location: text("location"),
   recurrence: text("recurrence"),
